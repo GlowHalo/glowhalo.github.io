@@ -84,6 +84,7 @@
 
   .pin { width:30px; height:30px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.3); border:2px solid #fff; cursor:pointer; }
   .pin span { transform:rotate(45deg); font-size:14px; }
+  .pin span.pin-multi { font-size:10px; letter-spacing:-1px; }
 
   .picker-overlay { position:fixed; inset:0; z-index:50; background:#FDF4EC; display:flex; flex-direction:column; }
   .picker-overlay.hidden { display:none; }
@@ -145,6 +146,15 @@ const TYPES = [
   { key:"카페", color:"#B98B4E", icon:"☕" },
   { key:"기타", color:"#8C8378", icon:"📍" },
 ];
+const TYPE_PRIORITY = ["놀곳", "먹을곳", "카페", "기타"]; // 핀 대표 아이콘 우선순위 — 노는 것 위주
+function normalizeTypes(p){
+  if(Array.isArray(p.types) && p.types.length) return p.types;
+  if(p.type) return [p.type];
+  return ["기타"];
+}
+function primaryType(types){
+  return TYPE_PRIORITY.find(k => types.includes(k)) || types[0];
+}
 const SATISFACTIONS = [
   { key:"최고", emoji:"😍", color:"#3AAFA9" },
   { key:"무난", emoji:"🙂", color:"#B98B4E" },
@@ -155,9 +165,9 @@ const SEOUL_CITY_HALL = { lat:37.5665, lng:126.9780 };
 const STORAGE_KEY = "baby-place-registry:places";
 let idSeq = 10;
 let places = [
-  { id:1, raw:"https://map.kakao.com/xxxxx", source:"link", name:"몽실놀이터", type:"놀곳", memo:"실내라 비 와도 좋음, 주차 넉넉", favorite:true, lat:37.5665, lng:126.9780, satisfaction:"최고" },
-  { id:2, raw:"우리동네 국수집", source:"text", name:"우리동네 국수집", type:"먹을곳", memo:"이유식 데워줌", favorite:false, lat:37.5651, lng:126.9895 },
-  { id:3, raw:"https://place.map.naver.com/yyyyy", source:"link", name:"라운드어바웃 카페", type:"카페", memo:"유모차 자리 넓음", favorite:false, lat:37.5600, lng:126.9700 },
+  { id:1, raw:"https://map.kakao.com/xxxxx", source:"link", name:"몽실놀이터", types:["놀곳"], memo:"실내라 비 와도 좋음, 주차 넉넉", favorite:true, lat:37.5665, lng:126.9780, satisfaction:"최고" },
+  { id:2, raw:"우리동네 국수집", source:"text", name:"우리동네 국수집", types:["먹을곳"], memo:"이유식 데워줌", favorite:false, lat:37.5651, lng:126.9895 },
+  { id:3, raw:"https://place.map.naver.com/yyyyy", source:"link", name:"라운드어바웃 카페", types:["카페","놀곳"], memo:"계곡 옆이라 물놀이도 가능, 유모차 자리 넓음", favorite:false, lat:37.5600, lng:126.9700 },
 ];
 let draft = null;
 let rawInput = "";
@@ -183,6 +193,7 @@ function loadInitialState(){
         places = parsed;
         idSeq = nextIdSeq();
         isSharedView = true;
+        places = places.map(p => ({...p, types: normalizeTypes(p)}));
         return;
       }
     } catch(e){ /* 손상된 공유 링크면 기본 상태로 진행 */ }
@@ -197,6 +208,7 @@ function loadInitialState(){
       }
     } catch(e){ /* 저장값 손상 시 기본 샘플 유지 */ }
   }
+  places = places.map(p => ({...p, types: normalizeTypes(p)}));
 }
 
 function persist(){
@@ -252,7 +264,7 @@ function guessName(raw){
 }
 
 function visiblePlaces(){
-  return places.filter(p => filterType==="전체" ? true : p.type===filterType).filter(p => favOnly ? p.favorite : true);
+  return places.filter(p => filterType==="전체" ? true : (p.types||[]).includes(filterType)).filter(p => favOnly ? p.favorite : true);
 }
 function hasLoc(p){ return Number.isFinite(p.lat) && Number.isFinite(p.lng); }
 
@@ -338,7 +350,7 @@ function pickSearchResult(item){
     source: "search",
     name: item.place_name,
     address: item.road_address_name || item.address_name || "",
-    type: "놀곳",
+    types: ["놀곳"],
     memo: "",
     lat: parseFloat(item.y),
     lng: parseFloat(item.x)
@@ -363,7 +375,7 @@ function renderDraftForm(el){
       </div>
       <input class="name" id="draft-name" value="${esc(draft.name)}" placeholder="장소 이름" />
       ${draft.address ? `<div class="draft-addr">${esc(draft.address)}</div>` : ""}
-      <label>유형</label>
+      <label>유형 (여러 개 선택 가능 — 놀면서 먹는 곳이면 둘 다)</label>
       <div class="chiprow" id="type-row"></div>
       <textarea id="draft-memo" rows="2" placeholder="메모 (주차 등)">${esc(draft.memo)}</textarea>
       <button type="button" class="locbtn ${hasLoc(draft) ? 'set' : ''}" id="loc-btn">${hasLoc(draft) ? "📍 위치 수정" : "📍 위치 설정"}</button>
@@ -377,15 +389,23 @@ function renderDraftForm(el){
     openPicker(hasLoc(draft) ? { lat:draft.lat, lng:draft.lng } : null, loc => { draft.lat = loc.lat; draft.lng = loc.lng; renderAdd(); });
   });
 
-  document.getElementById("type-row").innerHTML = TYPES.map(t => `<div class="chip ${draft.type===t.key?'active':''}" data-t="${t.key}" style="${draft.type===t.key?`background:${t.color};`:''}">${t.key}</div>`).join("");
-  document.querySelectorAll("#type-row .chip").forEach(chip => chip.addEventListener("click", () => { draft.type = chip.dataset.t; renderAdd(); }));
+  document.getElementById("type-row").innerHTML = TYPES.map(t => `<div class="chip ${draft.types.includes(t.key)?'active':''}" data-t="${t.key}" style="${draft.types.includes(t.key)?`background:${t.color};`:''}">${t.key}</div>`).join("");
+  document.querySelectorAll("#type-row .chip").forEach(chip => chip.addEventListener("click", () => {
+    const key = chip.dataset.t;
+    if(draft.types.includes(key)){
+      if(draft.types.length > 1){ draft.types = draft.types.filter(t => t !== key); }
+    } else {
+      draft.types = [...draft.types, key];
+    }
+    renderAdd();
+  }));
 }
 
 function startRegister(){
   const raw = rawInput.trim();
   if(!raw) return;
   const center = mapReady ? currentMapCenter() : null;
-  draft = { raw, source: detectSource(raw), name: guessName(raw), type:"놀곳", memo:"", lat: center ? center.lat : undefined, lng: center ? center.lng : undefined };
+  draft = { raw, source: detectSource(raw), name: guessName(raw), types:["놀곳"], memo:"", lat: center ? center.lat : undefined, lng: center ? center.lng : undefined };
   rawInput = "";
   renderAdd();
 }
@@ -462,15 +482,18 @@ function renderList(){
   const visible = visiblePlaces();
   if(visible.length===0){ el.innerHTML = `<div class="empty">등록된 장소가 없어요.</div>`; return; }
   el.innerHTML = visible.map(p => {
-    const typeInfo = TYPES.find(t=>t.key===p.type);
     const located = hasLoc(p);
     const sourceIcon = p.source==="search" ? "🔍" : p.source==="link" ? "🔗" : "";
+    const badges = (p.types||[]).map(tk => {
+      const ti = TYPES.find(t=>t.key===tk);
+      return `<span class="badge" style="background:${ti?.color}">${esc(tk)}</span>`;
+    }).join("");
     return `
       <div class="pcard" data-id="${p.id}" onclick="onCardClick(${p.id})">
         <div class="pcard-top">
           <div>
             <div class="pcard-meta">
-              <span class="badge" style="background:${typeInfo?.color}">${esc(p.type)}</span>
+              ${badges}
               ${sourceIcon ? `<span style="font-size:10px;color:#C9BEAE;">${sourceIcon}</span>` : ""}
               ${!located && !isSharedView ? `<span class="noloc">📍 위치 미지정 · 탭해서 설정</span>` : ""}
             </div>
@@ -545,11 +568,15 @@ function initMap(){
   if(!draft && !rawInput.trim()){ renderAdd(); }
 }
 function createMarkerEl(place){
-  const typeInfo = TYPES.find(t => t.key===place.type) || TYPES[TYPES.length-1];
+  const types = place.types && place.types.length ? place.types : ["기타"];
+  const mainKey = primaryType(types);
+  const typeInfo = TYPES.find(t => t.key===mainKey) || TYPES[TYPES.length-1];
+  const subKey = types.find(t => t !== mainKey);
+  const subIcon = subKey ? (TYPES.find(t => t.key===subKey) || {}).icon : "";
   const wrap = document.createElement("div");
   wrap.className = "pin";
   wrap.style.background = typeInfo.color;
-  wrap.innerHTML = `<span>${typeInfo.icon}</span>`;
+  wrap.innerHTML = `<span class="${subIcon ? 'pin-multi' : ''}">${typeInfo.icon}${subIcon}</span>`;
   wrap.title = place.name;
   wrap.addEventListener("click", () => focusPlace(place.id));
   return wrap;
