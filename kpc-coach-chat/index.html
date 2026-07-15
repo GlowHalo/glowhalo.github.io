@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>오늘의 코칭</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Song+Myung&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+  * { box-sizing:border-box; }
+  body { margin:0; background:#EDEAE2; font-family:'Noto Sans KR',sans-serif; display:flex; justify-content:center; }
+  .serif { font-family:'Song Myung', serif; }
+  .mono { font-family:'IBM Plex Mono', monospace; }
+  .app { width:100%; max-width:420px; min-height:100vh; background:#FAF8F3; box-shadow:0 0 40px rgba(0,0,0,0.06); display:flex; flex-direction:column; }
+  .header { padding:32px 20px 16px; border-bottom:1px solid #E7E2D6; }
+  .header .tag { font-size:10px; letter-spacing:.2em; color:#C9A15D; margin:0; }
+  .header h1 { font-size:24px; margin:4px 0 0; color:#1F3A34; }
+  .stagebar { display:flex; gap:4px; margin-top:12px; }
+  .stagebar div { flex:1; height:4px; border-radius:999px; background:#E7E2D6; }
+  .stagebar div.on { background:#1F3A34; }
+  .stagelabel { font-size:10px; margin-top:6px; color:#A8A296; }
+  .content { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:16px; }
+  .row { display:flex; }
+  .row.user { justify-content:flex-end; }
+  .row.bot { justify-content:flex-start; }
+  .bubble-wrap { max-width:85%; }
+  .qlabel { display:flex; align-items:center; gap:4px; margin:0 0 4px 4px; font-size:9px; font-weight:600; letter-spacing:.05em; color:#C9A15D; }
+  .bubble { border-radius:16px; padding:12px 16px; font-size:14px; line-height:1.6; }
+  .bubble.user { background:#1F3A34; color:#FAF8F3; border-top-right-radius:4px; }
+  .bubble.bot { background:#FFFFFF; color:#2A2E2C; border:1px solid #E7E2D6; border-top-left-radius:4px; }
+  .summary { border-radius:16px; padding:16px; background:#F1ECDD; border:1px solid #E3D9BE; margin-top:8px; }
+  .summary .stitle { display:flex; align-items:center; gap:6px; margin-bottom:8px; font-size:12px; font-weight:600; color:#8A6D3B; }
+  .summary p { font-size:12px; line-height:1.8; color:#5B5343; margin:0; }
+  .inputbar { padding:8px 20px 16px; border-top:1px solid #E7E2D6; }
+  .inputwrap { display:flex; align-items:center; gap:8px; border-radius:999px; padding:6px 6px 6px 16px; background:#FFFFFF; border:1px solid #E7E2D6; }
+  .inputwrap input { flex:1; border:none; outline:none; font-size:14px; padding:8px 0; color:#2A2E2C; background:transparent; font-family:'Noto Sans KR',sans-serif; }
+  .sendbtn { width:36px; height:36px; border-radius:999px; border:none; display:flex; align-items:center; justify-content:center; background:#E7E2D6; color:#FAF8F3; cursor:pointer; flex-shrink:0; }
+  .sendbtn.active { background:#1F3A34; }
+  .donetext { text-align:center; font-size:11px; color:#A8A296; padding:8px 20px 24px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <p class="tag mono">SELF COACHING</p>
+    <h1 class="serif">오늘의 코칭</h1>
+    <div class="stagebar" id="stagebar"></div>
+    <p class="stagelabel" id="stagelabel">합의 단계</p>
+  </div>
+  <div class="content" id="content"></div>
+  <div id="inputarea"></div>
+</div>
+
+<script>
+const STAGE_LABEL = ["합의", "경청·반영", "강력한 질문", "알아차림", "실행 설계"];
+let messages = [
+  { role:"bot", text:"안녕하세요. 오늘은 어떤 주제를 다뤄보고 싶으세요?", isQuestion:true }
+];
+let turn = 0;
+let summary = null;
+let firstUserText = null;
+
+function botReply(userText, t){
+  switch(t){
+    case 1: return { text:`"${userText}" 이야기를 나눠주셨네요. 그 상황에서 지금 가장 크게 느껴지는 감정은 뭔가요?`, isQuestion:true };
+    case 2: return { text:`그 감정 안에는 어떤 바람이나 기대가 숨어있을까요? 잠깐 생각할 시간을 가져보셔도 좋아요.`, isQuestion:true };
+    case 3: return { text:`지금까지 이야기를 들어보니, 비슷한 패턴이 예전에도 있었을 것 같다는 느낌이 들어요. 혹시 짚이는 게 있으세요?`, isQuestion:true };
+    case 4: return { text:`좋아요, 거기까지 알아차리신 것만으로도 의미가 있어요. 그럼 이번 주에 딱 하나, 무엇을 해보시겠어요?`, isQuestion:true };
+    default: return { text:`좋습니다. "${userText}" — 이번 세션은 여기서 정리할게요. 아래 요약을 확인해보세요.`, isQuestion:false, end:true };
+  }
+}
+
+function render(){
+  const bar = document.getElementById("stagebar");
+  bar.innerHTML = STAGE_LABEL.map((_,i)=> `<div class="${(i <= turn-1 || (turn===0 && i===0)) ? 'on':''}"></div>`).join("");
+  document.getElementById("stagelabel").textContent = (turn===0 ? "합의" : STAGE_LABEL[Math.min(turn-1,4)]) + " 단계";
+
+  const content = document.getElementById("content");
+  content.innerHTML = messages.map(m => `
+    <div class="row ${m.role}">
+      <div class="bubble-wrap">
+        ${m.role==="bot" && m.isQuestion ? `<div class="qlabel">❓ COACHING Q</div>` : ""}
+        <div class="bubble ${m.role}">${m.text.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</div>
+      </div>
+    </div>
+  `).join("") + (summary ? `
+    <div class="summary">
+      <div class="stitle">✨ 세션 요약</div>
+      <p><b>오늘 다룬 주제</b> · ${summary.topic}<br/><b>알아차린 것</b> · ${summary.awareness}<br/><b>이번 주 실행 약속</b> · ${summary.action}</p>
+    </div>` : "");
+  content.scrollTop = content.scrollHeight;
+
+  const area = document.getElementById("inputarea");
+  if(!summary){
+    area.innerHTML = `
+      <div class="inputbar">
+        <div class="inputwrap">
+          <input id="msg-input" placeholder="자유롭게 이야기해보세요" />
+          <button class="sendbtn" id="send-btn">➤</button>
+        </div>
+      </div>`;
+    const input = document.getElementById("msg-input");
+    input.addEventListener("keydown", e => { if(e.key==="Enter") send(); });
+    input.addEventListener("input", () => {
+      document.getElementById("send-btn").classList.toggle("active", input.value.trim().length>0);
+    });
+    document.getElementById("send-btn").addEventListener("click", send);
+  } else {
+    area.innerHTML = `<div class="donetext">오늘 세션은 여기까지예요. 수고하셨어요.</div>`;
+  }
+}
+
+function send(){
+  const input = document.getElementById("msg-input");
+  const text = input.value.trim();
+  if(!text || summary) return;
+  if(firstUserText === null) firstUserText = text;
+  const nextTurn = turn + 1;
+  const reply = botReply(text, nextTurn);
+  messages.push({ role:"user", text });
+  messages.push({ role:"bot", ...reply });
+  turn = nextTurn;
+  if(reply.end){
+    summary = { topic: firstUserText, awareness: "반복되는 패턴을 스스로 알아차리셨어요.", action: text };
+  }
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
