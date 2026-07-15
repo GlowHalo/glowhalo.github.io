@@ -5,9 +5,10 @@
 
   허브(index.html, 사이트 루트 = 홈페이지)가 이 파일을 <script src>로 읽어서 카드를 그린다.
 
-  각 프로젝트는 독립된 GitHub 저장소 + GitHub Pages로 배포된다.
-  repo: "이름" 이면 실제 라이브 주소는 https://tossneon.github.io/이름/ 로 자동 계산됨
-  (허브 자신은 tossneon.github.io 저장소라 이 배열에 넣지 않는다).
+  모든 프로젝트는 이 저장소(tossneon.github.io) 안의 하위 폴더 하나로 관리·배포된다.
+  repo: "이름" 이면 폴더도 "이름/" 이고 라이브 주소는 https://tossneon.github.io/이름/ 로 자동 계산됨.
+  (관리 지점이 이 저장소 하나뿐 — push 한 번이면 전부 백업+배포.
+   나중에 독립 주소가 꼭 필요한 프로젝트가 생기면 그것만 별도 저장소로 분리한다.)
 
   status 값은 아래 4단계 중 하나(Notion의 "상태" select 컬럼과 동일):
     "아이디어"    - 아직 목업도 없음, repo 없음 — 허브에서는 카드가 아니라 짧은 메모 목록으로 표시

@@ -3,11 +3,3 @@ node_modules/
 Thumbs.db
 *.log
 .claude/settings.local.json
-
-# 프로젝트 폴더는 각자 독립된 git 저장소라 허브 저장소에서는 추적하지 않음
-KPC 코칭챗봇/
-아기랑 갈곳/
-체크노트/
-체크노트_실사용/
-초간단 배당현황/
-claude-auto-allow/
