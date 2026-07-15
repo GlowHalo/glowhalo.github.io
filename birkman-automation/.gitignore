@@ -1,0 +1,6 @@
+# ⚠️ 민감 데이터 — 공개 저장소(tossneon.github.io)에 절대 올라가면 안 됨
+data/            # 로그인 세션/쿠키, 고객정보, 결과 PDF
+node_modules/
+*.log
+.env
+config/settings.json   # 개인 설정(예시 파일만 커밋)

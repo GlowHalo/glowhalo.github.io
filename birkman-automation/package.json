@@ -1,0 +1,15 @@
+{
+  "name": "birkman-automation",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "버크만 진단 구매대행 + AI 디브리핑 자동화 (Phase 1: 진단지 구매~대상자 등록~결과 PDF 확보)",
+  "scripts": {
+    "login": "node src/login.js",
+    "map": "node src/map.js",
+    "run": "node src/cli.js"
+  },
+  "dependencies": {
+    "playwright": "^1.48.0"
+  }
+}
