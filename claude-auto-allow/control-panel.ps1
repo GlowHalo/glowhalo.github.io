@@ -249,7 +249,7 @@ $form.Controls.Add($stopBtn)
 
 # 자리비움 모드 토글
 $awayChk = New-Object System.Windows.Forms.CheckBox
-$awayChk.Text = "자리비움 모드 — '입력 대기 중' 세션 순회하며 허용"
+$awayChk.Text = "모든 '입력 대기 중' 세션 순회하며 허용"
 $awayChk.Location = New-Object System.Drawing.Point(16, 158)
 $awayChk.Size = New-Object System.Drawing.Size(360, 22)
 $form.Controls.Add($awayChk)
