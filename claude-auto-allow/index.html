@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Claude 자동 허용 — 권한 팝업 자동 클릭 매크로</title>
+<meta name="description" content="Claude Desktop 권한 팝업을 자동으로 허용해주는 Windows 매크로. 다운로드하고 더블클릭이면 끝." />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500;600&display=swap');
+  * { box-sizing: border-box; }
+  body { margin:0; background:#DCDCE0; font-family:'Noto Sans KR', sans-serif; display:flex; justify-content:center; }
+  .display { font-family:'Black Han Sans', sans-serif; }
+  .mono { font-family:'IBM Plex Mono', monospace; }
+  .app { width:100%; max-width:480px; background:#F5F5F7; box-shadow:0 0 60px rgba(0,0,0,0.08); min-height:100vh; }
+
+  .hero { position:relative; overflow:hidden; background:#0E0F13; }
+  .hero-bignum { position:absolute; top:-30px; right:-20px; font-size:200px; color:rgba(76,111,255,0.06); line-height:1; user-select:none; pointer-events:none; }
+  .hero-inner { position:relative; padding:52px 24px 44px; }
+  .hero-tag { font-size:11px; letter-spacing:.25em; color:#4C6FFF; margin:0; }
+  .hero h1 { font-size:42px; line-height:1.15; color:#F5F5F7; margin:16px 0 0; }
+  .mark { background-image:linear-gradient(120deg,#4C6FFF,#4C6FFF); background-repeat:no-repeat; background-size:100% 42%; background-position:0 88%; padding:0 4px; color:#F5F5F7; }
+  .hero p.desc { margin-top:20px; font-size:14px; line-height:1.7; color:#9A9CA5; max-width:340px; }
+
+  .dl { display:block; margin:28px 0 8px; text-align:center; text-decoration:none; background:#4C6FFF; color:#fff; font-weight:700; font-size:16px; padding:16px 20px; border-radius:14px; box-shadow:0 8px 22px rgba(76,111,255,0.35); transition:transform .15s ease, box-shadow .15s ease; }
+  .dl:hover { transform:translateY(-2px); box-shadow:0 14px 30px rgba(76,111,255,0.45); }
+  .dl small { display:block; font-weight:500; font-size:11px; opacity:.85; margin-top:4px; font-family:'IBM Plex Mono',monospace; }
+  .req { font-family:'IBM Plex Mono',monospace; font-size:11px; color:#63656F; text-align:center; margin:0; }
+
+  .section { padding:28px 24px 0; }
+  .section h2 { font-size:22px; margin:0 0 14px; color:#14151A; }
+
+  .warn { background:#FFF6E9; border:1px solid #F0D9A8; border-radius:14px; padding:16px 18px; }
+  .warn strong { color:#9A6A12; }
+  .warn p { margin:6px 0 0; font-size:13px; line-height:1.7; color:#7A5B1E; }
+
+  .steps { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px; }
+  .step { display:flex; gap:14px; align-items:flex-start; background:#fff; border:1px solid #E4E4E9; border-radius:14px; padding:16px 18px; }
+  .step .n { flex:none; width:26px; height:26px; border-radius:8px; background:#14151A; color:#fff; font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; display:flex; align-items:center; justify-content:center; }
+  .step .t { font-size:14px; line-height:1.6; color:#2A2B31; }
+  .step .t code { font-family:'IBM Plex Mono',monospace; font-size:12px; background:#F0F0F4; padding:2px 6px; border-radius:5px; color:#3A3B41; }
+  .step .t b { color:#4C6FFF; }
+
+  .feat { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
+  .feat li { font-size:14px; line-height:1.6; color:#3A3B41; padding-left:26px; position:relative; }
+  .feat li::before { content:"✓"; position:absolute; left:0; top:0; color:#4C6FFF; font-weight:700; }
+
+  .src { display:inline-flex; align-items:center; gap:6px; margin-top:14px; font-size:13px; font-weight:600; text-decoration:none; color:#14151A; background:#EDEDF1; padding:10px 16px; border-radius:999px; }
+
+  .footer { margin-top:36px; padding:28px 24px; background:#0E0F13; }
+  .footer .display { font-size:18px; color:#F5F5F7; margin:0; }
+  .footer p.c { font-family:'IBM Plex Mono',monospace; font-size:10px; color:#63656F; margin-top:8px; }
+  .footer a { color:#9A9CA5; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hero">
+    <div class="hero-bignum display">✔</div>
+    <div class="hero-inner">
+      <p class="hero-tag mono">WINDOWS · CLAUDE DESKTOP</p>
+      <h1 class="display"><span class="mark">Claude 자동 허용</span></h1>
+      <p class="desc">Claude Desktop에서 권한 팝업이 뜨면 <b style="color:#C9CBD3">"항상 허용"</b>을, 없으면 <b style="color:#C9CBD3">"한 번만 허용"</b>을 자동으로 눌러주는 매크로. 좌표가 아니라 버튼 글자를 읽어서 누르므로 창 위치·해상도가 바뀌어도 동작합니다.</p>
+      <a class="dl" href="claude-auto-allow.zip" download>⬇ 다운로드 (.zip)<small>Windows 10/11 · 별도 설치 불필요</small></a>
+      <p class="req">받은 뒤 압축 풀고 <b style="color:#9A9CA5">control-panel.vbs</b> 더블클릭이면 끝</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="warn">
+      <strong>⚠️ 먼저 읽어주세요</strong>
+      <p>이 매크로는 MCP 도구 실행 확인을 <b>사람 대신 자동 승인</b>합니다. 신뢰할 수 없는 MCP 서버가 붙어 있으면 위험한 동작(파일 삭제·외부 전송 등)도 그냥 통과되니, <strong>믿을 수 있는 환경에서만</strong> 켜세요.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="display">이렇게 씁니다</h2>
+    <ol class="steps">
+      <li class="step"><span class="n mono">1</span><span class="t">위 버튼으로 <code>claude-auto-allow.zip</code> 다운로드</span></li>
+      <li class="step"><span class="n mono">2</span><span class="t">압축 풀기 전 <b>우클릭 → 속성 → "차단 해제"</b> 체크 (인터넷 파일 경고 방지)</span></li>
+      <li class="step"><span class="n mono">3</span><span class="t"><code>control-panel.vbs</code> 더블클릭 → 조작 창이 뜹니다</span></li>
+      <li class="step"><span class="n mono">4</span><span class="t"><b>▶시작 / ■정지</b>로 켜고 끄기. 자동 클릭 횟수와 기록이 실시간으로 보입니다</span></li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2 class="display">특징</h2>
+    <ul class="feat">
+      <li>버튼 <b>글자</b>로 찾아 클릭 — 창 위치/해상도 바뀌어도 OK</li>
+      <li>현황 표시 + 시작/정지 버튼이 있는 조작 화면</li>
+      <li>Windows 내장 PowerShell만 사용 — AutoHotkey 등 별도 설치 불필요</li>
+      <li>조작 창을 닫으면 완전히 종료 (백그라운드 잔여 없음)</li>
+    </ul>
+    <a class="src" href="https://github.com/tossneon/claude-auto-allow" target="_blank" rel="noopener">📂 소스 코드 · 자세한 사용법 (GitHub)</a>
+  </div>
+
+  <div class="footer">
+    <p class="display">Ted Lee</p>
+    <p class="c">© 2026 · <a href="https://github.com/tossneon" target="_blank" rel="noopener">다른 프로젝트 (GitHub) ↗</a></p>
+  </div>
+</div>
+</body>
+</html>
