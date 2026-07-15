@@ -8,6 +8,11 @@ Claude Desktop에 권한 팝업이 뜨면 **"항상 허용"** 을, 그게 없으
 신뢰할 수 없는 MCP 서버가 붙어 있으면 위험한 동작(파일 삭제, 외부 전송 등)도 그냥 통과되니,
 **믿을 수 있는 환경에서만** 켜두세요.
 
+## 💻 실행 조건
+- **Windows 10/11 전용** — Mac·Linux 불가 (Windows PowerShell / UI Automation 사용)
+- **Claude Desktop 설치·실행 중**이어야 함 — 이 앱 창을 조작하는 매크로라 필수. Claude Desktop 없는 PC에선 아무 일도 안 함
+- 그 외 설치할 것 없음 — PowerShell은 Windows 기본 내장
+
 ## 📥 다운로드해서 처음 쓸 때 (중요)
 인터넷에서 받은 zip은 Windows가 "차단" 표시를 붙여서 실행 시 SmartScreen 경고가 뜰 수 있습니다.
 **압축을 풀기 전에** 처리하면 깔끔합니다:
