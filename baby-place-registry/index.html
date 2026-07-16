@@ -78,9 +78,6 @@
   .footnote { margin:0 20px 32px; border-radius:12px; padding:14px; background:#F3E7D9; color:#8C8378; font-size:11px; line-height:1.6; }
 
   .sharebtn { background:none; border:none; cursor:pointer; font-size:12px; color:#FF7B54; margin-left:auto; padding:4px 8px; border-radius:999px; border:1px solid #FFD9C7; }
-  .sharebanner { margin:0 20px 16px; border-radius:12px; padding:12px 14px; background:#FFF3E0; border:1px solid #FFD9C7; display:flex; align-items:center; justify-content:space-between; gap:10px; }
-  .sharebanner p { margin:0; font-size:11px; color:#8C6A4E; line-height:1.5; }
-  .sharebanner button { flex-shrink:0; padding:6px 10px; border-radius:8px; border:none; background:#FF7B54; color:#fff; font-size:11px; cursor:pointer; }
 
   .pin { width:30px; height:30px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.3); border:2px solid #fff; cursor:pointer; }
   .pin span { transform:rotate(45deg); font-size:14px; }
@@ -109,8 +106,6 @@
     <p class="sub">상호명을 검색하면 바로 등록돼요</p>
   </div>
 
-  <div id="banner"></div>
-
   <div class="map-wrap">
     <div id="map"></div>
     <button class="locate-btn" id="locate-btn" title="내 위치로 이동">📡</button>
@@ -136,6 +131,60 @@
     <button class="save" id="picker-confirm">이 위치로 설정</button>
   </div>
 </div>
+
+<script type="module">
+const FIREBASE_CONFIG = null; // TODO: Firebase 콘솔 > 프로젝트 설정 > 내 앱에서 복사한 firebaseConfig 객체를 여기 붙여넣으세요
+
+function stripUndefined(obj){
+  const out = {};
+  for(const k in obj){ if(obj[k] !== undefined) out[k] = obj[k]; }
+  return out;
+}
+
+async function initCloudSync(){
+  if(!FIREBASE_CONFIG){
+    window.cloudSync = { ready:false };
+    window.dispatchEvent(new Event("cloudsync-ready"));
+    return;
+  }
+  try {
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js");
+    const { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc } =
+      await import("https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js");
+
+    const app = initializeApp(FIREBASE_CONFIG);
+    const db = getFirestore(app);
+    const col = collection(db, "places");
+
+    window.cloudSync = {
+      ready: true,
+      subscribe(cb){
+        return onSnapshot(col, snap => {
+          cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        }, err => {
+          console.error("Firestore sync error", err);
+          alert("실시간 동기화 연결에 문제가 생겼어요: " + err.message);
+        });
+      },
+      addPlace(place){
+        const { id, ...rest } = place;
+        return addDoc(col, stripUndefined(rest));
+      },
+      updatePlace(id, patch){
+        return updateDoc(doc(col, id), stripUndefined(patch));
+      },
+      deletePlace(id){
+        return deleteDoc(doc(col, id));
+      }
+    };
+  } catch(err){
+    console.error("Firebase 초기화 실패", err);
+    window.cloudSync = { ready:false };
+  }
+  window.dispatchEvent(new Event("cloudsync-ready"));
+}
+initCloudSync();
+</script>
 
 <script>
 const KAKAO_APP_KEY = "391b39ae5de6f3152db3258ae09cd86b";
@@ -165,15 +214,15 @@ const SEOUL_CITY_HALL = { lat:37.5665, lng:126.9780 };
 const STORAGE_KEY = "baby-place-registry:places";
 let idSeq = 10;
 let places = [
-  { id:1, raw:"https://map.kakao.com/xxxxx", source:"link", name:"몽실놀이터", types:["놀곳"], memo:"실내라 비 와도 좋음, 주차 넉넉", favorite:true, lat:37.5665, lng:126.9780, satisfaction:"최고" },
-  { id:2, raw:"우리동네 국수집", source:"text", name:"우리동네 국수집", types:["먹을곳"], memo:"이유식 데워줌", favorite:false, lat:37.5651, lng:126.9895 },
-  { id:3, raw:"https://place.map.naver.com/yyyyy", source:"link", name:"라운드어바웃 카페", types:["카페","놀곳"], memo:"계곡 옆이라 물놀이도 가능, 유모차 자리 넓음", favorite:false, lat:37.5600, lng:126.9700 },
+  { id:"1", raw:"https://map.kakao.com/xxxxx", source:"link", name:"몽실놀이터", types:["놀곳"], memo:"실내라 비 와도 좋음, 주차 넉넉", favorite:true, lat:37.5665, lng:126.9780, satisfaction:"최고" },
+  { id:"2", raw:"우리동네 국수집", source:"text", name:"우리동네 국수집", types:["먹을곳"], memo:"이유식 데워줌", favorite:false, lat:37.5651, lng:126.9895 },
+  { id:"3", raw:"https://place.map.naver.com/yyyyy", source:"link", name:"라운드어바웃 카페", types:["카페","놀곳"], memo:"계곡 옆이라 물놀이도 가능, 유모차 자리 넓음", favorite:false, lat:37.5600, lng:126.9700 },
 ];
 let draft = null;
 let rawInput = "";
 let filterType = "전체";
 let favOnly = false;
-let isSharedView = false;
+let isCloud = false;
 
 let addMode = "search"; // "search" | "manual" — !mapReady일 땐 항상 manual로 폴백
 let searchQuery = "";
@@ -182,22 +231,14 @@ let searchDone = false;
 let searchDebounceTimer = null;
 let placesService = null;
 
-function nextIdSeq(){ return places.reduce((m,p) => Math.max(m, p.id||0), 0) + 1; }
+function nextIdSeq(){
+  return places.reduce((m,p) => {
+    const n = Number(p.id);
+    return Number.isFinite(n) ? Math.max(m, n) : m;
+  }, 0) + 1;
+}
 
-function loadInitialState(){
-  const shared = new URLSearchParams(location.search).get("share");
-  if(shared){
-    try {
-      const parsed = JSON.parse(decodeURIComponent(shared));
-      if(Array.isArray(parsed) && parsed.length){
-        places = parsed;
-        idSeq = nextIdSeq();
-        isSharedView = true;
-        places = places.map(p => ({...p, types: normalizeTypes(p)}));
-        return;
-      }
-    } catch(e){ /* 손상된 공유 링크면 기본 상태로 진행 */ }
-  }
+function loadLocalState(){
   const saved = localStorage.getItem(STORAGE_KEY);
   if(saved){
     try {
@@ -212,13 +253,16 @@ function loadInitialState(){
 }
 
 function persist(){
-  if(isSharedView) return;
+  if(isCloud) return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(places));
 }
 
 function shareList(){
-  const url = `${location.origin}${location.pathname}?share=${encodeURIComponent(JSON.stringify(places))}`;
-  const done = () => alert("공유 링크가 복사됐어요. 카톡 등에 붙여넣으세요!");
+  const url = `${location.origin}${location.pathname}`;
+  const msg = isCloud
+    ? "링크가 복사됐어요. 같이 쓸 사람에게 보내주세요 — 그 사람이 등록해도 실시간으로 같이 보여요!"
+    : "링크가 복사됐어요. (지금은 기기별로 따로 저장돼서 실시간 공유는 안 돼요)";
+  const done = () => alert(msg);
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(url).then(done).catch(() => prompt("링크를 복사하세요", url));
   } else {
@@ -226,32 +270,18 @@ function shareList(){
   }
 }
 
-function saveSharedToMine(){
-  isSharedView = false;
-  persist();
-  history.replaceState(null, "", location.pathname);
-  renderAll();
-}
-
-function renderBanner(){
-  const el = document.getElementById("banner");
-  if(!isSharedView){ el.innerHTML = ""; return; }
-  el.innerHTML = `
-    <div class="sharebanner">
-      <p>다른 사람이 공유한 목록이에요 (읽기 전용). 마음에 들면 내 목록에 저장할 수 있어요.</p>
-      <button id="save-shared-btn">내 목록에 저장</button>
-    </div>`;
-  document.getElementById("save-shared-btn").addEventListener("click", saveSharedToMine);
-}
-
 function renderFootnote(){
   const el = document.getElementById("footnote");
-  el.textContent = mapReady
-    ? "지도에 핀이 없는 장소는 목록에서 카드를 탭하면 위치를 지정할 수 있어요."
-    : "지금은 카카오맵 키가 아직 등록되지 않아서 지도와 상호명 검색이 비어있어요. 등록·분류·메모·즐겨찾기·공유는 그대로 사용할 수 있어요.";
+  if(!mapReady){
+    el.textContent = "지금은 카카오맵 키가 아직 등록되지 않아서 지도와 상호명 검색이 비어있어요. 등록·분류·메모·즐겨찾기·공유는 그대로 사용할 수 있어요.";
+  } else if(isCloud){
+    el.textContent = "실시간 동기화 중이에요 — 같은 링크로 들어온 사람이 등록하면 바로 같이 보여요. 지도에 핀이 없는 장소는 카드를 탭해서 위치를 지정하세요.";
+  } else {
+    el.textContent = "지금은 이 기기에만 저장되는 상태예요(실시간 공유 아님). 지도에 핀이 없는 장소는 카드를 탭하면 위치를 지정할 수 있어요.";
+  }
 }
 
-function renderAll(){ renderBanner(); renderFootnote(); renderAdd(); renderFilters(); renderList(); renderMarkers(); }
+function renderAll(){ renderFootnote(); renderAdd(); renderFilters(); renderList(); renderMarkers(); }
 
 function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
 function detectSource(raw){ return /^https?:\/\//i.test(raw.trim()) ? "link" : "text"; }
@@ -271,7 +301,6 @@ function hasLoc(p){ return Number.isFinite(p.lat) && Number.isFinite(p.lng); }
 /* ---- 등록: 상호명 검색이 기본, 직접입력은 폴백 ---- */
 function renderAdd(){
   const el = document.getElementById("addwrap");
-  if(isSharedView){ el.innerHTML = ""; return; }
   if(draft){ renderDraftForm(el); return; }
   clearDraftPreview();
   if(mapReady && addMode === "search"){ renderSearchBox(el); return; }
@@ -409,38 +438,58 @@ function startRegister(){
   rawInput = "";
   renderAdd();
 }
+function cloudFail(err){ alert("저장에 실패했어요: " + err.message); }
+
 function confirmRegister(){
   if(!draft || !draft.name.trim()) return;
-  places.unshift({ id: idSeq++, favorite:false, ...draft });
+  const newPlace = { favorite:false, ...draft };
   draft = null;
   renderAdd();
-  renderList();
-  renderMarkers();
-  persist();
+  if(isCloud){
+    window.cloudSync.addPlace(newPlace).catch(cloudFail);
+  } else {
+    places.unshift({ id: String(idSeq++), ...newPlace });
+    renderList();
+    renderMarkers();
+    persist();
+  }
 }
 function toggleFav(id){
-  if(isSharedView) return;
-  places = places.map(p => p.id===id ? {...p, favorite: !p.favorite} : p);
-  renderList();
-  persist();
+  const p = places.find(x => x.id===id);
+  if(!p) return;
+  if(isCloud){
+    window.cloudSync.updatePlace(id, { favorite: !p.favorite }).catch(cloudFail);
+  } else {
+    places = places.map(x => x.id===id ? {...x, favorite: !x.favorite} : x);
+    renderList();
+    persist();
+  }
 }
 function setSatisfaction(id, key){
-  if(isSharedView) return;
-  places = places.map(p => p.id===id ? {...p, satisfaction: p.satisfaction===key ? null : key} : p);
-  renderList();
-  persist();
+  const p = places.find(x => x.id===id);
+  if(!p) return;
+  const next = p.satisfaction===key ? null : key;
+  if(isCloud){
+    window.cloudSync.updatePlace(id, { satisfaction: next }).catch(cloudFail);
+  } else {
+    places = places.map(x => x.id===id ? {...x, satisfaction: next} : x);
+    renderList();
+    persist();
+  }
 }
 function removePlace(id){
-  if(isSharedView) return;
-  places = places.filter(p => p.id !== id);
-  renderList();
-  renderMarkers();
-  persist();
+  if(isCloud){
+    window.cloudSync.deletePlace(id).catch(cloudFail);
+  } else {
+    places = places.filter(p => p.id !== id);
+    renderList();
+    renderMarkers();
+    persist();
+  }
 }
 let pendingDeleteId = null;
 let pendingDeleteTimer = null;
 function requestDelete(id){
-  if(isSharedView) return;
   clearTimeout(pendingDeleteTimer);
   if(pendingDeleteId === id){
     pendingDeleteId = null;
@@ -452,13 +501,16 @@ function requestDelete(id){
   renderList();
 }
 function setLocationFor(id){
-  if(isSharedView) return;
   const p = places.find(x => x.id===id);
   openPicker(p && hasLoc(p) ? { lat:p.lat, lng:p.lng } : null, loc => {
-    places = places.map(x => x.id===id ? {...x, lat:loc.lat, lng:loc.lng} : x);
-    renderList();
-    renderMarkers();
-    persist();
+    if(isCloud){
+      window.cloudSync.updatePlace(id, { lat: loc.lat, lng: loc.lng }).catch(cloudFail);
+    } else {
+      places = places.map(x => x.id===id ? {...x, lat:loc.lat, lng:loc.lng} : x);
+      renderList();
+      renderMarkers();
+      persist();
+    }
   });
 }
 function onCardClick(id){
@@ -489,22 +541,22 @@ function renderList(){
       return `<span class="badge" style="background:${ti?.color}">${esc(tk)}</span>`;
     }).join("");
     return `
-      <div class="pcard" data-id="${p.id}" onclick="onCardClick(${p.id})">
+      <div class="pcard" data-id="${p.id}" onclick="onCardClick('${p.id}')">
         <div class="pcard-top">
           <div>
             <div class="pcard-meta">
               ${badges}
               ${sourceIcon ? `<span style="font-size:10px;color:#C9BEAE;">${sourceIcon}</span>` : ""}
-              ${!located && !isSharedView ? `<span class="noloc">📍 위치 미지정 · 탭해서 설정</span>` : ""}
+              ${!located ? `<span class="noloc">📍 위치 미지정 · 탭해서 설정</span>` : ""}
             </div>
             <div class="pname">${esc(p.name)}</div>
             ${p.address ? `<div class="paddr">${esc(p.address)}</div>` : ""}
             ${p.memo ? `<div class="pmemo">${esc(p.memo)}</div>` : ""}
           </div>
-          <button class="starbtn" ${isSharedView ? "disabled" : `onclick="event.stopPropagation(); toggleFav(${p.id})"`}>${p.favorite ? "⭐" : "☆"}</button>
+          <button class="starbtn" onclick="event.stopPropagation(); toggleFav('${p.id}')">${p.favorite ? "⭐" : "☆"}</button>
         </div>
-        <div class="satrow">${SATISFACTIONS.map(s => `<button class="satbtn ${p.satisfaction===s.key?'active':''}" ${isSharedView?'disabled':''} style="${p.satisfaction===s.key?`background:${s.color};color:#fff;border-color:${s.color};`:''}" ${isSharedView?'':`onclick="event.stopPropagation(); setSatisfaction(${p.id}, '${s.key}')"`}>${s.emoji} ${s.key}</button>`).join("")}</div>
-        ${isSharedView ? "" : `<div class="delrow"><button class="delbtn ${pendingDeleteId===p.id?'confirm':''}" onclick="event.stopPropagation(); requestDelete(${p.id})">${pendingDeleteId===p.id ? "정말 삭제할까요? 다시 탭" : "삭제"}</button></div>`}
+        <div class="satrow">${SATISFACTIONS.map(s => `<button class="satbtn ${p.satisfaction===s.key?'active':''}" style="${p.satisfaction===s.key?`background:${s.color};color:#fff;border-color:${s.color};`:''}" onclick="event.stopPropagation(); setSatisfaction('${p.id}', '${s.key}')">${s.emoji} ${s.key}</button>`).join("")}</div>
+        <div class="delrow"><button class="delbtn ${pendingDeleteId===p.id?'confirm':''}" onclick="event.stopPropagation(); requestDelete('${p.id}')">${pendingDeleteId===p.id ? "정말 삭제할까요? 다시 탭" : "삭제"}</button></div>
       </div>`;
   }).join("");
 }
@@ -661,10 +713,23 @@ document.getElementById("locate-btn").addEventListener("click", () => {
   });
 });
 
-loadInitialState();
-document.getElementById("share-btn").addEventListener("click", shareList);
-renderAll();
-initMapOrFallback();
+function boot(){
+  document.getElementById("share-btn").addEventListener("click", shareList);
+  if(window.cloudSync && window.cloudSync.ready){
+    isCloud = true;
+    places = []; // 첫 스냅샷 오기 전까지 하드코딩된 샘플이 잠깐 보이지 않도록
+    window.cloudSync.subscribe(newPlaces => {
+      places = newPlaces.map(p => ({...p, types: normalizeTypes(p)}));
+      renderAll();
+    });
+  } else {
+    isCloud = false;
+    loadLocalState();
+  }
+  renderAll();
+  initMapOrFallback();
+}
+if(window.cloudSync){ boot(); } else { window.addEventListener("cloudsync-ready", boot); }
 </script>
 </body>
 </html>
