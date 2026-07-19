@@ -10,6 +10,9 @@
     "run": "node src/cli.js"
   },
   "dependencies": {
+    "marked": "^18.0.6",
+    "nodemailer": "^9.0.3",
+    "pdf-parse": "^2.4.5",
     "playwright": "^1.48.0"
   }
 }

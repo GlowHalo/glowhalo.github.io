@@ -19,14 +19,17 @@ console.log('──────────────────────�
 
 const start = Date.now();
 let loggedIn = false;
+let ticks = 0;
+// 로그인 완료 신호: "로그아웃" 텍스트, 또는 href에 logout/logoff 가 들어간 링크
+const LOGGED_IN = 'a:has-text("로그아웃"), a[href*="logout" i], a[href*="logoff" i], :text("로그아웃")';
 while (Date.now() - start < DEADLINE_MS) {
   try {
-    // 로그인 후 나타나는 "로그아웃" 링크를 감지 → 로그인 완료로 판단
-    const count = await page.getByText('로그아웃', { exact: false }).count();
+    const count = await page.locator(LOGGED_IN).count();
     if (count > 0) { loggedIn = true; break; }
   } catch {
     // 페이지 이동 중 등 일시적 오류는 무시하고 재시도
   }
+  if (++ticks % 5 === 0) console.log(`... 로그인 대기 중 (${ticks * 2}s 경과)`);
   await page.waitForTimeout(2000);
 }
 
