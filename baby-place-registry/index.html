@@ -56,6 +56,15 @@
   .favbtn { flex-shrink:0; width:32px; height:32px; border-radius:999px; display:flex; align-items:center; justify-content:center; border:1px solid #EDE0D2; background:#fff; cursor:pointer; font-size:14px; }
   .favbtn.active { background:#FFD966; }
 
+  .listbar { padding:10px 20px 0; }
+  .searchbox { display:flex; align-items:center; gap:6px; border-radius:999px; padding:6px 6px 6px 14px; background:#fff; border:1px solid #EDE0D2; }
+  .searchbox input { flex:1; border:none; outline:none; font-size:13px; padding:6px 0; color:#3B2E2A; background:transparent; font-family:'Noto Sans KR',sans-serif; }
+  .clearbtn { background:none; border:none; cursor:pointer; color:#C9BEAE; font-size:12px; padding:0 4px; opacity:0; pointer-events:none; }
+  .clearbtn.show { opacity:1; pointer-events:auto; }
+  .sortrow { padding:8px 20px 0; display:flex; gap:6px; overflow-x:auto; }
+  .sortbtn { flex-shrink:0; padding:5px 11px; border-radius:999px; font-size:11px; font-weight:500; border:1px solid #EDE0D2; background:#fff; color:#8C8378; cursor:pointer; }
+  .sortbtn.active { background:#3B2E2A; color:#FDF4EC; }
+
   .list { padding:16px 20px 40px; display:flex; flex-direction:column; gap:10px; }
   .empty { text-align:center; font-size:12px; color:#C9BEAE; padding:40px 0; }
   .pcard { border-radius:16px; padding:14px 16px; background:#fff; border:1px solid #EDE0D2; cursor:pointer; transition:box-shadow .3s, border-color .3s; }
@@ -114,6 +123,8 @@
   <div class="addwrap" id="addwrap"></div>
 
   <div class="filters" id="filters"></div>
+  <div class="listbar" id="listbar"></div>
+  <div class="sortrow" id="sortrow"></div>
   <div class="list" id="list"></div>
 
   <div class="footnote" id="footnote"></div>
@@ -156,7 +167,7 @@ async function initCloudSync(){
   }
   try {
     const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js");
-    const { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc } =
+    const { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } =
       await import("https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js");
 
     const app = initializeApp(FIREBASE_CONFIG);
@@ -174,8 +185,8 @@ async function initCloudSync(){
         });
       },
       addPlace(place){
-        const { id, ...rest } = place;
-        return addDoc(col, stripUndefined(rest));
+        const { id, createdAt, ...rest } = place;
+        return addDoc(col, stripUndefined({ ...rest, createdAt: serverTimestamp() }));
       },
       updatePlace(id, patch){
         return updateDoc(doc(col, id), stripUndefined(patch));
@@ -197,16 +208,21 @@ initCloudSync();
 const KAKAO_APP_KEY = "391b39ae5de6f3152db3258ae09cd86b";
 
 const TYPES = [
-  { key:"놀곳", color:"#3AAFA9", icon:"🎠" },
-  { key:"먹을곳", color:"#FF7B54", icon:"🍽️" },
+  { key:"야외놀이", color:"#3AAFA9", icon:"🌳" },
+  { key:"실내놀이", color:"#6C8EBF", icon:"🎠" },
+  { key:"식당", color:"#FF7B54", icon:"🍽️" },
   { key:"카페", color:"#B98B4E", icon:"☕" },
+  { key:"숙소", color:"#8E6C97", icon:"🛏️" },
   { key:"기타", color:"#8C8378", icon:"📍" },
 ];
-const TYPE_PRIORITY = ["놀곳", "먹을곳", "카페", "기타"]; // 핀 대표 아이콘 우선순위 — 노는 것 위주
+const TYPE_PRIORITY = ["야외놀이", "실내놀이", "식당", "카페", "숙소", "기타"]; // 핀 대표 아이콘 우선순위 — 노는 것 위주
+const LEGACY_TYPE_MAP = { "놀곳":"야외놀이", "먹을곳":"식당" }; // 구 분류값 호환 — 저장된 데이터는 그대로 두고 표시할 때만 변환
 function normalizeTypes(p){
-  if(Array.isArray(p.types) && p.types.length) return p.types;
-  if(p.type) return [p.type];
-  return ["기타"];
+  let arr;
+  if(Array.isArray(p.types) && p.types.length) arr = p.types;
+  else if(p.type) arr = [p.type];
+  else arr = ["기타"];
+  return arr.map(t => LEGACY_TYPE_MAP[t] || t);
 }
 function primaryType(types){
   return TYPE_PRIORITY.find(k => types.includes(k)) || types[0];
@@ -217,6 +233,7 @@ const SATISFACTIONS = [
   { key:"별로", emoji:"😕", color:"#8C8378" },
 ];
 const SEOUL_CITY_HALL = { lat:37.5665, lng:126.9780 };
+const HOME = { lat:37.4871646, lng:127.0254202 }; // 서초구 효령로72길14 현대아파트 — "가까운 순" 정렬 기준점
 
 const STORAGE_KEY = "baby-place-registry:places";
 let idSeq = 10;
@@ -229,6 +246,8 @@ let draft = null;
 let rawInput = "";
 let filterType = "전체";
 let favOnly = false;
+let listQuery = "";
+let sortMode = "recent"; // "recent" | "name" | "distance"
 let isCloud = false;
 
 let addMode = "search"; // "search" | "manual" — !mapReady일 땐 항상 manual로 폴백
@@ -288,7 +307,7 @@ function renderFootnote(){
   }
 }
 
-function renderAll(){ renderFootnote(); renderAdd(); renderFilters(); renderList(); renderMarkers(); }
+function renderAll(){ renderFootnote(); renderAdd(); renderFilters(); renderListBar(); renderSortRow(); renderList(); renderMarkers(); }
 
 function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
 function detectSource(raw){ return /^https?:\/\//i.test(raw.trim()) ? "link" : "text"; }
@@ -301,9 +320,55 @@ function guessName(raw){
 }
 
 function visiblePlaces(){
-  return places.filter(p => filterType==="전체" ? true : (p.types||[]).includes(filterType)).filter(p => favOnly ? p.favorite : true);
+  return places
+    .filter(p => filterType==="전체" ? true : (p.types||[]).includes(filterType))
+    .filter(p => favOnly ? p.favorite : true)
+    .filter(p => matchesQuery(p, listQuery));
 }
 function hasLoc(p){ return Number.isFinite(p.lat) && Number.isFinite(p.lng); }
+
+function matchesQuery(p, q){
+  const query = q.trim().toLowerCase();
+  if(!query) return true;
+  const hay = [p.name, p.address, p.memo, ...(p.types||[])].filter(Boolean).join(" ").toLowerCase();
+  return hay.includes(query);
+}
+function getCreatedAt(p){
+  const c = p.createdAt;
+  if(!c) return 0;
+  if(typeof c === "number") return c;
+  if(typeof c.toMillis === "function") return c.toMillis();
+  if(typeof c.seconds === "number") return c.seconds*1000;
+  return 0;
+}
+function findDuplicate(draftPlace){
+  const name = draftPlace.name.trim().toLowerCase();
+  if(!name) return null;
+  return places.find(p => {
+    if(p.name.trim().toLowerCase() !== name) return false;
+    if(draftPlace.address && p.address) return draftPlace.address.trim().toLowerCase() === p.address.trim().toLowerCase();
+    if(hasLoc(draftPlace) && hasLoc(p)) return distanceKm(draftPlace, p) < 0.05;
+    return true; // 이름은 같은데 주소·좌표로 구분이 안 되면 일단 중복 후보로 취급
+  }) || null;
+}
+function distanceKm(a,b){
+  const R = 6371;
+  const dLat = (b.lat-a.lat) * Math.PI/180;
+  const dLng = (b.lng-a.lng) * Math.PI/180;
+  const s = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(s));
+}
+function sortPlaces(list){
+  if(sortMode==="name") return [...list].sort((a,b) => a.name.localeCompare(b.name, "ko"));
+  if(sortMode==="distance"){
+    return [...list].sort((a,b) => {
+      const da = hasLoc(a) ? distanceKm(HOME,a) : Infinity;
+      const db = hasLoc(b) ? distanceKm(HOME,b) : Infinity;
+      return da-db;
+    });
+  }
+  return [...list].sort((a,b) => getCreatedAt(b) - getCreatedAt(a));
+}
 
 /* ---- 등록: 상호명 검색이 기본, 직접입력은 폴백 ---- */
 function renderAdd(){
@@ -386,7 +451,7 @@ function pickSearchResult(item){
     source: "search",
     name: item.place_name,
     address: item.road_address_name || item.address_name || "",
-    types: ["놀곳"],
+    types: ["야외놀이"],
     memo: "",
     lat: parseFloat(item.y),
     lng: parseFloat(item.x)
@@ -441,7 +506,7 @@ function startRegister(){
   const raw = rawInput.trim();
   if(!raw) return;
   const center = mapReady ? currentMapCenter() : null;
-  draft = { raw, source: detectSource(raw), name: guessName(raw), types:["놀곳"], memo:"", lat: center ? center.lat : undefined, lng: center ? center.lng : undefined };
+  draft = { raw, source: detectSource(raw), name: guessName(raw), types:["야외놀이"], memo:"", lat: center ? center.lat : undefined, lng: center ? center.lng : undefined };
   rawInput = "";
   renderAdd();
 }
@@ -449,7 +514,9 @@ function cloudFail(err){ alert("저장에 실패했어요: " + err.message); }
 
 function confirmRegister(){
   if(!draft || !draft.name.trim()) return;
-  const newPlace = { favorite:false, ...draft };
+  const dup = findDuplicate(draft);
+  if(dup && !confirm(`"${dup.name}"(으)로 이미 등록되어 있어요${dup.address ? "\n" + dup.address : ""}\n그래도 등록할까요?`)) return;
+  const newPlace = { favorite:false, createdAt: Date.now(), ...draft };
   draft = null;
   renderAdd();
   if(isCloud){
@@ -536,10 +603,43 @@ function renderFilters(){
   document.getElementById("fav-toggle").addEventListener("click", () => { favOnly = !favOnly; renderFilters(); renderList(); renderMarkers(); });
 }
 
+function renderListBar(){
+  const el = document.getElementById("listbar");
+  el.innerHTML = `
+    <div class="searchbox">
+      <span style="font-size:12px;color:#C9BEAE;">🔍</span>
+      <input id="list-search" placeholder="등록된 장소 검색 (이름·주소·메모)" value="${esc(listQuery)}" />
+      <button class="clearbtn ${listQuery ? 'show' : ''}" id="list-search-clear">✕</button>
+    </div>`;
+  document.getElementById("list-search").addEventListener("input", e => {
+    listQuery = e.target.value;
+    document.getElementById("list-search-clear").classList.toggle("show", listQuery.length>0);
+    renderList();
+    renderMarkers();
+  });
+  document.getElementById("list-search-clear").addEventListener("click", () => {
+    listQuery = "";
+    renderListBar();
+    renderList();
+    renderMarkers();
+  });
+}
+
+function renderSortRow(){
+  const el = document.getElementById("sortrow");
+  const modes = [
+    { key:"recent", label:"최근 등록순" },
+    { key:"name", label:"이름순" },
+    { key:"distance", label:"집에서 가까운순" },
+  ];
+  el.innerHTML = modes.map(m => `<button class="sortbtn ${sortMode===m.key?'active':''}" data-s="${m.key}">${m.label}</button>`).join("");
+  el.querySelectorAll(".sortbtn").forEach(b => b.addEventListener("click", () => { sortMode = b.dataset.s; renderSortRow(); renderList(); }));
+}
+
 function renderList(){
   const el = document.getElementById("list");
-  const visible = visiblePlaces();
-  if(visible.length===0){ el.innerHTML = `<div class="empty">등록된 장소가 없어요.</div>`; return; }
+  const visible = sortPlaces(visiblePlaces());
+  if(visible.length===0){ el.innerHTML = `<div class="empty">${listQuery.trim() ? "검색 결과가 없어요." : "등록된 장소가 없어요."}</div>`; return; }
   el.innerHTML = visible.map(p => {
     const located = hasLoc(p);
     const sourceIcon = p.source==="search" ? "🔍" : p.source==="link" ? "🔗" : "";
