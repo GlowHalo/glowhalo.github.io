@@ -1,5 +1,5 @@
 import "./ui.css";
-import { on } from "../state/bus";
+import { on, emit } from "../state/bus";
 import { save, calcOfflineReward, addGold, resetSave } from "../state/save";
 import { renderHeroes, renderSummon, renderShop, renderMissions } from "./screens";
 
@@ -17,7 +17,7 @@ interface TabDef {
 const TABS: TabDef[] = [
   { key: "heroes", label: "영웅", icon: "🦸", subs: ["보유·편성", "장비", "승급", "도감"] },
   { key: "summon", label: "소환", icon: "✨", subs: ["영웅 소환", "확률·천장"] },
-  { key: "battle", label: "전투", icon: "🛡️", center: true, subs: ["스테이지", "요일던전", "무한의탑", "아레나"] },
+  { key: "battle", label: "전투", icon: "🛡️", center: true, subs: ["스테이지", "무한의탑", "아레나", "요일던전"] },
   { key: "shop", label: "상점", icon: "🛒", subs: ["골드 상점", "보석 상점", "일일 무료"] },
   { key: "missions", label: "임무", icon: "📋", subs: ["일일", "주간", "업적"] },
 ];
@@ -97,10 +97,38 @@ function switchTab(key: TabKey) {
   if (renderer) renderer(document.getElementById(`screen-${key}`)!);
 }
 
+// 전투 탭 서브메뉴 ↔ 전투 모드 연결
+const BATTLE_MODES: Record<string, string> = {
+  "스테이지": "stage",
+  "무한의탑": "tower",
+  "아레나": "arena",
+};
+let battleMode = "stage";
+
 function renderSubbar() {
   const bar = document.getElementById("subbar")!;
   bar.innerHTML = "";
   const def = TABS.find((t) => t.key === currentTab)!;
+
+  if (currentTab === "battle") {
+    def.subs.forEach((label) => {
+      const mode = BATTLE_MODES[label];
+      const chip = h("button", "sub-chip" + (mode === battleMode ? " on" : ""), label);
+      chip.onclick = () => {
+        if (!mode) {
+          toast(`${label} — 준비 중입니다`);
+          return;
+        }
+        if (mode === battleMode) return;
+        battleMode = mode;
+        emit("battle-mode", mode);
+        renderSubbar();
+      };
+      bar.appendChild(chip);
+    });
+    return;
+  }
+
   def.subs.forEach((label, i) => {
     const chip = h("button", "sub-chip" + (i === 0 ? " on" : ""), label);
     chip.onclick = () => {
@@ -202,6 +230,10 @@ export function buildShell() {
   refreshHud();
   on("gold-changed", refreshHud);
   on("gems-changed", refreshHud);
+  on("battle-mode-changed", (m) => {
+    battleMode = m as string;
+    if (currentTab === "battle") renderSubbar();
+  });
   switchTab("battle");
 
   // 오프라인 보상
