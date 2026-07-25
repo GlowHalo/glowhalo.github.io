@@ -2,9 +2,9 @@ import type { Hero } from "../data/heroTypes";
 import { PLAYABLE_HEROES } from "../data/heroes";
 import { addHero, save, persist } from "../state/save";
 
-export const SINGLE_COST = 100;
-export const TEN_COST = 900;
-export const PITY_LIMIT = 60;
+export const SINGLE_COST = 10;
+export const TEN_COST = 90;
+export const PITY_LIMIT = 50;
 
 // 등급별 가중치. 최고등급(현 마스터데이터 기준 SR)은 천장 대상.
 const GRADE_WEIGHT: Record<string, number> = { N: 0, R: 80, SR: 20 };

@@ -150,10 +150,10 @@ export function buildShell() {
       modal("설정", body);
     })
   );
-  const fold = h("button", "corner-btn fold", "▴");
+  const fold = h("button", "corner-btn fold", "▸");
   fold.onclick = () => {
     corner.classList.toggle("folded");
-    fold.textContent = corner.classList.contains("folded") ? "▾" : "▴";
+    fold.textContent = corner.classList.contains("folded") ? "◂" : "▸";
   };
   corner.appendChild(fold);
   ui.appendChild(corner);
