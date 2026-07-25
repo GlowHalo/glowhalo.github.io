@@ -1,7 +1,12 @@
+import type { Hero } from "../data/heroTypes";
 import { PLAYABLE_HEROES } from "../data/heroes";
-import { save, spendGems, addGems, persist } from "../state/save";
+import {
+  save, spendGems, addGems, persist,
+  getLevel, levelUpCost, tryLevelUp,
+  inParty, toggleParty, PARTY_SIZE,
+} from "../state/save";
 import { pull, SINGLE_COST, TEN_COST, PITY_LIMIT } from "../systems/gacha";
-import { toast } from "./shell";
+import { toast, modal, closeModal } from "./shell";
 import { emit } from "../state/bus";
 
 const FACTION_COLORS: Record<string, string> = {
@@ -21,23 +26,115 @@ function el(tag: string, cls?: string, text?: string): HTMLElement {
 }
 
 /* ── 영웅 탭 ── */
+function statLine(label: string, value: string): HTMLElement {
+  const row = el("div", "stat-row");
+  row.appendChild(el("span", "sl", label));
+  row.appendChild(el("span", "sv", value));
+  return row;
+}
+
+function openHeroDetail(hero: Hero, rerender: () => void) {
+  const lv = getLevel(hero.id);
+  const mult = 1 + 0.1 * (lv - 1);
+  const body = el("div");
+
+  const head = el("div", "detail-head");
+  const face = el("div", "face");
+  face.style.background = FACTION_COLORS[hero.faction] ?? "#888";
+  head.appendChild(face);
+  const info = el("div");
+  info.appendChild(el("div", "dh-name", hero.nameKr));
+  info.appendChild(el("div", `gd grade-${hero.grade}`, `${hero.grade} · ${hero.faction} · ${hero.heroClass}`));
+  info.appendChild(el("div", "dh-lv", `Lv.${lv}`));
+  head.appendChild(info);
+  body.appendChild(head);
+
+  const stats = el("div", "stat-box");
+  stats.appendChild(statLine("체력", `${Math.round(hero.baseHp * mult).toLocaleString()}`));
+  stats.appendChild(statLine("공격", `${Math.round(hero.baseAtk * mult).toLocaleString()}`));
+  stats.appendChild(statLine("방어", `${Math.round(hero.baseDef * mult).toLocaleString()}`));
+  stats.appendChild(statLine("속도", `${hero.baseSpd}`));
+  stats.appendChild(statLine("치명타", `${hero.critRate}% (피해 ${hero.critDmg}%)`));
+  body.appendChild(stats);
+
+  const skills = el("div", "skill-box");
+  skills.appendChild(el("div", "sk", `⚔️ ${hero.skill1Name} — ${hero.skill1Desc}`));
+  skills.appendChild(el("div", "sk", `🛡 ${hero.skill2Name} — ${hero.skill2Desc}`));
+  body.appendChild(skills);
+
+  const copies = save.owned[hero.id] ?? 0;
+  if (copies > 1) body.appendChild(el("p", "", `중복 보유 ${copies - 1} — 각성(승급) 재료로 사용 예정`));
+
+  const cost = levelUpCost(lv);
+  const lvBtn = el("button", "btn primary", `레벨업 🪙${cost.toLocaleString()}`) as HTMLButtonElement;
+  lvBtn.disabled = save.gold < cost;
+  lvBtn.onclick = () => {
+    if (tryLevelUp(hero.id)) {
+      toast(`${hero.nameKr} Lv.${getLevel(hero.id)}!`);
+      openHeroDetail(hero, rerender);
+      rerender();
+    } else {
+      toast("골드가 부족합니다");
+    }
+  };
+
+  const inP = inParty(hero.id);
+  const partyBtn = el("button", "btn" + (inP ? "" : " primary"), inP ? "편성 해제" : "편성") as HTMLButtonElement;
+  partyBtn.onclick = () => {
+    const r = toggleParty(hero.id);
+    if (r === "full") {
+      toast(`편성은 최대 ${PARTY_SIZE}명입니다`);
+      return;
+    }
+    toast(r === "added" ? `${hero.nameKr} 편성!` : `${hero.nameKr} 편성 해제`);
+    openHeroDetail(hero, rerender);
+    rerender();
+  };
+
+  const close = el("button", "btn", "닫기") as HTMLButtonElement;
+  close.onclick = closeModal;
+
+  modal(hero.nameKr, body, [close, partyBtn, lvBtn]);
+}
+
 export function renderHeroes(root: HTMLElement) {
   root.innerHTML = "";
+  const rerender = () => renderHeroes(root);
+
+  root.appendChild(el("h2", "", `편성 (${save.party.length}/${PARTY_SIZE})`));
+  root.appendChild(el("div", "desc", "편성된 영웅만 전투에 출전합니다. 카드를 눌러 편성·레벨업하세요."));
+  const partyRow = el("div", "party-row");
+  for (let i = 0; i < PARTY_SIZE; i++) {
+    const id = save.party[i];
+    const hero = id ? PLAYABLE_HEROES.find((h) => h.id === id) : undefined;
+    const slot = el("div", "party-slot" + (hero ? " filled" : ""));
+    if (hero) {
+      const face = el("div", "face");
+      face.style.background = FACTION_COLORS[hero.faction] ?? "#888";
+      slot.appendChild(face);
+      slot.appendChild(el("div", "ps-nm", hero.nameKr.split(" ").pop() ?? ""));
+      slot.appendChild(el("div", "ps-lv", `Lv.${getLevel(hero.id)}`));
+      slot.onclick = () => openHeroDetail(hero, rerender);
+    } else {
+      slot.appendChild(el("div", "ps-empty", "+"));
+    }
+    partyRow.appendChild(slot);
+  }
+  root.appendChild(partyRow);
+
   root.appendChild(el("h2", "", "보유 영웅"));
-  root.appendChild(
-    el("div", "desc", "보유한 영웅은 자동으로 출전합니다 (최대 5명). 편성·장비·승급은 순차 오픈 예정.")
-  );
   const grid = el("div", "hero-grid");
   const owned = PLAYABLE_HEROES.filter((h) => (save.owned[h.id] ?? 0) > 0);
   for (const hero of owned) {
-    const card = el("div", "hero-card");
+    const card = el("div", "hero-card" + (inParty(hero.id) ? " in-party" : ""));
+    card.onclick = () => openHeroDetail(hero, rerender);
     const face = el("div", "face");
     face.style.background = FACTION_COLORS[hero.faction] ?? "#888";
     card.appendChild(face);
     card.appendChild(el("div", "nm", hero.nameKr));
-    card.appendChild(el("div", `gd grade-${hero.grade}`, hero.grade));
+    card.appendChild(el("div", `gd grade-${hero.grade}`, `${hero.grade} · Lv.${getLevel(hero.id)}`));
     const copies = save.owned[hero.id];
-    card.appendChild(el("div", "cp", copies > 1 ? `보유 ${copies} (각성 재료 ${copies - 1})` : "보유 1"));
+    card.appendChild(el("div", "cp", inParty(hero.id) ? "출전 중" : copies > 1 ? `중복 ${copies - 1}` : ""));
     grid.appendChild(card);
   }
   root.appendChild(grid);
@@ -124,7 +221,7 @@ export function renderShop(root: HTMLElement) {
   card.appendChild(el("span", "", "🎁"));
   const grow = el("div", "grow");
   grow.appendChild(el("div", "t", "일일 무료 상자"));
-  grow.appendChild(el("div", "s", "매일 1회 · 보석 50개"));
+  grow.appendChild(el("div", "s", "매일 1회 · 보석 100개"));
   card.appendChild(grow);
   const btn = el("button", "btn primary", "열기") as HTMLButtonElement;
   if (save.freeBoxDate === today) {
@@ -134,9 +231,9 @@ export function renderShop(root: HTMLElement) {
   btn.onclick = () => {
     if (save.freeBoxDate === today) return;
     save.freeBoxDate = today;
-    addGems(50);
+    addGems(100);
     persist();
-    toast("💎 50 획득!");
+    toast("💎 100 획득!");
     btn.textContent = "내일 다시";
     btn.disabled = true;
   };
