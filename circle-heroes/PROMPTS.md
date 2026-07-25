@@ -1,5 +1,11 @@
 # Circle Heroes — 나노바나나(Gemini) 이미지 생성 프롬프트 (Rev.2)
 
+> **자동화 (Rev.2.1)**: `scripts/gen-assets.mjs` 로 Claude가 Gemini API를 직접 호출해 생성할 수 있다.
+> `node scripts/gen-assets.mjs --list` 로 에셋키 확인. 키는 환경변수 `GEMINI_API_KEY` 또는
+> `circle-heroes/.env` (gitignore 대상) — **키는 절대 커밋되지 않는다.**
+> 생성 결과는 `assets-gen/<키>/` (gitignore 대상)에 쌓이고, 검수 통과본만 게임에 배치한다.
+> 아래 수동 프롬프트는 여전히 정본이며, 스크립트 카탈로그는 이 문서를 코드화한 것.
+
 > **Rev.2 변경**: 1차 생성에서 그림체가 섞이는 문제 발생 → 원인은 "same art style as previous image" 의존.
 > 해결: ① 아래 STYLE BLOCK을 **모든 프롬프트에 통째로 반복** ② 잘 나온 기준 이미지 1장을 **매번 참조로 첨부**하고
 > "Match the exact art style of the attached reference image"를 덧붙인다.
