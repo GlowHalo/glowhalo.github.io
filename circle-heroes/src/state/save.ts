@@ -24,6 +24,12 @@ export interface SaveState {
   arenaRating: number;
   /** YYYY-MM-DD — 아레나 오늘 첫 승리 보너스 수령일 */
   arenaWinDate: string;
+  /** 일일 임무 상태 (날짜가 바뀌면 리셋) */
+  missions: {
+    date: string;
+    progress: Record<string, number>;
+    claimed: string[];
+  };
 }
 
 const KEY = "circle-heroes-save-v1";
@@ -43,6 +49,7 @@ const DEFAULTS: SaveState = {
   towerFloor: 1,
   arenaRating: 1000,
   arenaWinDate: "",
+  missions: { date: "", progress: {}, claimed: [] },
 };
 
 function load(): SaveState {
