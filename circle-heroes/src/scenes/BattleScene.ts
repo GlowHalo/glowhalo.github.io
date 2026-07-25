@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { PLAYABLE_HEROES } from "../data/heroes";
-import { save, addGold, setStage, getLevel } from "../state/save";
+import { save, addGold, setStage, getLevel, getStars } from "../state/save";
 import { on } from "../state/bus";
 import {
   act,
@@ -89,6 +89,9 @@ export class BattleScene extends Phaser.Scene {
     on("levels-changed", () => {
       this.rosterDirty = true;
     });
+    on("stars-changed", () => {
+      this.rosterDirty = true;
+    });
 
     this.startStage(save.stage);
   }
@@ -98,7 +101,7 @@ export class BattleScene extends Phaser.Scene {
       .map((id) => PLAYABLE_HEROES.find((h) => h.id === id))
       .filter((h): h is NonNullable<typeof h> => !!h && (save.owned[h.id] ?? 0) > 0)
       .slice(0, 5);
-    return partyHeroes.map((h) => unitFromHero(h, getLevel(h.id)));
+    return partyHeroes.map((h) => unitFromHero(h, getLevel(h.id), getStars(h.id)));
   }
 
   private startStage(stage: number) {
