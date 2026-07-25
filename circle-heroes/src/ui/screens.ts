@@ -4,6 +4,7 @@ import {
   save, spendGems, addGems, persist,
   getLevel, levelUpCost, tryLevelUp,
   inParty, toggleParty, PARTY_SIZE,
+  getStars, ascendCost, dupeCount, tryAscend, MAX_STARS,
 } from "../state/save";
 import { pull, SINGLE_COST, TEN_COST, PITY_LIMIT } from "../systems/gacha";
 import { toast, modal, closeModal } from "./shell";
@@ -33,9 +34,14 @@ function statLine(label: string, value: string): HTMLElement {
   return row;
 }
 
+function starText(stars: number): string {
+  return "★".repeat(stars) + "☆".repeat(MAX_STARS - stars);
+}
+
 function openHeroDetail(hero: Hero, rerender: () => void) {
   const lv = getLevel(hero.id);
-  const mult = 1 + 0.1 * (lv - 1);
+  const stars = getStars(hero.id);
+  const mult = (1 + 0.1 * (lv - 1)) * (1 + 0.3 * (stars - 1));
   const body = el("div");
 
   const head = el("div", "detail-head");
@@ -45,6 +51,7 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
   const info = el("div");
   info.appendChild(el("div", "dh-name", hero.nameKr));
   info.appendChild(el("div", `gd grade-${hero.grade}`, `${hero.grade} · ${hero.faction} · ${hero.heroClass}`));
+  info.appendChild(el("div", "dh-stars", starText(stars)));
   info.appendChild(el("div", "dh-lv", `Lv.${lv}`));
   head.appendChild(info);
   body.appendChild(head);
@@ -62,8 +69,26 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
   skills.appendChild(el("div", "sk", `🛡 ${hero.skill2Name} — ${hero.skill2Desc}`));
   body.appendChild(skills);
 
-  const copies = save.owned[hero.id] ?? 0;
-  if (copies > 1) body.appendChild(el("p", "", `중복 보유 ${copies - 1} — 각성(승급) 재료로 사용 예정`));
+  // 각성(성급)
+  if (stars < MAX_STARS) {
+    const need = ascendCost(stars);
+    const have = dupeCount(hero.id);
+    const ascRow = el("div", "asc-row");
+    ascRow.appendChild(el("span", "", `⭐ 다음 각성 재료: 중복 ${Math.min(have, need)}/${need}`));
+    const ascBtn = el("button", "btn" + (have >= need ? " primary" : ""), "각성") as HTMLButtonElement;
+    ascBtn.disabled = have < need;
+    ascBtn.onclick = () => {
+      if (tryAscend(hero.id)) {
+        toast(`${hero.nameKr} ${getStars(hero.id)}성 각성! 능력치 +30%`);
+        openHeroDetail(hero, rerender);
+        rerender();
+      }
+    };
+    ascRow.appendChild(ascBtn);
+    body.appendChild(ascRow);
+  } else {
+    body.appendChild(el("p", "", "⭐ 최대 성급 달성"));
+  }
 
   const cost = levelUpCost(lv);
   const lvBtn = el("button", "btn primary", `레벨업 🪙${cost.toLocaleString()}`) as HTMLButtonElement;
@@ -97,6 +122,8 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
   modal(hero.nameKr, body, [close, partyBtn, lvBtn]);
 }
 
+let heroFilter = "전체";
+
 export function renderHeroes(root: HTMLElement) {
   root.innerHTML = "";
   const rerender = () => renderHeroes(root);
@@ -123,23 +150,51 @@ export function renderHeroes(root: HTMLElement) {
   root.appendChild(partyRow);
 
   root.appendChild(el("h2", "", "보유 영웅"));
+
+  // 진영 탭 (마이티식)
+  const factions = ["전체", ...new Set(PLAYABLE_HEROES.map((h) => h.faction))];
+  const ftabs = el("div", "faction-tabs");
+  for (const f of factions) {
+    const chip = el("button", "f-chip" + (heroFilter === f ? " on" : ""), f);
+    if (f !== "전체") chip.style.borderColor = FACTION_COLORS[f] ?? "#888";
+    chip.onclick = () => {
+      heroFilter = f;
+      rerender();
+    };
+    ftabs.appendChild(chip);
+  }
+  root.appendChild(ftabs);
+
+  const visible = PLAYABLE_HEROES.filter(
+    (h) => heroFilter === "전체" || h.faction === heroFilter
+  );
+
   const grid = el("div", "hero-grid");
-  const owned = PLAYABLE_HEROES.filter((h) => (save.owned[h.id] ?? 0) > 0);
-  for (const hero of owned) {
+  for (const hero of visible.filter((h) => (save.owned[h.id] ?? 0) > 0)) {
+    const stars = getStars(hero.id);
     const card = el("div", "hero-card" + (inParty(hero.id) ? " in-party" : ""));
     card.onclick = () => openHeroDetail(hero, rerender);
     const face = el("div", "face");
     face.style.background = FACTION_COLORS[hero.faction] ?? "#888";
     card.appendChild(face);
+    card.appendChild(el("div", "st", "★".repeat(stars)));
     card.appendChild(el("div", "nm", hero.nameKr));
     card.appendChild(el("div", `gd grade-${hero.grade}`, `${hero.grade} · Lv.${getLevel(hero.id)}`));
-    const copies = save.owned[hero.id];
-    card.appendChild(el("div", "cp", inParty(hero.id) ? "출전 중" : copies > 1 ? `중복 ${copies - 1}` : ""));
+    // 수집 카운트 (마이티식 4/4)
+    if (stars < MAX_STARS) {
+      const need = ascendCost(stars);
+      const have = Math.min(dupeCount(hero.id), need);
+      const cnt = el("div", "cp" + (have >= need ? " ready" : ""), `${have}/${need}`);
+      card.appendChild(cnt);
+    } else {
+      card.appendChild(el("div", "cp", "MAX"));
+    }
+    if (inParty(hero.id)) card.appendChild(el("div", "cp", "출전 중"));
     grid.appendChild(card);
   }
   root.appendChild(grid);
 
-  const missing = PLAYABLE_HEROES.filter((h) => !(save.owned[h.id] > 0));
+  const missing = visible.filter((h) => !(save.owned[h.id] > 0));
   if (missing.length > 0) {
     root.appendChild(el("div", "desc", ""));
     root.appendChild(el("h2", "", "미보유"));

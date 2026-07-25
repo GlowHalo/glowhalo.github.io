@@ -33,9 +33,9 @@ export interface HitResult {
 
 const BASE_ATTACK_INTERVAL_MS = 1800;
 
-/** 레벨당 HP/공격/방어 +10% (1레벨 기준) */
-export function unitFromHero(hero: Hero, level = 1): Unit {
-  const mult = 1 + 0.1 * (level - 1);
+/** 레벨당 +10%, 성급당 +30% (1레벨 1성 기준) */
+export function unitFromHero(hero: Hero, level = 1, stars = 1): Unit {
+  const mult = (1 + 0.1 * (level - 1)) * (1 + 0.3 * (stars - 1));
   return {
     key: hero.id,
     name: hero.nameKr,

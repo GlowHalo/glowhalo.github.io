@@ -10,6 +10,8 @@ export interface SaveState {
   party: string[];
   /** heroId -> 레벨 (기본 1) */
   levels: Record<string, number>;
+  /** heroId -> 성급 (기본 1성, 최대 5성) */
+  stars: Record<string, number>;
   stage: number;
   /** 천장 카운터: 최고등급 못 뽑은 연속 횟수 */
   pity: number;
@@ -27,6 +29,7 @@ const DEFAULTS: SaveState = {
   owned: { warrior_flame_001: 1, archer_wind_001: 1 },
   party: ["warrior_flame_001", "archer_wind_001"],
   levels: {},
+  stars: {},
   stage: 1,
   pity: 0,
   lastSeenMs: Date.now(),
@@ -106,6 +109,36 @@ export function tryLevelUp(id: string): boolean {
   save.levels[id] = getLevel(id) + 1;
   persist();
   emit("levels-changed");
+  return true;
+}
+
+/* ── 각성(성급) ── */
+export const MAX_STARS = 5;
+
+export function getStars(id: string): number {
+  return save.stars[id] ?? 1;
+}
+
+/** 다음 성급까지 필요한 중복 수: 1→2성 1장, 2→3성 2장, 3→4성 4장, 4→5성 8장 */
+export function ascendCost(stars: number): number {
+  return Math.pow(2, stars - 1);
+}
+
+/** 사용 가능한 중복 수 (본체 1장 제외) */
+export function dupeCount(id: string): number {
+  return Math.max(0, (save.owned[id] ?? 0) - 1);
+}
+
+export function tryAscend(id: string): boolean {
+  const stars = getStars(id);
+  if (stars >= MAX_STARS) return false;
+  const cost = ascendCost(stars);
+  if (dupeCount(id) < cost) return false;
+  save.owned[id] -= cost;
+  save.stars[id] = stars + 1;
+  persist();
+  emit("stars-changed");
+  emit("roster-changed");
   return true;
 }
 
