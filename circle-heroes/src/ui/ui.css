@@ -258,6 +258,8 @@
 .hero-card .cp { font-size: 10px; color: var(--ink3); margin-top: 2px; }
 .grade-R { color: #6f9fe8; }
 .grade-SR { color: #b88ae8; }
+.grade-SSR { color: #ffd980; }
+.grade-UR { color: #ff8fa0; }
 .grade-Unknown { color: #8a8f9c; }
 
 /* ── 소환 화면 ── */
@@ -537,7 +539,17 @@
   border: 2px solid #b060f0;
   box-shadow: 0 0 22px rgba(176, 96, 240, 0.75);
 }
-.sfx-card.grade-SR.flipped { animation: srPop 0.4s ease-out 0.25s; }
+.sfx-card.grade-SSR .front {
+  border: 2px solid #ffd34d;
+  box-shadow: 0 0 26px rgba(255, 211, 77, 0.85);
+}
+.sfx-card.grade-UR .front {
+  border: 2px solid #ff5a6e;
+  box-shadow: 0 0 30px rgba(255, 90, 110, 0.9);
+}
+.sfx-card.grade-SR.flipped,
+.sfx-card.grade-SSR.flipped,
+.sfx-card.grade-UR.flipped { animation: srPop 0.4s ease-out 0.25s; }
 @keyframes srPop {
   0% { transform: scale(1); }
   40% { transform: scale(1.12); }
