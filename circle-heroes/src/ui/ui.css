@@ -422,3 +422,138 @@
   font-size: 12px;
   color: var(--ink2);
 }
+
+/* ── 소환 연출 오버레이 ── */
+#summon-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  background: radial-gradient(ellipse at 50% 40%, #241f45 0%, #0a0e1e 75%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  overflow: hidden;
+}
+#summon-fx.flash-sr::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(200,140,255,0.55), transparent 70%);
+  animation: srFlash 0.5s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes srFlash { from { opacity: 1; } to { opacity: 0; } }
+
+.sfx-orb {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #d8fffb, #6fe8e0 45%, #2a6a94);
+  box-shadow: 0 0 40px rgba(111, 232, 224, 0.6);
+  animation: orbCharge 0.9s ease-in-out 2, orbBurst 0.35s ease-in 1.8s forwards;
+}
+@keyframes orbCharge {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); box-shadow: 0 0 70px rgba(111, 232, 224, 0.9); }
+}
+@keyframes orbBurst {
+  to { transform: scale(2.6); opacity: 0; }
+}
+
+.sfx-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 10px;
+}
+.sfx-grid.ten { gap: 8px; }
+
+.sfx-card {
+  width: 120px;
+  height: 156px;
+  perspective: 700px;
+  animation: cardIn 0.3s ease-out backwards;
+}
+.sfx-grid.ten .sfx-card { width: 92px; height: 108px; }
+.sfx-grid.ten .sfx-card .front { font-size: 10.5px; gap: 3px; }
+.sfx-grid.ten .sfx-card .front .face { width: 38px; height: 38px; }
+.sfx-grid.ten .sfx-card .back { font-size: 24px; }
+@keyframes cardIn { from { transform: translateY(24px); opacity: 0; } }
+
+.sfx-card .inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.45s cubic-bezier(0.3, 1.2, 0.4, 1);
+}
+.sfx-card.flipped .inner { transform: rotateY(180deg); }
+.sfx-card .back,
+.sfx-card .front {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.sfx-card .back {
+  background: linear-gradient(150deg, #2a2450, #141c30 70%);
+  border: 2px solid #3a3568;
+  color: #6fe8e0;
+  font-size: 30px;
+  text-shadow: 0 0 12px rgba(111, 232, 224, 0.8);
+}
+.sfx-card.tease .back {
+  border-color: #ffd34d;
+  animation: teasePulse 0.55s ease-in-out infinite;
+}
+@keyframes teasePulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(255, 211, 77, 0.4); }
+  50% { box-shadow: 0 0 26px rgba(255, 211, 77, 0.95); }
+}
+.sfx-card .front {
+  transform: rotateY(180deg);
+  background: var(--panel2);
+  font-size: 12px;
+  color: var(--ink);
+  text-align: center;
+  padding: 6px;
+}
+.sfx-card .front .face {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid #10131c;
+}
+.sfx-card.grade-R .front { border: 2px solid #4a9be8; }
+.sfx-card.grade-SR .front {
+  border: 2px solid #b060f0;
+  box-shadow: 0 0 22px rgba(176, 96, 240, 0.75);
+}
+.sfx-card.grade-SR.flipped { animation: srPop 0.4s ease-out 0.25s; }
+@keyframes srPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+.sfx-card .front .newtag {
+  color: var(--amber);
+  font-size: 10px;
+  font-weight: 700;
+}
+.sfx-hint {
+  margin-top: 16px;
+  font-size: 11.5px;
+  color: var(--ink3);
+}
+.sfx-done { margin-top: 16px; }
+@media (prefers-reduced-motion: reduce) {
+  .sfx-orb, .sfx-card, .sfx-card .inner, .sfx-card.tease .back { animation: none !important; transition: none !important; }
+}
