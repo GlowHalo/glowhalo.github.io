@@ -30,6 +30,7 @@ SD 히어로 수집형 자동전투 방치형 게임. 모바일 APK로 설치해
 
 | 날짜 | 내용 |
 |---|---|
+| 2026-07-26 | Capacitor 안드로이드 프로젝트 초기화(`android/`, appId `io.github.tossneon.circleheroes`). 이 개발 컨테이너엔 Android SDK가 없어 로컬 빌드 불가 확인 → **GitHub Actions**로 디버그 APK 빌드하는 워크플로(`.github/workflows/circle-heroes-android.yml`) 구축, 배포 방식으로 채택. Leonardo API 키는 이 환경 네트워크 정책이 `cloud.leonardo.ai`를 막고 있어(403 host not allowlisted) 보류 — 환경 설정에서 도메인 허용 필요 |
 | 2026-07-25 | 디자인 자동화 파이프라인 구축: `scripts/gen-assets.mjs` — Gemini API(gemini-2.5-flash-image) 직접 호출로 에셋 8종 생성 자동화. 키는 환경변수/`.env`(gitignore)로만, 커밋 금지. 계정(OAuth) 연동은 이 환경에 커넥터가 없어 불가 판정 → API 키 방식 확정. 키 수령 대기 중 |
 | 2026-07-25 | Gemini 키 수령 → 테스트 결과 무료 등급 이미지 생성 할당량 0(429, 결제 필요) 확인. 브라우저 자동 로그인 우회는 기술적으로도 막히고 정책상으로도 부적절해 보류. 프로바이더 비교 후 **Leonardo.ai**(일일 무료 150토큰, 게임아트 특화) 채택 → `scripts/gen-assets-leonardo.mjs` 신규 구축, 공통 카탈로그는 `scripts/asset-catalog.mjs`로 분리. Leonardo API 키 수령 대기 중 |
 | 2026-07-24 | 기획 확정 (장르/코어루프/아트무드), 기술 스택 확정, 프로젝트 폴더 생성 및 Phaser+TS+Vite 최소 부팅 화면 커밋 |
@@ -43,11 +44,22 @@ SD 히어로 수집형 자동전투 방치형 게임. 모바일 APK로 설치해
 | 2026-07-25 | 5탭 게임 쉘 구현: 영웅·소환·전투·상점·임무 탭 + 하단 서브메뉴 바(P2) + 우상단 플로팅(이벤트/우편/설정, 접기). 가챠(보석·10연·천장60) 실동작, 로컬 세이브(localStorage), 오프라인 골드 적립, 일일 무료상자. 소환 영웅이 전투에 실시간 합류하는 것까지 브라우저 검증 |
 | 2026-07-25 | 자동전투 프로토타입 완성: 영웅 3종 vs 슬라임 웨이브, 무한 스테이지(3웨이브+보스), 스킬 패시브(불굴/질풍/부활), 크리티컬, 골드, 배속(x1/x2/x4). 헤드리스 브라우저로 웨이브 클리어까지 동작 검증. 빌드 산출물은 `play/`에 커밋 → 라이브 URL `/circle-heroes/play/` |
 
+## APK 빌드
+
+Capacitor로 안드로이드 프로젝트(`android/`)를 초기화했다(appId `io.github.tossneon.circleheroes`). 이 개발 컨테이너에는 **Android SDK가 없어** 로컬에서 직접 `gradlew assembleDebug`를 돌릴 수 없다.
+대신 **GitHub Actions**(`.github/workflows/circle-heroes-android.yml`)로 빌드한다 — 웹 빌드→`cap sync android`→`gradlew assembleDebug`를 러너에서 실행하고 결과 APK를 아티팩트로 올린다.
+
+- 받는 법: GitHub 저장소 → **Actions** 탭 → "Circle Heroes — Android APK" 워크플로 → 완료된 실행 클릭 → 하단 Artifacts에서 `circle-heroes-debug-apk` 다운로드 → 압축 풀면 `app-debug.apk`
+- 트리거: `circle-heroes/**` 변경 푸시마다 자동 실행 + 수동 실행(workflow_dispatch)도 가능
+- 지금은 **디버그 APK**(서명 없음, 설치는 되지만 배포용 아님). 정식 배포하려면 릴리스 키스토어 서명 단계 추가 필요(추후)
+
 ## 다음 할 일
 
 - [ ] Firebase 프로젝트 생성 + 백업 연동
 - [ ] SD 아이콘 에셋 샘플 확정 (현재는 임시 원형 SD 두상)
-- [ ] Capacitor로 안드로이드 프로젝트 초기화 (`npx cap add android`)
+- [x] Capacitor로 안드로이드 프로젝트 초기화
+- [ ] GitHub Actions로 첫 APK 빌드 실제 확인 (main 브랜치 머지 후)
+- [ ] 릴리스 서명 키스토어 준비 (배포용 APK)
 
 ## 로컬 실행
 
