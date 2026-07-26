@@ -6,13 +6,17 @@ export interface Hero {
   nameKr: string;
   grade: HeroGrade;
   faction: string;
-  role: string;
+  heroClass: string;
   baseHp: number;
   baseAtk: number;
   baseDef: number;
   baseSpd: number;
-  skillName: string;
-  skillDesc: string;
+  critRate: number;
+  critDmg: number;
+  skill1Name: string;
+  skill1Desc: string;
+  skill2Name: string;
+  skill2Desc: string;
   acquireMethod: AcquireMethod;
   notes: string;
 }
