@@ -6,6 +6,10 @@ export interface SaveState {
   gems: number;
   /** heroId -> 보유 수(중복 포함, 각성 재료용) */
   owned: Record<string, number>;
+  /** 편성된 영웅 id 목록 (최대 5, 순서 = 배치 슬롯). 편성해야만 전투 합류 */
+  party: string[];
+  /** heroId -> 레벨 (기본 1) */
+  levels: Record<string, number>;
   stage: number;
   /** 천장 카운터: 최고등급 못 뽑은 연속 횟수 */
   pity: number;
@@ -15,11 +19,14 @@ export interface SaveState {
 }
 
 const KEY = "circle-heroes-save-v1";
+export const PARTY_SIZE = 5;
 
 const DEFAULTS: SaveState = {
   gold: 0,
   gems: 1000, // 초기 지급 (테스트 겸 튜토리얼 소환용)
   owned: { warrior_flame_001: 1, archer_wind_001: 1 },
+  party: ["warrior_flame_001", "archer_wind_001"],
+  levels: {},
   stage: 1,
   pity: 0,
   lastSeenMs: Date.now(),
@@ -29,10 +36,10 @@ const DEFAULTS: SaveState = {
 function load(): SaveState {
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return { ...DEFAULTS };
-    return { ...DEFAULTS, ...(JSON.parse(raw) as Partial<SaveState>) };
+    if (!raw) return structuredClone(DEFAULTS);
+    return { ...structuredClone(DEFAULTS), ...(JSON.parse(raw) as Partial<SaveState>) };
   } catch {
-    return { ...DEFAULTS };
+    return structuredClone(DEFAULTS);
   }
 }
 
@@ -47,6 +54,14 @@ export function addGold(n: number) {
   save.gold += n;
   persist();
   emit("gold-changed");
+}
+
+export function spendGold(n: number): boolean {
+  if (save.gold < n) return false;
+  save.gold -= n;
+  persist();
+  emit("gold-changed");
+  return true;
 }
 
 export function spendGems(n: number): boolean {
@@ -75,16 +90,56 @@ export function setStage(stage: number) {
   emit("stage-changed");
 }
 
+/* ── 레벨 ── */
+export function getLevel(id: string): number {
+  return save.levels[id] ?? 1;
+}
+
+/** 레벨업 골드 비용: 레벨이 오를수록 15%씩 증가 */
+export function levelUpCost(level: number): number {
+  return Math.floor(40 * Math.pow(1.15, level - 1));
+}
+
+export function tryLevelUp(id: string): boolean {
+  const cost = levelUpCost(getLevel(id));
+  if (!spendGold(cost)) return false;
+  save.levels[id] = getLevel(id) + 1;
+  persist();
+  emit("levels-changed");
+  return true;
+}
+
+/* ── 편성 ── */
+export function inParty(id: string): boolean {
+  return save.party.includes(id);
+}
+
+export function toggleParty(id: string): "added" | "removed" | "full" {
+  const idx = save.party.indexOf(id);
+  if (idx >= 0) {
+    save.party.splice(idx, 1);
+    persist();
+    emit("party-changed");
+    return "removed";
+  }
+  if (save.party.length >= PARTY_SIZE) return "full";
+  save.party.push(id);
+  persist();
+  emit("party-changed");
+  return "added";
+}
+
 export function resetSave() {
   localStorage.removeItem(KEY);
   location.reload();
 }
 
-/** 오프라인 적립: 분당 스테이지×5골드, 최대 8시간. 3분 미만이면 null */
+/** 오프라인 적립: 분당 스테이지×5골드, 최대 240시간. 3분 미만이면 null */
+export const OFFLINE_CAP_HOURS = 240;
 export function calcOfflineReward(): { minutes: number; gold: number } | null {
   const elapsedMin = Math.floor((Date.now() - save.lastSeenMs) / 60000);
   if (elapsedMin < 3) return null;
-  const capped = Math.min(elapsedMin, 8 * 60);
+  const capped = Math.min(elapsedMin, OFFLINE_CAP_HOURS * 60);
   return { minutes: capped, gold: capped * save.stage * 5 };
 }
 
