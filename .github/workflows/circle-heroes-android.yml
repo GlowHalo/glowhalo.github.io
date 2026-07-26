@@ -9,6 +9,9 @@ on:
       - "circle-heroes/**"
       - ".github/workflows/circle-heroes-android.yml"
 
+permissions:
+  contents: write
+
 jobs:
   build-apk:
     runs-on: ubuntu-latest
@@ -45,3 +48,18 @@ jobs:
           name: circle-heroes-debug-apk
           path: circle-heroes/android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+
+      # 로그인·압축해제 없이 폰에서 바로 받을 수 있도록, 매 빌드마다 같은 태그(circle-heroes-latest)에
+      # 최신 디버그 APK를 올린다. "최신 빌드 = 이 링크" 를 유지하기 위한 롤링 릴리스.
+      - name: Publish to rolling release (circle-heroes-latest)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete circle-heroes-latest --yes --cleanup-tag --repo "$GITHUB_REPOSITORY" || true
+          gh release create circle-heroes-latest \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Circle Heroes — 최신 디버그 APK" \
+            --notes "자동 빌드된 디버그 APK (서명 없음, 테스트 설치용). 커밋: $GITHUB_SHA" \
+            --prerelease \
+            circle-heroes/android/app/build/outputs/apk/debug/app-debug.apk
