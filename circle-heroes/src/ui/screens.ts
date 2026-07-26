@@ -7,6 +7,7 @@ import {
   getStars, ascendCost, dupeCount, tryAscend, MAX_STARS,
 } from "../state/save";
 import { pull, SINGLE_COST, TEN_COST, PITY_LIMIT } from "../systems/gacha";
+import { calcFactionSynergy } from "../systems/battle";
 import {
   DAILY_MISSIONS, ALL_CLEAR_KEY, ALL_CLEAR_BONUS,
   missionProgress, isClaimed, claimable, claim, track,
@@ -153,6 +154,21 @@ export function renderHeroes(root: HTMLElement) {
     partyRow.appendChild(slot);
   }
   root.appendChild(partyRow);
+
+  // 진영 시너지 표시
+  const partyFactions = save.party
+    .map((id) => PLAYABLE_HEROES.find((h) => h.id === id)?.faction)
+    .filter((f): f is string => !!f);
+  const synergy = calcFactionSynergy(partyFactions);
+  root.appendChild(
+    el(
+      "div",
+      "synergy-line",
+      synergy
+        ? `⚡ ${synergy.label}${synergy.atkMult > 1 ? ` · 공격력 +${Math.round((synergy.atkMult - 1) * 100)}%` : ""}${synergy.dmgTakenMult < 1 ? ` · 받는피해 -${Math.round((1 - synergy.dmgTakenMult) * 100)}%` : ""}`
+        : "진영 시너지 없음 — 같은 진영 3명↑ 또는 전 진영 1명씩 편성 시 발동"
+    )
+  );
 
   root.appendChild(el("h2", "", "보유 영웅"));
 
