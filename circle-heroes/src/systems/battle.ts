@@ -243,6 +243,42 @@ export function makeTowerEnemy(key: string, name: string, floor: number, boss: b
   };
 }
 
+/* ── 진영 시너지 ──
+ * 3원소(불꽃/바람/물)는 순환 상성, 빛↔어둠은 상호 카운터(전투 대미지 계산에서 별도 처리 예정).
+ * 여기서는 편성 구성에 따른 진영 시너지(동일 진영 스택 vs 레인보우)만 다룬다.
+ * 히든(불명) 진영은 시너지 집계에서 제외된다(무진영).
+ */
+export const REAL_FACTIONS = ["불꽃", "물", "바람", "빛", "어둠"];
+
+export interface FactionSynergy {
+  label: string;
+  atkMult: number;
+  dmgTakenMult: number;
+}
+
+/** 편성된 영웅들의 진영 목록으로 현재 활성 시너지를 계산. 없으면 null */
+export function calcFactionSynergy(factions: string[]): FactionSynergy | null {
+  const counts: Record<string, number> = {};
+  for (const f of factions) {
+    if (REAL_FACTIONS.includes(f)) counts[f] = (counts[f] ?? 0) + 1;
+  }
+  if (REAL_FACTIONS.every((f) => counts[f] === 1)) {
+    return { label: "레인보우 (전 진영 1명씩)", atkMult: 1, dmgTakenMult: 0.82 };
+  }
+  let maxFaction = "";
+  let maxCount = 0;
+  for (const f of REAL_FACTIONS) {
+    if ((counts[f] ?? 0) > maxCount) {
+      maxCount = counts[f];
+      maxFaction = f;
+    }
+  }
+  if (maxCount >= 5) return { label: `${maxFaction} 5명 (모노)`, atkMult: 1.18, dmgTakenMult: 1 };
+  if (maxCount >= 4) return { label: `${maxFaction} 4명`, atkMult: 1.1, dmgTakenMult: 1 };
+  if (maxCount >= 3) return { label: `${maxFaction} 3명`, atkMult: 1.05, dmgTakenMult: 1 };
+  return null;
+}
+
 /** 웨이브 시작 시 오라·시작 보호막 적용. 같은 유닛에 중복 적용되지 않도록 기준값에서 재계산 */
 export function applyAuras(team: Unit[], foes: Unit[]) {
   for (const u of team) {
@@ -258,6 +294,17 @@ export function applyAuras(team: Unit[], foes: Unit[]) {
     for (const u of team) if (u.faction === "어둠") u.atk = Math.round(u.atk * 1.2); // 심연 지배
   if (foes.some((u) => u.alive && u.heroId === "witch_water_001"))
     for (const u of team) u.spd *= 0.9;                                    // (상대의) 냉류
+
+  // 진영 시너지 — 플레이어 본인의 편성 팀에만 적용(몬스터·아레나 상대는 제외)
+  if (team.every((u) => u.isHero)) {
+    const synergy = calcFactionSynergy(team.map((u) => u.faction));
+    if (synergy) {
+      for (const u of team) {
+        u.atk = Math.round(u.atk * synergy.atkMult);
+        u.dmgTakenMult *= synergy.dmgTakenMult;
+      }
+    }
+  }
 
   for (const u of team) {
     if (u.startShieldMult > 0 && u.shield <= 0) u.shield = Math.round(u.atk * u.startShieldMult); // 신념
