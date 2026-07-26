@@ -85,10 +85,12 @@ Full body, single character only, facing right (3/4 view), feet at bottom center
 Transparent background (alpha PNG). No text, no watermark, no frame. Square 1:1.
 ```
 
-### 4. 슬라임 (512×512)
+### 4. 슬라임 (512×512) — 메이플스토리 슬라임 참고
 ```
-A cute green slime monster with big glossy eyes and a happy open mouth,
-jelly-like translucent body with shine highlights.
+A green slime monster in the style of the classic MapleStory slime --
+simple teardrop-shaped blob body, glossy jelly surface with a shine highlight,
+small simple dot eyes, a flat neutral or slightly grumpy small mouth (not
+smiling, not laughing, not cute), no limbs, no blush cheeks.
 Single creature only, facing right, centered, small margin.
 Transparent background (alpha PNG). No text, no watermark. Square 1:1.
 ```

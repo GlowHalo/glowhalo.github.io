@@ -59,8 +59,10 @@ ${CHAR_TAIL}`,
     styled: true,
     w: 512,
     h: 512,
-    prompt: `A cute green slime monster with big glossy eyes and a happy open mouth,
-jelly-like translucent body with shine highlights.
+    prompt: `A green slime monster in the style of the classic MapleStory slime --
+simple teardrop-shaped blob body, glossy jelly surface with a shine highlight,
+small simple dot eyes, a flat neutral or slightly grumpy small mouth (not
+smiling, not laughing, not cute), no limbs, no blush cheeks.
 Single creature only, facing right, centered, small margin.
 Pure white background, no shadow. No text, no watermark. Square 1:1.`,
   },
