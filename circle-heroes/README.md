@@ -58,7 +58,7 @@ Capacitor로 안드로이드 프로젝트(`android/`)를 초기화했다(appId `
 - [ ] Firebase 프로젝트 생성 + 백업 연동
 - [ ] SD 아이콘 에셋 샘플 확정 (현재는 임시 원형 SD 두상)
 - [x] Capacitor로 안드로이드 프로젝트 초기화
-- [ ] GitHub Actions로 첫 APK 빌드 실제 확인 (main 브랜치 머지 후)
+- [x] GitHub Actions로 첫 APK 빌드 실제 확인 (feature 브랜치에서 성공, run #1)
 - [ ] 릴리스 서명 키스토어 준비 (배포용 APK)
 
 ## 로컬 실행
