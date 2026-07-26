@@ -1,10 +1,17 @@
 # Circle Heroes — 나노바나나(Gemini) 이미지 생성 프롬프트 (Rev.2)
 
-> **자동화 (Rev.2.1)**: `scripts/gen-assets.mjs` 로 Claude가 Gemini API를 직접 호출해 생성할 수 있다.
-> `node scripts/gen-assets.mjs --list` 로 에셋키 확인. 키는 환경변수 `GEMINI_API_KEY` 또는
-> `circle-heroes/.env` (gitignore 대상) — **키는 절대 커밋되지 않는다.**
-> 생성 결과는 `assets-gen/<키>/` (gitignore 대상)에 쌓이고, 검수 통과본만 게임에 배치한다.
-> 아래 수동 프롬프트는 여전히 정본이며, 스크립트 카탈로그는 이 문서를 코드화한 것.
+> **자동화 (Rev.2.2)**: 두 자동화 스크립트가 `scripts/asset-catalog.mjs`(이 문서의 코드화)를 공유한다.
+> `node scripts/<파일> --list` 로 에셋키 확인. 생성 결과는 `assets-gen/<키>/` (gitignore 대상)에 쌓이고,
+> 검수 통과본만 게임에 배치한다. 아래 수동 프롬프트는 여전히 정본.
+>
+> - **Leonardo.ai (`gen-assets-leonardo.mjs`, 채택)** — 일일 무료 150토큰으로 시작 가능, 게임아트 특화.
+>   키는 환경변수/`.env`의 `LEONARDO_API_KEY` (발급: https://app.leonardo.ai/api-access).
+>   `--ref`로 참조 이미지 업로드 시 Style Reference ControlNet 적용, `--list-models`로 실제 계정
+>   모델 목록 확인 가능 (기본값은 Phoenix).
+> - **Gemini(`gen-assets.mjs`, 대안)** — 키는 `GEMINI_API_KEY`. **결제 계정 연결 필요**
+>   (무료 등급은 이미지 생성 할당량 0 — 429 확인됨). 결제 연결 시 바로 사용 가능.
+>
+> **키는 절대 커밋되지 않는다** (`.env`, `*.key` 등은 gitignore 대상, 코드에도 하드코딩 없음).
 
 > **Rev.2 변경**: 1차 생성에서 그림체가 섞이는 문제 발생 → 원인은 "same art style as previous image" 의존.
 > 해결: ① 아래 STYLE BLOCK을 **모든 프롬프트에 통째로 반복** ② 잘 나온 기준 이미지 1장을 **매번 참조로 첨부**하고
