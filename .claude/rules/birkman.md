@@ -26,10 +26,19 @@ paths:
 - Claude 는 headed 브라우저를 띄우지 못한다 → 앱 내장 브라우저(`mcp__Claude_Browser__`)에 사용자가 로그인하고 Claude 가 조작한다.
 - `get_page_text` 는 되는데 `screenshot` 이 멈추면 `navigate` 로 리셋한다.
 
+## Phase1 오케스트레이터 (`src/cli.js`, `npm run run`)
+
+- 명령: `status`(로그인+진단내역 확인) / `download <memberId>`(결과 PDF, Playwright `download` 이벤트로 OS 저장창 없이 저장) / `purchase <code>`(⚠실결제) / `register-target <orderId>`(대상자 등록·안내메일 발송).
+- `purchase`/`register-target`은 `--confirm` 플래그 + 터미널 y/N 재확인이 있어야만 실제로 클릭/제출한다. 그 전엔 dry-run으로 무엇을 할지만 출력.
+- 셀렉터는 `src/selectors.js`에 모아둠. 값이 `null`이면 아직 실사이트에서 확인 전이라는 뜻이며, 해당 기능은 에러로 막힌다(잘못된 셀렉터로 결제 버튼을 잘못 누르는 사고 방지). `npm run map -- <URL>`로 정찰 후 채워 넣을 것 — 특히 진단내역 테이블(`orderRow` 등)과 구매/등록 폼은 아직 미확정.
+- `download`는 `a.download_file[data-member][data-file]` → `/mypage/download/assessment/each?num={id}` 패턴이 이미 확인되어 바로 동작한다.
+
 ## 파이프라인 (`src/`)
 
 | 파일 | 역할 |
 |---|---|
+| `cli.js` | Phase1 오케스트레이터 (위 참고) |
+| `selectors.js` | 사이트 셀렉터 맵 (미확정 항목은 `null`) |
 | `extract-pdf.mjs` | 결과 PDF → txt (pdf-parse v2, `PDFParse` 클래스 API) |
 | `parse-report.mjs` | txt → 구조화 JSON (흥미 10개 %, 컴포넌트 9개 평소행동/욕구 점수) |
 | `make-debriefing-pdf.mjs` | 마크다운 → PDF (marked + Playwright headless 렌더, poppler 불필요) |
