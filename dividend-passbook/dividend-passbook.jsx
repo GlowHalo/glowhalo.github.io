@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Plus, Trash2, ChevronRight, Wallet, CalendarClock, History, X } from "lucide-react";
-import { AreaChart, Area, BarChart, Bar, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { Plus, Trash2, Wallet, X, TrendingUp, Percent, LineChart, PieChart, Settings } from "lucide-react";
+import { AreaChart, Area, BarChart, Bar, Cell, PieChart as RePieChart, Pie, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 
 /* ----------------------------- 기준일 & 환율 (데모용) ----------------------------- */
 const TODAY = new Date(new Date().toISOString().slice(0, 10));
@@ -174,6 +174,15 @@ function grossKRW(event, stock, qty) {
   const gross = event.perShare * qty;
   return stock.currency === "KRW" ? gross : gross * FX_USD_KRW;
 }
+
+// 매입금액(원금, 원화 환산) — 매입단가(price)를 입력한 보유분만 계산 가능
+function costBasisKRW(h) {
+  const stock = getStock(h.ticker);
+  if (!stock || !h.price) return 0;
+  const cost = h.price * h.quantity;
+  return stock.currency === "KRW" ? cost : cost * FX_USD_KRW;
+}
+
 function netKRW(event, stock, qty) {
   const gross = grossKRW(event, stock, qty);
   const rate = stock.currency === "KRW" ? 0.154 : 0.15;
@@ -205,9 +214,83 @@ function classifyAmount(event, stock, qty, accountType) {
   return { gross, net: null, certain: false, taxNote: TAX_NOTE[accountType] };
 }
 
+/* ----------------------------- 배당 탭: 연도별 월 분해 ----------------------------- */
+function yearMonthlyBreakdown(year, allEvents) {
+  const months = [];
+  for (let m = 1; m <= 12; m++) {
+    const mKey = `${year}-${String(m).padStart(2, "0")}`;
+    const events = allEvents.filter((e) => monthKey(e.exDate) === mKey);
+    months.push({ month: mKey, value: events.reduce((s, e) => s + e.gross, 0), events, isFuture: new Date(mKey + "-01") > TODAY });
+  }
+  return months;
+}
+
+/* ----------------------------- 수익 탭: 기간별 배당 합계 ----------------------------- */
+function periodDividendTotal(period, paidEvents) {
+  if (period === "total") return paidEvents.reduce((s, e) => s + e.gross, 0);
+  if (period === "today") return paidEvents.filter((e) => e.exDate === fmt(TODAY)).reduce((s, e) => s + e.gross, 0);
+  if (period === "week") {
+    const start = new Date(TODAY);
+    start.setDate(TODAY.getDate() - TODAY.getDay());
+    return paidEvents.filter((e) => new Date(e.exDate) >= start).reduce((s, e) => s + e.gross, 0);
+  }
+  if (period === "month") return paidEvents.filter((e) => monthKey(e.exDate) === thisMonthKey).reduce((s, e) => s + e.gross, 0);
+  if (period === "quarter") {
+    const q = Math.floor(TODAY.getMonth() / 3);
+    return paidEvents.filter((e) => {
+      const d = new Date(e.exDate);
+      return d.getFullYear() === TODAY.getFullYear() && Math.floor(d.getMonth() / 3) === q;
+    }).reduce((s, e) => s + e.gross, 0);
+  }
+  if (period === "year") return paidEvents.filter((e) => e.exDate.slice(0, 4) === String(TODAY.getFullYear())).reduce((s, e) => s + e.gross, 0);
+  return 0;
+}
+
+/* ----------------------------- 비중 탭: 매입금액(원금) 기준 그룹 ----------------------------- */
+function costBasisGroups(holdingsList) {
+  const byTicker = {}, byMarket = {}, byAccount = {};
+  let total = 0;
+  holdingsList.forEach((h) => {
+    if (h.sellDate) return;
+    const cost = costBasisKRW(h);
+    if (!cost) return;
+    const stock = getStock(h.ticker);
+    if (!stock) return;
+    if (!byTicker[h.ticker]) byTicker[h.ticker] = { key: h.ticker, label: stock.name, value: 0 };
+    byTicker[h.ticker].value += cost;
+    const marketLabel = stock.market === "KR" ? "국내" : "해외";
+    byMarket[marketLabel] = (byMarket[marketLabel] || 0) + cost;
+    const accLabel = getAccountType(h.accountType).label;
+    byAccount[accLabel] = (byAccount[accLabel] || 0) + cost;
+    total += cost;
+  });
+  const toList = (obj) => Object.entries(obj).map(([label, value]) => ({ key: label, label, value })).sort((a, b) => b.value - a.value);
+  return {
+    total,
+    ticker: Object.values(byTicker).sort((a, b) => b.value - a.value),
+    market: toList(byMarket),
+    account: toList(byAccount),
+    uncosted: holdingsList.filter((h) => !h.sellDate && !h.price).length,
+  };
+}
+
+/* ----------------------------- 추이 탭: 원금(매입금액) 누적 추이 ----------------------------- */
+function costBasisTrend(holdingsList) {
+  const withCost = holdingsList.filter((h) => h.price).slice().sort((a, b) => a.purchaseDate.localeCompare(b.purchaseDate));
+  const byMonth = {};
+  let running = 0;
+  withCost.forEach((h) => {
+    running += costBasisKRW(h);
+    byMonth[monthKey(h.purchaseDate)] = Math.round(running);
+  });
+  return Object.entries(byMonth).map(([m, v]) => ({ month: m, value: v }));
+}
+
+const DONUT_COLORS = ["#1F2A44", "#9C7A3C", "#8B93A8", "#B23A3A", "#4B5670", "#C9C0A5"];
+
 /* ----------------------------- 보유종목 영속화 (localStorage) ----------------------------- */
-// v2: 데모 3종목 시드 → 실제 보유종목(QQQI·491620·0138T0·441640) 15개 매수배치로 교체
-const HOLDINGS_STORAGE_KEY = "dividend-passbook:holdings:v2";
+// v3: 매입단가(price) 필드 추가 — 비중/원금추이 계산용
+const HOLDINGS_STORAGE_KEY = "dividend-passbook:holdings:v3";
 function loadHoldings() {
   try {
     const raw = localStorage.getItem(HOLDINGS_STORAGE_KEY);
@@ -218,25 +301,25 @@ function loadHoldings() {
   }
 }
 const DEFAULT_HOLDINGS = [
-  // 일반위탁 (203-02-227281) — QQQI
-  { id: 1, ticker: "QQQI", quantity: 10, purchaseDate: "2026-04-28", sellDate: null, accountType: "general" },
-  { id: 2, ticker: "QQQI", quantity: 33, purchaseDate: "2026-04-28", sellDate: null, accountType: "general" },
-  { id: 3, ticker: "QQQI", quantity: 1, purchaseDate: "2026-05-19", sellDate: null, accountType: "general" },
-  { id: 4, ticker: "QQQI", quantity: 16, purchaseDate: "2026-06-11", sellDate: null, accountType: "general" },
-  { id: 5, ticker: "QQQI", quantity: 13, purchaseDate: "2026-07-22", sellDate: null, accountType: "general" },
-  // 중개형ISA (211-02-404170) — RISE 491620
-  { id: 6, ticker: "491620", quantity: 20, purchaseDate: "2026-03-12", sellDate: null, accountType: "isa" },
-  { id: 7, ticker: "491620", quantity: 491, purchaseDate: "2026-04-03", sellDate: null, accountType: "isa" },
-  { id: 8, ticker: "491620", quantity: 500, purchaseDate: "2026-04-23", sellDate: null, accountType: "isa" },
-  { id: 9, ticker: "491620", quantity: 64, purchaseDate: "2026-06-30", sellDate: null, accountType: "isa" },
-  { id: 10, ticker: "491620", quantity: 36, purchaseDate: "2026-07-22", sellDate: null, accountType: "isa" },
+  // 일반위탁 (203-02-227281) — QQQI (매입단가는 실제 체결단가, USD)
+  { id: 1, ticker: "QQQI", quantity: 10, price: 53.55, purchaseDate: "2026-04-28", sellDate: null, accountType: "general" },
+  { id: 2, ticker: "QQQI", quantity: 33, price: 53.56, purchaseDate: "2026-04-28", sellDate: null, accountType: "general" },
+  { id: 3, ticker: "QQQI", quantity: 1, price: 56.47, purchaseDate: "2026-05-19", sellDate: null, accountType: "general" },
+  { id: 4, ticker: "QQQI", quantity: 16, price: 56.10, purchaseDate: "2026-06-11", sellDate: null, accountType: "general" },
+  { id: 5, ticker: "QQQI", quantity: 13, price: 54.47, purchaseDate: "2026-07-22", sellDate: null, accountType: "general" },
+  // 중개형ISA (211-02-404170) — RISE 491620 (매입단가는 실제 체결단가, KRW)
+  { id: 6, ticker: "491620", quantity: 20, price: 10505, purchaseDate: "2026-03-12", sellDate: null, accountType: "isa" },
+  { id: 7, ticker: "491620", quantity: 491, price: 10140, purchaseDate: "2026-04-03", sellDate: null, accountType: "isa" },
+  { id: 8, ticker: "491620", quantity: 500, price: 11105, purchaseDate: "2026-04-23", sellDate: null, accountType: "isa" },
+  { id: 9, ticker: "491620", quantity: 64, price: 11660, purchaseDate: "2026-06-30", sellDate: null, accountType: "isa" },
+  { id: 10, ticker: "491620", quantity: 36, price: 11295, purchaseDate: "2026-07-22", sellDate: null, accountType: "isa" },
   // 중개형ISA — RISE 0138T0
-  { id: 11, ticker: "0138T0", quantity: 317, purchaseDate: "2026-04-03", sellDate: null, accountType: "isa" },
-  { id: 12, ticker: "0138T0", quantity: 300, purchaseDate: "2026-04-23", sellDate: null, accountType: "isa" },
+  { id: 11, ticker: "0138T0", quantity: 317, price: 9475, purchaseDate: "2026-04-03", sellDate: null, accountType: "isa" },
+  { id: 12, ticker: "0138T0", quantity: 300, price: 9875, purchaseDate: "2026-04-23", sellDate: null, accountType: "isa" },
   // 중개형ISA — KODEX 441640
-  { id: 13, ticker: "441640", quantity: 156, purchaseDate: "2026-04-03", sellDate: null, accountType: "isa" },
-  { id: 14, ticker: "441640", quantity: 5, purchaseDate: "2026-04-23", sellDate: null, accountType: "isa" },
-  { id: 15, ticker: "441640", quantity: 95, purchaseDate: "2026-04-23", sellDate: null, accountType: "isa" },
+  { id: 13, ticker: "441640", quantity: 156, price: 12845, purchaseDate: "2026-04-03", sellDate: null, accountType: "isa" },
+  { id: 14, ticker: "441640", quantity: 5, price: 12970, purchaseDate: "2026-04-23", sellDate: null, accountType: "isa" },
+  { id: 15, ticker: "441640", quantity: 95, price: 12975, purchaseDate: "2026-04-23", sellDate: null, accountType: "isa" },
 ];
 
 /* ----------------------------- CSV 일괄 가져오기 (매수 배치·매도 이력 지원) ----------------------------- */
@@ -245,6 +328,7 @@ const CSV_HEADER_ALIASES = {
   name: ["name", "종목명", "상품명"],
   currency: ["currency", "통화"],
   quantity: ["quantity", "수량", "주식수"],
+  price: ["price", "매입단가", "가격", "체결단가"],
   purchaseDate: ["purchasedate", "매입일", "매수일"],
   accountType: ["accounttype", "계좌유형", "계좌"],
   sellDate: ["selldate", "매도일"],
@@ -305,6 +389,7 @@ function validateCsvRow(cols, idx, rowNum) {
   const nameRaw = get("name");
   const currencyRaw = get("currency").toUpperCase();
   const qtyRaw = get("quantity");
+  const priceRaw = get("price");
   const dateRaw = get("purchaseDate");
   const accRaw = get("accountType");
   const sellRaw = get("sellDate");
@@ -324,6 +409,12 @@ function validateCsvRow(cols, idx, rowNum) {
   const qty = Number(qtyRaw);
   if (!qtyRaw || !Number.isFinite(qty) || qty <= 0) return { ok: false, error: `수량이 올바르지 않아요 (${qtyRaw})` };
 
+  let price = null;
+  if (priceRaw) {
+    price = Number(priceRaw);
+    if (!Number.isFinite(price) || price <= 0) return { ok: false, error: `매입단가가 올바르지 않아요 (${priceRaw})` };
+  }
+
   if (!isValidDateStr(dateRaw)) return { ok: false, error: `매입일 형식이 올바르지 않아요 (YYYY-MM-DD, "${dateRaw}")` };
 
   const accountType = accRaw ? resolveAccountType(accRaw) : "general";
@@ -339,17 +430,17 @@ function validateCsvRow(cols, idx, rowNum) {
   return {
     ok: true,
     pendingCustomStock,
-    holding: { id: Date.now() * 1000 + rowNum, ticker: resolvedTicker, quantity: qty, purchaseDate: dateRaw, sellDate, accountType },
+    holding: { id: Date.now() * 1000 + rowNum, ticker: resolvedTicker, quantity: qty, price, purchaseDate: dateRaw, sellDate, accountType },
   };
 }
 
 function downloadSampleCsv() {
-  const sample = "종목코드,종목명,통화,수량,매입일,계좌유형,매도일\n"
-    + "005930,,,10,2024-01-10,일반,\n"
-    + "005930,,,5,2024-06-01,일반,\n"
-    + "O,,,5,2023-11-01,ISA,\n"
-    + "033780,,,10,2024-02-01,연금,2026-03-02\n"
-    + ",네오스 나스닥100 고배당 ETF,USD,10,2026-04-28,일반,\n";
+  const sample = "종목코드,종목명,통화,수량,매입단가,매입일,계좌유형,매도일\n"
+    + "005930,,,10,71500,2024-01-10,일반,\n"
+    + "005930,,,5,74200,2024-06-01,일반,\n"
+    + "O,,,5,54.2,2023-11-01,ISA,\n"
+    + "033780,,,10,95000,2024-02-01,연금,2026-03-02\n"
+    + ",네오스 나스닥100 고배당 ETF,USD,10,53.55,2026-04-28,일반,\n";
   const blob = new Blob(["﻿" + sample], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -369,19 +460,27 @@ export default function DividendPassbook() {
       localStorage.setItem(HOLDINGS_STORAGE_KEY, JSON.stringify(holdings));
     } catch {}
   }, [holdings]);
-  const [tab, setTab] = useState("holdings");
+  const [tab, setTab] = useState("dividend");
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ ticker: STOCKS[0].ticker, quantity: "", purchaseDate: "", sellDate: "", accountType: "general" });
+  const [form, setForm] = useState({ ticker: STOCKS[0].ticker, quantity: "", price: "", purchaseDate: "", sellDate: "", accountType: "general" });
   const [csvImport, setCsvImport] = useState({ open: false, fileName: "", headerError: null, results: [] });
+
+  // 도미노 벤치마킹 탭들의 UI 상태
+  const [selectedYear, setSelectedYear] = useState(TODAY.getFullYear());
+  const [selectedMonthNum, setSelectedMonthNum] = useState(TODAY.getMonth() + 1);
+  const [profitPeriod, setProfitPeriod] = useState("total");
+  const [allocationView, setAllocationView] = useState("ticker");
+  const [dividendShowNet, setDividendShowNet] = useState(true);
+  const [dividendShowForeign, setDividendShowForeign] = useState(true);
 
   const addHolding = () => {
     if (!form.quantity || !form.purchaseDate) return;
     if (form.sellDate && form.sellDate < form.purchaseDate) { alert("매도일은 매입일보다 빠를 수 없어요."); return; }
     setHoldings((h) => [
       ...h,
-      { id: Date.now(), ticker: form.ticker, quantity: Number(form.quantity), purchaseDate: form.purchaseDate, sellDate: form.sellDate || null, accountType: form.accountType },
+      { id: Date.now(), ticker: form.ticker, quantity: Number(form.quantity), price: form.price ? Number(form.price) : null, purchaseDate: form.purchaseDate, sellDate: form.sellDate || null, accountType: form.accountType },
     ]);
-    setForm({ ticker: STOCKS[0].ticker, quantity: "", purchaseDate: "", sellDate: "", accountType: "general" });
+    setForm({ ticker: STOCKS[0].ticker, quantity: "", price: "", purchaseDate: "", sellDate: "", accountType: "general" });
     setShowAdd(false);
   };
   const removeHolding = (id) => setHoldings((h) => h.filter((x) => x.id !== id));
@@ -495,37 +594,36 @@ export default function DividendPassbook() {
   });
   const ledgerDesc = [...ledgerAsc].reverse();
 
-  // 차트 데이터 (월별 누적)
-  const chartData = useMemo(() => {
-    const byMonth = {};
-    ledgerAsc.forEach((e) => {
-      byMonth[monthKey(e.exDate)] = e.running;
-    });
-    return Object.entries(byMonth).map(([m, v]) => ({ month: m.slice(2), value: Math.round(v) }));
-  }, [ledgerAsc]);
+  // 배당 탭: 선택 연도의 월별 분해 + 선택된 월 상세
+  const yearMonths = useMemo(() => yearMonthlyBreakdown(selectedYear, allEvents), [selectedYear, allEvents]);
+  const validMonthNum = yearMonths[selectedMonthNum - 1] ? selectedMonthNum : 1;
+  const selectedMonthData = yearMonths[validMonthNum - 1];
+  const yearTotal = yearMonths.reduce((s, m) => s + m.value, 0);
+  const yearHeadlineAmount = dividendShowNet
+    ? yearMonths.flatMap((m) => m.events).reduce((s, e) => s + (e.certain ? e.net : e.gross), 0)
+    : yearTotal;
+  const availableYears = useMemo(() => Array.from(new Set(
+    [...STOCKS, ...customStocks].flatMap((s) => s.dividends.map((d) => Number(d.exDate.slice(0, 4))))
+  )).sort(), [customStocksVersion]);
+  const minYear = availableYears[0] || TODAY.getFullYear();
+  const maxYear = TODAY.getFullYear() + 1;
 
-  // 메인화면용 12개월 배당 그래프: 과거 8개월 + 이번달 + 향후 3개월 (지급완료/확정 + 미래는 추정치 합산)
-  const monthlyChart = useMemo(() => {
-    const months = [];
-    for (let i = -8; i <= 3; i++) {
-      const mKey = monthKey(fmt(addMonths(TODAY, i)));
-      const value = allEvents.filter((e) => monthKey(e.exDate) === mKey).reduce((s, e) => s + e.gross, 0);
-      months.push({ month: mKey.slice(5), value: Math.round(value), isCurrent: i === 0, isFuture: i > 0 });
-    }
-    return months;
-  }, [allEvents]);
-  const thisMonthTotal = monthlyChart.find((m) => m.isCurrent)?.value || 0;
+  // 수익 탭
+  const profitDividend = periodDividendTotal(profitPeriod, paidEvents);
 
-  // 종목별 보유수량 요약 (매도분 제외, 계좌 병기)
-  const holdingGroups = useMemo(() => {
-    const map = {};
-    holdings.forEach((h) => {
-      if (!map[h.ticker]) map[h.ticker] = { ticker: h.ticker, quantity: 0, accountTypes: new Set() };
-      if (!h.sellDate) map[h.ticker].quantity += h.quantity;
-      map[h.ticker].accountTypes.add(h.accountType);
-    });
-    return Object.values(map).map((g) => ({ ...g, accountTypes: Array.from(g.accountTypes) }));
-  }, [holdings]);
+  // 세금 탭
+  const allAccountsYearGross = paidEvents.filter((e) => e.exDate.slice(0, 4) === String(TODAY.getFullYear()))
+    .reduce((s, e) => s + e.gross, 0);
+
+  // 비중·추이 탭: 매입단가(price) 기반 원금 계산
+  const costGroups = useMemo(() => costBasisGroups(holdings), [holdings]);
+  const costTrendData = useMemo(() => costBasisTrend(holdings), [holdings]);
+  const ALLOCATION_VIEWS = [
+    { key: "ticker", label: "종목별", data: costGroups.ticker },
+    { key: "market", label: "시장별", data: costGroups.market },
+    { key: "account", label: "계좌별", data: costGroups.account },
+  ];
+  const currentAllocData = (ALLOCATION_VIEWS.find((v) => v.key === allocationView) || ALLOCATION_VIEWS[0]).data;
 
   return (
     <div className="min-h-screen w-full flex justify-center" style={{ background: "#EDE9DC" }}>
@@ -558,99 +656,25 @@ export default function DividendPassbook() {
           </div>
         </div>
 
-        {/* 보유종목 요약 (매도분 제외 수량, 계좌 병기) */}
-        <div className="px-5 pt-6">
-          <div className="rounded-2xl p-4" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium" style={{ color: "#4B5670" }}>보유종목</span>
-              <span className="mono text-xs" style={{ color: "#8B93A8" }}>{holdingGroups.length}종목</span>
-            </div>
-            <div className="mt-1">
-              {holdingGroups.length === 0 ? (
-                <p className="text-sm mt-2" style={{ color: "#8B93A8" }}>보유 중인 종목이 없어요.</p>
-              ) : (
-                holdingGroups.map((g) => {
-                  const stock = getStock(g.ticker);
-                  if (!stock) return null;
-                  return (
-                    <div key={g.ticker} className="flex justify-between items-center py-2" style={{ borderBottom: "1px solid #EDE9DC" }}>
-                      <div>
-                        <div className="text-sm font-medium" style={{ color: "#1F2A44" }}>{stock.name}</div>
-                        <div className="mt-0.5">
-                          <span className="text-[10px] px-1.5 py-0.5 rounded mono" style={{ background: "#EDE9DC", color: "#4B5670" }}>
-                            {stock.market === "KR" ? "국내" : "해외"}
-                          </span>
-                          {g.accountTypes.map((a) => (
-                            <span
-                              key={a}
-                              className="text-[10px] px-1.5 py-0.5 rounded mono ml-1"
-                              style={{ background: a !== "general" ? "#F0E9D8" : "#EDE9DC", color: a !== "general" ? "#9C7A3C" : "#4B5670" }}
-                            >
-                              {getAccountType(a).short}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="mono font-semibold" style={{ fontSize: 15, color: "#1F2A44" }}>{g.quantity.toLocaleString("ko-KR")}주</div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* 월별 배당 그래프: 과거 8개월 + 이번달 + 향후 3개월 */}
-        <div className="px-5 pt-4">
-          <div className="rounded-2xl p-4" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
-            <span className="text-xs font-medium" style={{ color: "#4B5670" }}>월별 배당 · 과거 8개월 + 이번달 + 향후 3개월</span>
-            <div className="mt-1 flex items-baseline gap-1.5">
-              <span className="serif text-xl font-bold mono" style={{ color: "#1F2A44" }}>{won(thisMonthTotal)}</span>
-              <span className="text-[10px]" style={{ color: "#8B93A8" }}>이번 달 세전</span>
-            </div>
-            <div className="mt-2" style={{ height: 110 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthlyChart} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
-                  <XAxis dataKey="month" tick={{ fontSize: 9, fill: "#8B93A8" }} axisLine={false} tickLine={false} />
-                  <YAxis hide />
-                  <Tooltip
-                    formatter={(v, n, p) => [won(v), p.payload.isFuture ? "추정(향후)" : p.payload.isCurrent ? "이번달" : "지급완료"]}
-                    contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E4DCC5" }}
-                  />
-                  <Bar dataKey="value" radius={[2, 2, 0, 0]}>
-                    {monthlyChart.map((d, i) => (
-                      <Cell
-                        key={i}
-                        fill={d.isCurrent ? "#9C7A3C" : d.isFuture ? "#EDE9DC" : "#1F2A44"}
-                        stroke={d.isFuture ? "#C9C0A5" : "none"}
-                        strokeDasharray={d.isFuture ? "3 2" : undefined}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex justify-between mt-1" style={{ fontSize: 9, color: "#8B93A8" }}>
-              <span>■ 지급완료</span><span style={{ color: "#9C7A3C" }}>■ 이번달</span><span>▨ 추정(향후)</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 탭 */}
-        <div className="px-5 pt-5 flex gap-1.5">
+        {/* 탭 (도미노 벤치마킹: 수익/세금/배당/추이/비중 + 관리) */}
+        <div className="px-5 pt-6 flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
           {[
-            { key: "holdings", label: "매수내역", icon: Wallet },
-            { key: "upcoming", label: "예정배당", icon: CalendarClock },
-            { key: "ledger", label: "지난기록", icon: History },
+            { key: "profit", label: "수익", icon: TrendingUp },
+            { key: "tax", label: "세금", icon: Percent },
+            { key: "dividend", label: "배당", icon: Wallet },
+            { key: "trend", label: "추이", icon: LineChart },
+            { key: "allocation", label: "비중", icon: PieChart },
+            { key: "manage", label: "관리", icon: Settings },
           ].map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className="flex-1 py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1 transition-colors"
+              className="py-2 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1 transition-colors flex-shrink-0"
               style={{
                 background: tab === t.key ? "#1F2A44" : "#FFFDF8",
                 color: tab === t.key ? "#F5F1E6" : "#4B5670",
                 border: tab === t.key ? "none" : "1px solid #E4DCC5",
+                whiteSpace: "nowrap",
               }}
             >
               <t.icon size={13} />
@@ -661,7 +685,7 @@ export default function DividendPassbook() {
 
         {/* 탭 콘텐츠 */}
         <div className="px-5 py-4 pb-10">
-          {tab === "holdings" && (
+          {tab === "manage" && (
             <div className="space-y-2.5">
               {!showAdd ? (
                 <button
@@ -694,6 +718,15 @@ export default function DividendPassbook() {
                     placeholder="보유 수량"
                     value={form.quantity}
                     onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+                    className="w-full text-sm rounded-lg px-3 py-2"
+                    style={{ border: "1px solid #E4DCC5", background: "#F5F1E6", color: "#1F2A44" }}
+                  />
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="매입단가 (선택, 비중·원금 계산에 사용)"
+                    value={form.price}
+                    onChange={(e) => setForm({ ...form, price: e.target.value })}
                     className="w-full text-sm rounded-lg px-3 py-2"
                     style={{ border: "1px solid #E4DCC5", background: "#F5F1E6", color: "#1F2A44" }}
                   />
@@ -756,8 +789,8 @@ export default function DividendPassbook() {
                     </button>
                   </div>
                   <div className="text-[11px] leading-relaxed" style={{ color: "#8B93A8" }}>
-                    컬럼: 종목코드, 종목명, 통화(KRW/USD), 수량, 매입일(YYYY-MM-DD), 계좌유형(일반/ISA/연금), 매도일(선택)
-                    <br />종목코드가 없어도 종목명만 있으면 커스텀 종목으로 등록돼요 (배당은 직접 기록 필요). 매수 배치마다 한 행씩 적고, 매도한 배치는 매도일도 채워주세요.
+                    컬럼: 종목코드, 종목명, 통화(KRW/USD), 수량, 매입단가(선택), 매입일(YYYY-MM-DD), 계좌유형(일반/ISA/연금), 매도일(선택)
+                    <br />종목코드가 없어도 종목명만 있으면 커스텀 종목으로 등록돼요 (배당은 직접 기록 필요). 매입단가를 넣으면 비중·원금추이에 반영돼요. 매수 배치마다 한 행씩 적고, 매도한 배치는 매도일도 채워주세요.
                   </div>
                   <button
                     onClick={downloadSampleCsv}
@@ -899,9 +932,176 @@ export default function DividendPassbook() {
             </div>
           )}
 
-          {tab === "upcoming" && (
-            <div className="space-y-4">
-              <div>
+          {tab === "profit" && (
+            <div>
+              <div className="rounded-2xl p-4" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
+                <span className="text-xs font-medium" style={{ color: "#4B5670" }}>수익 현황</span>
+                <div className="flex gap-1.5 mt-2">
+                  {[
+                    { key: "today", label: "오늘" }, { key: "total", label: "총" }, { key: "week", label: "이번주" },
+                    { key: "month", label: "이번달" }, { key: "quarter", label: "이번분기" }, { key: "year", label: "올해" },
+                  ].map((p) => (
+                    <button
+                      key={p.key}
+                      onClick={() => setProfitPeriod(p.key)}
+                      className="flex-1 py-1.5 rounded-lg text-[11px] font-medium"
+                      style={{
+                        background: profitPeriod === p.key ? "#1F2A44" : "#F5F1E6",
+                        color: profitPeriod === p.key ? "#F5F1E6" : "#4B5670",
+                        border: "1px solid #E4DCC5",
+                      }}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-3 pt-3 space-y-2" style={{ borderTop: "1px dashed #E4DCC5" }}>
+                  <div className="flex justify-between text-xs">
+                    <span style={{ color: "#4B5670" }}>평가수익</span>
+                    <span className="mono" style={{ color: "#8B93A8" }}>현재가 연동 준비중</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span style={{ color: "#4B5670" }}>실현수익</span>
+                    <span className="mono" style={{ color: "#8B93A8" }}>매도 체결가 기록 준비중</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs" style={{ color: "#4B5670" }}>배당금</span>
+                    <span className="mono font-bold" style={{ fontSize: 15, color: "#9C7A3C" }}>+{won(profitDividend)}</span>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3" style={{ borderTop: "1px solid #EDE9DC" }}>
+                  <div className="text-[10px]" style={{ color: "#8B93A8" }}>합계 (지금은 배당금만 반영)</div>
+                  <div className="mono font-bold" style={{ fontSize: 22, color: "#1F2A44" }}>+{won(profitDividend)}</div>
+                </div>
+              </div>
+              <p className="text-[11px] mt-3 leading-relaxed" style={{ color: "#4B5670", background: "#EDE9DC", borderRadius: 12, padding: 14 }}>
+                "평가수익"과 "실현수익"은 종목 현재가·매도 체결가 데이터가 있어야 계산돼요. 지금은 실시간 시세 연동이 안 돼 있어서 확실한 배당금만 정확하게 보여드리고 있어요.
+              </p>
+            </div>
+          )}
+
+          {tab === "tax" && (
+            <div>
+              <div className="rounded-2xl p-4" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
+                <span className="text-xs font-medium" style={{ color: "#4B5670" }}>{TODAY.getFullYear()}년 전체 배당소득 (세전, 전계좌 합산)</span>
+                <div className="serif text-xl font-bold mono mt-1" style={{ color: "#1F2A44" }}>{won(allAccountsYearGross)}</div>
+              </div>
+              <div className="rounded-2xl p-4 mt-3" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
+                <div className="flex justify-between items-baseline">
+                  <span className="text-xs" style={{ color: "#4B5670" }}>일반위탁 종합과세 대상 (세전)</span>
+                  <span className="mono text-xs" style={{ color: "#8B93A8" }}>기준 2,000만원</span>
+                </div>
+                <div className="serif text-xl font-bold mono mt-1" style={{ color: "#1F2A44" }}>{won(yearGross)}</div>
+                <div className="mt-2 h-2 rounded-full overflow-hidden" style={{ background: "#EDE9DC" }}>
+                  <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct > 80 ? "#B23A3A" : "#9C7A3C" }} />
+                </div>
+                {pct > 70 && (
+                  <p className="text-[11px] mt-1.5" style={{ color: "#B23A3A" }}>종합과세 기준(2천만원)에 가까워지고 있어요. 정확한 세액은 세무사 확인을 권장해요.</p>
+                )}
+              </div>
+              <div className="rounded-2xl p-4 mt-3" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
+                <span className="text-xs font-medium" style={{ color: "#4B5670" }}>계좌유형별 세후/세전 구분</span>
+                <div className="mt-2 space-y-1">
+                  <div className="flex justify-between text-[11px]">
+                    <span style={{ color: "#4B5670" }}>일반위탁 누적 (세후 확정)</span>
+                    <span className="mono font-medium" style={{ color: "#1F2A44" }}>{won(generalNetAllTime)}</span>
+                  </div>
+                  <div className="flex justify-between text-[11px]">
+                    <span style={{ color: "#4B5670" }}>ISA 누적 (세전, 만기 정산 예정)</span>
+                    <span className="mono font-medium" style={{ color: "#9C7A3C" }}>{won(isaGrossAllTime)}</span>
+                  </div>
+                  <div className="flex justify-between text-[11px]">
+                    <span style={{ color: "#4B5670" }}>연금계좌 누적 (세전, 인출 시 정산 예정)</span>
+                    <span className="mono font-medium" style={{ color: "#9C7A3C" }}>{won(pensionGrossAllTime)}</span>
+                  </div>
+                </div>
+                <p className="text-[10px] mt-2 leading-relaxed" style={{ color: "#8B93A8" }}>일반위탁은 세율이 고정(15.4%/15%)돼 있어 세후 금액을 확정적으로 계산해요. ISA·연금저축·IRP는 최종 세액이 만기·인출 시점에 결정되므로 세전 금액만 보여드려요.</p>
+              </div>
+            </div>
+          )}
+
+          {tab === "dividend" && (
+            <div>
+              <div className="rounded-2xl p-4" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
+                <div className="flex justify-between items-center">
+                  <button onClick={() => setSelectedYear((y) => y - 1)} disabled={selectedYear <= minYear} className="text-base px-2" style={{ color: "#8B93A8", opacity: selectedYear <= minYear ? 0.3 : 1, background: "none", border: "none" }}>‹</button>
+                  <span className="text-sm font-semibold" style={{ color: "#1F2A44" }}>{selectedYear}년</span>
+                  <button onClick={() => setSelectedYear((y) => y + 1)} disabled={selectedYear >= maxYear} className="text-base px-2" style={{ color: "#8B93A8", opacity: selectedYear >= maxYear ? 0.3 : 1, background: "none", border: "none" }}>›</button>
+                </div>
+                <div className="mt-2 text-center">
+                  <div className="text-[11px]" style={{ color: "#8B93A8" }}>{selectedYear}년 동안의 배당금</div>
+                  <div className="serif text-2xl font-bold mono mt-1" style={{ color: "#1F2A44" }}>{won(yearHeadlineAmount)}</div>
+                  {costGroups.total > 0 && yearTotal > 0 && (
+                    <div className="text-[10px] mt-1" style={{ color: "#8B93A8" }}>투자배당률 {((yearTotal / costGroups.total) * 100).toFixed(2)}%</div>
+                  )}
+                </div>
+                <div className="flex justify-between mt-2">
+                  <button onClick={() => setDividendShowNet((v) => !v)} className="px-2.5 py-1 rounded-lg text-[11px] font-medium" style={{ background: dividendShowNet ? "#1F2A44" : "#F5F1E6", color: dividendShowNet ? "#F5F1E6" : "#4B5670", border: "1px solid #E4DCC5" }}>실수령액 {dividendShowNet ? "✓" : ""}</button>
+                  <button onClick={() => setDividendShowForeign((v) => !v)} className="px-2.5 py-1 rounded-lg text-[11px] font-medium" style={{ background: dividendShowForeign ? "#1F2A44" : "#F5F1E6", color: dividendShowForeign ? "#F5F1E6" : "#4B5670", border: "1px solid #E4DCC5" }}>외화보기 {dividendShowForeign ? "✓" : ""}</button>
+                </div>
+                <div className="mt-3" style={{ height: 130 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={yearMonths.map((m, i) => ({ ...m, num: i + 1 }))} margin={{ top: 14, right: 4, left: 4, bottom: 0 }}>
+                      <XAxis dataKey="num" tick={{ fontSize: 9, fill: "#8B93A8" }} axisLine={false} tickLine={false} />
+                      <YAxis hide />
+                      <Tooltip
+                        formatter={(v, n, p) => [won(v), p.payload.isFuture ? "추정(향후)" : "지급완료"]}
+                        labelFormatter={(l) => `${l}월`}
+                        contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E4DCC5" }}
+                      />
+                      <Bar dataKey="value" radius={[2, 2, 0, 0]} onClick={(d) => setSelectedMonthNum(d.num)} style={{ cursor: "pointer" }}>
+                        {yearMonths.map((d, i) => (
+                          <Cell
+                            key={i}
+                            fill={i + 1 === validMonthNum ? "#9C7A3C" : d.isFuture ? "#EDE9DC" : "#1F2A44"}
+                            stroke={d.isFuture ? "#C9C0A5" : "none"}
+                            strokeDasharray={d.isFuture ? "3 2" : undefined}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="rounded-2xl p-4 mt-3" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-semibold" style={{ color: "#1F2A44" }}>{validMonthNum}월</span>
+                  <span className="mono text-sm font-semibold" style={{ color: "#1F2A44" }}>{won(selectedMonthData.value)}</span>
+                </div>
+                <div className="mt-1">
+                  {selectedMonthData.events.length === 0 ? (
+                    <p className="text-xs mt-2" style={{ color: "#8B93A8" }}>이 달은 배당 내역이 없어요.</p>
+                  ) : (
+                    selectedMonthData.events.slice().sort((a, b) => a.exDate.localeCompare(b.exDate)).map((e, i) => {
+                      const nativeAmount = e.perShare * e.qty;
+                      return (
+                        <div key={i} className="flex justify-between items-center py-2.5" style={{ borderBottom: "1px solid #EDE9DC" }}>
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center justify-center flex-shrink-0" style={{ width: 28, height: 28, borderRadius: "50%", background: "#EDE9DC", fontSize: 11, fontWeight: 700, color: "#4B5670" }}>{e.name.slice(0, 1)}</div>
+                            <div>
+                              <div className="text-sm font-medium" style={{ color: "#1F2A44" }}>{e.name}</div>
+                              <div className="text-[10px]" style={{ color: "#8B93A8" }}>
+                                {e.qty}주 · 1주당 {e.currency === "USD" ? "$" : "₩"}{e.perShare}
+                                <span className="mono ml-1" style={{ padding: "1px 5px", borderRadius: 4, background: "#EDE9DC", color: "#4B5670" }}>{getAccountType(e.accountType).short}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="mono text-sm font-semibold" style={{ color: "#1F2A44" }}>{won(dividendShowNet && e.certain ? e.net : e.gross)}</div>
+                            {dividendShowForeign && e.currency !== "KRW" && (
+                              <div className="mono text-[10px]" style={{ color: "#8B93A8" }}>${nativeAmount.toFixed(2)}</div>
+                            )}
+                            <div className="text-[9px]" style={{ color: "#8B93A8" }}>{e.exDate.slice(8)}일 · {e.status === "estimated" ? "추정" : e.status === "confirmed" ? "확정예정" : "지급완료"}</div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-2xl p-4 mt-3" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
                 <div className="flex items-center gap-1.5 mb-2">
                   <span className="stamp text-[10px] px-2 py-0.5 rounded-sm mono font-semibold">확정</span>
                   <span className="text-xs" style={{ color: "#4B5670" }}>이사회 결의 등으로 금액·일정이 정해진 배당</span>
@@ -911,7 +1111,7 @@ export default function DividendPassbook() {
                 ) : (
                   <div className="space-y-1.5">
                     {confirmedEvents.map((e, i) => (
-                      <div key={i} className="rounded-lg p-3" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
+                      <div key={i} className="rounded-lg p-3" style={{ background: "#F5F1E6", border: "1px solid #E4DCC5" }}>
                         <div className="flex justify-between items-center">
                           <div>
                             <div className="text-sm" style={{ color: "#1F2A44" }}>
@@ -922,21 +1122,12 @@ export default function DividendPassbook() {
                           </div>
                           <span className="mono text-sm font-medium" style={{ color: "#1F2A44" }}>{won(e.gross)}</span>
                         </div>
-                        <div className="text-right text-[10px] mt-0.5">
-                          {e.certain ? (
-                            <span className="mono" style={{ color: "#9C7A3C" }}>세후 확정 {won(e.net)}</span>
-                          ) : (
-                            <span style={{ color: "#8B93A8" }}>{e.taxNote}</span>
-                          )}
-                        </div>
                       </div>
                     ))}
                   </div>
                 )}
-              </div>
 
-              <div>
-                <div className="flex items-center gap-1.5 mb-2">
+                <div className="flex items-center gap-1.5 mb-2 mt-4">
                   <span className="text-[10px] px-2 py-0.5 rounded-sm mono font-semibold" style={{ border: "1.5px solid #8B93A8", color: "#8B93A8" }}>예상</span>
                   <span className="text-xs" style={{ color: "#4B5670" }}>과거 지급 패턴 기반 추정치</span>
                 </div>
@@ -955,133 +1146,141 @@ export default function DividendPassbook() {
                   ))}
                 </div>
               </div>
+
+              <div className="rounded-2xl p-4 mt-3" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
+                <span className="text-xs font-medium" style={{ color: "#4B5670" }}>전체 지급 기록 (누적)</span>
+                <div className="flex justify-between text-[11px] mt-2 mb-2 px-1" style={{ color: "#8B93A8" }}>
+                  <span>거래일 / 종목·계좌</span>
+                  <span>세전 수령액 / 누적</span>
+                </div>
+                <div className="rounded-xl overflow-hidden" style={{ border: "1px solid #E4DCC5" }}>
+                  {ledgerDesc.length === 0 && (
+                    <div className="p-4 text-xs text-center" style={{ color: "#8B93A8", background: "#FFFDF8" }}>
+                      아직 지급된 배당 기록이 없어요.
+                    </div>
+                  )}
+                  {ledgerDesc.map((e, i) => (
+                    <div
+                      key={i}
+                      className="flex justify-between items-center px-3.5 py-2.5"
+                      style={{ background: i % 2 === 0 ? "#FFFDF8" : "#F9F6EE", borderBottom: "1px solid #EDE9DC" }}
+                    >
+                      <div>
+                        <div className="text-xs mono" style={{ color: "#8B93A8" }}>{e.exDate}</div>
+                        <div className="text-sm" style={{ color: "#1F2A44" }}>
+                          {e.name}
+                          <span className="mono text-[10px] ml-1.5" style={{ color: "#8B93A8" }}>{getAccountType(e.accountType).short}</span>
+                        </div>
+                        {e.certain ? (
+                          <div className="text-[10px] mono" style={{ color: "#9C7A3C" }}>세후 {won(e.net)}</div>
+                        ) : (
+                          <div className="text-[10px]" style={{ color: "#8B93A8" }}>{e.taxNote}</div>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <div className="mono text-sm font-medium" style={{ color: "#1F2A44" }}>+{won(e.gross)}</div>
+                        <div className="mono text-[10px]" style={{ color: "#8B93A8" }}>{won(e.running)}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
-          {tab === "ledger" && (
+          {tab === "trend" && (
             <div>
               <div className="rounded-2xl p-4" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium" style={{ color: "#4B5670" }}>이번 달 확정 배당</span>
-                  {thisMonthEvents.length > 0 && (
-                    <span className="stamp text-[10px] px-2 py-0.5 rounded-sm mono font-semibold">확정</span>
-                  )}
-                </div>
-                {thisMonthEvents.length === 0 ? (
-                  <p className="text-sm" style={{ color: "#8B93A8" }}>이번 달 확정된 배당이 아직 없어요.</p>
-                ) : (
+                <span className="text-xs font-medium" style={{ color: "#4B5670" }}>투자 원금 추이</span>
+                {costTrendData.length > 1 ? (
                   <>
-                    <div className="serif text-3xl font-bold mono" style={{ color: "#1F2A44" }}>
-                      {won(thisMonthEvents.reduce((s, e) => s + e.gross, 0))}
+                    <div className="mt-3 -mx-1" style={{ height: 90 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={costTrendData} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="fillTrend" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#1F2A44" stopOpacity={0.35} />
+                              <stop offset="100%" stopColor="#1F2A44" stopOpacity={0.02} />
+                            </linearGradient>
+                          </defs>
+                          <XAxis dataKey="month" tick={{ fontSize: 9, fill: "#8B93A8" }} axisLine={false} tickLine={false} />
+                          <YAxis hide />
+                          <Tooltip formatter={(v) => [won(v), "누적 원금"]} contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E4DCC5" }} />
+                          <Area type="monotone" dataKey="value" stroke="#1F2A44" strokeWidth={1.5} fill="url(#fillTrend)" />
+                        </AreaChart>
+                      </ResponsiveContainer>
                     </div>
-                    <div className="text-[10px] mt-0.5" style={{ color: "#8B93A8" }}>세전 합계 (계좌별 실수령은 아래 참고)</div>
-                    <div className="mt-3 space-y-2">
-                      {thisMonthEvents.map((e, i) => (
-                        <div key={i} className="text-xs">
-                          <div className="flex justify-between">
-                            <span style={{ color: "#4B5670" }}>
-                              {e.name} · {e.exDate.slice(5)} 배당락
-                              <span className="mono ml-1" style={{ color: "#8B93A8" }}>[{getAccountType(e.accountType).short}]</span>
-                            </span>
-                            <span className="mono font-medium" style={{ color: "#1F2A44" }}>{won(e.gross)}</span>
-                          </div>
-                          {e.certain ? (
-                            <div className="text-right text-[10px] mono" style={{ color: "#9C7A3C" }}>세후 확정 {won(e.net)}</div>
-                          ) : (
-                            <div className="text-right text-[10px]" style={{ color: "#8B93A8" }}>{e.taxNote}</div>
-                          )}
-                        </div>
-                      ))}
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-[11px]" style={{ color: "#8B93A8" }}>누적 매입원금</span>
+                      <span className="mono text-sm font-semibold" style={{ color: "#1F2A44" }}>{won(costTrendData[costTrendData.length - 1].value)}</span>
                     </div>
                   </>
+                ) : (
+                  <p className="text-sm mt-2" style={{ color: "#8B93A8" }}>매입단가가 입력된 종목이 없어서 원금 추이를 계산할 수 없어요.</p>
                 )}
               </div>
+              <p className="text-[11px] mt-3 leading-relaxed" style={{ color: "#4B5670", background: "#EDE9DC", borderRadius: 12, padding: 14 }}>
+                "자산"(현재 평가금액) 라인은 종목 현재가가 있어야 계산되는데, 아직 실시간 시세 연동이 안 돼 있어요. 지금은 "원금"(매입금액 누적)만 보여드려요.
+              </p>
+            </div>
+          )}
 
-              <div className="rounded-2xl p-4 mt-3" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
-                <div className="flex justify-between items-baseline">
-                  <span className="text-xs" style={{ color: "#4B5670" }}>{TODAY.getFullYear()}년 누적 배당소득 (세전)</span>
-                  <span className="mono text-xs" style={{ color: "#8B93A8" }}>기준 2,000만원</span>
-                </div>
-                <div className="serif text-xl font-bold mono mt-1" style={{ color: "#1F2A44" }}>{won(yearGross)}</div>
-                <div className="mt-2 h-2 rounded-full overflow-hidden" style={{ background: "#EDE9DC" }}>
-                  <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct > 80 ? "#B23A3A" : "#9C7A3C" }} />
-                </div>
-                {pct > 70 && (
-                  <p className="text-[11px] mt-1.5" style={{ color: "#B23A3A" }}>종합과세 기준(2천만원)에 가까워지고 있어요. 정확한 세액은 세무사 확인을 권장해요.</p>
-                )}
-                {chartData.length > 1 && (
-                  <div className="mt-3 -mx-1" style={{ height: 90 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
-                        <defs>
-                          <linearGradient id="fillInk" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#1F2A44" stopOpacity={0.35} />
-                            <stop offset="100%" stopColor="#1F2A44" stopOpacity={0.02} />
-                          </linearGradient>
-                        </defs>
-                        <XAxis dataKey="month" tick={{ fontSize: 9, fill: "#8B93A8" }} axisLine={false} tickLine={false} />
-                        <YAxis hide />
-                        <Tooltip
-                          formatter={(v) => [won(v), "누적(세전)"]}
-                          contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E4DCC5" }}
-                        />
-                        <Area type="monotone" dataKey="value" stroke="#1F2A44" strokeWidth={1.5} fill="url(#fillInk)" />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex justify-between text-[11px] mb-2 px-1 mt-4" style={{ color: "#8B93A8" }}>
-                <span>거래일 / 종목·계좌</span>
-                <span>세전 수령액 / 누적</span>
-              </div>
-              <div className="rounded-xl overflow-hidden" style={{ border: "1px solid #E4DCC5" }}>
-                {ledgerDesc.length === 0 && (
-                  <div className="p-4 text-xs text-center" style={{ color: "#8B93A8", background: "#FFFDF8" }}>
-                    아직 지급된 배당 기록이 없어요.
-                  </div>
-                )}
-                {ledgerDesc.map((e, i) => (
-                  <div
-                    key={i}
-                    className="flex justify-between items-center px-3.5 py-2.5"
-                    style={{ background: i % 2 === 0 ? "#FFFDF8" : "#F9F6EE", borderBottom: "1px solid #EDE9DC" }}
+          {tab === "allocation" && (
+            <div className="rounded-2xl p-4" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
+              <div className="flex gap-1.5">
+                {ALLOCATION_VIEWS.map((v) => (
+                  <button
+                    key={v.key}
+                    onClick={() => setAllocationView(v.key)}
+                    className="flex-1 py-1.5 rounded-lg text-[11px] font-medium"
+                    style={{
+                      background: allocationView === v.key ? "#1F2A44" : "#F5F1E6",
+                      color: allocationView === v.key ? "#F5F1E6" : "#4B5670",
+                      border: "1px solid #E4DCC5",
+                    }}
                   >
-                    <div>
-                      <div className="text-xs mono" style={{ color: "#8B93A8" }}>{e.exDate}</div>
-                      <div className="text-sm" style={{ color: "#1F2A44" }}>
-                        {e.name}
-                        <span className="mono text-[10px] ml-1.5" style={{ color: "#8B93A8" }}>{getAccountType(e.accountType).short}</span>
-                      </div>
-                      {e.certain ? (
-                        <div className="text-[10px] mono" style={{ color: "#9C7A3C" }}>세후 {won(e.net)}</div>
-                      ) : (
-                        <div className="text-[10px]" style={{ color: "#8B93A8" }}>{e.taxNote}</div>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <div className="mono text-sm font-medium" style={{ color: "#1F2A44" }}>+{won(e.gross)}</div>
-                      <div className="mono text-[10px]" style={{ color: "#8B93A8" }}>{won(e.running)}</div>
-                    </div>
-                  </div>
+                    {v.label}
+                  </button>
                 ))}
               </div>
-              {ledgerDesc.length > 0 && (
-                <div className="rounded-xl p-3.5 mt-3 space-y-1" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
-                  <div className="flex justify-between text-[11px]">
-                    <span style={{ color: "#4B5670" }}>일반위탁 누적 (세후 확정)</span>
-                    <span className="mono font-medium" style={{ color: "#1F2A44" }}>{won(generalNetAllTime)}</span>
+              {costGroups.total === 0 ? (
+                <p className="text-sm mt-3" style={{ color: "#8B93A8" }}>매입단가가 입력된 종목이 없어서 비중을 계산할 수 없어요.</p>
+              ) : (
+                <>
+                  <div className="mt-3" style={{ height: 160 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RePieChart>
+                        <Pie data={currentAllocData} dataKey="value" nameKey="label" innerRadius={45} outerRadius={70} paddingAngle={1}>
+                          {currentAllocData.map((seg, i) => (
+                            <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(v) => [won(v), "매입금액"]} contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E4DCC5" }} />
+                      </RePieChart>
+                    </ResponsiveContainer>
                   </div>
-                  <div className="flex justify-between text-[11px]">
-                    <span style={{ color: "#4B5670" }}>ISA 누적 (세전, 만기 정산 예정)</span>
-                    <span className="mono font-medium" style={{ color: "#9C7A3C" }}>{won(isaGrossAllTime)}</span>
+                  <div className="mt-2">
+                    {currentAllocData.map((seg, i) => (
+                      <div key={seg.key} className="flex justify-between items-center py-2" style={{ borderBottom: "1px solid #EDE9DC" }}>
+                        <div className="flex items-center gap-2">
+                          <span style={{ width: 9, height: 9, borderRadius: "50%", background: DONUT_COLORS[i % DONUT_COLORS.length], display: "inline-block", flexShrink: 0 }} />
+                          <span className="text-sm font-medium" style={{ color: "#1F2A44" }}>{seg.label}</span>
+                        </div>
+                        <div className="text-right">
+                          <div className="mono text-sm font-semibold" style={{ color: "#1F2A44" }}>{((seg.value / costGroups.total) * 100).toFixed(1)}%</div>
+                          <div className="mono text-[10px]" style={{ color: "#8B93A8" }}>{won(seg.value)}</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex justify-between text-[11px]">
-                    <span style={{ color: "#4B5670" }}>연금계좌 누적 (세전, 인출 시 정산 예정)</span>
-                    <span className="mono font-medium" style={{ color: "#9C7A3C" }}>{won(pensionGrossAllTime)}</span>
+                  <div className="flex justify-between items-center mt-2 pt-2" style={{ borderTop: "1px solid #EDE9DC" }}>
+                    <span className="text-[11px]" style={{ color: "#8B93A8" }}>총 매입원금</span>
+                    <span className="mono text-sm font-semibold" style={{ color: "#1F2A44" }}>{won(costGroups.total)}</span>
                   </div>
-                </div>
+                  {costGroups.uncosted > 0 && (
+                    <p className="text-[10px] mt-2" style={{ color: "#8B93A8" }}>매입단가 미입력 {costGroups.uncosted}건은 비중 계산에서 제외됐어요.</p>
+                  )}
+                </>
               )}
             </div>
           )}
