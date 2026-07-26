@@ -130,19 +130,27 @@ sparkle highlights, thick dark outline, anime game UI style, matching the gold c
 Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
 ```
 
-## 카드 일러스트 (1024×1536 세로) — ⚠ 그림체 섞임 최다 발생 구간
+## 카드 일러스트 (1024×1536 세로)
 
-카드도 반드시 **전투 캐릭터와 같은 기준 이미지를 첨부**하고 STYLE BLOCK을 반복한다.
-1차 시도에서 카드만 세미리얼로 튀었던 원因이 스타일 블록 생략이었음.
+> **Rev.3 결정**: 전투 스프라이트(치비)와 카드는 **의도적으로 다른 화풍**을 쓴다.
+> 전투 스프라이트 = 치비/SD 유지, 카드 = "프리미엄 애니메 가챠 일러스트" 톤
+> (준-사실적, 정밀한 채색, 은은한 페인터리 셰이딩 — 서큐버스 카드 5종 비교에서
+> "C2" 안으로 확정). STYLE BLOCK(치비 비율 문구)은 카드에는 **적용하지 않는다.**
+> `--ref`로 해당 캐릭터의 확정 전투 이미지를 강하게(`--strength High`) 걸어서
+> 얼굴·의상·색은 유지하고 포즈·배경만 바꾼다.
+>
+> 주의: "no frame/no border" 같은 부정형 지시를 넣으면 오히려 그 프레임이
+> 생기는 경우가 있었음(Phoenix 특성) — 부정형 대신 "full bleed illustration
+> filling the entire canvas edge to edge" 같은 긍정형 표현이 더 잘 먹힘.
+> `--ref` 영향이 강해서 5가지 화풍 프롬프트를 줘도 결과가 비슷하게 수렴하는
+> 경향이 있음 — 캐릭터마다 디테일(무기 발광색 등)은 개별 확인 필요.
 
 ```
-[STYLE BLOCK 붙여넣기 + 해당 캐릭터의 전투 이미지 첨부]
-Vertical 2:3 portrait card illustration of the SAME character as the attached
-image — identical face, outfit, colors, and art style, only the pose and
-background change. Dramatic dynamic pose, epic themed background
-([flames rising / dark purple mist / frozen graveyard]), cinematic lighting.
-IMPORTANT: pure artwork only — no text, no letters, no numbers, no stars,
-no stat bars, no frame, no border, no UI elements, no watermark.
+Vertical 2:3 portrait card illustration of [캐릭터 설명], matching the attached
+reference image's face and design. Premium semi-realistic anime mobile gacha
+illustration style, soft blended painterly shading, realistic detailed
+rendering, polished top-tier gacha game splash art. Dynamic pose, [테마 배경],
+dramatic lighting, full bleed illustration filling the entire canvas edge to edge.
 ```
 
 ## 참고 (게임 코드 세션 → 이미지 세션)
@@ -215,4 +223,7 @@ Transparent background. No text, no watermark. Square 1:1.
 | 전투 배경 | **커밋됨** — `assets/backgrounds/battle-grassland.png` (864×1536 생성 후 1080×1920 업스케일) |
 | 골드 아이콘 | **커밋됨** — `assets/icons/gold.png` (512 생성 후 128 축소) |
 | 다이아몬드 아이콘 | **커밋됨** — `assets/icons/gem.png` (512 생성 후 128 축소) |
-| 카드 3종 | 서큐버스 1장 수신 — 스타일 불일치(세미리얼), 재생성 대상 |
+| 카드: 화염마법사 | **커밋됨** — `assets/cards/mage_flame_001.png` (프리미엄 애니메 가챠 톤) |
+| 카드: 관우 | 검수 완료, 승인 대기 |
+| 카드: 데스나이트 | 톤 조정 중 (R3) — 승인 대기 |
+| 카드: 서큐버스 | 스타일 방향 탐색만 완료(5종), 최종본 미확정 |
