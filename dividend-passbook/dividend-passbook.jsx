@@ -206,7 +206,8 @@ function classifyAmount(event, stock, qty, accountType) {
 }
 
 /* ----------------------------- 보유종목 영속화 (localStorage) ----------------------------- */
-const HOLDINGS_STORAGE_KEY = "dividend-passbook:holdings:v1";
+// v2: 데모 3종목 시드 → 실제 보유종목(QQQI·491620·0138T0·441640) 15개 매수배치로 교체
+const HOLDINGS_STORAGE_KEY = "dividend-passbook:holdings:v2";
 function loadHoldings() {
   try {
     const raw = localStorage.getItem(HOLDINGS_STORAGE_KEY);
@@ -217,9 +218,25 @@ function loadHoldings() {
   }
 }
 const DEFAULT_HOLDINGS = [
-  { id: 1, ticker: "005930", quantity: 10, purchaseDate: "2024-01-10", sellDate: null, accountType: "general" },
-  { id: 2, ticker: "O", quantity: 5, purchaseDate: "2023-11-01", sellDate: null, accountType: "isa" },
-  { id: 3, ticker: "033780", quantity: 20, purchaseDate: "2024-02-01", sellDate: null, accountType: "pension" },
+  // 일반위탁 (203-02-227281) — QQQI
+  { id: 1, ticker: "QQQI", quantity: 10, purchaseDate: "2026-04-28", sellDate: null, accountType: "general" },
+  { id: 2, ticker: "QQQI", quantity: 33, purchaseDate: "2026-04-28", sellDate: null, accountType: "general" },
+  { id: 3, ticker: "QQQI", quantity: 1, purchaseDate: "2026-05-19", sellDate: null, accountType: "general" },
+  { id: 4, ticker: "QQQI", quantity: 16, purchaseDate: "2026-06-11", sellDate: null, accountType: "general" },
+  { id: 5, ticker: "QQQI", quantity: 13, purchaseDate: "2026-07-22", sellDate: null, accountType: "general" },
+  // 중개형ISA (211-02-404170) — RISE 491620
+  { id: 6, ticker: "491620", quantity: 20, purchaseDate: "2026-03-12", sellDate: null, accountType: "isa" },
+  { id: 7, ticker: "491620", quantity: 491, purchaseDate: "2026-04-03", sellDate: null, accountType: "isa" },
+  { id: 8, ticker: "491620", quantity: 500, purchaseDate: "2026-04-23", sellDate: null, accountType: "isa" },
+  { id: 9, ticker: "491620", quantity: 64, purchaseDate: "2026-06-30", sellDate: null, accountType: "isa" },
+  { id: 10, ticker: "491620", quantity: 36, purchaseDate: "2026-07-22", sellDate: null, accountType: "isa" },
+  // 중개형ISA — RISE 0138T0
+  { id: 11, ticker: "0138T0", quantity: 317, purchaseDate: "2026-04-03", sellDate: null, accountType: "isa" },
+  { id: 12, ticker: "0138T0", quantity: 300, purchaseDate: "2026-04-23", sellDate: null, accountType: "isa" },
+  // 중개형ISA — KODEX 441640
+  { id: 13, ticker: "441640", quantity: 156, purchaseDate: "2026-04-03", sellDate: null, accountType: "isa" },
+  { id: 14, ticker: "441640", quantity: 5, purchaseDate: "2026-04-23", sellDate: null, accountType: "isa" },
+  { id: 15, ticker: "441640", quantity: 95, purchaseDate: "2026-04-23", sellDate: null, accountType: "isa" },
 ];
 
 /* ----------------------------- CSV 일괄 가져오기 (매수 배치·매도 이력 지원) ----------------------------- */
