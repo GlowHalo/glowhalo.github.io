@@ -15,3 +15,6 @@ credentials*
 *secret*
 *password*
 *token*
+
+# Gemini 생성 후보 이미지 (검수 통과본만 수동 배치)
+circle-heroes/assets-gen/
