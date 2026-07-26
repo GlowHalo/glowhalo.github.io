@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import type { AcquireMethod, Hero, HeroGrade } from "../src/data/heroTypes.ts";
 
-const SHEET_ID = "13Sb4xnnpPu6HOpYRY3jgbnIMlDyBCdn7qsR-_dVE_Mc";
+const SHEET_ID = "1PdBqxli-cgcsjiPwbe50IQItetBetfrQICNleEAGd3k";
 const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
