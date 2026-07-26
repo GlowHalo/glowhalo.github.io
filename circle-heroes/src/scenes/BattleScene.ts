@@ -1,7 +1,11 @@
 import Phaser from "phaser";
 import { PLAYABLE_HEROES } from "../data/heroes";
-import { save, addGold, setStage, getLevel, getStars } from "../state/save";
-import { on } from "../state/bus";
+import type { Hero } from "../data/heroTypes";
+import {
+  save, addGold, addGems, setStage, getLevel, getStars,
+  setTowerFloor, applyArenaResult,
+} from "../state/save";
+import { on, emit } from "../state/bus";
 import {
   act,
   attackIntervalMs,
@@ -42,7 +46,15 @@ interface UnitView {
   homeY: number;
 }
 
+type BattleMode = "stage" | "tower" | "arena";
+
+function emitModeChanged(mode: BattleMode) {
+  emit("battle-mode-changed", mode);
+}
+
 export class BattleScene extends Phaser.Scene {
+  private mode: BattleMode = "stage";
+  private gen = 0; // 모드 전환 시 이전 모드의 지연 콜백 무효화
   private heroes: Unit[] = [];
   private enemies: Unit[] = [];
   private views = new Map<Unit, UnitView>();
@@ -92,8 +104,26 @@ export class BattleScene extends Phaser.Scene {
     on("stars-changed", () => {
       this.rosterDirty = true;
     });
+    on("battle-mode", (m) => this.setMode(m as BattleMode));
 
     this.startStage(save.stage);
+  }
+
+  private setMode(m: BattleMode) {
+    if (this.mode === m) return;
+    this.mode = m;
+    this.gen++;
+    if (m === "stage") this.startStage(save.stage);
+    else if (m === "tower") this.startTower();
+    else this.startArena();
+  }
+
+  /** 지연 콜백에 세대 가드를 씌워 모드 전환 후 유령 실행을 막는다 */
+  private delayed(ms: number, fn: () => void) {
+    const g = this.gen;
+    this.time.delayedCall(ms, () => {
+      if (g === this.gen) fn();
+    });
   }
 
   private buildTeam(): Unit[] {
@@ -112,6 +142,43 @@ export class BattleScene extends Phaser.Scene {
     this.spawnTeams();
   }
 
+  private startTower() {
+    this.wave = 1;
+    this.heroes = this.buildTeam();
+    this.rosterDirty = false;
+    this.spawnTeams();
+  }
+
+  private startArena() {
+    this.wave = 1;
+    this.heroes = this.buildTeam();
+    this.rosterDirty = false;
+    this.spawnTeams();
+  }
+
+  /** 아레나 상대: 소환 가능 영웅 중 랜덤 5인, 내 파티 수준에 레이팅 보정 */
+  private buildArenaOpponents(): Unit[] {
+    const pool = PLAYABLE_HEROES.filter((h) => h.acquireMethod === "gacha");
+    const picks: Hero[] = [];
+    const used = new Set<number>();
+    while (picks.length < 5 && used.size < pool.length) {
+      const i = Math.floor(Math.random() * pool.length);
+      if (used.has(i)) continue;
+      used.add(i);
+      picks.push(pool[i]);
+    }
+    const myLevels = save.party.map((id) => getLevel(id));
+    const avgLv = Math.max(1, Math.round(myLevels.reduce((a, b) => a + b, 0) / Math.max(1, myLevels.length)));
+    const ratingAdj = Math.floor((save.arenaRating - 1000) / 100);
+    const lv = Math.max(1, avgLv + ratingAdj);
+    return picks.map((h) => {
+      const u = unitFromHero(h, lv, 1);
+      u.isHero = false;
+      u.key = "arena_" + u.key;
+      return u;
+    });
+  }
+
   private spawnTeams() {
     for (const view of this.views.values()) view.root.destroy();
     this.views.clear();
@@ -124,28 +191,48 @@ export class BattleScene extends Phaser.Scene {
       this.rosterDirty = false;
     }
 
-    const boss = this.wave === WAVES_PER_STAGE;
-    const count = boss ? 1 : Math.min(2 + Math.floor(this.stage / 3), 4);
-    this.enemies = Array.from({ length: count }, (_, i) =>
-      makeEnemy(`enemy_${i}`, boss ? "슬라임 킹" : "슬라임", this.stage, boss)
-    );
+    let boss = false;
+    if (this.mode === "stage") {
+      boss = this.wave === WAVES_PER_STAGE;
+      const count = boss ? 1 : Math.min(2 + Math.floor(this.stage / 3), 4);
+      this.enemies = Array.from({ length: count }, (_, i) =>
+        makeEnemy(`enemy_${i}`, boss ? "슬라임 킹" : "슬라임", this.stage, boss)
+      );
+    } else if (this.mode === "tower") {
+      const f = save.towerFloor;
+      boss = f % 5 === 0;
+      const count = boss ? 1 : Math.min(2 + Math.floor(f / 3), 5);
+      this.enemies = Array.from({ length: count }, (_, i) =>
+        makeEnemy(`tower_${i}`, boss ? "탑의 수호자" : "탑 병사", f + 2, boss)
+      );
+    } else {
+      this.enemies = this.buildArenaOpponents();
+    }
 
     this.heroes.forEach((u, i) => {
       const [x, y] = HERO_SLOTS[i] ?? HERO_SLOTS[HERO_SLOTS.length - 1];
       this.views.set(u, this.makeUnitView(u, x, y, false));
     });
-    const enemyX = GAME_W - 100;
-    this.enemies.forEach((u, i) => {
-      const y = boss ? 370 : 290 + i * 82;
-      this.views.set(u, this.makeUnitView(u, enemyX + (i % 2) * 26, y, boss));
-    });
+    if (this.mode === "arena") {
+      this.enemies.forEach((u, i) => {
+        const [x, y] = HERO_SLOTS[i] ?? HERO_SLOTS[HERO_SLOTS.length - 1];
+        this.views.set(u, this.makeUnitView(u, GAME_W - x, y, false));
+      });
+    } else {
+      const enemyX = GAME_W - 100;
+      this.enemies.forEach((u, i) => {
+        const y = boss ? 370 : 280 + i * 68;
+        this.views.set(u, this.makeUnitView(u, enemyX + (i % 2) * 26, y, boss));
+      });
+    }
 
     this.refreshHud();
   }
 
   private makeUnitView(unit: Unit, x: number, y: number, big: boolean): UnitView {
-    const r = unit.isHero ? 26 : big ? 42 : 21;
-    const color = unit.isHero
+    const isArenaFoe = unit.key.startsWith("arena_");
+    const r = unit.isHero || isArenaFoe ? 26 : big ? 42 : 21;
+    const color = unit.isHero || isArenaFoe
       ? FACTION_COLORS[unit.faction] ?? 0x888888
       : big
         ? 0x9b59d0
@@ -229,7 +316,7 @@ export class BattleScene extends Phaser.Scene {
       if (!isHeal && !blocked) {
         view.body.setFillStyle(0xffffff);
         this.time.delayedCall(70 / this.speedMult, () => {
-          const original = t.isHero
+          const original = t.isHero || t.key.startsWith("arena_")
             ? FACTION_COLORS[t.faction] ?? 0x888888
             : view.body.radius > 38
               ? 0x9b59d0
@@ -288,29 +375,78 @@ export class BattleScene extends Phaser.Scene {
 
   private onWaveClear() {
     this.battleOver = true;
-    const reward = 10 * this.stage * (this.wave === WAVES_PER_STAGE ? 3 : 1);
-    addGold(reward);
-    this.refreshHud();
 
-    if (this.wave < WAVES_PER_STAGE) {
-      this.wave += 1;
-      this.time.delayedCall(800 / this.speedMult, () => this.spawnTeams());
-    } else {
-      this.showBanner(`STAGE ${this.stage} 클리어! +${reward}G`, "#7de8a0");
-      const next = this.stage + 1;
-      setStage(next);
-      this.time.delayedCall(1400 / this.speedMult, () => this.startStage(next));
+    if (this.mode === "stage") {
+      const reward = 10 * this.stage * (this.wave === WAVES_PER_STAGE ? 3 : 1);
+      addGold(reward);
+      this.refreshHud();
+      if (this.wave < WAVES_PER_STAGE) {
+        this.wave += 1;
+        this.delayed(800 / this.speedMult, () => this.spawnTeams());
+      } else {
+        this.showBanner(`STAGE ${this.stage} 클리어! +${reward}G`, "#7de8a0");
+        const next = this.stage + 1;
+        setStage(next);
+        this.delayed(1400 / this.speedMult, () => this.startStage(next));
+      }
+      return;
     }
+
+    if (this.mode === "tower") {
+      const f = save.towerFloor;
+      const gems = 10 + f * 5;
+      addGems(gems);
+      this.showBanner(`${f}층 돌파! 💎+${gems}`, "#7de8a0");
+      setTowerFloor(f + 1);
+      this.refreshHud();
+      this.delayed(1400 / this.speedMult, () => this.startTower());
+      return;
+    }
+
+    // arena 승리
+    const { rating, bonusGems } = applyArenaResult(true);
+    this.showBanner(
+      bonusGems > 0 ? `아레나 승리! +25점 · 오늘 첫 승리 💎+${bonusGems}` : `아레나 승리! +25점 (${rating})`,
+      "#7de8a0"
+    );
+    this.refreshHud();
+    this.delayed(1600 / this.speedMult, () => this.startArena());
   }
 
   private onDefeat() {
     this.battleOver = true;
-    this.showBanner("패배… 부대를 정비해 재도전!", "#ff8f7a");
-    this.time.delayedCall(1600 / this.speedMult, () => this.startStage(this.stage));
+
+    if (this.mode === "stage") {
+      this.showBanner("패배… 부대를 정비해 재도전!", "#ff8f7a");
+      this.delayed(1600 / this.speedMult, () => this.startStage(this.stage));
+      return;
+    }
+
+    if (this.mode === "tower") {
+      this.showBanner(`${save.towerFloor}층 도전 실패 — 부대를 키워 다시 오세요`, "#ff8f7a");
+      this.delayed(1800 / this.speedMult, () => {
+        this.mode = "stage";
+        this.gen++;
+        emitModeChanged("stage");
+        this.startStage(save.stage);
+      });
+      return;
+    }
+
+    const { rating } = applyArenaResult(false);
+    this.showBanner(`아레나 패배… -15점 (${rating})`, "#ff8f7a");
+    this.refreshHud();
+    this.delayed(1600 / this.speedMult, () => this.startArena());
   }
 
   private refreshHud() {
-    this.stageText.setText(`STAGE ${this.stage}  ·  WAVE ${this.wave}/${WAVES_PER_STAGE}`);
+    if (this.mode === "stage") {
+      this.stageText.setText(`STAGE ${this.stage}  ·  WAVE ${this.wave}/${WAVES_PER_STAGE}`);
+    } else if (this.mode === "tower") {
+      this.stageText.setText(`무한의 탑 · ${save.towerFloor}층`);
+    } else {
+      this.stageText.setText(`아레나 · ${save.arenaRating}점`);
+    }
   }
 
   private showBanner(message: string, color: string) {
