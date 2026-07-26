@@ -89,6 +89,8 @@ if (!entry) {
 
 const count = Math.min(4, Number(opt("--n", "1")) || 1);
 const outDir = opt("--out", join(ROOT, "assets-gen", key));
+const widthOverride = opt("--w", null); // Phoenix는 최대 1536 — 카탈로그 규격이 넘으면 이걸로 낮춰서 생성 후 업스케일
+const heightOverride = opt("--h", null);
 const ref = opt("--ref", null);
 const modelId = opt("--model-id", DEFAULT_MODEL_ID);
 const preprocessorId = Number(opt("--preprocessor-id", DEFAULT_PREPROCESSOR_ID));
@@ -151,8 +153,8 @@ async function generateBatch(initImageId) {
   const body = {
     prompt: prompt.slice(0, 1490), // Leonardo 프롬프트 길이 제한 여유
     modelId,
-    width: entry.w,
-    height: entry.h,
+    width: Number(widthOverride ?? entry.w),
+    height: Number(heightOverride ?? entry.h),
     num_images: count,
   };
   if (styleUUID) body.styleUUID = styleUUID;
