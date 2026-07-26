@@ -63,7 +63,7 @@ export interface Unit {
   baseDmgTakenMult: number;
 }
 
-export type HitKind = "damage" | "heal" | "shield" | "buff" | "stun" | "block" | "miss";
+export type HitKind = "damage" | "heal" | "shield" | "buff" | "taunt" | "stun" | "block" | "miss";
 
 export interface HitResult {
   attacker: Unit;
@@ -118,7 +118,7 @@ const PASSIVES: Record<string, PassiveDef> = {
   // queen_dark_001 심연 지배는 오라
 };
 
-type ActiveFn = (self: Unit, allies: Unit[], foes: Unit[], now: number) => HitResult[];
+export type ActiveFn = (self: Unit, allies: Unit[], foes: Unit[], now: number) => HitResult[];
 
 function baseUnit(): Omit<Unit, "key" | "name" | "isHero" | "heroClass" | "faction" | "maxHp" | "hp" | "atk" | "def" | "spd" | "critRate" | "critDmg" | "baseSpdVal" | "baseAtkVal" | "baseDmgTakenMult"> {
   return {
@@ -315,11 +315,11 @@ export function attackIntervalMs(unit: Unit): number {
   return BASE_ATTACK_INTERVAL_MS * (100 / Math.max(unit.spd, 1));
 }
 
-function aliveOf(units: Unit[]): Unit[] {
+export function aliveOf(units: Unit[]): Unit[] {
   return units.filter((u) => u.alive);
 }
 
-function pickTarget(attacker: Unit, foes: Unit[], now: number): Unit | null {
+export function pickTarget(attacker: Unit, foes: Unit[], now: number): Unit | null {
   const alive = aliveOf(foes);
   if (alive.length === 0) return null;
   // 도발 우선
@@ -336,13 +336,13 @@ function effectiveAtk(u: Unit, now: number): number {
   return u.atk * buff * u.atkStackMult;
 }
 
-interface DealOpts {
+export interface DealOpts {
   mult?: number;
   forceCrit?: boolean;
 }
 
 /** 피해 적용의 단일 관문 — 회피/실명/무적/보호막/반사/흡혈/불굴/부활/처치 훅을 전부 처리 */
-function dealDamage(
+export function dealDamage(
   attacker: Unit,
   target: Unit,
   allies: Unit[],
@@ -434,21 +434,23 @@ function dealDamage(
   results.push({ attacker, target, amount, crit, kind: "damage", revived });
 }
 
-function healUnit(healer: Unit, target: Unit, amount: number, results: HitResult[]) {
+export function healUnit(healer: Unit, target: Unit, amount: number, results: HitResult[]) {
   if (!target.alive) return;
   const healed = Math.round(amount * (1 + healer.healBonus));
   target.hp = Math.min(target.maxHp, target.hp + healed);
   results.push({ attacker: healer, target, amount: healed, crit: false, kind: "heal" });
 }
 
-function shieldUnit(caster: Unit, target: Unit, amount: number, results: HitResult[]) {
+export function shieldUnit(caster: Unit, target: Unit, amount: number, results: HitResult[]) {
   if (!target.alive) return;
   target.shield += Math.round(amount);
   results.push({ attacker: caster, target, amount: Math.round(amount), crit: false, kind: "shield" });
 }
 
-/** 영웅별 액티브 스킬 (마스터데이터 skill1 구현). 3번째 행동마다 발동 */
-const ACTIVES: Record<string, ActiveFn> = {
+/** 영웅별 액티브 스킬 (마스터데이터 skill1 구현). 3번째 행동마다 발동.
+ * 신규 50종 로스터는 개별 제작 대신 skillTemplates.ts의 템플릿으로 여기 등록한다
+ * (`registerTemplateSkill` 참고). 기존 21종(샘플)은 아래처럼 완전 개별 제작 유지. */
+export const ACTIVES: Record<string, ActiveFn> = {
   warrior_flame_001: (s, a, f, now) => { // 화염 베기
     const r: HitResult[] = [];
     const t = pickTarget(s, f, now);

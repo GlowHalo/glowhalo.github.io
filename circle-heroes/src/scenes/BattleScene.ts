@@ -360,6 +360,7 @@ export class BattleScene extends Phaser.Scene {
       heal: [`+${r.amount}`, "#7de8a0"],
       shield: [`🛡${r.amount}`, "#8ecdf0"],
       buff: ["공격↑", "#ffd34d"],
+      taunt: ["도발!", "#8ecdf0"],
       stun: ["💘매혹", "#ff9ed0"],
       block: ["무적!", "#8ecdf0"],
       miss: ["MISS", "#9aa8bf"],
