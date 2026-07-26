@@ -240,16 +240,10 @@ export function renderSummon(root: HTMLElement) {
   const results = el("div", "pull-results");
   root.appendChild(results);
 
-  const doPull = (count: number, cost: number) => {
-    if (!spendGems(cost)) {
-      toast("보석이 부족합니다");
-      return;
-    }
-    const pulls = pull(count);
+  const fillInlineResults = (pulls: ReturnType<typeof pull>) => {
     results.innerHTML = "";
-    pulls.forEach((r, i) => {
+    pulls.forEach((r) => {
       const card = el("div", "pull-card");
-      card.style.animationDelay = `${i * 0.07}s`;
       const face = el("div", "face");
       face.style.background = FACTION_COLORS[r.hero.faction] ?? "#888";
       card.appendChild(face);
@@ -258,11 +252,128 @@ export function renderSummon(root: HTMLElement) {
       if (r.isNew) card.appendChild(el("div", "new", "NEW!"));
       results.appendChild(card);
     });
-    updatePity();
-    emit("roster-changed");
+  };
+
+  const doPull = (count: number, cost: number) => {
+    if (!spendGems(cost)) {
+      toast("보석이 부족합니다");
+      return;
+    }
+    const pulls = pull(count);
+    playSummonFx(pulls, () => {
+      fillInlineResults(pulls);
+      updatePity();
+      emit("roster-changed");
+    });
   };
   single.onclick = () => doPull(1, SINGLE_COST);
   ten.onclick = () => doPull(10, TEN_COST);
+}
+
+/* ── 소환 연출: 오브 차징 → 카드 순차 뒤집기 → 고등급 예고·플래시. 탭하면 스킵 ── */
+const HIGH_GRADES = new Set(["SR", "SSR", "UR"]);
+
+function playSummonFx(pulls: ReturnType<typeof pull>, onClose: () => void) {
+  const overlay = el("div");
+  overlay.id = "summon-fx";
+  document.getElementById("ui")!.appendChild(overlay);
+
+  const timers: number[] = [];
+  const later = (fn: () => void, ms: number) => {
+    timers.push(window.setTimeout(fn, ms));
+  };
+  let finished = false;
+
+  const finishReveal = () => {
+    if (finished) return;
+    finished = true;
+    timers.forEach(clearTimeout);
+    overlay.querySelectorAll(".sfx-card").forEach((c) => {
+      c.classList.remove("tease");
+      c.classList.add("flipped");
+    });
+    hint.textContent = "";
+    const done = el("button", "btn primary sfx-done", "확인") as HTMLButtonElement;
+    done.onclick = (e) => {
+      e.stopPropagation();
+      overlay.remove();
+      onClose();
+    };
+    overlay.appendChild(done);
+  };
+
+  // 1단계: 오브 차징 (탭하면 바로 카드로)
+  const orb = el("div", "sfx-orb");
+  overlay.appendChild(orb);
+  const hint = el("div", "sfx-hint", "화면을 누르면 건너뜁니다");
+  overlay.appendChild(hint);
+
+  const showCards = () => {
+    if (!orb.parentElement) return;
+    orb.remove();
+    const grid = el("div", "sfx-grid" + (pulls.length > 1 ? " ten" : ""));
+    overlay.insertBefore(grid, hint);
+
+    const cards: HTMLElement[] = pulls.map((r, i) => {
+      const card = el("div", `sfx-card grade-${r.hero.grade}`);
+      card.style.animationDelay = `${i * 0.05}s`;
+      const inner = el("div", "inner");
+      inner.appendChild(el("div", "back", "✦"));
+      const front = el("div", "front");
+      const face = el("div", "face");
+      face.style.background = FACTION_COLORS[r.hero.faction] ?? "#888";
+      front.appendChild(face);
+      front.appendChild(el("div", "", r.hero.nameKr));
+      front.appendChild(el("div", `gd grade-${r.hero.grade}`, r.hero.grade));
+      if (r.isNew) front.appendChild(el("div", "newtag", "NEW!"));
+      inner.appendChild(front);
+      card.appendChild(inner);
+      grid.appendChild(card);
+      return card;
+    });
+
+    // 순차 뒤집기 — 고등급은 금빛 예고 후 플래시
+    let t = 500;
+    pulls.forEach((r, i) => {
+      const isHigh = HIGH_GRADES.has(r.hero.grade);
+      if (isHigh) {
+        later(() => cards[i].classList.add("tease"), t);
+        t += 650;
+      }
+      later(() => {
+        cards[i].classList.remove("tease");
+        cards[i].classList.add("flipped");
+        if (isHigh) {
+          overlay.classList.remove("flash-sr");
+          void overlay.offsetWidth;
+          overlay.classList.add("flash-sr");
+          for (let s = 0; s < 5; s++) {
+            const spark = el("span", "sfx-spark", "✦");
+            const rect = cards[i].getBoundingClientRect();
+            const base = overlay.getBoundingClientRect();
+            spark.style.left = `${rect.left - base.left + Math.random() * rect.width}px`;
+            spark.style.top = `${rect.top - base.top + Math.random() * rect.height}px`;
+            overlay.appendChild(spark);
+            later(() => spark.remove(), 1000);
+          }
+        }
+        if (i === pulls.length - 1) later(finishReveal, 450);
+      }, t);
+      t += 330;
+    });
+  };
+  later(showCards, 2200);
+
+  overlay.onclick = () => {
+    if (orb.parentElement) {
+      // 오브 단계 스킵 → 카드 즉시 표시 후 순차 진행
+      timers.forEach(clearTimeout);
+      timers.length = 0;
+      showCards();
+    } else {
+      finishReveal();
+    }
+  };
 }
 
 /* ── 상점 탭 ── */
