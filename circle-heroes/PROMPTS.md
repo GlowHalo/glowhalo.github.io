@@ -150,9 +150,9 @@ no stat bars, no frame, no border, no UI elements, no watermark.
 | 관우(삼국지) 전투 | **커밋됨** — `assets/characters/guan_yu_001.png` (1.9등신) |
 | 서큐버스 전투 | **커밋됨** — `assets/characters/succubus_dark_001.png` (뿔+박쥐날개+꼬리, 2.0등신) |
 | 데스나이트 전투 | **커밋됨** — `assets/characters/death_knight_001.png` (리니지풍 은갑옷+금장+해골+황금검, 2.4등신) |
-| 슬라임 | 1차 수신 — 품질 양호 |
-| 보스슬라임 | 미수신 |
-| 전투 배경 | 미수신 |
-| 골드 아이콘 | 미수신 |
-| 다이아몬드 아이콘 | 1차 수신 — 품질 양호 |
+| 슬라임 | 재생성 대상 (메이플스토리 슬라임 참고, 너무 웃는 표정이라 반려됨) |
+| 보스슬라임 | **커밋됨** — `assets/characters/boss_slime_001.png` |
+| 전투 배경 | **커밋됨** — `assets/backgrounds/battle-grassland.png` (864×1536 생성 후 1080×1920 업스케일) |
+| 골드 아이콘 | **커밋됨** — `assets/icons/gold.png` (512 생성 후 128 축소) |
+| 다이아몬드 아이콘 | **커밋됨** — `assets/icons/gem.png` (512 생성 후 128 축소) |
 | 카드 3종 | 서큐버스 1장 수신 — 스타일 불일치(세미리얼), 재생성 대상 |
