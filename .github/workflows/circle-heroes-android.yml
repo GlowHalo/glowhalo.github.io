@@ -62,4 +62,4 @@ jobs:
             --title "Circle Heroes — 최신 디버그 APK" \
             --notes "자동 빌드된 디버그 APK (서명 없음, 테스트 설치용). 커밋: $GITHUB_SHA" \
             --prerelease \
-            circle-heroes/android/app/build/outputs/apk/debug/app-debug.apk
+            android/app/build/outputs/apk/debug/app-debug.apk
