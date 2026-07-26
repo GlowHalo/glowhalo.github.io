@@ -75,6 +75,16 @@ Full body, single character only, facing right (3/4 view), feet at bottom center
 Transparent background (alpha PNG). No text, no watermark, no frame. Square 1:1.
 ```
 
+### 3-1. 관우(삼국지) (512×512)
+```
+Guan Yu, a legendary Chinese general from Romance of the Three Kingdoms,
+with a deep reddish-toned face, long flowing black beard, wearing ornate green
+robes over golden armor, holding a massive green-bladed guandao (crescent
+moon blade polearm), dignified confident expression.
+Full body, single character only, facing right (3/4 view), feet at bottom center, small margin.
+Transparent background (alpha PNG). No text, no watermark, no frame. Square 1:1.
+```
+
 ### 4. 슬라임 (512×512)
 ```
 A cute green slime monster with big glossy eyes and a happy open mouth,
