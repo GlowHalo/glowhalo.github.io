@@ -115,10 +115,118 @@ function loadHoldings() {
   }
 }
 const DEFAULT_HOLDINGS = [
-  { id: 1, ticker: "005930", quantity: 10, purchaseDate: "2024-01-10", accountType: "general" },
-  { id: 2, ticker: "O", quantity: 5, purchaseDate: "2023-11-01", accountType: "isa" },
-  { id: 3, ticker: "033780", quantity: 20, purchaseDate: "2024-02-01", accountType: "pension" },
+  { id: 1, ticker: "005930", quantity: 10, purchaseDate: "2024-01-10", sellDate: null, accountType: "general" },
+  { id: 2, ticker: "O", quantity: 5, purchaseDate: "2023-11-01", sellDate: null, accountType: "isa" },
+  { id: 3, ticker: "033780", quantity: 20, purchaseDate: "2024-02-01", sellDate: null, accountType: "pension" },
 ];
+
+/* ----------------------------- CSV 일괄 가져오기 (매수 배치·매도 이력 지원) ----------------------------- */
+const CSV_HEADER_ALIASES = {
+  ticker: ["ticker", "종목코드", "티커", "코드"],
+  quantity: ["quantity", "수량", "주식수"],
+  purchaseDate: ["purchasedate", "매입일", "매수일"],
+  accountType: ["accounttype", "계좌유형", "계좌"],
+  sellDate: ["selldate", "매도일"],
+};
+const CSV_ACCOUNT_TYPE_ALIASES = {
+  general: ["general", "일반", "일반위탁"],
+  isa: ["isa"],
+  pension: ["pension", "연금", "연금저축", "irp", "연금저축·irp"],
+};
+
+function parseCSV(text) {
+  const lines = text.split(/\r\n|\n|\r/).filter((l) => l.trim().length > 0);
+  const parseLine = (line) => {
+    const cells = [];
+    let cur = "", inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQuotes) {
+        if (ch === '"') { if (line[i + 1] === '"') { cur += '"'; i++; } else inQuotes = false; }
+        else cur += ch;
+      } else {
+        if (ch === '"') inQuotes = true;
+        else if (ch === ",") { cells.push(cur); cur = ""; }
+        else cur += ch;
+      }
+    }
+    cells.push(cur);
+    return cells.map((c) => c.trim());
+  };
+  if (lines.length === 0) return { headers: [], rows: [] };
+  return { headers: parseLine(lines[0]), rows: lines.slice(1).map(parseLine) };
+}
+
+function resolveHeaderIndex(headers) {
+  const norm = headers.map((h) => h.toLowerCase().replace(/\s/g, ""));
+  const idx = {};
+  Object.entries(CSV_HEADER_ALIASES).forEach(([key, aliases]) => {
+    idx[key] = norm.findIndex((h) => aliases.some((a) => a.toLowerCase() === h));
+  });
+  return idx;
+}
+
+function resolveAccountType(raw) {
+  const norm = (raw || "").toLowerCase().replace(/\s/g, "");
+  for (const [key, aliases] of Object.entries(CSV_ACCOUNT_TYPE_ALIASES)) {
+    if (aliases.some((a) => a.toLowerCase() === norm)) return key;
+  }
+  return null;
+}
+
+function isValidDateStr(s) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(new Date(s).getTime());
+}
+
+function validateCsvRow(cols, idx, rowNum) {
+  const get = (key) => (idx[key] >= 0 ? (cols[idx[key]] || "").trim() : "");
+  const tickerRaw = get("ticker");
+  const qtyRaw = get("quantity");
+  const dateRaw = get("purchaseDate");
+  const accRaw = get("accountType");
+  const sellRaw = get("sellDate");
+
+  if (!tickerRaw) return { ok: false, error: "종목코드가 비어있어요" };
+  const stock = getStock(tickerRaw.toUpperCase()) || getStock(tickerRaw);
+  if (!stock) return { ok: false, error: `"${tickerRaw}"는 지원하지 않는 종목이에요 (데모 종목만 가능)` };
+
+  const qty = Number(qtyRaw);
+  if (!qtyRaw || !Number.isFinite(qty) || qty <= 0) return { ok: false, error: `수량이 올바르지 않아요 (${qtyRaw})` };
+
+  if (!isValidDateStr(dateRaw)) return { ok: false, error: `매입일 형식이 올바르지 않아요 (YYYY-MM-DD, "${dateRaw}")` };
+
+  const accountType = accRaw ? resolveAccountType(accRaw) : "general";
+  if (!accountType) return { ok: false, error: `계좌유형을 알 수 없어요 ("${accRaw}")` };
+
+  let sellDate = null;
+  if (sellRaw) {
+    if (!isValidDateStr(sellRaw)) return { ok: false, error: `매도일 형식이 올바르지 않아요 (YYYY-MM-DD, "${sellRaw}")` };
+    if (sellRaw < dateRaw) return { ok: false, error: "매도일이 매입일보다 빨라요" };
+    sellDate = sellRaw;
+  }
+
+  return {
+    ok: true,
+    holding: { id: Date.now() * 1000 + rowNum, ticker: stock.ticker, quantity: qty, purchaseDate: dateRaw, sellDate, accountType },
+  };
+}
+
+function downloadSampleCsv() {
+  const sample = "종목코드,수량,매입일,계좌유형,매도일\n"
+    + "005930,10,2024-01-10,일반,\n"
+    + "005930,5,2024-06-01,일반,\n"
+    + "O,5,2023-11-01,ISA,\n"
+    + "033780,10,2024-02-01,연금,2026-03-02\n";
+  const blob = new Blob(["﻿" + sample], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "배당통장_샘플.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 /* ----------------------------- 메인 컴포넌트 ----------------------------- */
 export default function DividendPassbook() {
@@ -130,18 +238,46 @@ export default function DividendPassbook() {
   }, [holdings]);
   const [tab, setTab] = useState("holdings");
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ ticker: STOCKS[0].ticker, quantity: "", purchaseDate: "", accountType: "general" });
+  const [form, setForm] = useState({ ticker: STOCKS[0].ticker, quantity: "", purchaseDate: "", sellDate: "", accountType: "general" });
+  const [csvImport, setCsvImport] = useState({ open: false, fileName: "", headerError: null, results: [] });
 
   const addHolding = () => {
     if (!form.quantity || !form.purchaseDate) return;
+    if (form.sellDate && form.sellDate < form.purchaseDate) { alert("매도일은 매입일보다 빠를 수 없어요."); return; }
     setHoldings((h) => [
       ...h,
-      { id: Date.now(), ticker: form.ticker, quantity: Number(form.quantity), purchaseDate: form.purchaseDate, accountType: form.accountType },
+      { id: Date.now(), ticker: form.ticker, quantity: Number(form.quantity), purchaseDate: form.purchaseDate, sellDate: form.sellDate || null, accountType: form.accountType },
     ]);
-    setForm({ ticker: STOCKS[0].ticker, quantity: "", purchaseDate: "", accountType: "general" });
+    setForm({ ticker: STOCKS[0].ticker, quantity: "", purchaseDate: "", sellDate: "", accountType: "general" });
     setShowAdd(false);
   };
   const removeHolding = (id) => setHoldings((h) => h.filter((x) => x.id !== id));
+
+  const handleCsvFile = (file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const { headers, rows } = parseCSV(String(reader.result || ""));
+      const idx = resolveHeaderIndex(headers);
+      if (idx.ticker < 0 || idx.quantity < 0 || idx.purchaseDate < 0) {
+        setCsvImport({ open: true, fileName: file.name, headerError: "필수 컬럼(종목코드/수량/매입일)을 찾을 수 없어요. 헤더명을 확인해주세요.", results: [] });
+        return;
+      }
+      const results = rows.map((cols, i) => {
+        const rowNum = i + 2;
+        return { rowNum, raw: cols.join(", "), ...validateCsvRow(cols, idx, rowNum) };
+      });
+      setCsvImport({ open: true, fileName: file.name, headerError: null, results });
+    };
+    reader.readAsText(file, "UTF-8");
+  };
+
+  const confirmCsvImport = () => {
+    const valid = csvImport.results.filter((r) => r.ok).map((r) => r.holding);
+    if (valid.length === 0) return;
+    setHoldings((h) => h.concat(valid));
+    setCsvImport({ open: false, fileName: "", headerError: null, results: [] });
+  };
 
   /* 모든 보유분에 대해 이벤트 전개 */
   const allEvents = useMemo(() => {
@@ -149,8 +285,9 @@ export default function DividendPassbook() {
     holdings.forEach((h) => {
       const stock = getStock(h.ticker);
       if (!stock) return;
+      // 매도일 당일까지는 배당락일 기준 소유로 보고 배당 자격 유지, 그 다음날부터 제외
       stock.dividends
-        .filter((e) => e.exDate >= h.purchaseDate)
+        .filter((e) => e.exDate >= h.purchaseDate && (!h.sellDate || e.exDate <= h.sellDate))
         .forEach((e) => {
           const c = classifyAmount(e, stock, h.quantity, h.accountType);
           list.push({
@@ -396,10 +533,19 @@ export default function DividendPassbook() {
                     className="w-full text-sm rounded-lg px-3 py-2"
                     style={{ border: "1px solid #E4DCC5", background: "#F5F1E6", color: "#1F2A44" }}
                   />
+                  <div className="text-[10px]" style={{ color: "#8B93A8" }}>매입일</div>
                   <input
                     type="date"
                     value={form.purchaseDate}
                     onChange={(e) => setForm({ ...form, purchaseDate: e.target.value })}
+                    className="w-full text-sm rounded-lg px-3 py-2"
+                    style={{ border: "1px solid #E4DCC5", background: "#F5F1E6", color: "#1F2A44" }}
+                  />
+                  <div className="text-[10px]" style={{ color: "#8B93A8" }}>매도일 (선택, 계속 보유 중이면 비워두기)</div>
+                  <input
+                    type="date"
+                    value={form.sellDate}
+                    onChange={(e) => setForm({ ...form, sellDate: e.target.value })}
                     className="w-full text-sm rounded-lg px-3 py-2"
                     style={{ border: "1px solid #E4DCC5", background: "#F5F1E6", color: "#1F2A44" }}
                   />
@@ -429,6 +575,72 @@ export default function DividendPassbook() {
                 </div>
               )}
 
+              {!csvImport.open ? (
+                <button
+                  onClick={() => setCsvImport({ open: true, fileName: "", headerError: null, results: [] })}
+                  className="w-full py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5"
+                  style={{ background: "#4B5670", color: "#F5F1E6" }}
+                >
+                  ⇪ CSV로 여러 종목 가져오기
+                </button>
+              ) : (
+                <div className="rounded-xl p-3.5 space-y-2.5" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium" style={{ color: "#4B5670" }}>CSV로 여러 종목 가져오기</span>
+                    <button onClick={() => setCsvImport({ open: false, fileName: "", headerError: null, results: [] })}>
+                      <X size={15} color="#8B93A8" />
+                    </button>
+                  </div>
+                  <div className="text-[11px] leading-relaxed" style={{ color: "#8B93A8" }}>
+                    컬럼: 종목코드, 수량, 매입일(YYYY-MM-DD), 계좌유형(일반/ISA/연금), 매도일(선택)
+                    <br />매수 배치마다 한 행씩 적고, 매도한 배치는 매도일도 채워주세요.
+                  </div>
+                  <button
+                    onClick={downloadSampleCsv}
+                    className="w-full py-2 rounded-lg text-sm font-medium"
+                    style={{ background: "#8B93A8", color: "#FFFDF8" }}
+                  >
+                    샘플 CSV 받기
+                  </button>
+                  <input
+                    type="file"
+                    accept=".csv,text/csv"
+                    onChange={(e) => handleCsvFile(e.target.files && e.target.files[0])}
+                    className="w-full text-sm rounded-lg px-3 py-2"
+                    style={{ border: "1px solid #E4DCC5", background: "#F5F1E6", color: "#1F2A44" }}
+                  />
+                  {csvImport.fileName && (
+                    <div className="text-[11px]" style={{ color: "#8B93A8" }}>파일: {csvImport.fileName}</div>
+                  )}
+                  {csvImport.headerError && (
+                    <div className="text-[11px]" style={{ color: "#B23A3A" }}>{csvImport.headerError}</div>
+                  )}
+                  {csvImport.results.length > 0 && (
+                    <>
+                      <div className="rounded-lg overflow-y-auto" style={{ maxHeight: 220, border: "1px solid #E4DCC5" }}>
+                        {csvImport.results.map((r, i) => (
+                          <div key={i} className="px-2.5 py-2 text-[11px]" style={{ borderBottom: "1px solid #EDE9DC" }}>
+                            <div style={{ color: r.ok ? "#1F2A44" : "#B23A3A" }}>{r.ok ? "✅" : "❌"} {r.rowNum}행 · {r.raw}</div>
+                            {!r.ok && <div style={{ color: "#B23A3A", marginTop: 2 }}>{r.error}</div>}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="text-[11px]" style={{ color: "#8B93A8" }}>
+                        확인됨 {csvImport.results.filter((r) => r.ok).length}건 · 오류 {csvImport.results.filter((r) => !r.ok).length}건
+                      </div>
+                      <button
+                        onClick={confirmCsvImport}
+                        disabled={csvImport.results.filter((r) => r.ok).length === 0}
+                        className="w-full py-2 rounded-lg text-sm font-medium"
+                        style={{ background: "#9C7A3C", color: "#FFFDF8" }}
+                      >
+                        가져오기 ({csvImport.results.filter((r) => r.ok).length}건)
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+
               {holdings.map((h) => {
                 const stock = getStock(h.ticker);
                 if (!stock) return null;
@@ -450,6 +662,11 @@ export default function DividendPassbook() {
                         >
                           {acc.label}
                         </span>
+                        {h.sellDate && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded mono" style={{ background: "#F3E3E3", color: "#B23A3A" }}>
+                            매도 {h.sellDate}
+                          </span>
+                        )}
                       </div>
                       <div className="text-[11px] mt-0.5" style={{ color: "#8B93A8" }}>
                         {h.quantity}주 · {h.purchaseDate} 매입
