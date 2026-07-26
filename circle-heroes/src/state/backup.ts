@@ -18,6 +18,13 @@ async function getDb() {
   return dbPromise;
 }
 
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error("연결 시간 초과 — Firestore 설정을 확인해주세요.")), ms)),
+  ]);
+}
+
 const CODE_CHARS = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"; // 0/O, 1/I/L 등 헷갈리는 문자 제외
 
 function generateCode(): string {
@@ -43,10 +50,13 @@ export async function backupNow(): Promise<{ ok: true; code: string } | { ok: fa
       save.backupCode = generateCode();
       persist();
     }
-    await setDoc(doc(db, "saves", save.backupCode), {
-      data: JSON.stringify(save),
-      updatedAt: serverTimestamp(),
-    });
+    await withTimeout(
+      setDoc(doc(db, "saves", save.backupCode), {
+        data: JSON.stringify(save),
+        updatedAt: serverTimestamp(),
+      }),
+      10_000
+    );
     return { ok: true, code: save.backupCode };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
@@ -60,7 +70,7 @@ export async function restoreFromCode(code: string): Promise<{ ok: true } | { ok
   try {
     const { doc, getDoc } = await import("firebase/firestore");
     const db = await getDb();
-    const snap = await getDoc(doc(db, "saves", trimmed));
+    const snap = await withTimeout(getDoc(doc(db, "saves", trimmed)), 10_000);
     if (!snap.exists()) return { ok: false, error: "해당 코드의 백업을 찾을 수 없습니다." };
     const raw = snap.data().data as string;
     localStorage.setItem("circle-heroes-save-v1", raw);
