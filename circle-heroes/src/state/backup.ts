@@ -10,9 +10,11 @@ async function getDb() {
   if (!dbPromise) {
     dbPromise = (async () => {
       const { initializeApp } = await import("firebase/app");
-      const { getFirestore } = await import("firebase/firestore");
+      const { initializeFirestore } = await import("firebase/firestore");
       const app = initializeApp(firebaseConfig);
-      return getFirestore(app);
+      // 일부 네트워크(제한적인 프록시 등)는 Firestore의 기본 스트리밍 연결을 막는다.
+      // 자동 감지 롱폴링으로 전환하면 그런 환경에서도 안정적으로 동작한다.
+      return initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
     })();
   }
   return dbPromise;
