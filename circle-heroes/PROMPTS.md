@@ -85,12 +85,13 @@ Full body, single character only, facing right (3/4 view), feet at bottom center
 Transparent background (alpha PNG). No text, no watermark, no frame. Square 1:1.
 ```
 
-### 4. 슬라임 (512×512) — 메이플스토리 슬라임 참고
+### 4. 슬라임 (512×512)
 ```
-A green slime monster in the style of the classic MapleStory slime --
-simple teardrop-shaped blob body, glossy jelly surface with a shine highlight,
-small simple dot eyes, a flat neutral or slightly grumpy small mouth (not
-smiling, not laughing, not cute), no limbs, no blush cheeks.
+A green slime monster with a classic simple retro game monster design --
+short and squat teardrop-shaped blob body, wider than it is tall, flattened
+rounded top (not a tall pointed peak), glossy jelly surface with a shine
+highlight, small simple dot eyes, a flat neutral or slightly grumpy small
+mouth (not smiling, not laughing, not cute), no limbs, no blush cheeks.
 Single creature only, facing right, centered, small margin.
 Transparent background (alpha PNG). No text, no watermark. Square 1:1.
 ```
@@ -209,7 +210,7 @@ Transparent background. No text, no watermark. Square 1:1.
 | 관우(삼국지) 전투 | **커밋됨** — `assets/characters/guan_yu_001.png` (1.9등신) |
 | 서큐버스 전투 | **커밋됨** — `assets/characters/succubus_dark_001.png` (뿔+박쥐날개+꼬리, 2.0등신) |
 | 데스나이트 전투 | **커밋됨** — `assets/characters/death_knight_001.png` (리니지풍 은갑옷+금장+해골+황금검, 2.4등신) |
-| 슬라임 | 재생성 대상 (메이플스토리 슬라임 참고, 너무 웃는 표정이라 반려됨) |
+| 슬라임 | **커밋됨** — `assets/characters/slime_green_001.png` (납작한 물방울형, 무표정) |
 | 보스슬라임 | **커밋됨** — `assets/characters/boss_slime_001.png` |
 | 전투 배경 | **커밋됨** — `assets/backgrounds/battle-grassland.png` (864×1536 생성 후 1080×1920 업스케일) |
 | 골드 아이콘 | **커밋됨** — `assets/icons/gold.png` (512 생성 후 128 축소) |
