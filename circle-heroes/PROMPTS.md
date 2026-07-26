@@ -8,6 +8,11 @@
 >   키는 환경변수/`.env`의 `LEONARDO_API_KEY` (발급: https://app.leonardo.ai/api-access).
 >   `--ref`로 참조 이미지 업로드 시 Style Reference ControlNet 적용, `--list-models`로 실제 계정
 >   모델 목록 확인 가능 (기본값은 Phoenix).
+>   **기준 이미지 확정됨**: `assets/characters/mage_flame_001.png` — 이후 캐릭터는
+>   `--ref assets/characters/mage_flame_001.png` 로 그림체를 통일한다.
+>   Leonardo가 배경을 순백색(`pure white background, no shadow`)으로만 뱉어서, 다운로드 후
+>   `python3 scripts/strip-white-bg.py <입력.png> <출력.png>` (pip install pillow numpy)로
+>   테두리에 붙은 흰 배경만 flood-fill 투명화한다 (내부의 흰색 하이라이트는 보존).
 > - **Gemini(`gen-assets.mjs`, 대안)** — 키는 `GEMINI_API_KEY`. **결제 계정 연결 필요**
 >   (무료 등급은 이미지 생성 할당량 0 — 429 확인됨). 결제 연결 시 바로 사용 가능.
 >
@@ -130,7 +135,7 @@ no stat bars, no frame, no border, no UI elements, no watermark.
 
 | 에셋 | 상태 |
 |---|---|
-| 화염마법사 전투 | 1차 수신 (치비 스타일) — 스타일 재통일 예정 |
+| 화염마법사 전투 | **커밋됨** — `assets/characters/mage_flame_001.png` (기준 이미지, Leonardo Phoenix) |
 | 서큐버스 전투 | 1차 수신 (치비 스타일) — 재통일 예정 |
 | 데스나이트 전투 | 미수신 |
 | 슬라임 | 1차 수신 — 품질 양호 |
