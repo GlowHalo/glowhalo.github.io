@@ -28,9 +28,9 @@ const API = "https://cloud.leonardo.ai/api/rest/v1";
 // Phoenix 1.0 — Leonardo 자체 파운데이션 모델. --model-id 로 다른 모델(예: 애니메 특화)로 교체 가능,
 // --list-models 로 계정에서 실제 쓸 수 있는 모델 UUID를 먼저 확인할 것.
 const DEFAULT_MODEL_ID = "de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3";
-// Style Reference ControlNet preprocessor (공식 문서 확인됨). Character Reference ID는
-// 모델별로 달라 아직 미확정 — 필요 시 --preprocessor-id 로 직접 지정.
-const DEFAULT_PREPROCESSOR_ID = 67;
+// Style Reference ControlNet preprocessor ID는 모델 계열마다 다르다 (SDXL=67, Phoenix=166).
+// 기본 모델이 Phoenix라 166을 쓴다 — --model-id 로 SDXL 계열로 바꾸면 --preprocessor-id 67 필요.
+const DEFAULT_PREPROCESSOR_ID = 166;
 
 // ---------- CLI ----------
 
