@@ -213,6 +213,24 @@
 }
 .btn:disabled { opacity: 0.45; cursor: default; }
 
+.backup-box { margin: 4px 0 16px; }
+.backup-box h4 { margin: 0 0 6px; font-size: 13px; color: var(--ink); }
+.backup-box .btn { width: 100%; margin-bottom: 8px; }
+.backup-box .row { justify-content: stretch; }
+.muted { margin: 0 0 10px; font-size: 12px; color: var(--ink2); opacity: 0.8; }
+.code-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel2);
+  color: var(--ink);
+  padding: 8px 10px;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
 /* ── 토스트 ── */
 #toast {
   position: absolute;
