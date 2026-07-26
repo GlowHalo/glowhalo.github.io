@@ -11,9 +11,11 @@ import { toast } from "../ui/shell";
 import { on, emit } from "../state/bus";
 import {
   act,
+  applyAuras,
   attackIntervalMs,
   makeEnemy,
   unitFromHero,
+  type HitResult,
   type Unit,
 } from "../systems/battle";
 
@@ -252,6 +254,9 @@ export class BattleScene extends Phaser.Scene {
       });
     }
 
+    applyAuras(this.heroes, this.enemies);
+    applyAuras(this.enemies, this.heroes);
+
     this.refreshHud();
   }
 
@@ -299,10 +304,12 @@ export class BattleScene extends Phaser.Scene {
 
       const allies = unit.isHero ? this.heroes : this.enemies;
       const foes = unit.isHero ? this.enemies : this.heroes;
-      const result = act(unit, allies, foes, now);
-      if (!result) continue;
-      this.animateHit(result.isHeal ? allies : [result.target], unit, result.amount, result.crit, result.isHeal, result.blocked);
-      if (result.revived) this.animateRevive(result.revived);
+      const results = act(unit, allies, foes, now);
+      if (results.length > 0) this.lunge(unit, results[0].kind);
+      for (const r of results) {
+        this.showResult(r);
+        if (r.revived) this.animateRevive(r.revived);
+      }
       this.syncBars();
 
       if (this.enemies.every((u) => !u.alive)) {
@@ -316,65 +323,69 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  private animateHit(
-    targets: Unit[],
-    attacker: Unit,
-    amount: number,
-    crit: boolean,
-    isHeal: boolean,
-    blocked: boolean
-  ) {
-    const attackerView = this.views.get(attacker);
-    if (attackerView) {
-      const dir = attacker.isHero ? 24 : -24;
-      this.tweens.add({
-        targets: attackerView.root,
-        x: attackerView.homeX + dir,
-        duration: 90 / this.speedMult,
-        yoyo: true,
-        ease: "Quad.easeOut",
+  private lunge(attacker: Unit, kind: HitResult["kind"]) {
+    if (kind === "stun" && attacker.stunUntil > 0) return; // 매혹당한 유닛은 돌진 없음
+    const view = this.views.get(attacker);
+    if (!view) return;
+    const dir = attacker.isHero ? 24 : -24;
+    this.tweens.add({
+      targets: view.root,
+      x: view.homeX + dir,
+      duration: 90 / this.speedMult,
+      yoyo: true,
+      ease: "Quad.easeOut",
+    });
+  }
+
+  private showResult(r: HitResult) {
+    const view = this.views.get(r.target);
+    if (!view) return;
+    const t = r.target;
+
+    if (r.kind === "damage") {
+      view.body.setFillStyle(0xffffff);
+      this.time.delayedCall(70 / this.speedMult, () => {
+        const original = t.isHero || t.key.startsWith("arena_")
+          ? FACTION_COLORS[t.faction] ?? 0x888888
+          : view.body.radius > 38
+            ? 0x9b59d0
+            : 0x67b26f;
+        view.body.setFillStyle(original);
       });
     }
 
-    for (const t of targets) {
-      const view = this.views.get(t);
-      if (!view) continue;
-      if (!isHeal && !blocked) {
-        view.body.setFillStyle(0xffffff);
-        this.time.delayedCall(70 / this.speedMult, () => {
-          const original = t.isHero || t.key.startsWith("arena_")
-            ? FACTION_COLORS[t.faction] ?? 0x888888
-            : view.body.radius > 38
-              ? 0x9b59d0
-              : 0x67b26f;
-          view.body.setFillStyle(original);
-        });
-      }
-      const text = blocked ? "무적!" : isHeal ? `+${amount}` : crit ? `${amount}!` : `${amount}`;
-      const color = blocked ? "#8ecdf0" : isHeal ? "#7de8a0" : crit ? "#ffd34d" : "#ff8f7a";
-      const floater = this.add
-        .text(view.root.x, view.root.y - 42, text, {
-          fontFamily: "sans-serif",
-          fontSize: crit ? "18px" : "14px",
-          color,
-          fontStyle: crit ? "bold" : "normal",
-        })
-        .setOrigin(0.5);
+    const style: Record<HitResult["kind"], [string, string]> = {
+      damage: [r.crit ? `${r.amount}!` : `${r.amount}`, r.crit ? "#ffd34d" : "#ff8f7a"],
+      heal: [`+${r.amount}`, "#7de8a0"],
+      shield: [`🛡${r.amount}`, "#8ecdf0"],
+      buff: ["공격↑", "#ffd34d"],
+      stun: ["💘매혹", "#ff9ed0"],
+      block: ["무적!", "#8ecdf0"],
+      miss: ["MISS", "#9aa8bf"],
+    };
+    const [text, color] = style[r.kind];
+    const floater = this.add
+      .text(view.root.x, view.root.y - 42, text, {
+        fontFamily: "sans-serif",
+        fontSize: r.crit ? "18px" : "14px",
+        color,
+        fontStyle: r.crit ? "bold" : "normal",
+      })
+      .setOrigin(0.5);
+    this.tweens.add({
+      targets: floater,
+      y: floater.y - 30,
+      alpha: 0,
+      duration: 650 / this.speedMult,
+      onComplete: () => floater.destroy(),
+    });
+    if (!t.alive) {
       this.tweens.add({
-        targets: floater,
-        y: floater.y - 30,
-        alpha: 0,
-        duration: 650 / this.speedMult,
-        onComplete: () => floater.destroy(),
+        targets: view.root,
+        alpha: 0.15,
+        scale: 0.85,
+        duration: 200 / this.speedMult,
       });
-      if (!t.alive) {
-        this.tweens.add({
-          targets: view.root,
-          alpha: 0.15,
-          scale: 0.85,
-          duration: 200 / this.speedMult,
-        });
-      }
     }
   }
 
