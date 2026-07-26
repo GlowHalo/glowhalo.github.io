@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Plus, Trash2, ChevronRight, Wallet, CalendarClock, History, X } from "lucide-react";
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 
 /* ----------------------------- 기준일 & 환율 (데모용) ----------------------------- */
-const TODAY = new Date("2026-07-09");
+const TODAY = new Date(new Date().toISOString().slice(0, 10));
 const FX_USD_KRW = 1380;
 
 /* ----------------------------- 배당 시리즈 생성기 ----------------------------- */
@@ -103,13 +103,31 @@ function classifyAmount(event, stock, qty, accountType) {
   return { gross, net: null, certain: false, taxNote: TAX_NOTE[accountType] };
 }
 
+/* ----------------------------- 보유종목 영속화 (localStorage) ----------------------------- */
+const HOLDINGS_STORAGE_KEY = "dividend-passbook:holdings:v1";
+function loadHoldings() {
+  try {
+    const raw = localStorage.getItem(HOLDINGS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+const DEFAULT_HOLDINGS = [
+  { id: 1, ticker: "005930", quantity: 10, purchaseDate: "2024-01-10", accountType: "general" },
+  { id: 2, ticker: "O", quantity: 5, purchaseDate: "2023-11-01", accountType: "isa" },
+  { id: 3, ticker: "033780", quantity: 20, purchaseDate: "2024-02-01", accountType: "pension" },
+];
+
 /* ----------------------------- 메인 컴포넌트 ----------------------------- */
 export default function DividendPassbook() {
-  const [holdings, setHoldings] = useState([
-    { id: 1, ticker: "005930", quantity: 10, purchaseDate: "2024-01-10", accountType: "general" },
-    { id: 2, ticker: "O", quantity: 5, purchaseDate: "2023-11-01", accountType: "isa" },
-    { id: 3, ticker: "033780", quantity: 20, purchaseDate: "2024-02-01", accountType: "pension" },
-  ]);
+  const [holdings, setHoldings] = useState(() => loadHoldings() || DEFAULT_HOLDINGS);
+  useEffect(() => {
+    try {
+      localStorage.setItem(HOLDINGS_STORAGE_KEY, JSON.stringify(holdings));
+    } catch {}
+  }, [holdings]);
   const [tab, setTab] = useState("holdings");
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ ticker: STOCKS[0].ticker, quantity: "", purchaseDate: "", accountType: "general" });

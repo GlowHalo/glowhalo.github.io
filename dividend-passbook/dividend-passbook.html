@@ -64,7 +64,7 @@
 
 <script>
 /* ----------------------------- 기준일 & 환율 (데모용) ----------------------------- */
-const TODAY = new Date("2026-07-09");
+const TODAY = new Date(new Date().toISOString().slice(0, 10));
 const FX_USD_KRW = 1380;
 
 function addMonths(date, n) { const d = new Date(date); d.setMonth(d.getMonth() + n); return d; }
@@ -146,8 +146,24 @@ function classifyAmount(event, stock, qty, accountType) {
   return { gross, net: null, certain: false, taxNote: TAX_NOTE[accountType] };
 }
 
-/* ----------------------------- 상태 ----------------------------- */
-let holdings = [
+/* ----------------------------- 상태 (localStorage 영속) ----------------------------- */
+const HOLDINGS_STORAGE_KEY = "dividend-passbook:holdings:v1";
+function loadHoldings() {
+  try {
+    const raw = localStorage.getItem(HOLDINGS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+function saveHoldings() {
+  try {
+    localStorage.setItem(HOLDINGS_STORAGE_KEY, JSON.stringify(holdings));
+  } catch {}
+}
+
+let holdings = loadHoldings() || [
   { id: 1, ticker: "005930", quantity: 10, purchaseDate: "2024-01-10", accountType: "general" },
   { id: 2, ticker: "O", quantity: 5, purchaseDate: "2023-11-01", accountType: "isa" },
   { id: 3, ticker: "033780", quantity: 20, purchaseDate: "2024-02-01", accountType: "pension" },
@@ -168,9 +184,10 @@ function addHolding() {
   holdings.push({ id: Date.now(), ticker, quantity: qty, purchaseDate: pdate, accountType: form.accountType });
   form = { ticker: STOCKS[0].ticker, quantity: "", purchaseDate: "", accountType: "general" };
   showAdd = false;
+  saveHoldings();
   render();
 }
-function removeHolding(id) { holdings = holdings.filter((h) => h.id !== id); render(); }
+function removeHolding(id) { holdings = holdings.filter((h) => h.id !== id); saveHoldings(); render(); }
 
 /* ----------------------------- 계산 ----------------------------- */
 function computeAll() {
