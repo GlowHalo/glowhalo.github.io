@@ -59,10 +59,11 @@ ${CHAR_TAIL}`,
     styled: true,
     w: 512,
     h: 512,
-    prompt: `A green slime monster in the style of the classic MapleStory slime --
-simple teardrop-shaped blob body, glossy jelly surface with a shine highlight,
-small simple dot eyes, a flat neutral or slightly grumpy small mouth (not
-smiling, not laughing, not cute), no limbs, no blush cheeks.
+    prompt: `A green slime monster with a classic simple retro game monster design --
+short and squat teardrop-shaped blob body, wider than it is tall, flattened
+rounded top (not a tall pointed peak), glossy jelly surface with a shine
+highlight, small simple dot eyes, a flat neutral or slightly grumpy small
+mouth (not smiling, not laughing, not cute), no limbs, no blush cheeks.
 Single creature only, facing right, centered, small margin.
 Pure white background, no shadow. No text, no watermark. Square 1:1.`,
   },
