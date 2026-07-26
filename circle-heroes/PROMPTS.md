@@ -65,11 +65,12 @@ Full body, single character only, facing right (3/4 view), feet at bottom center
 Transparent background (alpha PNG). No text, no watermark, no frame. Square 1:1.
 ```
 
-### 3. 데스나이트 (512×512)
+### 3. 데스나이트 (512×512) — 리니지 데스나이트 참고 (은색 갑옷 + 금장 + 해골 + 황금빛 검)
 ```
-A menacing death knight in heavy black-and-silver plate armor with glowing
-ice-blue accents, tattered dark cape, massive glowing blue greatsword over his
-shoulder, glowing eyes inside the helmet.
+A death knight in silver plate armor with ornate gold trim and rivets, a
+skeletal skull visible inside the open-faced helmet, tattered dark cloth
+wrappings at the waist, holding a large glowing golden greatsword radiating
+warm light.
 Full body, single character only, facing right (3/4 view), feet at bottom center, small margin.
 Transparent background (alpha PNG). No text, no watermark, no frame. Square 1:1.
 ```

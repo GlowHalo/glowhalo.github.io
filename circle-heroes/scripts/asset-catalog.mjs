@@ -37,9 +37,10 @@ ${CHAR_TAIL}`,
     styled: true,
     w: 512,
     h: 512,
-    prompt: `A menacing death knight in heavy black-and-silver plate armor with glowing
-ice-blue accents, tattered dark cape, massive glowing blue greatsword over his
-shoulder, glowing eyes inside the helmet.
+    prompt: `A death knight in silver plate armor with ornate gold trim and rivets, a
+skeletal skull visible inside the open-faced helmet, tattered dark cloth
+wrappings at the waist, holding a large glowing golden greatsword radiating
+warm light.
 ${CHAR_TAIL}`,
   },
   slime: {
