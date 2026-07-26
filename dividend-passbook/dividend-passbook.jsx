@@ -214,13 +214,15 @@ function classifyAmount(event, stock, qty, accountType) {
   return { gross, net: null, certain: false, taxNote: TAX_NOTE[accountType] };
 }
 
-/* ----------------------------- 배당 탭: 연도별 월 분해 ----------------------------- */
-function yearMonthlyBreakdown(year, allEvents) {
+/* ----------------------------- 배당 탭: 최근 12개월(실제) + 다음달(추정) 13개월 분해 ----------------------------- */
+// 연도 단위로 끊으면 올해 하반기처럼 아직 안 일어난 "추정" 달까지 연간 합계에 섞여
+// 허무맹랑해지므로, 오늘 기준 과거로 굴러가는 실제 12개월 + 다음달 추정 1개월만 보여준다.
+function trailing13Months(allEvents) {
   const months = [];
-  for (let m = 1; m <= 12; m++) {
-    const mKey = `${year}-${String(m).padStart(2, "0")}`;
+  for (let i = -11; i <= 1; i++) {
+    const mKey = monthKey(fmt(addMonths(TODAY, i)));
     const events = allEvents.filter((e) => monthKey(e.exDate) === mKey);
-    months.push({ month: mKey, value: events.reduce((s, e) => s + e.gross, 0), events, isFuture: new Date(mKey + "-01") > TODAY });
+    months.push({ month: mKey, value: events.reduce((s, e) => s + e.gross, 0), events, isFuture: i > 0 });
   }
   return months;
 }
@@ -485,8 +487,7 @@ export default function DividendPassbook() {
   const [csvImport, setCsvImport] = useState({ open: false, fileName: "", headerError: null, results: [] });
 
   // 도미노 벤치마킹 탭들의 UI 상태
-  const [selectedYear, setSelectedYear] = useState(TODAY.getFullYear());
-  const [selectedMonthNum, setSelectedMonthNum] = useState(TODAY.getMonth() + 1);
+  const [selectedMonthKey, setSelectedMonthKey] = useState(thisMonthKey);
   const [profitPeriod, setProfitPeriod] = useState("total");
   const [allocationView, setAllocationView] = useState("ticker");
   const [dividendShowNet, setDividendShowNet] = useState(true);
@@ -613,22 +614,20 @@ export default function DividendPassbook() {
   });
   const ledgerDesc = [...ledgerAsc].reverse();
 
-  // 배당 탭: 선택 연도의 월별 분해 + 선택된 월 상세
-  const yearMonths = useMemo(() => yearMonthlyBreakdown(selectedYear, allEvents), [selectedYear, allEvents]);
-  const validMonthNum = yearMonths[selectedMonthNum - 1] ? selectedMonthNum : 1;
-  const selectedMonthData = yearMonths[validMonthNum - 1];
+  // 배당 탭: 최근 12개월(실제) + 다음달(추정) 13개월 분해 + 선택된 월 상세
+  const trailingMonths = useMemo(() => trailing13Months(allEvents), [allEvents]);
+  const validMonthKey = trailingMonths.some((m) => m.month === selectedMonthKey) ? selectedMonthKey : thisMonthKey;
+  const selectedMonthData = trailingMonths.find((m) => m.month === validMonthKey);
   const monthGroups = useMemo(() => mergeEventsByTicker(selectedMonthData.events), [selectedMonthData]);
   const confirmedGroups = useMemo(() => mergeEventsByTicker(confirmedEvents), [confirmedEvents]);
   const estimatedGroups = useMemo(() => mergeEventsByTicker(estimatedEvents).slice(0, 6), [estimatedEvents]);
-  const yearTotal = yearMonths.reduce((s, m) => s + m.value, 0);
-  const yearHeadlineAmount = dividendShowNet
-    ? yearMonths.flatMap((m) => m.events).reduce((s, e) => s + (e.certain ? e.net : e.gross), 0)
-    : yearTotal;
-  const availableYears = useMemo(() => Array.from(new Set(
-    [...STOCKS, ...customStocks].flatMap((s) => s.dividends.map((d) => Number(d.exDate.slice(0, 4))))
-  )).sort(), [customStocksVersion]);
-  const minYear = availableYears[0] || TODAY.getFullYear();
-  const maxYear = TODAY.getFullYear() + 1;
+  // "실제 데이터로만" — 추정월(다음달)을 뺀 최근 12개월의 실제 지급분만 합산
+  const realTrailingEvents = trailingMonths.filter((m) => !m.isFuture).flatMap((m) => m.events).filter((e) => e.status === "paid");
+  const trailing12Total = realTrailingEvents.reduce((s, e) => s + e.gross, 0);
+  const headlineAmount = dividendShowNet
+    ? realTrailingEvents.reduce((s, e) => s + (e.certain ? e.net : e.gross), 0)
+    : trailing12Total;
+  const rangeLabel = `${trailingMonths[0].month} ~ ${trailingMonths[11].month} 실제 · ${trailingMonths[12].month} 예정`;
 
   // 수익 탭
   const profitDividend = periodDividendTotal(profitPeriod, paidEvents);
@@ -1045,16 +1044,12 @@ export default function DividendPassbook() {
           {tab === "dividend" && (
             <div>
               <div className="rounded-2xl p-4" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
-                <div className="flex justify-between items-center">
-                  <button onClick={() => setSelectedYear((y) => y - 1)} disabled={selectedYear <= minYear} className="text-base px-2" style={{ color: "#8B93A8", opacity: selectedYear <= minYear ? 0.3 : 1, background: "none", border: "none" }}>‹</button>
-                  <span className="text-sm font-semibold" style={{ color: "#1F2A44" }}>{selectedYear}년</span>
-                  <button onClick={() => setSelectedYear((y) => y + 1)} disabled={selectedYear >= maxYear} className="text-base px-2" style={{ color: "#8B93A8", opacity: selectedYear >= maxYear ? 0.3 : 1, background: "none", border: "none" }}>›</button>
-                </div>
-                <div className="mt-2 text-center">
-                  <div className="text-[11px]" style={{ color: "#8B93A8" }}>{selectedYear}년 동안의 배당금</div>
-                  <div className="serif text-2xl font-bold mono mt-1" style={{ color: "#1F2A44" }}>{won(yearHeadlineAmount)}</div>
-                  {costGroups.total > 0 && yearTotal > 0 && (
-                    <div className="text-[10px] mt-1" style={{ color: "#8B93A8" }}>투자배당률 {((yearTotal / costGroups.total) * 100).toFixed(2)}%</div>
+                <div className="text-center">
+                  <div className="text-[11px]" style={{ color: "#8B93A8" }}>배당금 (최근 12개월)</div>
+                  <div className="serif text-2xl font-bold mono mt-1" style={{ color: "#1F2A44" }}>{won(headlineAmount)}</div>
+                  <div className="text-[9px] mt-1" style={{ color: "#8B93A8" }}>{rangeLabel}</div>
+                  {costGroups.total > 0 && trailing12Total > 0 && (
+                    <div className="text-[10px] mt-1" style={{ color: "#8B93A8" }}>투자배당률 {((trailing12Total / costGroups.total) * 100).toFixed(2)}%</div>
                   )}
                 </div>
                 <div className="flex justify-between mt-2">
@@ -1063,19 +1058,19 @@ export default function DividendPassbook() {
                 </div>
                 <div className="mt-3" style={{ height: 130 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={yearMonths.map((m, i) => ({ ...m, num: i + 1 }))} margin={{ top: 14, right: 4, left: 4, bottom: 0 }}>
-                      <XAxis dataKey="num" tick={{ fontSize: 9, fill: "#8B93A8" }} axisLine={false} tickLine={false} />
+                    <BarChart data={trailingMonths} margin={{ top: 14, right: 4, left: 4, bottom: 0 }}>
+                      <XAxis dataKey="month" tickFormatter={(m) => m.slice(5)} tick={{ fontSize: 9, fill: "#8B93A8" }} axisLine={false} tickLine={false} />
                       <YAxis hide />
                       <Tooltip
                         formatter={(v, n, p) => [won(v), p.payload.isFuture ? "추정(향후)" : "지급완료"]}
-                        labelFormatter={(l) => `${l}월`}
+                        labelFormatter={(l) => l}
                         contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E4DCC5" }}
                       />
-                      <Bar dataKey="value" radius={[2, 2, 0, 0]} onClick={(d) => setSelectedMonthNum(d.num)} style={{ cursor: "pointer" }}>
-                        {yearMonths.map((d, i) => (
+                      <Bar dataKey="value" radius={[2, 2, 0, 0]} onClick={(d) => setSelectedMonthKey(d.month)} style={{ cursor: "pointer" }}>
+                        {trailingMonths.map((d, i) => (
                           <Cell
                             key={i}
-                            fill={i + 1 === validMonthNum ? "#9C7A3C" : d.isFuture ? "#EDE9DC" : "#1F2A44"}
+                            fill={d.month === validMonthKey ? "#9C7A3C" : d.isFuture ? "#EDE9DC" : "#1F2A44"}
                             stroke={d.isFuture ? "#C9C0A5" : "none"}
                             strokeDasharray={d.isFuture ? "3 2" : undefined}
                           />
@@ -1088,7 +1083,7 @@ export default function DividendPassbook() {
 
               <div className="rounded-2xl p-4 mt-3" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-semibold" style={{ color: "#1F2A44" }}>{validMonthNum}월</span>
+                  <span className="text-sm font-semibold" style={{ color: "#1F2A44" }}>{selectedMonthData.month}{selectedMonthData.isFuture ? " (예정)" : ""}</span>
                   <span className="mono text-sm font-semibold" style={{ color: "#1F2A44" }}>{won(selectedMonthData.value)}</span>
                 </div>
                 <div className="mt-1">
