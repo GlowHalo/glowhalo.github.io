@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Plus, Trash2, ChevronRight, Wallet, CalendarClock, History, X } from "lucide-react";
-import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { AreaChart, Area, BarChart, Bar, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 
 /* ----------------------------- 기준일 & 환율 (데모용) ----------------------------- */
 const TODAY = new Date(new Date().toISOString().slice(0, 10));
@@ -504,6 +504,29 @@ export default function DividendPassbook() {
     return Object.entries(byMonth).map(([m, v]) => ({ month: m.slice(2), value: Math.round(v) }));
   }, [ledgerAsc]);
 
+  // 메인화면용 12개월 배당 그래프: 과거 8개월 + 이번달 + 향후 3개월 (지급완료/확정 + 미래는 추정치 합산)
+  const monthlyChart = useMemo(() => {
+    const months = [];
+    for (let i = -8; i <= 3; i++) {
+      const mKey = monthKey(fmt(addMonths(TODAY, i)));
+      const value = allEvents.filter((e) => monthKey(e.exDate) === mKey).reduce((s, e) => s + e.gross, 0);
+      months.push({ month: mKey.slice(5), value: Math.round(value), isCurrent: i === 0, isFuture: i > 0 });
+    }
+    return months;
+  }, [allEvents]);
+  const thisMonthTotal = monthlyChart.find((m) => m.isCurrent)?.value || 0;
+
+  // 종목별 보유수량 요약 (매도분 제외, 계좌 병기)
+  const holdingGroups = useMemo(() => {
+    const map = {};
+    holdings.forEach((h) => {
+      if (!map[h.ticker]) map[h.ticker] = { ticker: h.ticker, quantity: 0, accountTypes: new Set() };
+      if (!h.sellDate) map[h.ticker].quantity += h.quantity;
+      map[h.ticker].accountTypes.add(h.accountType);
+    });
+    return Object.values(map).map((g) => ({ ...g, accountTypes: Array.from(g.accountTypes) }));
+  }, [holdings]);
+
   return (
     <div className="min-h-screen w-full flex justify-center" style={{ background: "#EDE9DC" }}>
       <style>{`
@@ -535,103 +558,88 @@ export default function DividendPassbook() {
           </div>
         </div>
 
-        {/* 이번달 확정 배당 */}
+        {/* 보유종목 요약 (매도분 제외 수량, 계좌 병기) */}
         <div className="px-5 pt-6">
           <div className="rounded-2xl p-4" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium" style={{ color: "#4B5670" }}>이번 달 확정 배당</span>
-              {thisMonthEvents.length > 0 && (
-                <span className="stamp text-[10px] px-2 py-0.5 rounded-sm mono font-semibold">확정</span>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium" style={{ color: "#4B5670" }}>보유종목</span>
+              <span className="mono text-xs" style={{ color: "#8B93A8" }}>{holdingGroups.length}종목</span>
+            </div>
+            <div className="mt-1">
+              {holdingGroups.length === 0 ? (
+                <p className="text-sm mt-2" style={{ color: "#8B93A8" }}>보유 중인 종목이 없어요.</p>
+              ) : (
+                holdingGroups.map((g) => {
+                  const stock = getStock(g.ticker);
+                  if (!stock) return null;
+                  return (
+                    <div key={g.ticker} className="flex justify-between items-center py-2" style={{ borderBottom: "1px solid #EDE9DC" }}>
+                      <div>
+                        <div className="text-sm font-medium" style={{ color: "#1F2A44" }}>{stock.name}</div>
+                        <div className="mt-0.5">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded mono" style={{ background: "#EDE9DC", color: "#4B5670" }}>
+                            {stock.market === "KR" ? "국내" : "해외"}
+                          </span>
+                          {g.accountTypes.map((a) => (
+                            <span
+                              key={a}
+                              className="text-[10px] px-1.5 py-0.5 rounded mono ml-1"
+                              style={{ background: a !== "general" ? "#F0E9D8" : "#EDE9DC", color: a !== "general" ? "#9C7A3C" : "#4B5670" }}
+                            >
+                              {getAccountType(a).short}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="mono font-semibold" style={{ fontSize: 15, color: "#1F2A44" }}>{g.quantity.toLocaleString("ko-KR")}주</div>
+                    </div>
+                  );
+                })
               )}
             </div>
-            {thisMonthEvents.length === 0 ? (
-              <p className="text-sm" style={{ color: "#8B93A8" }}>이번 달 확정된 배당이 아직 없어요.</p>
-            ) : (
-              <>
-                <div className="serif text-3xl font-bold mono" style={{ color: "#1F2A44" }}>
-                  {won(thisMonthEvents.reduce((s, e) => s + e.gross, 0))}
-                </div>
-                <div className="text-[10px] mt-0.5" style={{ color: "#8B93A8" }}>세전 합계 (계좌별 실수령은 아래 참고)</div>
-                <div className="mt-3 space-y-2">
-                  {thisMonthEvents.map((e, i) => (
-                    <div key={i} className="text-xs">
-                      <div className="flex justify-between">
-                        <span style={{ color: "#4B5670" }}>
-                          {e.name} · {e.exDate.slice(5)} 배당락
-                          <span className="mono ml-1" style={{ color: "#8B93A8" }}>[{getAccountType(e.accountType).short}]</span>
-                        </span>
-                        <span className="mono font-medium" style={{ color: "#1F2A44" }}>{won(e.gross)}</span>
-                      </div>
-                      {e.certain ? (
-                        <div className="text-right text-[10px] mono" style={{ color: "#9C7A3C" }}>세후 확정 {won(e.net)}</div>
-                      ) : (
-                        <div className="text-right text-[10px]" style={{ color: "#8B93A8" }}>{e.taxNote}</div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
           </div>
         </div>
 
-        {/* 누적 요약 + 종합과세 게이지 */}
+        {/* 월별 배당 그래프: 과거 8개월 + 이번달 + 향후 3개월 */}
         <div className="px-5 pt-4">
           <div className="rounded-2xl p-4" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
-            <div className="flex justify-between items-baseline">
-              <span className="text-xs" style={{ color: "#4B5670" }}>{TODAY.getFullYear()}년 누적 배당소득 (세전)</span>
-              <span className="mono text-xs" style={{ color: "#8B93A8" }}>기준 2,000만원</span>
+            <span className="text-xs font-medium" style={{ color: "#4B5670" }}>월별 배당 · 과거 8개월 + 이번달 + 향후 3개월</span>
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <span className="serif text-xl font-bold mono" style={{ color: "#1F2A44" }}>{won(thisMonthTotal)}</span>
+              <span className="text-[10px]" style={{ color: "#8B93A8" }}>이번 달 세전</span>
             </div>
-            <div className="serif text-xl font-bold mono mt-1" style={{ color: "#1F2A44" }}>{won(yearGross)}</div>
-            <div className="mt-2 h-2 rounded-full overflow-hidden" style={{ background: "#EDE9DC" }}>
-              <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct > 80 ? "#B23A3A" : "#9C7A3C" }} />
+            <div className="mt-2" style={{ height: 110 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyChart} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
+                  <XAxis dataKey="month" tick={{ fontSize: 9, fill: "#8B93A8" }} axisLine={false} tickLine={false} />
+                  <YAxis hide />
+                  <Tooltip
+                    formatter={(v, n, p) => [won(v), p.payload.isFuture ? "추정(향후)" : p.payload.isCurrent ? "이번달" : "지급완료"]}
+                    contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E4DCC5" }}
+                  />
+                  <Bar dataKey="value" radius={[2, 2, 0, 0]}>
+                    {monthlyChart.map((d, i) => (
+                      <Cell
+                        key={i}
+                        fill={d.isCurrent ? "#9C7A3C" : d.isFuture ? "#EDE9DC" : "#1F2A44"}
+                        stroke={d.isFuture ? "#C9C0A5" : "none"}
+                        strokeDasharray={d.isFuture ? "3 2" : undefined}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-            {pct > 70 && (
-              <p className="text-[11px] mt-1.5" style={{ color: "#B23A3A" }}>종합과세 기준(2천만원)에 가까워지고 있어요. 정확한 세액은 세무사 확인을 권장해요.</p>
-            )}
-            <div className="mt-3 pt-3 space-y-1" style={{ borderTop: "1px dashed #E4DCC5" }}>
-              <div className="flex justify-between text-[11px]">
-                <span style={{ color: "#4B5670" }}>일반위탁 누적 (세후 확정)</span>
-                <span className="mono font-medium" style={{ color: "#1F2A44" }}>{won(generalNetAllTime)}</span>
-              </div>
-              <div className="flex justify-between text-[11px]">
-                <span style={{ color: "#4B5670" }}>ISA 누적 (세전, 만기 정산 예정)</span>
-                <span className="mono font-medium" style={{ color: "#9C7A3C" }}>{won(isaGrossAllTime)}</span>
-              </div>
-              <div className="flex justify-between text-[11px]">
-                <span style={{ color: "#4B5670" }}>연금계좌 누적 (세전, 인출 시 정산 예정)</span>
-                <span className="mono font-medium" style={{ color: "#9C7A3C" }}>{won(pensionGrossAllTime)}</span>
-              </div>
+            <div className="flex justify-between mt-1" style={{ fontSize: 9, color: "#8B93A8" }}>
+              <span>■ 지급완료</span><span style={{ color: "#9C7A3C" }}>■ 이번달</span><span>▨ 추정(향후)</span>
             </div>
-
-            {chartData.length > 1 && (
-              <div className="mt-3 -mx-1" style={{ height: 90 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="fillInk" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#1F2A44" stopOpacity={0.35} />
-                        <stop offset="100%" stopColor="#1F2A44" stopOpacity={0.02} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="month" tick={{ fontSize: 9, fill: "#8B93A8" }} axisLine={false} tickLine={false} />
-                    <YAxis hide />
-                    <Tooltip
-                      formatter={(v) => [won(v), "누적(세전)"]}
-                      contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E4DCC5" }}
-                    />
-                    <Area type="monotone" dataKey="value" stroke="#1F2A44" strokeWidth={1.5} fill="url(#fillInk)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            )}
           </div>
         </div>
 
         {/* 탭 */}
         <div className="px-5 pt-5 flex gap-1.5">
           {[
-            { key: "holdings", label: "보유종목", icon: Wallet },
+            { key: "holdings", label: "매수내역", icon: Wallet },
             { key: "upcoming", label: "예정배당", icon: CalendarClock },
             { key: "ledger", label: "지난기록", icon: History },
           ].map((t) => (
@@ -952,7 +960,79 @@ export default function DividendPassbook() {
 
           {tab === "ledger" && (
             <div>
-              <div className="flex justify-between text-[11px] mb-2 px-1" style={{ color: "#8B93A8" }}>
+              <div className="rounded-2xl p-4" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium" style={{ color: "#4B5670" }}>이번 달 확정 배당</span>
+                  {thisMonthEvents.length > 0 && (
+                    <span className="stamp text-[10px] px-2 py-0.5 rounded-sm mono font-semibold">확정</span>
+                  )}
+                </div>
+                {thisMonthEvents.length === 0 ? (
+                  <p className="text-sm" style={{ color: "#8B93A8" }}>이번 달 확정된 배당이 아직 없어요.</p>
+                ) : (
+                  <>
+                    <div className="serif text-3xl font-bold mono" style={{ color: "#1F2A44" }}>
+                      {won(thisMonthEvents.reduce((s, e) => s + e.gross, 0))}
+                    </div>
+                    <div className="text-[10px] mt-0.5" style={{ color: "#8B93A8" }}>세전 합계 (계좌별 실수령은 아래 참고)</div>
+                    <div className="mt-3 space-y-2">
+                      {thisMonthEvents.map((e, i) => (
+                        <div key={i} className="text-xs">
+                          <div className="flex justify-between">
+                            <span style={{ color: "#4B5670" }}>
+                              {e.name} · {e.exDate.slice(5)} 배당락
+                              <span className="mono ml-1" style={{ color: "#8B93A8" }}>[{getAccountType(e.accountType).short}]</span>
+                            </span>
+                            <span className="mono font-medium" style={{ color: "#1F2A44" }}>{won(e.gross)}</span>
+                          </div>
+                          {e.certain ? (
+                            <div className="text-right text-[10px] mono" style={{ color: "#9C7A3C" }}>세후 확정 {won(e.net)}</div>
+                          ) : (
+                            <div className="text-right text-[10px]" style={{ color: "#8B93A8" }}>{e.taxNote}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="rounded-2xl p-4 mt-3" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
+                <div className="flex justify-between items-baseline">
+                  <span className="text-xs" style={{ color: "#4B5670" }}>{TODAY.getFullYear()}년 누적 배당소득 (세전)</span>
+                  <span className="mono text-xs" style={{ color: "#8B93A8" }}>기준 2,000만원</span>
+                </div>
+                <div className="serif text-xl font-bold mono mt-1" style={{ color: "#1F2A44" }}>{won(yearGross)}</div>
+                <div className="mt-2 h-2 rounded-full overflow-hidden" style={{ background: "#EDE9DC" }}>
+                  <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct > 80 ? "#B23A3A" : "#9C7A3C" }} />
+                </div>
+                {pct > 70 && (
+                  <p className="text-[11px] mt-1.5" style={{ color: "#B23A3A" }}>종합과세 기준(2천만원)에 가까워지고 있어요. 정확한 세액은 세무사 확인을 권장해요.</p>
+                )}
+                {chartData.length > 1 && (
+                  <div className="mt-3 -mx-1" style={{ height: 90 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="fillInk" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#1F2A44" stopOpacity={0.35} />
+                            <stop offset="100%" stopColor="#1F2A44" stopOpacity={0.02} />
+                          </linearGradient>
+                        </defs>
+                        <XAxis dataKey="month" tick={{ fontSize: 9, fill: "#8B93A8" }} axisLine={false} tickLine={false} />
+                        <YAxis hide />
+                        <Tooltip
+                          formatter={(v) => [won(v), "누적(세전)"]}
+                          contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E4DCC5" }}
+                        />
+                        <Area type="monotone" dataKey="value" stroke="#1F2A44" strokeWidth={1.5} fill="url(#fillInk)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-between text-[11px] mb-2 px-1 mt-4" style={{ color: "#8B93A8" }}>
                 <span>거래일 / 종목·계좌</span>
                 <span>세전 수령액 / 누적</span>
               </div>

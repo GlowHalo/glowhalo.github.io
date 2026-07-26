@@ -530,8 +530,27 @@ function computeAll() {
   ledgerAsc.forEach((e) => { byMonth[monthKey(e.exDate)] = e.running; });
   const chartData = Object.entries(byMonth).map(([m, v]) => ({ month: m, value: v }));
 
+  // 메인화면용 12개월 배당 그래프: 과거 8개월 + 이번달 + 향후 3개월 (지급완료/확정 + 미래는 추정치 합산)
+  const monthlyChart = [];
+  for (let i = -8; i <= 3; i++) {
+    const mKey = monthKey(fmt(addMonths(TODAY, i)));
+    const value = allEvents.filter((e) => monthKey(e.exDate) === mKey).reduce((s, e) => s + e.gross, 0);
+    monthlyChart.push({ month: mKey, value, isCurrent: i === 0, isFuture: i > 0 });
+  }
+
   return { paidEvents, confirmedEvents, estimatedEvents, thisMonthEvents, yearGross,
-    generalNetAllTime, isaGrossAllTime, pensionGrossAllTime, ledgerDesc, chartData };
+    generalNetAllTime, isaGrossAllTime, pensionGrossAllTime, ledgerDesc, chartData, monthlyChart };
+}
+
+/* ----------------------------- 종목별 보유수량 요약 (매도분 제외, 계좌 병기) ----------------------------- */
+function groupHoldings(list) {
+  const map = {};
+  list.forEach((h) => {
+    if (!map[h.ticker]) map[h.ticker] = { ticker: h.ticker, quantity: 0, accountTypes: new Set() };
+    if (!h.sellDate) map[h.ticker].quantity += h.quantity;
+    map[h.ticker].accountTypes.add(h.accountType);
+  });
+  return Object.values(map).map((g) => ({ ...g, accountTypes: Array.from(g.accountTypes) }));
 }
 
 /* ----------------------------- 미니 차트(SVG) ----------------------------- */
@@ -554,10 +573,28 @@ function sparkline(chartData) {
   </svg>`;
 }
 
+// 과거 8개월(지급완료, 남색) + 이번달(브라스) + 향후 3개월(추정치, 점선 테두리) 막대그래프
+function barChart12(monthlyChart) {
+  const w = 380, h = 100, pad = 4, labelH = 14;
+  const max = Math.max(1, ...monthlyChart.map((d) => d.value));
+  const slot = (w - pad * 2) / monthlyChart.length;
+  const barW = slot * 0.62;
+  const bars = monthlyChart.map((d, i) => {
+    const x = pad + i * slot + (slot - barW) / 2;
+    const barH = Math.max(2, (d.value / max) * (h - pad - labelH));
+    const y = h - labelH - barH;
+    const fill = d.isCurrent ? "#9C7A3C" : d.isFuture ? "#EDE9DC" : "#1F2A44";
+    const stroke = d.isFuture ? ` stroke="#C9C0A5" stroke-width="1" stroke-dasharray="3,2"` : "";
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="2" fill="${fill}"${stroke}></rect>
+      <text x="${(x + barW / 2).toFixed(1)}" y="${h - 3}" font-size="7" fill="#8B93A8" text-anchor="middle" font-family="'IBM Plex Mono', monospace">${d.month.slice(5)}</text>`;
+  }).join("");
+  return `<svg class="chart" style="height:100px;" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${bars}</svg>`;
+}
+
 /* ----------------------------- 렌더 ----------------------------- */
 function render() {
   const { paidEvents, confirmedEvents, estimatedEvents, thisMonthEvents, yearGross,
-    generalNetAllTime, isaGrossAllTime, pensionGrossAllTime, ledgerDesc, chartData } = computeAll();
+    generalNetAllTime, isaGrossAllTime, pensionGrossAllTime, ledgerDesc, chartData, monthlyChart } = computeAll();
 
   const THRESHOLD = 20000000;
   const pct = Math.min(100, (yearGross / THRESHOLD) * 100);
@@ -565,6 +602,22 @@ function render() {
   const stockOptions = STOCKS.map((s) =>
     `<option value="${s.ticker}" ${form.ticker === s.ticker ? "selected" : ""}>${s.name} (${s.market === "KR" ? "국내" : "해외"} · ${s.ticker})</option>`
   ).join("");
+
+  const holdingsSummaryHtml = groupHoldings(holdings).map((g) => {
+    const stock = getStock(g.ticker);
+    if (!stock) return "";
+    return `
+      <div class="row-between" style="padding:8px 0; border-bottom:1px solid #EDE9DC;">
+        <div>
+          <div class="ink" style="font-size:13px; font-weight:500;">${stock.name}</div>
+          <div class="mt1">
+            <span class="badge">${stock.market === "KR" ? "국내" : "해외"}</span>
+            ${g.accountTypes.map((a) => `<span class="badge ${a !== "general" ? "badge-brass" : ""}" style="margin-left:4px;">${getAccountType(a).short}</span>`).join("")}
+          </div>
+        </div>
+        <div class="mono ink" style="font-size:15px; font-weight:600;">${g.quantity.toLocaleString("ko-KR")}주</div>
+      </div>`;
+  }).join("");
 
   const thisMonthHtml = thisMonthEvents.length === 0
     ? `<p class="muted" style="font-size:14px;">이번 달 확정된 배당이 아직 없어요.</p>`
@@ -732,33 +785,29 @@ function render() {
     <div class="section mt6">
       <div class="card">
         <div class="row-between">
-          <span class="muted" style="font-size:12px; font-weight:500;">이번 달 확정 배당</span>
-          ${thisMonthEvents.length > 0 ? `<span class="stamp">확정</span>` : ""}
+          <span class="muted" style="font-size:12px; font-weight:500;">보유종목</span>
+          <span class="mono muted" style="font-size:11px;">${groupHoldings(holdings).length}종목</span>
         </div>
-        <div class="mt2">${thisMonthHtml}</div>
+        <div class="mt1">${holdingsSummaryHtml || `<p class="muted" style="font-size:13px;">보유 중인 종목이 없어요.</p>`}</div>
       </div>
     </div>
 
     <div class="section mt4">
       <div class="card">
-        <div class="row-between" style="align-items:baseline;">
-          <span class="muted" style="font-size:12px;">${TODAY.getFullYear()}년 누적 배당소득 (세전)</span>
-          <span class="mono muted" style="font-size:11px;">기준 2,000만원</span>
+        <span class="muted" style="font-size:12px; font-weight:500;">월별 배당 · 과거 8개월 + 이번달 + 향후 3개월</span>
+        <div class="mt1" style="display:flex; align-items:baseline; gap:6px;">
+          <span class="mono ink" style="font-size:20px; font-weight:700;">${won(monthlyChart.find((m) => m.isCurrent).value)}</span>
+          <span class="muted" style="font-size:10px;">이번 달 세전</span>
         </div>
-        <div class="mid-num serif mono ink mt1">${won(yearGross)}</div>
-        <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${pct > 80 ? "#B23A3A" : "#9C7A3C"};"></div></div>
-        ${pct > 70 ? `<p class="red mt1" style="font-size:11px;">종합과세 기준(2천만원)에 가까워지고 있어요. 정확한 세액은 세무사 확인을 권장해요.</p>` : ""}
-        <div class="summary-split">
-          <div class="summary-line"><span class="muted">일반위탁 누적 (세후 확정)</span><span class="mono ink" style="font-weight:500;">${won(generalNetAllTime)}</span></div>
-          <div class="summary-line"><span class="muted">ISA 누적 (세전, 만기 정산 예정)</span><span class="mono brass" style="font-weight:500;">${won(isaGrossAllTime)}</span></div>
-          <div class="summary-line"><span class="muted">연금계좌 누적 (세전, 인출 시 정산 예정)</span><span class="mono brass" style="font-weight:500;">${won(pensionGrossAllTime)}</span></div>
+        <div class="mt2">${barChart12(monthlyChart)}</div>
+        <div class="row-between mt1" style="font-size:9px; color:#8B93A8;">
+          <span>■ 지급완료</span><span style="color:#9C7A3C;">■ 이번달</span><span>▨ 추정(향후)</span>
         </div>
-        ${chartHtml}
       </div>
     </div>
 
     <div class="tabs">
-      <button class="tab-btn ${tab === "holdings" ? "active" : ""}" onclick="setTab('holdings')">보유종목</button>
+      <button class="tab-btn ${tab === "holdings" ? "active" : ""}" onclick="setTab('holdings')">매수내역</button>
       <button class="tab-btn ${tab === "upcoming" ? "active" : ""}" onclick="setTab('upcoming')">예정배당</button>
       <button class="tab-btn ${tab === "ledger" ? "active" : ""}" onclick="setTab('ledger')">지난기록</button>
     </div>
@@ -780,7 +829,24 @@ function render() {
           ${estimatedHtml}
         </div>` : ""}
       ${tab === "ledger" ? `
-        <div class="ledger-header"><span>거래일 / 종목·계좌</span><span>세전 수령액 / 누적</span></div>
+        <div class="card">
+          <div class="row-between">
+            <span class="muted" style="font-size:12px; font-weight:500;">이번 달 확정 배당</span>
+            ${thisMonthEvents.length > 0 ? `<span class="stamp">확정</span>` : ""}
+          </div>
+          <div class="mt2">${thisMonthHtml}</div>
+        </div>
+        <div class="card mt3">
+          <div class="row-between" style="align-items:baseline;">
+            <span class="muted" style="font-size:12px;">${TODAY.getFullYear()}년 누적 배당소득 (세전)</span>
+            <span class="mono muted" style="font-size:11px;">기준 2,000만원</span>
+          </div>
+          <div class="mid-num serif mono ink mt1">${won(yearGross)}</div>
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${pct > 80 ? "#B23A3A" : "#9C7A3C"};"></div></div>
+          ${pct > 70 ? `<p class="red mt1" style="font-size:11px;">종합과세 기준(2천만원)에 가까워지고 있어요. 정확한 세액은 세무사 확인을 권장해요.</p>` : ""}
+          ${chartHtml}
+        </div>
+        <div class="ledger-header mt4"><span>거래일 / 종목·계좌</span><span>세전 수령액 / 누적</span></div>
         ${ledgerHtml}
         <div class="card mt3">
           <div class="summary-line"><span class="muted">일반위탁 누적 (세후 확정)</span><span class="mono ink" style="font-weight:500;">${won(generalNetAllTime)}</span></div>
