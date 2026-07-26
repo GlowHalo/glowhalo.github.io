@@ -30,6 +30,7 @@ SD 히어로 수집형 자동전투 방치형 게임. 모바일 APK로 설치해
 
 | 날짜 | 내용 |
 |---|---|
+| 2026-07-26 | 실기 테스트 피드백 반영: 소환 연출 "확인" 버튼 제거(화면 아무 곳이나 탭/아무 키나 누르면 진행·복귀 — 버튼이 화면 밖으로 밀려 못 누르는 문제 해결), 카드 뒷면 무의미한 별(✦) 삭제, 저가치(R 이하) 카드는 빠르게·SR 이상만 기존 속도로 순차 공개. 무한의 탑 전용 난이도 곡선(`makeTowerEnemy`) 신설 — 스테이지보다 훨씬 완만하게 층마다 미세 상승 |
 | 2026-07-26 | 클라우드 백업(Firebase Firestore) 구현: `src/state/backup.ts` — 복구 코드 기반(계정 없이 8자리 코드로 세이브 백업/복구), 설정 화면에 UI 연결. `src/config/firebase.ts`는 PLACEHOLDER 상태라 아직 비활성(실제 config 값 필요 — 주인님이 Firebase 프로젝트 생성해야 하는 부분). SDK는 동적 import로 불러와 미설정 시 번들에서 자동 트리쉐이킹됨(검증 완료) |
 | 2026-07-26 | Capacitor 안드로이드 프로젝트 초기화(`android/`, appId `io.github.tossneon.circleheroes`). 이 개발 컨테이너엔 Android SDK가 없어 로컬 빌드 불가 확인 → **GitHub Actions**로 디버그 APK 빌드하는 워크플로(`.github/workflows/circle-heroes-android.yml`) 구축, 배포 방식으로 채택. Leonardo API 키는 이 환경 네트워크 정책이 `cloud.leonardo.ai`를 막고 있어(403 host not allowlisted) 보류 — 환경 설정에서 도메인 허용 필요 |
 | 2026-07-25 | 디자인 자동화 파이프라인 구축: `scripts/gen-assets.mjs` — Gemini API(gemini-2.5-flash-image) 직접 호출로 에셋 8종 생성 자동화. 키는 환경변수/`.env`(gitignore)로만, 커밋 금지. 계정(OAuth) 연동은 이 환경에 커넥터가 없어 불가 판정 → API 키 방식 확정. 키 수령 대기 중 |
