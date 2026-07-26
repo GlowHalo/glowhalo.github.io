@@ -30,6 +30,7 @@ SD 히어로 수집형 자동전투 방치형 게임. 모바일 APK로 설치해
 
 | 날짜 | 내용 |
 |---|---|
+| 2026-07-26 | 전체 기능 헤드리스 점검: 영웅 상세·레벨업·편성, 소환(1회·10연), 상점, 임무, 전투 4종(스테이지·무한의탑·아레나·요일던전), 배속 — 콘솔 에러 없이 정상 확인. Firebase는 프로젝트/Firestore/규칙까지 주인님이 완료, config 반영 + 롱폴링 옵션 추가했으나 이 개발 샌드박스 프록시로는 실시간 연결 자체 검증 불가(REST 직접 호출로는 정상 확인) — 실기기 테스트 대기 중 |
 | 2026-07-26 | 실기 테스트 피드백 반영: 소환 연출 "확인" 버튼 제거(화면 아무 곳이나 탭/아무 키나 누르면 진행·복귀 — 버튼이 화면 밖으로 밀려 못 누르는 문제 해결), 카드 뒷면 무의미한 별(✦) 삭제, 저가치(R 이하) 카드는 빠르게·SR 이상만 기존 속도로 순차 공개. 무한의 탑 전용 난이도 곡선(`makeTowerEnemy`) 신설 — 스테이지보다 훨씬 완만하게 층마다 미세 상승 |
 | 2026-07-26 | 클라우드 백업(Firebase Firestore) 구현: `src/state/backup.ts` — 복구 코드 기반(계정 없이 8자리 코드로 세이브 백업/복구), 설정 화면에 UI 연결. `src/config/firebase.ts`는 PLACEHOLDER 상태라 아직 비활성(실제 config 값 필요 — 주인님이 Firebase 프로젝트 생성해야 하는 부분). SDK는 동적 import로 불러와 미설정 시 번들에서 자동 트리쉐이킹됨(검증 완료) |
 | 2026-07-26 | Capacitor 안드로이드 프로젝트 초기화(`android/`, appId `io.github.tossneon.circleheroes`). 이 개발 컨테이너엔 Android SDK가 없어 로컬 빌드 불가 확인 → **GitHub Actions**로 디버그 APK 빌드하는 워크플로(`.github/workflows/circle-heroes-android.yml`) 구축, 배포 방식으로 채택. Leonardo API 키는 이 환경 네트워크 정책이 `cloud.leonardo.ai`를 막고 있어(403 host not allowlisted) 보류 — 환경 설정에서 도메인 허용 필요 |
