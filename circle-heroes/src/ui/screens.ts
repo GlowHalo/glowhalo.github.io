@@ -7,6 +7,10 @@ import {
   getStars, ascendCost, dupeCount, tryAscend, MAX_STARS,
 } from "../state/save";
 import { pull, SINGLE_COST, TEN_COST, PITY_LIMIT } from "../systems/gacha";
+import {
+  DAILY_MISSIONS, ALL_CLEAR_KEY, ALL_CLEAR_BONUS,
+  missionProgress, isClaimed, claimable, claim, track,
+} from "../systems/missions";
 import { toast, modal, closeModal } from "./shell";
 import { emit } from "../state/bus";
 
@@ -95,6 +99,7 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
   lvBtn.disabled = save.gold < cost;
   lvBtn.onclick = () => {
     if (tryLevelUp(hero.id)) {
+      track("levelup");
       toast(`${hero.nameKr} Lv.${getLevel(hero.id)}!`);
       openHeroDetail(hero, rerender);
       rerender();
@@ -260,6 +265,7 @@ export function renderSummon(root: HTMLElement) {
       return;
     }
     const pulls = pull(count);
+    track("summon", count);
     playSummonFx(pulls, () => {
       fillInlineResults(pulls);
       updatePity();
@@ -426,20 +432,62 @@ export function renderShop(root: HTMLElement) {
 export function renderMissions(root: HTMLElement) {
   root.innerHTML = "";
   root.appendChild(el("h2", "", "일일 임무"));
-  root.appendChild(el("div", "desc", "보상 지급 로직은 준비 중 — 목록 구성만 먼저 보여드립니다."));
-  const items: Array<[string, string, string]> = [
-    ["⚔️", "스테이지 5회 클리어", `현재 스테이지 ${save.stage}`],
-    ["✨", "영웅 소환 1회", "소환 탭에서"],
-    ["🪙", "골드 1,000 획득", "자동전투로 획득"],
-  ];
-  for (const [icon, t, s] of items) {
-    const c = el("div", "list-card");
-    c.appendChild(el("span", "", icon));
+  root.appendChild(el("div", "desc", "매일 자정에 리셋됩니다. 완료 후 보상을 수령하세요."));
+
+  const rewardText = (r: { gold?: number; gems?: number }) =>
+    r.gems ? `\uD83D\uDC8E ${r.gems}` : `\uD83E\uDE99 ${r.gold}`;
+
+  for (const m of DAILY_MISSIONS) {
+    const cur = missionProgress(m.key);
+    const done = cur >= m.goal;
+    const card = el("div", "list-card");
+    card.appendChild(el("span", "", m.icon));
     const g = el("div", "grow");
-    g.appendChild(el("div", "t", t));
-    g.appendChild(el("div", "s", s));
-    c.appendChild(g);
-    c.appendChild(el("span", "s", "준비 중"));
-    root.appendChild(c);
+    g.appendChild(el("div", "t", m.label));
+    const barWrap = el("div", "mbar");
+    const bar = el("div", "mbar-fill");
+    bar.style.width = `${Math.min(100, (cur / m.goal) * 100)}%`;
+    barWrap.appendChild(bar);
+    g.appendChild(barWrap);
+    g.appendChild(el("div", "s", `${cur}/${m.goal} · 보상 ${rewardText(m.reward)}`));
+    card.appendChild(g);
+
+    if (isClaimed(m.key)) {
+      card.appendChild(el("span", "s", "수령 완료"));
+    } else {
+      const btn = el("button", "btn" + (done ? " primary" : ""), "수령") as HTMLButtonElement;
+      btn.disabled = !claimable(m.key);
+      btn.onclick = () => {
+        if (claim(m.key)) {
+          toast(`보상 수령! ${rewardText(m.reward)}`);
+          renderMissions(root);
+        }
+      };
+      card.appendChild(btn);
+    }
+    root.appendChild(card);
   }
+
+  // 전체 완료 보너스
+  const allCard = el("div", "list-card all-bonus");
+  allCard.appendChild(el("span", "", "\uD83C\uDF81"));
+  const ag = el("div", "grow");
+  ag.appendChild(el("div", "t", "오늘의 임무 전체 완료"));
+  const doneCount = DAILY_MISSIONS.filter((m) => isClaimed(m.key)).length;
+  ag.appendChild(el("div", "s", `${doneCount}/${DAILY_MISSIONS.length} 수령 · 보너스 \uD83D\uDC8E ${ALL_CLEAR_BONUS.gems}`));
+  allCard.appendChild(ag);
+  if (isClaimed(ALL_CLEAR_KEY)) {
+    allCard.appendChild(el("span", "s", "수령 완료"));
+  } else {
+    const btn = el("button", "btn" + (claimable(ALL_CLEAR_KEY) ? " primary" : ""), "수령") as HTMLButtonElement;
+    btn.disabled = !claimable(ALL_CLEAR_KEY);
+    btn.onclick = () => {
+      if (claim(ALL_CLEAR_KEY)) {
+        toast(`전체 완료 보너스! \uD83D\uDC8E ${ALL_CLEAR_BONUS.gems}`);
+        renderMissions(root);
+      }
+    };
+    allCard.appendChild(btn);
+  }
+  root.appendChild(allCard);
 }
