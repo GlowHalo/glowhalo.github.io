@@ -6,8 +6,8 @@ export const SINGLE_COST = 10;
 export const TEN_COST = 90;
 export const PITY_LIMIT = 50;
 
-// 등급별 가중치. 천장(50회)은 최고 등급(UR) 확정.
-const GRADE_WEIGHT: Record<string, number> = { N: 0, R: 60, SR: 30, SSR: 9, UR: 1 };
+// 등급별 가중치(%). 천장(50회)은 최고 등급(UR) 확정. N/R은 주로 각성 재료용, SR부터 실전 기용 가능.
+const GRADE_WEIGHT: Record<string, number> = { N: 50, R: 40, SR: 8.9, SSR: 1, UR: 0.1 };
 
 function topGrade(): string {
   // 마스터데이터에 존재하는 소환 가능 등급 중 최고 등급
