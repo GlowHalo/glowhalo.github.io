@@ -188,8 +188,10 @@ function addHolding() {
   const qty = Number(document.getElementById("f-qty").value);
   const pdate = document.getElementById("f-date").value;
   const ticker = document.getElementById("f-ticker").value;
+  const sellDate = document.getElementById("f-sell-date").value || null;
   if (!qty || !pdate) return;
-  holdings.push({ id: Date.now(), ticker, quantity: qty, purchaseDate: pdate, accountType: form.accountType });
+  if (sellDate && sellDate < pdate) { alert("매도일은 매입일보다 빠를 수 없어요."); return; }
+  holdings.push({ id: Date.now(), ticker, quantity: qty, purchaseDate: pdate, sellDate, accountType: form.accountType });
   form = { ticker: STOCKS[0].ticker, quantity: "", purchaseDate: "", accountType: "general" };
   showAdd = false;
   saveHoldings();
@@ -197,13 +199,156 @@ function addHolding() {
 }
 function removeHolding(id) { holdings = holdings.filter((h) => h.id !== id); saveHoldings(); render(); }
 
+/* ----------------------------- CSV 일괄 가져오기 (매수 배치·매도 이력 지원) ----------------------------- */
+let csvImport = { open: false, fileName: "", headerError: null, results: [] };
+
+const CSV_HEADER_ALIASES = {
+  ticker: ["ticker", "종목코드", "티커", "코드"],
+  quantity: ["quantity", "수량", "주식수"],
+  purchaseDate: ["purchasedate", "매입일", "매수일"],
+  accountType: ["accounttype", "계좌유형", "계좌"],
+  sellDate: ["selldate", "매도일"],
+};
+const ACCOUNT_TYPE_ALIASES = {
+  general: ["general", "일반", "일반위탁"],
+  isa: ["isa"],
+  pension: ["pension", "연금", "연금저축", "irp", "연금저축·irp"],
+};
+
+function toggleCsvImport() { csvImport = { open: !csvImport.open, fileName: "", headerError: null, results: [] }; render(); }
+
+function parseCSV(text) {
+  const lines = text.split(/\r\n|\n|\r/).filter((l) => l.trim().length > 0);
+  const parseLine = (line) => {
+    const cells = [];
+    let cur = "", inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQuotes) {
+        if (ch === '"') { if (line[i + 1] === '"') { cur += '"'; i++; } else inQuotes = false; }
+        else cur += ch;
+      } else {
+        if (ch === '"') inQuotes = true;
+        else if (ch === ",") { cells.push(cur); cur = ""; }
+        else cur += ch;
+      }
+    }
+    cells.push(cur);
+    return cells.map((c) => c.trim());
+  };
+  if (lines.length === 0) return { headers: [], rows: [] };
+  return { headers: parseLine(lines[0]), rows: lines.slice(1).map(parseLine) };
+}
+
+function resolveHeaderIndex(headers) {
+  const norm = headers.map((h) => h.toLowerCase().replace(/\s/g, ""));
+  const idx = {};
+  Object.entries(CSV_HEADER_ALIASES).forEach(([key, aliases]) => {
+    idx[key] = norm.findIndex((h) => aliases.some((a) => a.toLowerCase() === h));
+  });
+  return idx;
+}
+
+function resolveAccountType(raw) {
+  const norm = (raw || "").toLowerCase().replace(/\s/g, "");
+  for (const [key, aliases] of Object.entries(ACCOUNT_TYPE_ALIASES)) {
+    if (aliases.some((a) => a.toLowerCase() === norm)) return key;
+  }
+  return null;
+}
+
+function isValidDateStr(s) { return /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(new Date(s).getTime()); }
+
+function validateCsvRow(cols, idx, rowNum) {
+  const get = (key) => (idx[key] >= 0 ? (cols[idx[key]] || "").trim() : "");
+  const tickerRaw = get("ticker");
+  const qtyRaw = get("quantity");
+  const dateRaw = get("purchaseDate");
+  const accRaw = get("accountType");
+  const sellRaw = get("sellDate");
+
+  if (!tickerRaw) return { ok: false, error: "종목코드가 비어있어요" };
+  const stock = getStock(tickerRaw.toUpperCase()) || getStock(tickerRaw);
+  if (!stock) return { ok: false, error: `"${tickerRaw}"는 지원하지 않는 종목이에요 (데모 종목만 가능)` };
+
+  const qty = Number(qtyRaw);
+  if (!qtyRaw || !Number.isFinite(qty) || qty <= 0) return { ok: false, error: `수량이 올바르지 않아요 (${qtyRaw})` };
+
+  if (!isValidDateStr(dateRaw)) return { ok: false, error: `매입일 형식이 올바르지 않아요 (YYYY-MM-DD, "${dateRaw}")` };
+
+  const accountType = accRaw ? resolveAccountType(accRaw) : "general";
+  if (!accountType) return { ok: false, error: `계좌유형을 알 수 없어요 ("${accRaw}")` };
+
+  let sellDate = null;
+  if (sellRaw) {
+    if (!isValidDateStr(sellRaw)) return { ok: false, error: `매도일 형식이 올바르지 않아요 (YYYY-MM-DD, "${sellRaw}")` };
+    if (sellRaw < dateRaw) return { ok: false, error: "매도일이 매입일보다 빨라요" };
+    sellDate = sellRaw;
+  }
+
+  return {
+    ok: true,
+    holding: { id: Date.now() * 1000 + rowNum, ticker: stock.ticker, quantity: qty, purchaseDate: dateRaw, sellDate, accountType },
+  };
+}
+
+function handleCsvFile(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const { headers, rows } = parseCSV(String(reader.result || ""));
+    const idx = resolveHeaderIndex(headers);
+    if (idx.ticker < 0 || idx.quantity < 0 || idx.purchaseDate < 0) {
+      csvImport = { open: true, fileName: file.name, headerError: "필수 컬럼(종목코드/수량/매입일)을 찾을 수 없어요. 헤더명을 확인해주세요.", results: [] };
+      render();
+      return;
+    }
+    const results = rows.map((cols, i) => {
+      const rowNum = i + 2;
+      const v = validateCsvRow(cols, idx, rowNum);
+      return { rowNum, raw: cols.join(", "), ...v };
+    });
+    csvImport = { open: true, fileName: file.name, headerError: null, results };
+    render();
+  };
+  reader.readAsText(file, "UTF-8");
+}
+
+function confirmCsvImport() {
+  const valid = csvImport.results.filter((r) => r.ok).map((r) => r.holding);
+  if (valid.length === 0) return;
+  holdings = holdings.concat(valid);
+  saveHoldings();
+  csvImport = { open: false, fileName: "", headerError: null, results: [] };
+  render();
+}
+
+function downloadSampleCsv() {
+  const sample = "종목코드,수량,매입일,계좌유형,매도일\n"
+    + "005930,10,2024-01-10,일반,\n"
+    + "005930,5,2024-06-01,일반,\n"
+    + "O,5,2023-11-01,ISA,\n"
+    + "033780,10,2024-02-01,연금,2026-03-02\n";
+  const blob = new Blob(["﻿" + sample], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "배당통장_샘플.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 /* ----------------------------- 계산 ----------------------------- */
 function computeAll() {
   const allEvents = [];
   holdings.forEach((h) => {
     const stock = getStock(h.ticker);
     if (!stock) return;
-    stock.dividends.filter((e) => e.exDate >= h.purchaseDate).forEach((e) => {
+    // 매도일 당일까지는 배당락일 기준 소유로 보고 배당 자격 유지, 그 다음날부터 제외
+    stock.dividends.filter((e) => e.exDate >= h.purchaseDate && (!h.sellDate || e.exDate <= h.sellDate)).forEach((e) => {
       const c = classifyAmount(e, stock, h.quantity, h.accountType);
       allEvents.push({ ...e, holdingId: h.id, ticker: h.ticker, name: stock.name, market: stock.market,
         currency: stock.currency, qty: h.quantity, accountType: h.accountType,
@@ -302,6 +447,7 @@ function render() {
             <span class="stock-name">${stock.name}</span>
             <span class="badge">${stock.market === "KR" ? "국내" : "해외"}</span>
             <span class="badge ${h.accountType !== "general" ? "badge-brass" : ""}">${acc.label}</span>
+            ${h.sellDate ? `<span class="badge" style="background:#F3E3E3; color:#B23A3A;">매도 ${h.sellDate}</span>` : ""}
           </div>
           <div class="muted mt1" style="font-size:11px;">${h.quantity}주 · ${h.purchaseDate} 매입</div>
           <div class="mono ink mt1" style="font-size:11px;">누적 세전 ${won(totalGross)}</div>
@@ -323,11 +469,45 @@ function render() {
         </div>
         <select id="f-ticker" class="form-select mono">${stockOptions}</select>
         <input id="f-qty" class="form-input" type="number" placeholder="보유 수량" />
+        <div class="muted" style="font-size:10px; margin-top:8px;">매입일</div>
         <input id="f-date" class="form-input" type="date" />
+        <div class="muted" style="font-size:10px; margin-top:8px;">매도일 (선택, 계속 보유 중이면 비워두기)</div>
+        <input id="f-sell-date" class="form-input" type="date" />
         <div class="acc-btns">
           ${ACCOUNT_TYPES.map((a) => `<button class="acc-btn ${form.accountType === a.key ? "active" : ""}" onclick="setFormAccount('${a.key}')">${a.short}</button>`).join("")}
         </div>
         <button class="submit-btn" onclick="addHolding()">추가하기</button>
+      </div>`;
+
+  const csvResultsHtml = csvImport.results.length > 0 ? `
+    <div style="margin-top:10px; max-height:220px; overflow-y:auto; border:1px solid #E4DCC5; border-radius:8px;">
+      ${csvImport.results.map((r) => `
+        <div style="padding:8px 10px; border-bottom:1px solid #EDE9DC; font-size:11px;">
+          <div style="color:${r.ok ? "#1F2A44" : "#B23A3A"};">${r.ok ? "✅" : "❌"} ${r.rowNum}행 · ${r.raw}</div>
+          ${!r.ok ? `<div class="red" style="margin-top:2px;">${r.error}</div>` : ""}
+        </div>`).join("")}
+    </div>
+    <div class="muted" style="font-size:11px; margin-top:8px;">확인됨 ${csvImport.results.filter((r) => r.ok).length}건 · 오류 ${csvImport.results.filter((r) => !r.ok).length}건</div>
+    <button type="button" class="submit-btn" ${csvImport.results.filter((r) => r.ok).length === 0 ? "disabled" : ""} onclick="confirmCsvImport()">가져오기 (${csvImport.results.filter((r) => r.ok).length}건)</button>
+  ` : "";
+
+  const csvImportHtml = !csvImport.open
+    ? `<button class="add-btn" style="background:#4B5670;" onclick="toggleCsvImport()">⇪ CSV로 여러 종목 가져오기</button>`
+    : `
+      <div class="form-card">
+        <div class="row-between">
+          <span class="muted" style="font-size:12px; font-weight:500;">CSV로 여러 종목 가져오기</span>
+          <button class="del-btn" style="color:#8B93A8;" onclick="toggleCsvImport()">✕</button>
+        </div>
+        <div class="muted" style="font-size:11px; margin-top:6px; line-height:1.5;">
+          컬럼: 종목코드, 수량, 매입일(YYYY-MM-DD), 계좌유형(일반/ISA/연금), 매도일(선택)<br/>
+          매수 배치마다 한 행씩 적고, 매도한 배치는 매도일도 채워주세요.
+        </div>
+        <button type="button" class="submit-btn" style="background:#8B93A8;" onclick="downloadSampleCsv()">샘플 CSV 받기</button>
+        <input type="file" accept=".csv,text/csv" class="form-input" onchange="handleCsvFile(this)" />
+        ${csvImport.fileName ? `<div class="muted" style="font-size:11px; margin-top:4px;">파일: ${csvImport.fileName}</div>` : ""}
+        ${csvImport.headerError ? `<div class="red" style="font-size:11px; margin-top:6px;">${csvImport.headerError}</div>` : ""}
+        ${csvResultsHtml}
       </div>`;
 
   const confirmedHtml = confirmedEvents.length === 0
@@ -416,7 +596,7 @@ function render() {
     </div>
 
     <div class="content">
-      ${tab === "holdings" ? `${addFormHtml}<div class="mt3">${holdingsHtml}</div>` : ""}
+      ${tab === "holdings" ? `${addFormHtml}<div class="mt2">${csvImportHtml}</div><div class="mt3">${holdingsHtml}</div>` : ""}
       ${tab === "upcoming" ? `
         <div>
           <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
