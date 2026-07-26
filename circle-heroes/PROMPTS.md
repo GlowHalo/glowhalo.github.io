@@ -95,7 +95,7 @@ Single creature only, facing right, centered, small margin.
 Transparent background (alpha PNG). No text, no watermark. Square 1:1.
 ```
 
-### 5. 보스슬라임 (768×768)
+### 5. 보스슬라임 (768×768) — 몬스터(스테이지 보스), 플레이 가능 캐릭터 아님 → `assets/monsters/`
 ```
 A giant menacing purple crystal slime boss, jagged crystal spikes growing from
 its jelly body, angry glowing eyes, small green slimes absorbed inside its
@@ -210,7 +210,7 @@ Transparent background. No text, no watermark. Square 1:1.
 | 서큐버스 전투 | **커밋됨** — `assets/characters/succubus_dark_001.png` (뿔+박쥐날개+꼬리, 2.0등신) |
 | 데스나이트 전투 | **커밋됨** — `assets/characters/death_knight_001.png` (리니지풍 은갑옷+금장+해골+황금검, 2.4등신) |
 | 슬라임 | 재생성 대상 (메이플스토리 슬라임 참고, 너무 웃는 표정이라 반려됨) |
-| 보스슬라임 | **커밋됨** — `assets/characters/boss_slime_001.png` |
+| 보스슬라임 (몬스터, 캐릭터 아님) | **커밋됨** — `assets/monsters/boss_slime_001.png`로 이동(경로 정정) |
 | 전투 배경 | **커밋됨** — `assets/backgrounds/battle-grassland.png` (864×1536 생성 후 1080×1920 업스케일) |
 | 골드 아이콘 | **커밋됨** — `assets/icons/gold.png` (512 생성 후 128 축소) |
 | 다이아몬드 아이콘 | **커밋됨** — `assets/icons/gem.png` (512 생성 후 128 축소) |
