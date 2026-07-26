@@ -39,3 +39,10 @@ backgrounds/battle-grassland.png
 파일이 여기 들어오면, 게임 코드를 만드는 세션이 `git pull`로 받아서
 `src/data/heroes.ts`/Phaser 로더에 연결한다. 지금은 SD 원형(색상 placeholder)만
 쓰고 있어서, 이 폴더가 채워지는 대로 순차 교체할 예정.
+
+**주인님이 "반영해" 하시면**: 전체를 다시 훑지 않고 `git diff <마지막 반영 커밋>..master -- circle-heroes/assets/`
+로 그 사이 추가·교체·삭제된 파일만 정확히 뽑아서 반영한다.
+
+## 마지막 반영 커밋
+
+`(아직 없음 — 최초 반영 시 이 줄을 커밋 SHA로 갱신)`
