@@ -6,6 +6,8 @@ import {
   setTowerFloor, applyArenaResult,
 } from "../state/save";
 import { track } from "../systems/missions";
+import { todayFaction, raidKills, applyRaidKill, raidBossName } from "../systems/raid";
+import { toast } from "../ui/shell";
 import { on, emit } from "../state/bus";
 import {
   act,
@@ -47,7 +49,7 @@ interface UnitView {
   homeY: number;
 }
 
-type BattleMode = "stage" | "tower" | "arena";
+type BattleMode = "stage" | "tower" | "arena" | "raid";
 
 function emitModeChanged(mode: BattleMode) {
   emit("battle-mode-changed", mode);
@@ -116,7 +118,8 @@ export class BattleScene extends Phaser.Scene {
     this.gen++;
     if (m === "stage") this.startStage(save.stage);
     else if (m === "tower") this.startTower();
-    else this.startArena();
+    else if (m === "arena") this.startArena();
+    else this.startRaid();
   }
 
   /** 지연 콜백에 세대 가드를 씌워 모드 전환 후 유령 실행을 막는다 */
@@ -153,6 +156,25 @@ export class BattleScene extends Phaser.Scene {
   private startArena() {
     this.wave = 1;
     this.heroes = this.buildTeam();
+    this.rosterDirty = false;
+    this.spawnTeams();
+  }
+
+  /** 요일던전: 오늘 진영만 출전 가능. 편성에 해당 진영이 없으면 스테이지로 복귀 */
+  private startRaid() {
+    const faction = todayFaction();
+    this.wave = 1;
+    this.heroes = this.buildTeam().filter(
+      (u) => faction === null || u.faction === faction
+    );
+    if (this.heroes.length === 0) {
+      toast(`오늘은 ${faction} 진영만 출전할 수 있어요 — 편성에 ${faction} 영웅이 없습니다`);
+      this.mode = "stage";
+      this.gen++;
+      emitModeChanged("stage");
+      this.startStage(save.stage);
+      return;
+    }
     this.rosterDirty = false;
     this.spawnTeams();
   }
@@ -206,6 +228,9 @@ export class BattleScene extends Phaser.Scene {
       this.enemies = Array.from({ length: count }, (_, i) =>
         makeEnemy(`tower_${i}`, boss ? "탑의 수호자" : "탑 병사", f + 2, boss)
       );
+    } else if (this.mode === "raid") {
+      boss = true;
+      this.enemies = [makeEnemy("raid_boss", raidBossName(), 3 + raidKills() * 2, true)];
     } else {
       this.enemies = this.buildArenaOpponents();
     }
@@ -406,6 +431,14 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
 
+    if (this.mode === "raid") {
+      const gems = applyRaidKill();
+      this.showBanner(`${raidBossName()} 격파! 💎+${gems} — 더 강해져 돌아옵니다`, "#7de8a0");
+      this.refreshHud();
+      this.delayed(1600 / this.speedMult, () => this.startRaid());
+      return;
+    }
+
     // arena 승리
     const { rating, bonusGems } = applyArenaResult(true);
     track("arenaWin");
@@ -426,8 +459,11 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
 
-    if (this.mode === "tower") {
-      this.showBanner(`${save.towerFloor}층 도전 실패 — 부대를 키워 다시 오세요`, "#ff8f7a");
+    if (this.mode === "tower" || this.mode === "raid") {
+      const msg = this.mode === "tower"
+        ? `${save.towerFloor}층 도전 실패 — 부대를 키워 다시 오세요`
+        : `${raidBossName()}에게 패배 — 부대를 키워 다시 오세요`;
+      this.showBanner(msg, "#ff8f7a");
       this.delayed(1800 / this.speedMult, () => {
         this.mode = "stage";
         this.gen++;
@@ -448,6 +484,9 @@ export class BattleScene extends Phaser.Scene {
       this.stageText.setText(`STAGE ${this.stage}  ·  WAVE ${this.wave}/${WAVES_PER_STAGE}`);
     } else if (this.mode === "tower") {
       this.stageText.setText(`무한의 탑 · ${save.towerFloor}층`);
+    } else if (this.mode === "raid") {
+      const f = todayFaction();
+      this.stageText.setText(`요일던전 · ${raidBossName()} Lv.${raidKills() + 1}${f ? ` (${f}만 출전)` : " (전 진영)"}`);
     } else {
       this.stageText.setText(`아레나 · ${save.arenaRating}점`);
     }

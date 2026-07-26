@@ -30,6 +30,8 @@ export interface SaveState {
     progress: Record<string, number>;
     claimed: string[];
   };
+  /** 요일던전: 진영별 보스 누적 처치 수 (잡을수록 강해짐) */
+  raidKills: Record<string, number>;
 }
 
 const KEY = "circle-heroes-save-v1";
@@ -50,6 +52,7 @@ const DEFAULTS: SaveState = {
   arenaRating: 1000,
   arenaWinDate: "",
   missions: { date: "", progress: {}, claimed: [] },
+  raidKills: {},
 };
 
 function load(): SaveState {
