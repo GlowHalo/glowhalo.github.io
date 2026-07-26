@@ -32,6 +32,8 @@ export interface SaveState {
   };
   /** 요일던전: 진영별 보스 누적 처치 수 (잡을수록 강해짐) */
   raidKills: Record<string, number>;
+  /** 클라우드 백업 복구 코드 (없으면 아직 백업 안 함) */
+  backupCode: string;
 }
 
 const KEY = "circle-heroes-save-v1";
@@ -53,6 +55,7 @@ const DEFAULTS: SaveState = {
   arenaWinDate: "",
   missions: { date: "", progress: {}, claimed: [] },
   raidKills: {},
+  backupCode: "",
 };
 
 function load(): SaveState {
