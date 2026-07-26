@@ -290,6 +290,12 @@ function playSummonFx(pulls: ReturnType<typeof pull>, onClose: () => void) {
   };
   let finished = false;
 
+  const close = () => {
+    overlay.remove();
+    document.removeEventListener("keydown", onKeydown);
+    onClose();
+  };
+
   const finishReveal = () => {
     if (finished) return;
     finished = true;
@@ -298,14 +304,7 @@ function playSummonFx(pulls: ReturnType<typeof pull>, onClose: () => void) {
       c.classList.remove("tease");
       c.classList.add("flipped");
     });
-    hint.textContent = "";
-    const done = el("button", "btn primary sfx-done", "확인") as HTMLButtonElement;
-    done.onclick = (e) => {
-      e.stopPropagation();
-      overlay.remove();
-      onClose();
-    };
-    overlay.appendChild(done);
+    hint.textContent = "화면을 누르면 계속";
   };
 
   // 1단계: 오브 차징 (탭하면 바로 카드로)
@@ -321,10 +320,11 @@ function playSummonFx(pulls: ReturnType<typeof pull>, onClose: () => void) {
     overlay.insertBefore(grid, hint);
 
     const cards: HTMLElement[] = pulls.map((r, i) => {
-      const card = el("div", `sfx-card grade-${r.hero.grade}`);
+      const isHigh = HIGH_GRADES.has(r.hero.grade);
+      const card = el("div", `sfx-card grade-${r.hero.grade}` + (isHigh ? "" : " fast"));
       card.style.animationDelay = `${i * 0.05}s`;
       const inner = el("div", "inner");
-      inner.appendChild(el("div", "back", "✦"));
+      inner.appendChild(el("div", "back"));
       const front = el("div", "front");
       const face = el("div", "face");
       face.style.background = FACTION_COLORS[r.hero.faction] ?? "#888";
@@ -338,10 +338,11 @@ function playSummonFx(pulls: ReturnType<typeof pull>, onClose: () => void) {
       return card;
     });
 
-    // 순차 뒤집기 — 고등급은 금빛 예고 후 플래시
-    let t = 500;
+    // 순차 뒤집기 — 저가치 카드는 빠르게, 레어 이상만 금빛 예고 후 플래시
+    let t = 400;
     pulls.forEach((r, i) => {
       const isHigh = HIGH_GRADES.has(r.hero.grade);
+      const step = isHigh ? 330 : 110;
       if (isHigh) {
         later(() => cards[i].classList.add("tease"), t);
         t += 650;
@@ -363,23 +364,27 @@ function playSummonFx(pulls: ReturnType<typeof pull>, onClose: () => void) {
             later(() => spark.remove(), 1000);
           }
         }
-        if (i === pulls.length - 1) later(finishReveal, 450);
+        if (i === pulls.length - 1) later(finishReveal, 300);
       }, t);
-      t += 330;
+      t += step;
     });
   };
   later(showCards, 2200);
 
-  overlay.onclick = () => {
+  const onKeydown = () => {
     if (orb.parentElement) {
-      // 오브 단계 스킵 → 카드 즉시 표시 후 순차 진행
       timers.forEach(clearTimeout);
       timers.length = 0;
       showCards();
-    } else {
+    } else if (!finished) {
       finishReveal();
+    } else {
+      close();
     }
   };
+  document.addEventListener("keydown", onKeydown);
+
+  overlay.onclick = onKeydown;
 }
 
 /* ── 상점 탭 ── */

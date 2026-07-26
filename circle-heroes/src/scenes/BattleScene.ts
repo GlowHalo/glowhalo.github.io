@@ -14,6 +14,7 @@ import {
   applyAuras,
   attackIntervalMs,
   makeEnemy,
+  makeTowerEnemy,
   unitFromHero,
   type HitResult,
   type Unit,
@@ -228,7 +229,7 @@ export class BattleScene extends Phaser.Scene {
       boss = f % 5 === 0;
       const count = boss ? 1 : Math.min(2 + Math.floor(f / 3), 5);
       this.enemies = Array.from({ length: count }, (_, i) =>
-        makeEnemy(`tower_${i}`, boss ? "탑의 수호자" : "탑 병사", f + 2, boss)
+        makeTowerEnemy(`tower_${i}`, boss ? "탑의 수호자" : "탑 병사", f, boss)
       );
     } else if (this.mode === "raid") {
       boss = true;
