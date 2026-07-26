@@ -146,9 +146,10 @@ no stat bars, no frame, no border, no UI elements, no watermark.
 
 | 에셋 | 상태 |
 |---|---|
-| 화염마법사 전투 | **커밋됨** — `assets/characters/mage_flame_001.png` (기준 이미지, Leonardo Phoenix) |
-| 서큐버스 전투 | 1차 수신 (치비 스타일) — 재통일 예정 |
-| 데스나이트 전투 | 미수신 |
+| 화염마법사 전투 | **커밋됨** — `assets/characters/mage_flame_001.png` (2.4등신, 순수 텍스트 방식) |
+| 관우(삼국지) 전투 | **커밋됨** — `assets/characters/guan_yu_001.png` (1.9등신) |
+| 서큐버스 전투 | 1차 수신 (치비 스타일, 2.0~2.3등신) — 최종 확정 전 |
+| 데스나이트 전투 | 1차 수신 (리니지풍 은갑옷+금장+해골+황금검) — 비율(성인체형) 재조정 필요 |
 | 슬라임 | 1차 수신 — 품질 양호 |
 | 보스슬라임 | 미수신 |
 | 전투 배경 | 미수신 |
