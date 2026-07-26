@@ -19,12 +19,12 @@
 //       민감한 데이터를 담지 않는 것을 전제로 한다.)
 //   4. 아래 PLACEHOLDER 값을 실제 config로 교체
 export const firebaseConfig = {
-  apiKey: "PLACEHOLDER",
-  authDomain: "PLACEHOLDER",
-  projectId: "PLACEHOLDER",
-  storageBucket: "PLACEHOLDER",
-  messagingSenderId: "PLACEHOLDER",
-  appId: "PLACEHOLDER",
+  apiKey: "AIzaSyAflmIwwAdvIgZTZgQbWSME3PEN8SH52F0",
+  authDomain: "circleheroes-678a4.firebaseapp.com",
+  projectId: "circleheroes-678a4",
+  storageBucket: "circleheroes-678a4.firebasestorage.app",
+  messagingSenderId: "70973590210",
+  appId: "1:70973590210:web:875c03afbfb4c942fa095b",
 };
 
 export function isFirebaseConfigured(): boolean {
