@@ -7,7 +7,7 @@
 
 | Phase | 범위 | 상태 |
 |---|---|---|
-| **1. 진단지 구매대행** | 로그인 세션 재사용 → 진단지 구매 → 대상자(이름·이메일) 등록 → 재발송 대응 → 결과 PDF 다운로드 | 흐름 매핑 완료 |
+| **1. 진단지 구매대행** | 로그인 세션 재사용 → 진단지 구매 → 대상자(이름·이메일) 등록 → 재발송 대응 → 결과 PDF 다운로드 | 오케스트레이터 v1 (`src/cli.js`) — `status`/`download` 는 동작, `purchase`/`register-target` 은 셀렉터 확정 대기 |
 | **2. AI 디브리핑** | 결과 PDF → 구조화 → Claude 해석 생성 → 자격자(사용자) 검수 → 전달 | **파이프라인 작동(v1)** |
 | **3. AI 챗봇** | 대상자 결과 기반 Q&A 챗봇 링크 제공 | 아이디어 |
 
@@ -50,10 +50,20 @@
 npm install            # 최초 1회 (playwright 설치)
 npx playwright install chromium
 
-npm run login          # 최초 1회: 브라우저에서 직접 로그인 → 세션 저장
-npm run map <URL>      # 정찰: 특정 페이지의 폼/버튼 구조 덤프 (셀렉터 확정용)
-npm run run            # (구축 예정) 주문 처리 오케스트레이터
+npm run login             # 최초 1회: 브라우저에서 직접 로그인 → 세션 저장
+npm run map -- <URL>      # 정찰: 특정 페이지의 폼/버튼 구조 덤프 (셀렉터 확정용)
+
+# 주문 처리 오케스트레이터 (src/cli.js) — npm 스크립트에 인자를 넘길 땐 반드시 -- 를 붙일 것
+npm run run -- status                                            # 로그인 확인 + 진단내역 목록
+npm run run -- download <memberId> [--out DIR]                   # 결과 PDF 다운로드 (OS 저장창 없이 자동 저장)
+npm run run -- purchase <code> [--confirm]                       # ⚠ 실결제. 기본은 dry-run, --confirm 시 터미널 y/N 재확인 후 진행
+npm run run -- register-target <orderId> --name <이름> --email <이메일> [--confirm]  # 대상자 등록(검사 안내 메일 발송)
+
+# 또는 npm 스크립트를 거치지 않고 직접 실행 (-- 신경 안 써도 됨)
+node src/cli.js status
 ```
+
+> `purchase`/`register-target`/진단내역 목록은 아직 실제 사이트에서 셀렉터를 확인하지 않아 `src/selectors.js` 에 `null`로 남아 있다. 로그인 상태에서 `npm run map -- <해당 URL>` 로 정찰한 뒤 채워야 동작한다 (미확정 상태에서는 안전하게 에러로 막힘). `download` 는 이미 확인된 `a.download_file[data-member][data-file]` 패턴을 쓰므로 바로 동작한다.
 
 ## 폴더
 
