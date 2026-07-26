@@ -93,6 +93,12 @@ const ref = opt("--ref", null);
 const modelId = opt("--model-id", DEFAULT_MODEL_ID);
 const preprocessorId = Number(opt("--preprocessor-id", DEFAULT_PREPROCESSOR_ID));
 const strengthType = opt("--strength", "Mid");
+// Leonardo 전용 스타일 고정 파라미터 (asset-catalog.mjs는 Gemini와 공유라 여기 CLI로만 노출).
+// 목록: https://docs.leonardo.ai/docs/commonly-used-api-values (Phoenix 호환 styleUUID)
+const styleUUID = opt("--style-uuid", null);
+const negativePrompt = opt("--negative", null);
+const extra = opt("--extra", null); // 카탈로그를 건드리지 않고 프롬프트 뒤에 테스트용 문장 추가
+const rawPrompt = opt("--raw-prompt", null); // 카탈로그 전체를 무시하고 프롬프트를 통째로 교체 (그림체 실험용)
 
 const MIME = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp" };
 
@@ -140,13 +146,17 @@ async function pollGeneration(id) {
 }
 
 async function generateBatch(initImageId) {
+  let prompt = rawPrompt ?? buildPrompt(key, !!initImageId);
+  if (extra) prompt += "\n" + extra;
   const body = {
-    prompt: buildPrompt(key, !!initImageId).slice(0, 1490), // Leonardo 프롬프트 길이 제한 여유
+    prompt: prompt.slice(0, 1490), // Leonardo 프롬프트 길이 제한 여유
     modelId,
     width: entry.w,
     height: entry.h,
     num_images: count,
   };
+  if (styleUUID) body.styleUUID = styleUUID;
+  if (negativePrompt) body.negativePrompt = negativePrompt;
   if (initImageId) {
     body.controlnets = [{ initImageId, initImageType: "UPLOADED", preprocessorId, strengthType }];
   }
