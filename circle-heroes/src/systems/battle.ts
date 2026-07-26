@@ -219,6 +219,30 @@ export function makeEnemy(key: string, name: string, stage: number, boss: boolea
   };
 }
 
+/** 무한의 탑 전용: 층마다 같은 유닛(탑 병사/수호자)이 미세하게 강해지며 등장 — 스테이지보다 완만한 곡선 */
+export function makeTowerEnemy(key: string, name: string, floor: number, boss: boolean): Unit {
+  const hp = Math.round(300 * Math.pow(1.045, floor - 1) * (boss ? 1.8 : 1));
+  const atk = Math.round(30 * Math.pow(1.035, floor - 1) * (boss ? 1.3 : 1));
+  return {
+    ...baseUnit(),
+    key,
+    name,
+    isHero: false,
+    heroClass: "몬스터",
+    faction: "어둠",
+    maxHp: hp,
+    hp,
+    atk,
+    def: Math.round(24 * Math.pow(1.03, floor - 1)),
+    spd: boss ? 70 : 82,
+    critRate: 5,
+    critDmg: 150,
+    baseSpdVal: boss ? 70 : 82,
+    baseAtkVal: atk,
+    baseDmgTakenMult: 1,
+  };
+}
+
 /** 웨이브 시작 시 오라·시작 보호막 적용. 같은 유닛에 중복 적용되지 않도록 기준값에서 재계산 */
 export function applyAuras(team: Unit[], foes: Unit[]) {
   for (const u of team) {
