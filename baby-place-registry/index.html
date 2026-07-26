@@ -64,6 +64,10 @@
   .sortrow { padding:8px 20px 0; display:flex; gap:6px; overflow-x:auto; }
   .sortbtn { flex-shrink:0; padding:5px 11px; border-radius:999px; font-size:11px; font-weight:500; border:1px solid #EDE0D2; background:#fff; color:#8C8378; cursor:pointer; }
   .sortbtn.active { background:#3B2E2A; color:#FDF4EC; }
+  .groupbtn.active { background:#3AAFA9; }
+  .region-header { display:flex; align-items:baseline; gap:5px; font-size:12px; font-weight:600; color:#8C8378; padding:0 2px; margin-top:4px; }
+  .region-header:first-of-type { margin-top:0; }
+  .region-count { font-size:10px; font-weight:500; color:#C9BEAE; }
 
   .list { padding:16px 20px 40px; display:flex; flex-direction:column; gap:10px; }
   .empty { text-align:center; font-size:12px; color:#C9BEAE; padding:40px 0; }
@@ -248,6 +252,7 @@ let filterType = "전체";
 let favOnly = false;
 let listQuery = "";
 let sortMode = "recent"; // "recent" | "name" | "distance"
+let groupByRegion = false;
 let isCloud = false;
 
 let addMode = "search"; // "search" | "manual" — !mapReady일 땐 항상 manual로 폴백
@@ -357,6 +362,30 @@ function distanceKm(a,b){
   const dLng = (b.lng-a.lng) * Math.PI/180;
   const s = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
   return 2*R*Math.asin(Math.sqrt(s));
+}
+const NO_REGION = "지역 미확인";
+function extractRegion(address){
+  if(!address) return null;
+  const tokens = address.trim().split(/\s+/);
+  let region = null;
+  for(let i=0; i<Math.min(tokens.length,3); i++){
+    if(/[시군구]$/.test(tokens[i])) region = tokens[i]; // 뒤쪽(더 구체적인) 시/군/구 토큰 우선 — "경기 성남시 분당구"면 분당구
+  }
+  return region;
+}
+function groupByRegionMap(list){
+  const groups = new Map();
+  list.forEach(p => {
+    const region = extractRegion(p.address) || NO_REGION;
+    if(!groups.has(region)) groups.set(region, []);
+    groups.get(region).push(p);
+  });
+  const regions = [...groups.keys()].sort((a,b) => {
+    if(a===NO_REGION) return 1;
+    if(b===NO_REGION) return -1;
+    return a.localeCompare(b, "ko");
+  });
+  return regions.map(region => ({ region, items: groups.get(region) }));
 }
 function sortPlaces(list){
   if(sortMode==="name") return [...list].sort((a,b) => a.name.localeCompare(b.name, "ko"));
@@ -632,40 +661,50 @@ function renderSortRow(){
     { key:"name", label:"이름순" },
     { key:"distance", label:"집에서 가까운순" },
   ];
-  el.innerHTML = modes.map(m => `<button class="sortbtn ${sortMode===m.key?'active':''}" data-s="${m.key}">${m.label}</button>`).join("");
-  el.querySelectorAll(".sortbtn").forEach(b => b.addEventListener("click", () => { sortMode = b.dataset.s; renderSortRow(); renderList(); }));
+  el.innerHTML = modes.map(m => `<button class="sortbtn ${sortMode===m.key?'active':''}" data-s="${m.key}">${m.label}</button>`).join("")
+    + `<button class="sortbtn groupbtn ${groupByRegion?'active':''}" id="group-toggle">🗺️ 지역별로 묶기</button>`;
+  el.querySelectorAll(".sortbtn[data-s]").forEach(b => b.addEventListener("click", () => { sortMode = b.dataset.s; renderSortRow(); renderList(); }));
+  document.getElementById("group-toggle").addEventListener("click", () => { groupByRegion = !groupByRegion; renderSortRow(); renderList(); });
+}
+
+function placeCardHtml(p){
+  const located = hasLoc(p);
+  const sourceIcon = p.source==="search" ? "🔍" : p.source==="link" ? "🔗" : "";
+  const badges = (p.types||[]).map(tk => {
+    const ti = TYPES.find(t=>t.key===tk);
+    return `<span class="badge" style="background:${ti?.color}">${esc(tk)}</span>`;
+  }).join("");
+  return `
+    <div class="pcard" data-id="${p.id}" onclick="onCardClick('${p.id}')">
+      <div class="pcard-top">
+        <div>
+          <div class="pcard-meta">
+            ${badges}
+            ${sourceIcon ? `<span style="font-size:10px;color:#C9BEAE;">${sourceIcon}</span>` : ""}
+            ${!located ? `<span class="noloc">📍 위치 미지정 · 탭해서 설정</span>` : ""}
+          </div>
+          <div class="pname">${esc(p.name)}</div>
+          ${p.address ? `<div class="paddr">${esc(p.address)}</div>` : ""}
+          ${p.memo ? `<div class="pmemo">${esc(p.memo)}</div>` : ""}
+        </div>
+        <button class="starbtn" onclick="event.stopPropagation(); toggleFav('${p.id}')">${p.favorite ? "⭐" : "☆"}</button>
+      </div>
+      <div class="satrow">${SATISFACTIONS.map(s => `<button class="satbtn ${p.satisfaction===s.key?'active':''}" style="${p.satisfaction===s.key?`background:${s.color};color:#fff;border-color:${s.color};`:''}" onclick="event.stopPropagation(); setSatisfaction('${p.id}', '${s.key}')">${s.emoji} ${s.key}</button>`).join("")}</div>
+      <div class="delrow"><button class="delbtn ${pendingDeleteId===p.id?'confirm':''}" onclick="event.stopPropagation(); requestDelete('${p.id}')">${pendingDeleteId===p.id ? "정말 삭제할까요? 다시 탭" : "삭제"}</button></div>
+    </div>`;
 }
 
 function renderList(){
   const el = document.getElementById("list");
   const visible = sortPlaces(visiblePlaces());
   if(visible.length===0){ el.innerHTML = `<div class="empty">${listQuery.trim() ? "검색 결과가 없어요." : "등록된 장소가 없어요."}</div>`; return; }
-  el.innerHTML = visible.map(p => {
-    const located = hasLoc(p);
-    const sourceIcon = p.source==="search" ? "🔍" : p.source==="link" ? "🔗" : "";
-    const badges = (p.types||[]).map(tk => {
-      const ti = TYPES.find(t=>t.key===tk);
-      return `<span class="badge" style="background:${ti?.color}">${esc(tk)}</span>`;
-    }).join("");
-    return `
-      <div class="pcard" data-id="${p.id}" onclick="onCardClick('${p.id}')">
-        <div class="pcard-top">
-          <div>
-            <div class="pcard-meta">
-              ${badges}
-              ${sourceIcon ? `<span style="font-size:10px;color:#C9BEAE;">${sourceIcon}</span>` : ""}
-              ${!located ? `<span class="noloc">📍 위치 미지정 · 탭해서 설정</span>` : ""}
-            </div>
-            <div class="pname">${esc(p.name)}</div>
-            ${p.address ? `<div class="paddr">${esc(p.address)}</div>` : ""}
-            ${p.memo ? `<div class="pmemo">${esc(p.memo)}</div>` : ""}
-          </div>
-          <button class="starbtn" onclick="event.stopPropagation(); toggleFav('${p.id}')">${p.favorite ? "⭐" : "☆"}</button>
-        </div>
-        <div class="satrow">${SATISFACTIONS.map(s => `<button class="satbtn ${p.satisfaction===s.key?'active':''}" style="${p.satisfaction===s.key?`background:${s.color};color:#fff;border-color:${s.color};`:''}" onclick="event.stopPropagation(); setSatisfaction('${p.id}', '${s.key}')">${s.emoji} ${s.key}</button>`).join("")}</div>
-        <div class="delrow"><button class="delbtn ${pendingDeleteId===p.id?'confirm':''}" onclick="event.stopPropagation(); requestDelete('${p.id}')">${pendingDeleteId===p.id ? "정말 삭제할까요? 다시 탭" : "삭제"}</button></div>
-      </div>`;
-  }).join("");
+  if(groupByRegion){
+    el.innerHTML = groupByRegionMap(visible).map(({region, items}) => `
+      <div class="region-header">${esc(region)} <span class="region-count">${items.length}</span></div>
+      ${items.map(placeCardHtml).join("")}`).join("");
+  } else {
+    el.innerHTML = visible.map(placeCardHtml).join("");
+  }
 }
 
 /* ---- 지도 (카카오맵) ---- */
