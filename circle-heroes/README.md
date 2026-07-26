@@ -30,6 +30,7 @@ SD 히어로 수집형 자동전투 방치형 게임. 모바일 APK로 설치해
 
 | 날짜 | 내용 |
 |---|---|
+| 2026-07-26 | 클라우드 백업(Firebase Firestore) 구현: `src/state/backup.ts` — 복구 코드 기반(계정 없이 8자리 코드로 세이브 백업/복구), 설정 화면에 UI 연결. `src/config/firebase.ts`는 PLACEHOLDER 상태라 아직 비활성(실제 config 값 필요 — 주인님이 Firebase 프로젝트 생성해야 하는 부분). SDK는 동적 import로 불러와 미설정 시 번들에서 자동 트리쉐이킹됨(검증 완료) |
 | 2026-07-26 | Capacitor 안드로이드 프로젝트 초기화(`android/`, appId `io.github.tossneon.circleheroes`). 이 개발 컨테이너엔 Android SDK가 없어 로컬 빌드 불가 확인 → **GitHub Actions**로 디버그 APK 빌드하는 워크플로(`.github/workflows/circle-heroes-android.yml`) 구축, 배포 방식으로 채택. Leonardo API 키는 이 환경 네트워크 정책이 `cloud.leonardo.ai`를 막고 있어(403 host not allowlisted) 보류 — 환경 설정에서 도메인 허용 필요 |
 | 2026-07-25 | 디자인 자동화 파이프라인 구축: `scripts/gen-assets.mjs` — Gemini API(gemini-2.5-flash-image) 직접 호출로 에셋 8종 생성 자동화. 키는 환경변수/`.env`(gitignore)로만, 커밋 금지. 계정(OAuth) 연동은 이 환경에 커넥터가 없어 불가 판정 → API 키 방식 확정. 키 수령 대기 중 |
 | 2026-07-25 | Gemini 키 수령 → 테스트 결과 무료 등급 이미지 생성 할당량 0(429, 결제 필요) 확인. 브라우저 자동 로그인 우회는 기술적으로도 막히고 정책상으로도 부적절해 보류. 프로바이더 비교 후 **Leonardo.ai**(일일 무료 150토큰, 게임아트 특화) 채택 → `scripts/gen-assets-leonardo.mjs` 신규 구축, 공통 카탈로그는 `scripts/asset-catalog.mjs`로 분리. Leonardo API 키 수령 대기 중 |
@@ -44,6 +45,19 @@ SD 히어로 수집형 자동전투 방치형 게임. 모바일 APK로 설치해
 | 2026-07-25 | 5탭 게임 쉘 구현: 영웅·소환·전투·상점·임무 탭 + 하단 서브메뉴 바(P2) + 우상단 플로팅(이벤트/우편/설정, 접기). 가챠(보석·10연·천장60) 실동작, 로컬 세이브(localStorage), 오프라인 골드 적립, 일일 무료상자. 소환 영웅이 전투에 실시간 합류하는 것까지 브라우저 검증 |
 | 2026-07-25 | 자동전투 프로토타입 완성: 영웅 3종 vs 슬라임 웨이브, 무한 스테이지(3웨이브+보스), 스킬 패시브(불굴/질풍/부활), 크리티컬, 골드, 배속(x1/x2/x4). 헤드리스 브라우저로 웨이브 클리어까지 동작 검증. 빌드 산출물은 `play/`에 커밋 → 라이브 URL `/circle-heroes/play/` |
 
+## 클라우드 백업 (Firebase)
+
+폰 교체·재설치 시 이어하기용. 계정/로그인 없는 싱글플레이 게임이라 **복구 코드**(8자리, 랜덤)가 곧 접근 키다 — 설정 화면에서 "지금 백업하기" → 코드 발급, 새 기기에서 "이 코드로 복구"에 입력하면 그 세이브를 덮어써서 불러온다.
+
+- 코드: `src/state/backup.ts` (Firestore 읽기/쓰기), `src/config/firebase.ts` (클라이언트 설정)
+- **아직 미설정 상태** — `src/config/firebase.ts`의 `firebaseConfig` 값이 전부 `"PLACEHOLDER"`라 설정 화면에 "준비 중"으로만 표시되고, Firebase SDK 코드는 빌드에서 자동으로 트리쉐이킹되어 번들에 포함되지 않는다(placeholder 문자열 비교가 빌드 타임에 상수로 폴딩되기 때문 — 실제 config가 들어가면 자동으로 코드가 포함되도록 설계됨, 별도 조치 불필요).
+- 설정 방법(주인님이 하실 부분 — Firebase 프로젝트는 구글 계정으로만 만들 수 있어서):
+  1. https://console.firebase.google.com 에서 새 프로젝트 생성
+  2. 프로젝트 설정 → 일반 → "내 앱"에서 웹 앱 추가 → config 값 복사
+  3. Firestore Database 생성(프로덕션 모드) → 규칙에 `match /saves/{code} { allow read, write: if true; }` 추가 (자세한 안내는 `src/config/firebase.ts` 상단 주석 참고)
+  4. config 값을 `src/config/firebase.ts`의 PLACEHOLDER 자리에 붙여넣고 알려주시면(또는 값을 채팅으로 주시면) 커밋해서 활성화하겠습니다 — Firebase 웹 config는 비밀키가 아니라 커밋해도 안전합니다.
+- 보안 모델: 계정 시스템이 아니라 "코드를 아는 사람만 그 세이브에 접근 가능"한 구조. 골드/보석 같은 게임 재화만 다루므로 이 정도로 충분하다고 판단.
+
 ## APK 빌드
 
 Capacitor로 안드로이드 프로젝트(`android/`)를 초기화했다(appId `io.github.tossneon.circleheroes`). 이 개발 컨테이너에는 **Android SDK가 없어** 로컬에서 직접 `gradlew assembleDebug`를 돌릴 수 없다.
@@ -57,7 +71,7 @@ Capacitor로 안드로이드 프로젝트(`android/`)를 초기화했다(appId `
 
 ## 다음 할 일
 
-- [ ] Firebase 프로젝트 생성 + 백업 연동
+- [ ] Firebase 프로젝트 생성(주인님) + config 값 전달 → 커밋해서 백업 기능 활성화
 - [ ] SD 아이콘 에셋 샘플 확정 (현재는 임시 원형 SD 두상)
 - [x] Capacitor로 안드로이드 프로젝트 초기화
 - [x] GitHub Actions로 첫 APK 빌드 실제 확인 (feature 브랜치에서 성공, run #1)

@@ -2,6 +2,7 @@ import "./ui.css";
 import { on, emit } from "../state/bus";
 import { save, calcOfflineReward, addGold, resetSave } from "../state/save";
 import { renderHeroes, renderSummon, renderShop, renderMissions } from "./screens";
+import { isFirebaseConfigured, getBackupCode, backupNow, restoreFromCode } from "../state/backup";
 
 type TabKey = "heroes" | "summon" | "battle" | "shop" | "missions";
 
@@ -140,6 +141,57 @@ function renderSubbar() {
   });
 }
 
+function buildBackupSection(): HTMLElement {
+  const box = h("div", "backup-box");
+  box.appendChild(h("h4", "", "☁ 클라우드 백업"));
+
+  if (!isFirebaseConfigured()) {
+    box.appendChild(h("p", "muted", "폰 교체·재설치 시 이어하기용 백업입니다. 아직 준비 중입니다."));
+    return box;
+  }
+
+  const status = h("p", "muted", getBackupCode() ? `내 복구 코드: ${getBackupCode()}` : "아직 백업한 적 없습니다.");
+  box.appendChild(status);
+
+  const backupBtn = h("button", "btn", "지금 백업하기") as HTMLButtonElement;
+  backupBtn.onclick = async () => {
+    backupBtn.disabled = true;
+    backupBtn.textContent = "백업 중...";
+    const r = await backupNow();
+    backupBtn.disabled = false;
+    backupBtn.textContent = "지금 백업하기";
+    if (r.ok) {
+      status.textContent = `내 복구 코드: ${r.code}`;
+      toast(`백업 완료! 코드: ${r.code} (꼭 적어두세요)`);
+    } else {
+      toast(`백업 실패: ${r.error}`);
+    }
+  };
+  box.appendChild(backupBtn);
+
+  const restoreRow = h("div", "row");
+  const codeInput = h("input", "code-input") as HTMLInputElement;
+  codeInput.placeholder = "복구 코드 입력";
+  codeInput.maxLength = 8;
+  const restoreBtn = h("button", "btn", "이 코드로 복구") as HTMLButtonElement;
+  restoreBtn.onclick = async () => {
+    if (!confirm("현재 기기의 세이브를 이 코드의 백업으로 덮어씁니다. 계속할까요?")) return;
+    restoreBtn.disabled = true;
+    const r = await restoreFromCode(codeInput.value);
+    restoreBtn.disabled = false;
+    if (r.ok) {
+      toast("복구 완료! 다시 시작합니다.");
+      location.reload();
+    } else {
+      toast(`복구 실패: ${r.error}`);
+    }
+  };
+  restoreRow.append(codeInput, restoreBtn);
+  box.appendChild(restoreRow);
+
+  return box;
+}
+
 export function buildShell() {
   const ui = h("div");
   ui.id = "ui";
@@ -170,12 +222,14 @@ export function buildShell() {
   corner.appendChild(
     mkCorner("⚙", "설정", false, () => {
       const body = h("div");
-      const p = h("p", "", "버전 0.2.0 · 세이브는 이 기기에 저장됩니다. 클라우드 백업(Firebase)은 준비 중.");
+      const p = h("p", "", "버전 0.2.0 · 세이브는 이 기기에 저장됩니다.");
+      body.appendChild(p);
+      body.appendChild(buildBackupSection());
       const danger = h("button", "btn", "세이브 초기화") as HTMLButtonElement;
       danger.onclick = () => {
         if (confirm("정말 처음부터 시작할까요? 되돌릴 수 없습니다.")) resetSave();
       };
-      body.append(p, danger);
+      body.appendChild(danger);
       modal("설정", body);
     })
   );
