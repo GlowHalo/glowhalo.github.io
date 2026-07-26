@@ -87,19 +87,21 @@ No characters, no text, no watermark, no UI elements.`,
   },
   "gold-icon": {
     desc: "골드 아이콘 (128²)",
-    styled: true,
+    styled: false,
     w: 128,
     h: 128,
-    prompt: `Mobile game currency icon, glossy golden coin with a crown emblem, thick dark
+    prompt: `Mobile game currency icon, a single glossy golden coin object (NOT a character,
+NOT a person, no face) with a small crown symbol embossed on its face, thick dark
 outline, shiny highlight, anime game UI style.
 Single icon, centered. Pure white background. No text, no watermark. Square 1:1.`,
   },
   "gem-icon": {
     desc: "다이아몬드 아이콘 (128²)",
-    styled: true,
+    styled: false,
     w: 128,
     h: 128,
-    prompt: `Mobile game currency icon, glossy blue diamond gem with bright facets and
+    prompt: `Mobile game currency icon, a single glossy blue diamond gem object (NOT a
+character, NOT a person, no face) with bright facets and
 sparkle highlights, thick dark outline, anime game UI style, matching the gold coin.
 Single icon, centered. Pure white background. No text, no watermark. Square 1:1.`,
   },
