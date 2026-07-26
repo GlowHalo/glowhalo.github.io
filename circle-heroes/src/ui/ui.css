@@ -251,6 +251,17 @@
 }
 #toast.on { opacity: 1; }
 
+.synergy-line {
+  font-size: 11.5px;
+  color: var(--amber);
+  background: #f5ac3d1a;
+  border: 1px solid #f5ac3d40;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
 /* ── 영웅 목록 ── */
 .hero-grid {
   display: grid;
