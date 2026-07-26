@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 import { PLAYABLE_HEROES } from "../data/heroes";
+import { save, addGold, setStage } from "../state/save";
+import { on } from "../state/bus";
 import {
   act,
   attackIntervalMs,
@@ -21,6 +23,14 @@ const FACTION_COLORS: Record<string, number> = {
 };
 
 const WAVES_PER_STAGE = 3;
+// 최대 5인: 앞열 2 + 뒷열 3
+const HERO_SLOTS: Array<[number, number]> = [
+  [118, 300],
+  [118, 400],
+  [58, 265],
+  [58, 365],
+  [58, 465],
+];
 
 interface UnitView {
   unit: Unit;
@@ -38,12 +48,11 @@ export class BattleScene extends Phaser.Scene {
   private views = new Map<Unit, UnitView>();
   private stage = 1;
   private wave = 1;
-  private gold = 0;
   private speedMult = 1;
   private battleOver = false;
+  private rosterDirty = false;
 
   private stageText!: Phaser.GameObjects.Text;
-  private goldText!: Phaser.GameObjects.Text;
   private speedBtn!: Phaser.GameObjects.Text;
 
   constructor() {
@@ -52,76 +61,81 @@ export class BattleScene extends Phaser.Scene {
 
   create() {
     this.cameras.main.setBackgroundColor("#182236");
-
-    // 바닥 라인
-    this.add.rectangle(GAME_W / 2, 560, GAME_W, 2, 0x2c3a58);
+    this.add.rectangle(GAME_W / 2, 545, GAME_W, 2, 0x2c3a58);
 
     this.stageText = this.add
-      .text(GAME_W / 2, 40, "", { fontFamily: "sans-serif", fontSize: "22px", color: "#f2f8ff", fontStyle: "bold" })
+      .text(GAME_W / 2, 72, "", { fontFamily: "sans-serif", fontSize: "19px", color: "#f2f8ff", fontStyle: "bold" })
       .setOrigin(0.5);
-    this.goldText = this.add
-      .text(16, 76, "", { fontFamily: "sans-serif", fontSize: "15px", color: "#f0c95c" })
-      .setOrigin(0, 0.5);
 
     this.speedBtn = this.add
-      .text(GAME_W - 16, 76, "▶ x1", {
+      .text(14, 545, "▶ x1", {
         fontFamily: "sans-serif",
-        fontSize: "15px",
+        fontSize: "14px",
         color: "#bfdcf0",
         backgroundColor: "#243350",
         padding: { x: 10, y: 5 },
       })
-      .setOrigin(1, 0.5)
+      .setOrigin(0, 1)
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
         this.speedMult = this.speedMult === 1 ? 2 : this.speedMult === 2 ? 4 : 1;
         this.speedBtn.setText(`▶ x${this.speedMult}`);
       });
 
-    this.startStage(1);
+    on("roster-changed", () => {
+      this.rosterDirty = true;
+    });
+
+    this.startStage(save.stage);
+  }
+
+  private buildTeam(): Unit[] {
+    return PLAYABLE_HEROES.filter((h) => (save.owned[h.id] ?? 0) > 0)
+      .slice(0, 5)
+      .map(unitFromHero);
   }
 
   private startStage(stage: number) {
     this.stage = stage;
     this.wave = 1;
-    this.heroes = PLAYABLE_HEROES.map(unitFromHero);
+    this.heroes = this.buildTeam();
+    this.rosterDirty = false;
     this.spawnTeams();
   }
 
   private spawnTeams() {
-    // 기존 뷰 정리
     for (const view of this.views.values()) view.root.destroy();
     this.views.clear();
     this.battleOver = false;
 
+    // 소환으로 영웅이 늘었으면 다음 웨이브부터 합류
+    if (this.rosterDirty) {
+      const alive = new Map(this.heroes.map((u) => [u.key, u]));
+      this.heroes = this.buildTeam().map((fresh) => alive.get(fresh.key) ?? fresh);
+      this.rosterDirty = false;
+    }
+
     const boss = this.wave === WAVES_PER_STAGE;
     const count = boss ? 1 : Math.min(2 + Math.floor(this.stage / 3), 4);
     this.enemies = Array.from({ length: count }, (_, i) =>
-      makeEnemy(
-        `enemy_${i}`,
-        boss ? "슬라임 킹" : "슬라임",
-        this.stage,
-        boss
-      )
+      makeEnemy(`enemy_${i}`, boss ? "슬라임 킹" : "슬라임", this.stage, boss)
     );
 
-    const heroX = 105;
-    const enemyX = GAME_W - 105;
     this.heroes.forEach((u, i) => {
-      const y = 300 + i * 105;
-      this.views.set(u, this.makeUnitView(u, heroX, y, false));
+      const [x, y] = HERO_SLOTS[i] ?? HERO_SLOTS[HERO_SLOTS.length - 1];
+      this.views.set(u, this.makeUnitView(u, x, y, false));
     });
+    const enemyX = GAME_W - 100;
     this.enemies.forEach((u, i) => {
-      const y = boss ? 380 : 320 + i * 90;
-      this.views.set(u, this.makeUnitView(u, enemyX, y, boss));
+      const y = boss ? 370 : 290 + i * 82;
+      this.views.set(u, this.makeUnitView(u, enemyX + (i % 2) * 26, y, boss));
     });
 
     this.refreshHud();
-    this.showBanner(`STAGE ${this.stage} — WAVE ${this.wave}/${WAVES_PER_STAGE}`, "#bfdcf0");
   }
 
   private makeUnitView(unit: Unit, x: number, y: number, big: boolean): UnitView {
-    const r = unit.isHero ? 30 : big ? 46 : 24;
+    const r = unit.isHero ? 26 : big ? 42 : 21;
     const color = unit.isHero
       ? FACTION_COLORS[unit.faction] ?? 0x888888
       : big
@@ -129,28 +143,23 @@ export class BattleScene extends Phaser.Scene {
         : 0x67b26f;
 
     const root = this.add.container(x, y);
-
-    // SD 비율: 큰 머리(원) + 작은 발 그림자
-    const shadow = this.add.ellipse(0, r + 8, r * 1.6, 10, 0x000000, 0.25);
+    const shadow = this.add.ellipse(0, r + 7, r * 1.6, 9, 0x000000, 0.25);
     const body = this.add.circle(0, 0, r, color).setStrokeStyle(3, 0x10131c, 0.6);
     const eyeOffset = r * 0.35;
     const eyeL = this.add.circle(-eyeOffset, -r * 0.1, r * 0.11, 0x10131c);
     const eyeR = this.add.circle(eyeOffset, -r * 0.1, r * 0.11, 0x10131c);
-
     const label = this.add
-      .text(0, r + 20, unit.isHero ? unit.name.split(" ").pop() ?? unit.name : unit.name, {
+      .text(0, r + 17, unit.isHero ? unit.name.split(" ").pop() ?? unit.name : unit.name, {
         fontFamily: "sans-serif",
-        fontSize: "12px",
+        fontSize: "11px",
         color: unit.isHero ? "#bfdcf0" : "#d8a0a0",
       })
       .setOrigin(0.5);
-
     const barW = r * 2;
-    const hpBg = this.add.rectangle(0, -r - 12, barW, 6, 0x10131c).setOrigin(0.5);
+    const hpBg = this.add.rectangle(0, -r - 11, barW, 5, 0x10131c).setOrigin(0.5);
     const hpBar = this.add
-      .rectangle(-barW / 2, -r - 12, barW, 6, unit.isHero ? 0x5fbf77 : 0xe8683a)
+      .rectangle(-barW / 2, -r - 11, barW, 5, unit.isHero ? 0x5fbf77 : 0xe8683a)
       .setOrigin(0, 0.5);
-
     root.add([shadow, body, eyeL, eyeR, label, hpBg, hpBar]);
     return { unit, root, body, hpBg, hpBar, homeX: x, homeY: y };
   }
@@ -195,7 +204,7 @@ export class BattleScene extends Phaser.Scene {
   ) {
     const attackerView = this.views.get(attacker);
     if (attackerView) {
-      const dir = attacker.isHero ? 26 : -26;
+      const dir = attacker.isHero ? 24 : -24;
       this.tweens.add({
         targets: attackerView.root,
         x: attackerView.homeX + dir,
@@ -213,7 +222,7 @@ export class BattleScene extends Phaser.Scene {
         this.time.delayedCall(70 / this.speedMult, () => {
           const original = t.isHero
             ? FACTION_COLORS[t.faction] ?? 0x888888
-            : view.body.radius > 40
+            : view.body.radius > 38
               ? 0x9b59d0
               : 0x67b26f;
           view.body.setFillStyle(original);
@@ -222,16 +231,16 @@ export class BattleScene extends Phaser.Scene {
       const text = blocked ? "무적!" : isHeal ? `+${amount}` : crit ? `${amount}!` : `${amount}`;
       const color = blocked ? "#8ecdf0" : isHeal ? "#7de8a0" : crit ? "#ffd34d" : "#ff8f7a";
       const floater = this.add
-        .text(view.root.x, view.root.y - 48, text, {
+        .text(view.root.x, view.root.y - 42, text, {
           fontFamily: "sans-serif",
-          fontSize: crit ? "20px" : "15px",
+          fontSize: crit ? "18px" : "14px",
           color,
           fontStyle: crit ? "bold" : "normal",
         })
         .setOrigin(0.5);
       this.tweens.add({
         targets: floater,
-        y: floater.y - 34,
+        y: floater.y - 30,
         alpha: 0,
         duration: 650 / this.speedMult,
         onComplete: () => floater.destroy(),
@@ -251,7 +260,7 @@ export class BattleScene extends Phaser.Scene {
     const view = this.views.get(unit);
     if (!view) return;
     this.tweens.add({ targets: view.root, alpha: 1, scale: 1, duration: 250 });
-    const halo = this.add.circle(view.root.x, view.root.y, 40, 0xf0c95c, 0.35);
+    const halo = this.add.circle(view.root.x, view.root.y, 36, 0xf0c95c, 0.35);
     this.tweens.add({
       targets: halo,
       scale: 1.8,
@@ -271,7 +280,7 @@ export class BattleScene extends Phaser.Scene {
   private onWaveClear() {
     this.battleOver = true;
     const reward = 10 * this.stage * (this.wave === WAVES_PER_STAGE ? 3 : 1);
-    this.gold += reward;
+    addGold(reward);
     this.refreshHud();
 
     if (this.wave < WAVES_PER_STAGE) {
@@ -279,7 +288,9 @@ export class BattleScene extends Phaser.Scene {
       this.time.delayedCall(800 / this.speedMult, () => this.spawnTeams());
     } else {
       this.showBanner(`STAGE ${this.stage} 클리어! +${reward}G`, "#7de8a0");
-      this.time.delayedCall(1400 / this.speedMult, () => this.startStage(this.stage + 1));
+      const next = this.stage + 1;
+      setStage(next);
+      this.time.delayedCall(1400 / this.speedMult, () => this.startStage(next));
     }
   }
 
@@ -291,14 +302,13 @@ export class BattleScene extends Phaser.Scene {
 
   private refreshHud() {
     this.stageText.setText(`STAGE ${this.stage}  ·  WAVE ${this.wave}/${WAVES_PER_STAGE}`);
-    this.goldText.setText(`🪙 ${this.gold}G`);
   }
 
   private showBanner(message: string, color: string) {
     const banner = this.add
       .text(GAME_W / 2, 180, message, {
         fontFamily: "sans-serif",
-        fontSize: "18px",
+        fontSize: "17px",
         color,
         backgroundColor: "#10131cdd",
         padding: { x: 16, y: 8 },
