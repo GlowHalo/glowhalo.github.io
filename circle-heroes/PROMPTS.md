@@ -226,4 +226,4 @@ Transparent background. No text, no watermark. Square 1:1.
 | 카드: 화염마법사 | **커밋됨** — `assets/cards/mage_flame_001.png` (프리미엄 애니메 가챠 톤) |
 | 카드: 관우 | **커밋됨** — `assets/cards/guan_yu_001.png` |
 | 카드: 데스나이트 | **커밋됨** — `assets/cards/death_knight_001.png` (황금빛 대검, 묘지 배경, R3) |
-| 카드: 서큐버스 | 스타일 방향 탐색만 완료(5종), 최종본 미확정 |
+| 카드: 서큐버스 | **커밋됨** — `assets/cards/succubus_dark_001.png` (C2 톤 표준 확정본) |
