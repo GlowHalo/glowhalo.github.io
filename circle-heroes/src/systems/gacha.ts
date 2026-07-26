@@ -6,12 +6,12 @@ export const SINGLE_COST = 10;
 export const TEN_COST = 90;
 export const PITY_LIMIT = 50;
 
-// 등급별 가중치. 최고등급(현 마스터데이터 기준 SR)은 천장 대상.
-const GRADE_WEIGHT: Record<string, number> = { N: 0, R: 80, SR: 20 };
+// 등급별 가중치. 천장(50회)은 최고 등급(UR) 확정.
+const GRADE_WEIGHT: Record<string, number> = { N: 0, R: 60, SR: 30, SSR: 9, UR: 1 };
 
 function topGrade(): string {
   // 마스터데이터에 존재하는 소환 가능 등급 중 최고 등급
-  const order = ["SR", "R", "N"];
+  const order = ["UR", "SSR", "SR", "R", "N"];
   for (const g of order) if (PLAYABLE_HEROES.some((h) => h.grade === g)) return g;
   return "R";
 }
