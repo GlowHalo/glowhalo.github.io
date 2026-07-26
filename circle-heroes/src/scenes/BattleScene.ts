@@ -66,7 +66,7 @@ export class BattleScene extends Phaser.Scene {
   private views = new Map<Unit, UnitView>();
   private stage = 1;
   private wave = 1;
-  private speedMult = 1;
+  private speedMult = 2;
   private battleOver = false;
   private rosterDirty = false;
 
@@ -86,7 +86,7 @@ export class BattleScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.speedBtn = this.add
-      .text(14, 545, "▶ x1", {
+      .text(14, 545, "▶ x2", {
         fontFamily: "sans-serif",
         fontSize: "14px",
         color: "#bfdcf0",
@@ -96,7 +96,7 @@ export class BattleScene extends Phaser.Scene {
       .setOrigin(0, 1)
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
-        this.speedMult = this.speedMult === 1 ? 2 : this.speedMult === 2 ? 4 : 1;
+        this.speedMult = this.speedMult === 2 ? 3 : 2;
         this.speedBtn.setText(`▶ x${this.speedMult}`);
       });
 
@@ -365,21 +365,37 @@ export class BattleScene extends Phaser.Scene {
       miss: ["MISS", "#9aa8bf"],
     };
     const [text, color] = style[r.kind];
+    const isBigHit = r.kind === "damage" && r.crit;
+    const baseSize = r.kind === "damage" ? (r.crit ? 30 : 20) : 15;
     const floater = this.add
       .text(view.root.x, view.root.y - 42, text, {
         fontFamily: "sans-serif",
-        fontSize: r.crit ? "18px" : "14px",
+        fontSize: `${baseSize}px`,
         color,
-        fontStyle: r.crit ? "bold" : "normal",
+        fontStyle: "bold",
+        stroke: "#10131c",
+        strokeThickness: r.crit ? 5 : 3,
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setScale(1.5)
+      .setDepth(100);
+    // 팝 등장 → 살짝 튀어오르며 사라짐 (마이티아레나식 임팩트)
     this.tweens.add({
       targets: floater,
-      y: floater.y - 30,
+      scale: 1,
+      duration: 110 / this.speedMult,
+      ease: "Back.easeOut",
+    });
+    this.tweens.add({
+      targets: floater,
+      y: floater.y - (isBigHit ? 44 : 30),
       alpha: 0,
-      duration: 650 / this.speedMult,
+      delay: 110 / this.speedMult,
+      duration: 550 / this.speedMult,
+      ease: "Quad.easeIn",
       onComplete: () => floater.destroy(),
     });
+    if (isBigHit) this.cameras.main.shake(90 / this.speedMult, 0.006);
     if (!t.alive) {
       this.tweens.add({
         targets: view.root,
