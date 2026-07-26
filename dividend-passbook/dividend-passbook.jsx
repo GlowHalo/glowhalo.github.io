@@ -61,7 +61,49 @@ const STOCKS = [
   { ticker: "T", name: "AT&T", market: "US", currency: "USD",
     dividends: generateDividends({ startDate: "2024-01-10", freqMonths: 3, baseAmount: 0.2775, annualGrowth: 0.0, payLagDays: 14, confirmWindowDays: 40 }) },
 ];
-const getStock = (ticker) => STOCKS.find((s) => s.ticker === ticker);
+/* ----------------------------- 커스텀 종목 (데모 목록에 없는 실제 보유종목) ----------------------------- */
+// 데모 10종목은 배당을 공식으로 생성하지만, 커스텀 종목은 배당 데이터가 없어서
+// 사용자가 실제 입금받은 금액을 하나씩 기록해야만 배당 이력이 쌓인다.
+// customStocks는 React state가 아니라 vanilla(index.html)와 동일하게 모듈 전역
+// 배열로 두고, 컴포넌트 쪽 customStocksVersion을 bump해서 재계산을 트리거한다.
+const CUSTOM_STOCKS_KEY = "dividend-passbook:customStocks:v1";
+function loadCustomStocks() {
+  try {
+    const raw = localStorage.getItem(CUSTOM_STOCKS_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+let customStocks = loadCustomStocks() || [];
+function saveCustomStocks() {
+  try {
+    localStorage.setItem(CUSTOM_STOCKS_KEY, JSON.stringify(customStocks));
+  } catch {}
+}
+function getStock(tickerOrName) {
+  return STOCKS.find((s) => s.ticker === tickerOrName)
+    || customStocks.find((s) => s.ticker === tickerOrName || s.name === tickerOrName);
+}
+function isCustomStock(ticker) {
+  return !STOCKS.find((s) => s.ticker === ticker) && !!customStocks.find((s) => s.ticker === ticker);
+}
+function getOrCreateCustomStock(ticker, name, currency) {
+  let stock = getStock(ticker) || getStock(name);
+  if (stock) return stock;
+  stock = { ticker: ticker || name, name: name || ticker, market: currency === "KRW" ? "KR" : "US", currency: currency || "KRW", dividends: [] };
+  customStocks.push(stock);
+  saveCustomStocks();
+  return stock;
+}
+function addCustomDividendRecord(ticker, exDate, perShare) {
+  const stock = getStock(ticker);
+  if (!stock) return;
+  stock.dividends.push({ exDate, payDate: exDate, perShare, status: "paid" });
+  stock.dividends.sort((a, b) => a.exDate.localeCompare(b.exDate));
+  saveCustomStocks();
+}
 
 /* ----------------------------- 유틸 ----------------------------- */
 const won = (n) => `₩${Math.round(n).toLocaleString("ko-KR")}`;
@@ -123,6 +165,8 @@ const DEFAULT_HOLDINGS = [
 /* ----------------------------- CSV 일괄 가져오기 (매수 배치·매도 이력 지원) ----------------------------- */
 const CSV_HEADER_ALIASES = {
   ticker: ["ticker", "종목코드", "티커", "코드"],
+  name: ["name", "종목명", "상품명"],
+  currency: ["currency", "통화"],
   quantity: ["quantity", "수량", "주식수"],
   purchaseDate: ["purchasedate", "매입일", "매수일"],
   accountType: ["accounttype", "계좌유형", "계좌"],
@@ -181,14 +225,24 @@ function isValidDateStr(s) {
 function validateCsvRow(cols, idx, rowNum) {
   const get = (key) => (idx[key] >= 0 ? (cols[idx[key]] || "").trim() : "");
   const tickerRaw = get("ticker");
+  const nameRaw = get("name");
+  const currencyRaw = get("currency").toUpperCase();
   const qtyRaw = get("quantity");
   const dateRaw = get("purchaseDate");
   const accRaw = get("accountType");
   const sellRaw = get("sellDate");
 
-  if (!tickerRaw) return { ok: false, error: "종목코드가 비어있어요" };
-  const stock = getStock(tickerRaw.toUpperCase()) || getStock(tickerRaw);
-  if (!stock) return { ok: false, error: `"${tickerRaw}"는 지원하지 않는 종목이에요 (데모 종목만 가능)` };
+  if (!tickerRaw && !nameRaw) return { ok: false, error: "종목코드와 종목명이 둘 다 비어있어요 (최소 하나는 필요)" };
+  let resolvedTicker = tickerRaw && (getStock(tickerRaw.toUpperCase()) || getStock(tickerRaw)) ? (getStock(tickerRaw.toUpperCase()) || getStock(tickerRaw)).ticker : null;
+  if (!resolvedTicker && nameRaw && getStock(nameRaw)) resolvedTicker = getStock(nameRaw).ticker;
+  // 데모 10종목·기존 커스텀 종목에도 없으면, 종목명이 있는 한 새 커스텀 종목으로 등록 예정
+  // (실제 생성은 확정(가져오기) 시점에만 — 미리보기 단계에서 취소해도 흔적이 안 남도록)
+  let pendingCustomStock = null;
+  if (!resolvedTicker) {
+    if (!nameRaw) return { ok: false, error: `"${tickerRaw}"는 지원하지 않는 종목이에요 (종목명을 같이 적어주면 커스텀 종목으로 등록돼요)` };
+    resolvedTicker = tickerRaw || nameRaw;
+    pendingCustomStock = { ticker: resolvedTicker, name: nameRaw, currency: currencyRaw === "USD" ? "USD" : "KRW" };
+  }
 
   const qty = Number(qtyRaw);
   if (!qtyRaw || !Number.isFinite(qty) || qty <= 0) return { ok: false, error: `수량이 올바르지 않아요 (${qtyRaw})` };
@@ -207,16 +261,18 @@ function validateCsvRow(cols, idx, rowNum) {
 
   return {
     ok: true,
-    holding: { id: Date.now() * 1000 + rowNum, ticker: stock.ticker, quantity: qty, purchaseDate: dateRaw, sellDate, accountType },
+    pendingCustomStock,
+    holding: { id: Date.now() * 1000 + rowNum, ticker: resolvedTicker, quantity: qty, purchaseDate: dateRaw, sellDate, accountType },
   };
 }
 
 function downloadSampleCsv() {
-  const sample = "종목코드,수량,매입일,계좌유형,매도일\n"
-    + "005930,10,2024-01-10,일반,\n"
-    + "005930,5,2024-06-01,일반,\n"
-    + "O,5,2023-11-01,ISA,\n"
-    + "033780,10,2024-02-01,연금,2026-03-02\n";
+  const sample = "종목코드,종목명,통화,수량,매입일,계좌유형,매도일\n"
+    + "005930,,,10,2024-01-10,일반,\n"
+    + "005930,,,5,2024-06-01,일반,\n"
+    + "O,,,5,2023-11-01,ISA,\n"
+    + "033780,,,10,2024-02-01,연금,2026-03-02\n"
+    + ",네오스 나스닥100 고배당 ETF,USD,10,2026-04-28,일반,\n";
   const blob = new Blob(["﻿" + sample], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -253,14 +309,33 @@ export default function DividendPassbook() {
   };
   const removeHolding = (id) => setHoldings((h) => h.filter((x) => x.id !== id));
 
+  // customStocks는 모듈 전역 배열이라 React state 변화 감지 대상이 아님 —
+  // 이 카운터를 bump해서 useMemo/렌더가 다시 돌게 만든다.
+  const [customStocksVersion, setCustomStocksVersion] = useState(0);
+  const [addDividendForHoldingId, setAddDividendForHoldingId] = useState(null);
+  const [divDraft, setDivDraft] = useState({ date: "", amount: "" });
+
+  const toggleAddDividendForm = (holdingId) => {
+    setAddDividendForHoldingId((cur) => (cur === holdingId ? null : holdingId));
+    setDivDraft({ date: "", amount: "" });
+  };
+  const submitCustomDividend = (holdingId) => {
+    const h = holdings.find((x) => x.id === holdingId);
+    const amt = Number(divDraft.amount);
+    if (!h || !divDraft.date || !amt || amt <= 0) return;
+    addCustomDividendRecord(h.ticker, divDraft.date, amt);
+    setAddDividendForHoldingId(null);
+    setCustomStocksVersion((v) => v + 1);
+  };
+
   const handleCsvFile = (file) => {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
       const { headers, rows } = parseCSV(String(reader.result || ""));
       const idx = resolveHeaderIndex(headers);
-      if (idx.ticker < 0 || idx.quantity < 0 || idx.purchaseDate < 0) {
-        setCsvImport({ open: true, fileName: file.name, headerError: "필수 컬럼(종목코드/수량/매입일)을 찾을 수 없어요. 헤더명을 확인해주세요.", results: [] });
+      if ((idx.ticker < 0 && idx.name < 0) || idx.quantity < 0 || idx.purchaseDate < 0) {
+        setCsvImport({ open: true, fileName: file.name, headerError: "필수 컬럼(종목코드 또는 종목명 / 수량 / 매입일)을 찾을 수 없어요. 헤더명을 확인해주세요.", results: [] });
         return;
       }
       const results = rows.map((cols, i) => {
@@ -273,9 +348,13 @@ export default function DividendPassbook() {
   };
 
   const confirmCsvImport = () => {
-    const valid = csvImport.results.filter((r) => r.ok).map((r) => r.holding);
-    if (valid.length === 0) return;
-    setHoldings((h) => h.concat(valid));
+    const okResults = csvImport.results.filter((r) => r.ok);
+    if (okResults.length === 0) return;
+    okResults.forEach((r) => {
+      if (r.pendingCustomStock) getOrCreateCustomStock(r.pendingCustomStock.ticker, r.pendingCustomStock.name, r.pendingCustomStock.currency);
+    });
+    setHoldings((h) => h.concat(okResults.map((r) => r.holding)));
+    setCustomStocksVersion((v) => v + 1);
     setCsvImport({ open: false, fileName: "", headerError: null, results: [] });
   };
 
@@ -307,7 +386,7 @@ export default function DividendPassbook() {
         });
     });
     return list;
-  }, [holdings]);
+  }, [holdings, customStocksVersion]);
 
   const paidEvents = allEvents.filter((e) => e.status === "paid").sort((a, b) => a.exDate.localeCompare(b.exDate));
   const confirmedEvents = allEvents.filter((e) => e.status === "confirmed").sort((a, b) => a.exDate.localeCompare(b.exDate));
@@ -592,8 +671,8 @@ export default function DividendPassbook() {
                     </button>
                   </div>
                   <div className="text-[11px] leading-relaxed" style={{ color: "#8B93A8" }}>
-                    컬럼: 종목코드, 수량, 매입일(YYYY-MM-DD), 계좌유형(일반/ISA/연금), 매도일(선택)
-                    <br />매수 배치마다 한 행씩 적고, 매도한 배치는 매도일도 채워주세요.
+                    컬럼: 종목코드, 종목명, 통화(KRW/USD), 수량, 매입일(YYYY-MM-DD), 계좌유형(일반/ISA/연금), 매도일(선택)
+                    <br />종목코드가 없어도 종목명만 있으면 커스텀 종목으로 등록돼요 (배당은 직접 기록 필요). 매수 배치마다 한 행씩 적고, 매도한 배치는 매도일도 채워주세요.
                   </div>
                   <button
                     onClick={downloadSampleCsv}
@@ -648,41 +727,87 @@ export default function DividendPassbook() {
                 const events = paidEvents.filter((e) => e.holdingId === h.id);
                 const totalGross = events.reduce((s, e) => s + e.gross, 0);
                 const totalNet = events.reduce((s, e) => s + e.net, 0);
+                const custom = isCustomStock(h.ticker);
                 return (
-                  <div key={h.id} className="rounded-xl p-3.5 flex items-center justify-between" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
-                    <div>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-sm font-medium" style={{ color: "#1F2A44" }}>{stock.name}</span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded mono" style={{ background: "#EDE9DC", color: "#4B5670" }}>
-                          {stock.market === "KR" ? "국내" : "해외"}
-                        </span>
-                        <span
-                          className="text-[10px] px-1.5 py-0.5 rounded mono"
-                          style={{ background: h.accountType === "general" ? "#EDE9DC" : "#F0E9D8", color: h.accountType === "general" ? "#4B5670" : "#9C7A3C" }}
-                        >
-                          {acc.label}
-                        </span>
-                        {h.sellDate && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded mono" style={{ background: "#F3E3E3", color: "#B23A3A" }}>
-                            매도 {h.sellDate}
+                  <div key={h.id} className="rounded-xl p-3.5" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-sm font-medium" style={{ color: "#1F2A44" }}>{stock.name}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded mono" style={{ background: "#EDE9DC", color: "#4B5670" }}>
+                            {stock.market === "KR" ? "국내" : "해외"}
                           </span>
+                          <span
+                            className="text-[10px] px-1.5 py-0.5 rounded mono"
+                            style={{ background: h.accountType === "general" ? "#EDE9DC" : "#F0E9D8", color: h.accountType === "general" ? "#4B5670" : "#9C7A3C" }}
+                          >
+                            {acc.label}
+                          </span>
+                          {custom && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded mono" style={{ background: "#E4E9F0", color: "#4B5670" }}>커스텀</span>
+                          )}
+                          {h.sellDate && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded mono" style={{ background: "#F3E3E3", color: "#B23A3A" }}>
+                              매도 {h.sellDate}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] mt-0.5" style={{ color: "#8B93A8" }}>
+                          {h.quantity}주 · {h.purchaseDate} 매입
+                        </div>
+                        <div className="text-[11px] mono mt-1" style={{ color: "#1F2A44" }}>
+                          누적 세전 {won(totalGross)}
+                        </div>
+                        {h.accountType === "general" ? (
+                          <div className="text-[11px] mono" style={{ color: "#9C7A3C" }}>세후 확정 {won(totalNet)}</div>
+                        ) : (
+                          <div className="text-[10px]" style={{ color: "#8B93A8" }}>{TAX_NOTE[h.accountType]}</div>
+                        )}
+                        {custom && stock.dividends.length === 0 && (
+                          <div className="text-[10px] mt-0.5" style={{ color: "#8B93A8" }}>아직 기록된 배당이 없어요. 입금 알림 받으면 직접 추가해주세요.</div>
                         )}
                       </div>
-                      <div className="text-[11px] mt-0.5" style={{ color: "#8B93A8" }}>
-                        {h.quantity}주 · {h.purchaseDate} 매입
-                      </div>
-                      <div className="text-[11px] mono mt-1" style={{ color: "#1F2A44" }}>
-                        누적 세전 {won(totalGross)}
-                      </div>
-                      {h.accountType === "general" ? (
-                        <div className="text-[11px] mono" style={{ color: "#9C7A3C" }}>세후 확정 {won(totalNet)}</div>
-                      ) : (
-                        <div className="text-[10px]" style={{ color: "#8B93A8" }}>{TAX_NOTE[h.accountType]}</div>
-                      )}
+                      <button onClick={() => removeHolding(h.id)}>
+                        <Trash2 size={15} color="#B23A3A" />
+                      </button>
                     </div>
-                    <button onClick={() => removeHolding(h.id)}>
-                      <Trash2 size={15} color="#B23A3A" />
-                    </button>
+                    {custom && (
+                      <button
+                        onClick={() => toggleAddDividendForm(h.id)}
+                        className="w-full mt-2 py-1.5 rounded-lg text-[11px] font-medium"
+                        style={{ background: "#4B5670", color: "#F5F1E6" }}
+                      >
+                        {addDividendForHoldingId === h.id ? "닫기" : "+ 배당 기록 추가"}
+                      </button>
+                    )}
+                    {custom && addDividendForHoldingId === h.id && (
+                      <div className="mt-2 pt-2" style={{ borderTop: "1px dashed #E4DCC5" }}>
+                        <div className="text-[10px]" style={{ color: "#8B93A8" }}>배당(분배금) 지급일</div>
+                        <input
+                          type="date"
+                          value={divDraft.date}
+                          onChange={(e) => setDivDraft({ ...divDraft, date: e.target.value })}
+                          className="w-full text-sm rounded-lg px-3 py-2 mt-1"
+                          style={{ border: "1px solid #E4DCC5", background: "#F5F1E6", color: "#1F2A44" }}
+                        />
+                        <div className="text-[10px] mt-1.5" style={{ color: "#8B93A8" }}>주당 지급액 ({stock.currency})</div>
+                        <input
+                          type="number"
+                          step="0.0001"
+                          value={divDraft.amount}
+                          onChange={(e) => setDivDraft({ ...divDraft, amount: e.target.value })}
+                          className="w-full text-sm rounded-lg px-3 py-2 mt-1"
+                          style={{ border: "1px solid #E4DCC5", background: "#F5F1E6", color: "#1F2A44" }}
+                        />
+                        <button
+                          onClick={() => submitCustomDividend(h.id)}
+                          className="w-full py-2 rounded-lg text-sm font-medium mt-2"
+                          style={{ background: "#9C7A3C", color: "#FFFDF8" }}
+                        >
+                          기록 추가
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
