@@ -580,6 +580,25 @@ function yearMonthlyBreakdown(year, allEvents) {
   return months;
 }
 
+// 같은 종목의 매수 배치(구매기록)별로 흩어진 이벤트를 종목+배당락일 기준 한 줄로 합친다
+// (배당락일 기준 보유수량만 반영되므로 그 시점에 실제로 들고 있던 주수의 합이 된다)
+function mergeEventsByTicker(events) {
+  const map = {};
+  events.forEach((e) => {
+    const key = `${e.ticker}__${e.exDate}`;
+    if (!map[key]) {
+      map[key] = { ticker: e.ticker, name: e.name, currency: e.currency, perShare: e.perShare,
+        exDate: e.exDate, payDate: e.payDate, status: e.status, qty: 0, gross: 0, net: 0, allCertain: true, accountTypes: new Set(), taxNote: e.taxNote };
+    }
+    const m = map[key];
+    m.qty += e.qty;
+    m.gross += e.gross;
+    if (e.certain) m.net += e.net; else m.allCertain = false;
+    m.accountTypes.add(e.accountType);
+  });
+  return Object.values(map).map((m) => ({ ...m, accountTypes: Array.from(m.accountTypes) }));
+}
+
 /* ----------------------------- 수익 탭: 기간별 배당 합계 ----------------------------- */
 function periodDividendTotal(period, paidEvents) {
   if (period === "total") return paidEvents.reduce((s, e) => s + e.gross, 0);
@@ -855,30 +874,32 @@ function render() {
         ${csvResultsHtml}
       </div>`;
 
-  const confirmedHtml = confirmedEvents.length === 0
+  const confirmedGroups = mergeEventsByTicker(confirmedEvents);
+  const confirmedHtml = confirmedGroups.length === 0
     ? `<p class="muted" style="font-size:12px;">확정된 예정 배당이 없어요.</p>`
-    : confirmedEvents.map((e) => `
+    : confirmedGroups.map((g) => `
       <div class="upcoming-card upcoming-confirmed">
         <div class="row-between">
           <div>
-            <div class="ink" style="font-size:14px;">${e.name} <span class="mono muted" style="font-size:10px;">${getAccountType(e.accountType).short}</span></div>
-            <div class="muted" style="font-size:11px;">배당락 ${e.exDate} · 지급 ${e.payDate}</div>
+            <div class="ink" style="font-size:14px;">${g.name} · ${g.qty.toLocaleString("ko-KR")}주 ${g.accountTypes.map((a) => `<span class="mono muted" style="font-size:10px;">${getAccountType(a).short}</span>`).join(" ")}</div>
+            <div class="muted" style="font-size:11px;">배당락 ${g.exDate} · 지급 ${g.payDate}</div>
           </div>
-          <span class="mono ink" style="font-size:14px; font-weight:500;">${won(e.gross)}</span>
+          <span class="mono ink" style="font-size:14px; font-weight:500;">${won(g.gross)}</span>
         </div>
         <div style="text-align:right; font-size:10px; margin-top:2px;">
-          ${e.certain ? `<span class="mono brass">세후 확정 ${won(e.net)}</span>` : `<span class="muted">${e.taxNote}</span>`}
+          ${g.allCertain ? `<span class="mono brass">세후 확정 ${won(g.net)}</span>` : `<span class="muted">${g.taxNote}</span>`}
         </div>
       </div>`).join("");
 
-  const estimatedHtml = estimatedEvents.slice(0, 6).map((e) => `
+  const estimatedGroups = mergeEventsByTicker(estimatedEvents).slice(0, 6);
+  const estimatedHtml = estimatedGroups.map((g) => `
     <div class="upcoming-card upcoming-estimated">
       <div class="row-between">
         <div>
-          <div class="muted" style="font-size:14px;">${e.name} <span class="mono" style="font-size:10px;">${getAccountType(e.accountType).short}</span></div>
-          <div class="muted" style="font-size:11px;">배당락 예상 ${e.exDate}</div>
+          <div class="muted" style="font-size:14px;">${g.name} · ${g.qty.toLocaleString("ko-KR")}주 ${g.accountTypes.map((a) => `<span class="mono" style="font-size:10px;">${getAccountType(a).short}</span>`).join(" ")}</div>
+          <div class="muted" style="font-size:11px;">배당락 예상 ${g.exDate}</div>
         </div>
-        <span class="mono muted" style="font-size:14px;">약 ${won(e.gross)} (세전)</span>
+        <span class="mono muted" style="font-size:14px;">약 ${won(g.gross)} (세전)</span>
       </div>
     </div>`).join("");
 
@@ -965,23 +986,24 @@ function render() {
   const yearHeadlineAmount = dividendShowNet
     ? yearMonths.flatMap((m) => m.events).reduce((s, e) => s + (e.certain ? e.net : e.gross), 0)
     : yearTotal;
-  const monthListHtml = selectedMonthData.events.length === 0
+  const monthGroups = mergeEventsByTicker(selectedMonthData.events);
+  const monthListHtml = monthGroups.length === 0
     ? `<p class="muted mt2" style="font-size:12px;">이 달은 배당 내역이 없어요.</p>`
-    : selectedMonthData.events.slice().sort((a, b) => a.exDate.localeCompare(b.exDate)).map((e) => {
-        const nativeAmount = e.perShare * e.qty;
+    : monthGroups.slice().sort((a, b) => a.exDate.localeCompare(b.exDate)).map((g) => {
+        const nativeAmount = g.perShare * g.qty;
         return `
         <div class="row-between" style="padding:10px 0; border-bottom:1px solid #EDE9DC;">
           <div style="display:flex; align-items:center; gap:8px;">
-            <div style="width:28px; height:28px; border-radius:50%; background:#EDE9DC; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#4B5670; flex-shrink:0;">${e.name.slice(0, 1)}</div>
+            <div style="width:28px; height:28px; border-radius:50%; background:#EDE9DC; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#4B5670; flex-shrink:0;">${g.name.slice(0, 1)}</div>
             <div>
-              <div class="ink" style="font-size:13px; font-weight:500;">${e.name}</div>
-              <div class="muted" style="font-size:10px;">${e.qty}주 · 1주당 ${e.currency === "USD" ? "$" : "₩"}${e.perShare} <span class="badge" style="margin-left:2px;">${getAccountType(e.accountType).short}</span></div>
+              <div class="ink" style="font-size:13px; font-weight:500;">${g.name}</div>
+              <div class="muted" style="font-size:10px;">${g.qty.toLocaleString("ko-KR")}주 · 1주당 ${g.currency === "USD" ? "$" : "₩"}${g.perShare} ${g.accountTypes.map((a) => `<span class="badge" style="margin-left:2px;">${getAccountType(a).short}</span>`).join("")}</div>
             </div>
           </div>
           <div style="text-align:right;">
-            <div class="mono ink" style="font-size:13px; font-weight:600;">${won(dividendShowNet && e.certain ? e.net : e.gross)}</div>
-            ${dividendShowForeign && e.currency !== "KRW" ? `<div class="mono muted" style="font-size:10px;">$${nativeAmount.toFixed(2)}</div>` : ""}
-            <div class="muted" style="font-size:9px;">${e.exDate.slice(8)}일 · ${e.status === "estimated" ? "추정" : e.status === "confirmed" ? "확정예정" : "지급완료"}</div>
+            <div class="mono ink" style="font-size:13px; font-weight:600;">${won(dividendShowNet && g.allCertain ? g.net : g.gross)}</div>
+            ${dividendShowForeign && g.currency !== "KRW" ? `<div class="mono muted" style="font-size:10px;">$${nativeAmount.toFixed(2)}</div>` : ""}
+            <div class="muted" style="font-size:9px;">${g.exDate.slice(8)}일 · ${g.status === "estimated" ? "추정" : g.status === "confirmed" ? "확정예정" : "지급완료"}</div>
           </div>
         </div>`;
       }).join("");
@@ -1085,9 +1107,9 @@ function render() {
     </div>
 
     <div class="tabs mt6">
+      <button class="tab-btn ${tab === "dividend" ? "active" : ""}" onclick="setTab('dividend')">배당</button>
       <button class="tab-btn ${tab === "profit" ? "active" : ""}" onclick="setTab('profit')">수익</button>
       <button class="tab-btn ${tab === "tax" ? "active" : ""}" onclick="setTab('tax')">세금</button>
-      <button class="tab-btn ${tab === "dividend" ? "active" : ""}" onclick="setTab('dividend')">배당</button>
       <button class="tab-btn ${tab === "trend" ? "active" : ""}" onclick="setTab('trend')">추이</button>
       <button class="tab-btn ${tab === "allocation" ? "active" : ""}" onclick="setTab('allocation')">비중</button>
       <button class="tab-btn ${tab === "manage" ? "active" : ""}" onclick="setTab('manage')">관리</button>
