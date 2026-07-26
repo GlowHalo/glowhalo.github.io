@@ -33,17 +33,19 @@ export interface HitResult {
 
 const BASE_ATTACK_INTERVAL_MS = 1800;
 
-export function unitFromHero(hero: Hero): Unit {
+/** 레벨당 HP/공격/방어 +10% (1레벨 기준) */
+export function unitFromHero(hero: Hero, level = 1): Unit {
+  const mult = 1 + 0.1 * (level - 1);
   return {
     key: hero.id,
     name: hero.nameKr,
     isHero: true,
     heroClass: hero.heroClass,
     faction: hero.faction,
-    maxHp: hero.baseHp,
-    hp: hero.baseHp,
-    atk: hero.baseAtk,
-    def: hero.baseDef,
+    maxHp: Math.round(hero.baseHp * mult),
+    hp: Math.round(hero.baseHp * mult),
+    atk: Math.round(hero.baseAtk * mult),
+    def: Math.round(hero.baseDef * mult),
     spd: hero.heroClass === "딜러" ? hero.baseSpd * 1.1 : hero.baseSpd, // 질풍의 가호
     critRate: hero.critRate,
     critDmg: hero.critDmg,

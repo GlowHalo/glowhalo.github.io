@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { PLAYABLE_HEROES } from "../data/heroes";
-import { save, addGold, setStage } from "../state/save";
+import { save, addGold, setStage, getLevel } from "../state/save";
 import { on } from "../state/bus";
 import {
   act,
@@ -82,7 +82,11 @@ export class BattleScene extends Phaser.Scene {
         this.speedBtn.setText(`▶ x${this.speedMult}`);
       });
 
-    on("roster-changed", () => {
+    // 편성·레벨이 바뀌면 다음 웨이브부터 반영 (뽑기만으로는 합류하지 않음)
+    on("party-changed", () => {
+      this.rosterDirty = true;
+    });
+    on("levels-changed", () => {
       this.rosterDirty = true;
     });
 
@@ -90,9 +94,11 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private buildTeam(): Unit[] {
-    return PLAYABLE_HEROES.filter((h) => (save.owned[h.id] ?? 0) > 0)
-      .slice(0, 5)
-      .map(unitFromHero);
+    const partyHeroes = save.party
+      .map((id) => PLAYABLE_HEROES.find((h) => h.id === id))
+      .filter((h): h is NonNullable<typeof h> => !!h && (save.owned[h.id] ?? 0) > 0)
+      .slice(0, 5);
+    return partyHeroes.map((h) => unitFromHero(h, getLevel(h.id)));
   }
 
   private startStage(stage: number) {
