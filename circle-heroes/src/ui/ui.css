@@ -569,3 +569,19 @@
 @media (prefers-reduced-motion: reduce) {
   .sfx-orb, .sfx-card, .sfx-card .inner, .sfx-card.tease .back { animation: none !important; transition: none !important; }
 }
+
+/* ── 임무 진행바 ── */
+.mbar {
+  height: 5px;
+  background: #10131c;
+  border-radius: 3px;
+  margin: 5px 0 3px;
+  overflow: hidden;
+}
+.mbar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--amber), #ffd34d);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+.list-card.all-bonus { border-color: var(--amber); }

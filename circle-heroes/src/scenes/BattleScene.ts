@@ -5,6 +5,7 @@ import {
   save, addGold, addGems, setStage, getLevel, getStars,
   setTowerFloor, applyArenaResult,
 } from "../state/save";
+import { track } from "../systems/missions";
 import { on, emit } from "../state/bus";
 import {
   act,
@@ -379,6 +380,7 @@ export class BattleScene extends Phaser.Scene {
     if (this.mode === "stage") {
       const reward = 10 * this.stage * (this.wave === WAVES_PER_STAGE ? 3 : 1);
       addGold(reward);
+      track("wave");
       this.refreshHud();
       if (this.wave < WAVES_PER_STAGE) {
         this.wave += 1;
@@ -396,6 +398,7 @@ export class BattleScene extends Phaser.Scene {
       const f = save.towerFloor;
       const gems = 10 + f * 5;
       addGems(gems);
+      track("tower");
       this.showBanner(`${f}층 돌파! 💎+${gems}`, "#7de8a0");
       setTowerFloor(f + 1);
       this.refreshHud();
@@ -405,6 +408,7 @@ export class BattleScene extends Phaser.Scene {
 
     // arena 승리
     const { rating, bonusGems } = applyArenaResult(true);
+    track("arenaWin");
     this.showBanner(
       bonusGems > 0 ? `아레나 승리! +25점 · 오늘 첫 승리 💎+${bonusGems}` : `아레나 승리! +25점 (${rating})`,
       "#7de8a0"
