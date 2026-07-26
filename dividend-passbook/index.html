@@ -101,6 +101,26 @@ function generateDividends({ startDate, freqMonths, baseAmount, annualGrowth, pa
   return events;
 }
 
+// 실제 계좌에서 확인한 분배금(real)에 이어서, 그 평균 단가로 향후 몇 달치를
+// "estimated"로 이어붙인다 — 커버드콜류처럼 금액이 매달 변동해서 공식으로
+// 못 만드는 종목은 이 방식으로 "실제 확정분 + 추정 이어붙이기"만 가능하다.
+function generateRealDividends({ real, freqMonths, payLagDays, projectMonths }) {
+  const known = real.map((r) => ({ ...r, status: "paid" }));
+  const avg = real.reduce((s, r) => s + r.perShare, 0) / real.length;
+  const events = [...known];
+  let d = addMonths(new Date(real[real.length - 1].exDate), freqMonths);
+  const endBound = addMonths(TODAY, projectMonths || 6);
+  let guard = 0;
+  while (d <= endBound && guard < 24) {
+    const payDate = new Date(d);
+    payDate.setDate(payDate.getDate() + payLagDays);
+    events.push({ exDate: fmt(d), payDate: fmt(payDate), perShare: +avg.toFixed(4), status: "estimated" });
+    d = addMonths(d, freqMonths);
+    guard++;
+  }
+  return events;
+}
+
 const STOCKS = [
   { ticker: "005930", name: "삼성전자", market: "KR", currency: "KRW",
     dividends: generateDividends({ startDate: "2023-12-28", freqMonths: 3, baseAmount: 361, annualGrowth: 0.03, payLagDays: 45, confirmWindowDays: 55 }) },
@@ -122,6 +142,46 @@ const STOCKS = [
     dividends: generateDividends({ startDate: "2024-01-15", freqMonths: 1, baseAmount: 0.256, annualGrowth: 0.02, payLagDays: 12, confirmWindowDays: 35 }) },
   { ticker: "T", name: "AT&T", market: "US", currency: "USD",
     dividends: generateDividends({ startDate: "2024-01-10", freqMonths: 3, baseAmount: 0.2775, annualGrowth: 0.0, payLagDays: 14, confirmWindowDays: 40 }) },
+
+  // ----- 실제 보유종목 (N2 HTS 입출금내역에서 확인한 실제 분배금 + 그 평균으로 이어붙인 추정치) -----
+  { ticker: "491620", name: "RISE 미국테크100데일리고정커버드콜", market: "KR", currency: "KRW",
+    dividends: generateRealDividends({
+      real: [
+        { exDate: "2026-03-31", payDate: "2026-04-02", perShare: 160 },
+        { exDate: "2026-04-30", payDate: "2026-05-06", perShare: 276 },
+        { exDate: "2026-05-31", payDate: "2026-06-02", perShare: 240 },
+        { exDate: "2026-06-30", payDate: "2026-07-02", perShare: 271 },
+      ],
+      freqMonths: 1, payLagDays: 2,
+    }) },
+  { ticker: "0138T0", name: "RISE 미국S&P500데일리고정커버드콜", market: "KR", currency: "KRW",
+    dividends: generateRealDividends({
+      real: [
+        { exDate: "2026-04-15", payDate: "2026-04-17", perShare: 118 },
+        { exDate: "2026-05-15", payDate: "2026-05-19", perShare: 163 },
+        { exDate: "2026-06-15", payDate: "2026-06-17", perShare: 109 },
+        { exDate: "2026-07-15", payDate: "2026-07-20", perShare: 144 },
+      ],
+      freqMonths: 1, payLagDays: 3,
+    }) },
+  { ticker: "441640", name: "KODEX 미국배당커버드콜액티브", market: "KR", currency: "KRW",
+    dividends: generateRealDividends({
+      real: [
+        { exDate: "2026-04-15", payDate: "2026-04-17", perShare: 99 },
+        { exDate: "2026-05-15", payDate: "2026-05-19", perShare: 100 },
+        { exDate: "2026-06-15", payDate: "2026-06-17", perShare: 101 },
+        { exDate: "2026-07-15", payDate: "2026-07-20", perShare: 103 },
+      ],
+      freqMonths: 1, payLagDays: 3,
+    }) },
+  { ticker: "QQQI", name: "네오스 나스닥100 고배당 ETF (NEOS QQQI)", market: "US", currency: "USD",
+    dividends: generateRealDividends({
+      real: [
+        { exDate: "2026-05-01", payDate: "2026-05-25", perShare: 0.573 },
+        { exDate: "2026-06-15", payDate: "2026-06-19", perShare: 0.5587 },
+      ],
+      freqMonths: 1, payLagDays: 20,
+    }) },
 ];
 /* ----------------------------- 커스텀 종목 (데모 목록에 없는 실제 보유종목) ----------------------------- */
 // 데모 10종목은 배당을 공식으로 생성하지만, 커스텀 종목은 배당 데이터가 없어서
