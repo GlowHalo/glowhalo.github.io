@@ -43,6 +43,17 @@ wrappings at the waist, holding a large glowing golden greatsword radiating
 warm light.
 ${CHAR_TAIL}`,
   },
+  "guan-yu": {
+    desc: "관우(삼국지) 전투 캐릭터 (512²)",
+    styled: true,
+    w: 512,
+    h: 512,
+    prompt: `Guan Yu, a legendary Chinese general from Romance of the Three Kingdoms,
+with a deep reddish-toned face, long flowing black beard, wearing ornate green
+robes over golden armor, holding a massive green-bladed guandao (crescent
+moon blade polearm), dignified confident expression.
+${CHAR_TAIL}`,
+  },
   slime: {
     desc: "슬라임 몬스터 (512²)",
     styled: true,
