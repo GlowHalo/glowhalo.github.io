@@ -102,6 +102,7 @@ const BATTLE_MODES: Record<string, string> = {
   "스테이지": "stage",
   "무한의탑": "tower",
   "아레나": "arena",
+  "요일던전": "raid",
 };
 let battleMode = "stage";
 
