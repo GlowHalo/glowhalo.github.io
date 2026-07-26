@@ -18,6 +18,12 @@ export interface SaveState {
   lastSeenMs: number;
   /** YYYY-MM-DD — 일일 무료 상자 수령일 */
   freeBoxDate: string;
+  /** 무한의 탑 현재 도전 층 (클리어한 최고층 + 1) */
+  towerFloor: number;
+  /** 아레나 레이팅 */
+  arenaRating: number;
+  /** YYYY-MM-DD — 아레나 오늘 첫 승리 보너스 수령일 */
+  arenaWinDate: string;
 }
 
 const KEY = "circle-heroes-save-v1";
@@ -34,6 +40,9 @@ const DEFAULTS: SaveState = {
   pity: 0,
   lastSeenMs: Date.now(),
   freeBoxDate: "",
+  towerFloor: 1,
+  arenaRating: 1000,
+  arenaWinDate: "",
 };
 
 function load(): SaveState {
@@ -160,6 +169,30 @@ export function toggleParty(id: string): "added" | "removed" | "full" {
   persist();
   emit("party-changed");
   return "added";
+}
+
+export function setTowerFloor(floor: number) {
+  save.towerFloor = floor;
+  persist();
+  emit("tower-changed");
+}
+
+/** 아레나 승패 반영. 오늘 첫 승리면 보석 보너스 지급 후 금액 반환 */
+export function applyArenaResult(won: boolean): { rating: number; bonusGems: number } {
+  save.arenaRating = Math.max(800, save.arenaRating + (won ? 25 : -15));
+  let bonusGems = 0;
+  if (won) {
+    const today = new Date().toISOString().slice(0, 10);
+    if (save.arenaWinDate !== today) {
+      save.arenaWinDate = today;
+      bonusGems = 50;
+      save.gems += bonusGems;
+      emit("gems-changed");
+    }
+  }
+  persist();
+  emit("arena-changed");
+  return { rating: save.arenaRating, bonusGems };
 }
 
 export function resetSave() {
