@@ -225,6 +225,25 @@ function yearMonthlyBreakdown(year, allEvents) {
   return months;
 }
 
+// 같은 종목의 매수 배치(구매기록)별로 흩어진 이벤트를 종목+배당락일 기준 한 줄로 합친다
+// (배당락일 기준 보유수량만 반영되므로 그 시점에 실제로 들고 있던 주수의 합이 된다)
+function mergeEventsByTicker(events) {
+  const map = {};
+  events.forEach((e) => {
+    const key = `${e.ticker}__${e.exDate}`;
+    if (!map[key]) {
+      map[key] = { ticker: e.ticker, name: e.name, currency: e.currency, perShare: e.perShare,
+        exDate: e.exDate, payDate: e.payDate, status: e.status, qty: 0, gross: 0, net: 0, allCertain: true, accountTypes: new Set(), taxNote: e.taxNote };
+    }
+    const m = map[key];
+    m.qty += e.qty;
+    m.gross += e.gross;
+    if (e.certain) m.net += e.net; else m.allCertain = false;
+    m.accountTypes.add(e.accountType);
+  });
+  return Object.values(map).map((m) => ({ ...m, accountTypes: Array.from(m.accountTypes) }));
+}
+
 /* ----------------------------- 수익 탭: 기간별 배당 합계 ----------------------------- */
 function periodDividendTotal(period, paidEvents) {
   if (period === "total") return paidEvents.reduce((s, e) => s + e.gross, 0);
@@ -598,6 +617,9 @@ export default function DividendPassbook() {
   const yearMonths = useMemo(() => yearMonthlyBreakdown(selectedYear, allEvents), [selectedYear, allEvents]);
   const validMonthNum = yearMonths[selectedMonthNum - 1] ? selectedMonthNum : 1;
   const selectedMonthData = yearMonths[validMonthNum - 1];
+  const monthGroups = useMemo(() => mergeEventsByTicker(selectedMonthData.events), [selectedMonthData]);
+  const confirmedGroups = useMemo(() => mergeEventsByTicker(confirmedEvents), [confirmedEvents]);
+  const estimatedGroups = useMemo(() => mergeEventsByTicker(estimatedEvents).slice(0, 6), [estimatedEvents]);
   const yearTotal = yearMonths.reduce((s, m) => s + m.value, 0);
   const yearHeadlineAmount = dividendShowNet
     ? yearMonths.flatMap((m) => m.events).reduce((s, e) => s + (e.certain ? e.net : e.gross), 0)
@@ -659,9 +681,9 @@ export default function DividendPassbook() {
         {/* 탭 (도미노 벤치마킹: 수익/세금/배당/추이/비중 + 관리) */}
         <div className="px-5 pt-6 flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
           {[
+            { key: "dividend", label: "배당", icon: Wallet },
             { key: "profit", label: "수익", icon: TrendingUp },
             { key: "tax", label: "세금", icon: Percent },
-            { key: "dividend", label: "배당", icon: Wallet },
             { key: "trend", label: "추이", icon: LineChart },
             { key: "allocation", label: "비중", icon: PieChart },
             { key: "manage", label: "관리", icon: Settings },
@@ -1070,29 +1092,31 @@ export default function DividendPassbook() {
                   <span className="mono text-sm font-semibold" style={{ color: "#1F2A44" }}>{won(selectedMonthData.value)}</span>
                 </div>
                 <div className="mt-1">
-                  {selectedMonthData.events.length === 0 ? (
+                  {monthGroups.length === 0 ? (
                     <p className="text-xs mt-2" style={{ color: "#8B93A8" }}>이 달은 배당 내역이 없어요.</p>
                   ) : (
-                    selectedMonthData.events.slice().sort((a, b) => a.exDate.localeCompare(b.exDate)).map((e, i) => {
-                      const nativeAmount = e.perShare * e.qty;
+                    monthGroups.slice().sort((a, b) => a.exDate.localeCompare(b.exDate)).map((g, i) => {
+                      const nativeAmount = g.perShare * g.qty;
                       return (
                         <div key={i} className="flex justify-between items-center py-2.5" style={{ borderBottom: "1px solid #EDE9DC" }}>
                           <div className="flex items-center gap-2">
-                            <div className="flex items-center justify-center flex-shrink-0" style={{ width: 28, height: 28, borderRadius: "50%", background: "#EDE9DC", fontSize: 11, fontWeight: 700, color: "#4B5670" }}>{e.name.slice(0, 1)}</div>
+                            <div className="flex items-center justify-center flex-shrink-0" style={{ width: 28, height: 28, borderRadius: "50%", background: "#EDE9DC", fontSize: 11, fontWeight: 700, color: "#4B5670" }}>{g.name.slice(0, 1)}</div>
                             <div>
-                              <div className="text-sm font-medium" style={{ color: "#1F2A44" }}>{e.name}</div>
+                              <div className="text-sm font-medium" style={{ color: "#1F2A44" }}>{g.name}</div>
                               <div className="text-[10px]" style={{ color: "#8B93A8" }}>
-                                {e.qty}주 · 1주당 {e.currency === "USD" ? "$" : "₩"}{e.perShare}
-                                <span className="mono ml-1" style={{ padding: "1px 5px", borderRadius: 4, background: "#EDE9DC", color: "#4B5670" }}>{getAccountType(e.accountType).short}</span>
+                                {g.qty.toLocaleString("ko-KR")}주 · 1주당 {g.currency === "USD" ? "$" : "₩"}{g.perShare}
+                                {g.accountTypes.map((a) => (
+                                  <span key={a} className="mono ml-1" style={{ padding: "1px 5px", borderRadius: 4, background: "#EDE9DC", color: "#4B5670" }}>{getAccountType(a).short}</span>
+                                ))}
                               </div>
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="mono text-sm font-semibold" style={{ color: "#1F2A44" }}>{won(dividendShowNet && e.certain ? e.net : e.gross)}</div>
-                            {dividendShowForeign && e.currency !== "KRW" && (
+                            <div className="mono text-sm font-semibold" style={{ color: "#1F2A44" }}>{won(dividendShowNet && g.allCertain ? g.net : g.gross)}</div>
+                            {dividendShowForeign && g.currency !== "KRW" && (
                               <div className="mono text-[10px]" style={{ color: "#8B93A8" }}>${nativeAmount.toFixed(2)}</div>
                             )}
-                            <div className="text-[9px]" style={{ color: "#8B93A8" }}>{e.exDate.slice(8)}일 · {e.status === "estimated" ? "추정" : e.status === "confirmed" ? "확정예정" : "지급완료"}</div>
+                            <div className="text-[9px]" style={{ color: "#8B93A8" }}>{g.exDate.slice(8)}일 · {g.status === "estimated" ? "추정" : g.status === "confirmed" ? "확정예정" : "지급완료"}</div>
                           </div>
                         </div>
                       );
@@ -1106,21 +1130,23 @@ export default function DividendPassbook() {
                   <span className="stamp text-[10px] px-2 py-0.5 rounded-sm mono font-semibold">확정</span>
                   <span className="text-xs" style={{ color: "#4B5670" }}>이사회 결의 등으로 금액·일정이 정해진 배당</span>
                 </div>
-                {confirmedEvents.length === 0 ? (
+                {confirmedGroups.length === 0 ? (
                   <p className="text-xs" style={{ color: "#8B93A8" }}>확정된 예정 배당이 없어요.</p>
                 ) : (
                   <div className="space-y-1.5">
-                    {confirmedEvents.map((e, i) => (
+                    {confirmedGroups.map((g, i) => (
                       <div key={i} className="rounded-lg p-3" style={{ background: "#F5F1E6", border: "1px solid #E4DCC5" }}>
                         <div className="flex justify-between items-center">
                           <div>
                             <div className="text-sm" style={{ color: "#1F2A44" }}>
-                              {e.name}
-                              <span className="mono text-[10px] ml-1.5" style={{ color: "#8B93A8" }}>{getAccountType(e.accountType).short}</span>
+                              {g.name} · {g.qty.toLocaleString("ko-KR")}주
+                              {g.accountTypes.map((a) => (
+                                <span key={a} className="mono text-[10px] ml-1.5" style={{ color: "#8B93A8" }}>{getAccountType(a).short}</span>
+                              ))}
                             </div>
-                            <div className="text-[11px]" style={{ color: "#8B93A8" }}>배당락 {e.exDate} · 지급 {e.payDate}</div>
+                            <div className="text-[11px]" style={{ color: "#8B93A8" }}>배당락 {g.exDate} · 지급 {g.payDate}</div>
                           </div>
-                          <span className="mono text-sm font-medium" style={{ color: "#1F2A44" }}>{won(e.gross)}</span>
+                          <span className="mono text-sm font-medium" style={{ color: "#1F2A44" }}>{won(g.gross)}</span>
                         </div>
                       </div>
                     ))}
@@ -1132,16 +1158,18 @@ export default function DividendPassbook() {
                   <span className="text-xs" style={{ color: "#4B5670" }}>과거 지급 패턴 기반 추정치</span>
                 </div>
                 <div className="space-y-1.5">
-                  {estimatedEvents.slice(0, 6).map((e, i) => (
+                  {estimatedGroups.map((g, i) => (
                     <div key={i} className="rounded-lg p-3 flex justify-between items-center" style={{ background: "#F5F1E6", border: "1px dashed #C9C0A5" }}>
                       <div>
                         <div className="text-sm" style={{ color: "#4B5670" }}>
-                          {e.name}
-                          <span className="mono text-[10px] ml-1.5" style={{ color: "#8B93A8" }}>{getAccountType(e.accountType).short}</span>
+                          {g.name} · {g.qty.toLocaleString("ko-KR")}주
+                          {g.accountTypes.map((a) => (
+                            <span key={a} className="mono text-[10px] ml-1.5" style={{ color: "#8B93A8" }}>{getAccountType(a).short}</span>
+                          ))}
                         </div>
-                        <div className="text-[11px]" style={{ color: "#8B93A8" }}>배당락 예상 {e.exDate}</div>
+                        <div className="text-[11px]" style={{ color: "#8B93A8" }}>배당락 예상 {g.exDate}</div>
                       </div>
-                      <span className="mono text-sm" style={{ color: "#8B93A8" }}>약 {won(e.gross)} (세전)</span>
+                      <span className="mono text-sm" style={{ color: "#8B93A8" }}>약 {won(g.gross)} (세전)</span>
                     </div>
                   ))}
                 </div>
