@@ -367,41 +367,56 @@
   border-radius: 11px;
 }
 .orb-card-back2 {
-  background: linear-gradient(160deg, #241f45, #141c30);
-  border: 2px solid #322c5c;
+  background: radial-gradient(circle at 50% 35%, #1c2440 0%, #05070f 80%);
+  border: 2px solid rgba(245, 172, 61, 0.35);
   transform: translate(7px, 6px) rotate(7deg);
   opacity: 0.55;
 }
 .orb-card-back1 {
-  background: linear-gradient(160deg, #2a2450, #161f3a);
-  border: 2px solid #453f7a;
+  background: radial-gradient(circle at 50% 35%, #1c2440 0%, #05070f 80%);
+  border: 2px solid rgba(245, 172, 61, 0.5);
   transform: translate(3px, 3px) rotate(3deg);
   opacity: 0.8;
 }
 .orb-card-main {
-  background: linear-gradient(165deg, #1c2440 0%, #0a0e1e 100%);
-  border: 2px solid #6fe8e0;
-  box-shadow: 0 0 22px rgba(111, 232, 224, 0.55), inset 0 0 16px rgba(111, 232, 224, 0.12);
+  background: radial-gradient(circle at 50% 35%, #1c2440 0%, #05070f 82%);
+  border: 2px solid #f5ac3d;
+  box-shadow: 0 0 22px rgba(245, 172, 61, 0.5), inset 0 0 16px rgba(245, 172, 61, 0.14);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   animation: cardFloat 2.4s ease-in-out infinite;
 }
+.orb-card-main::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(245, 172, 61, 0.32);
+  border-radius: 8px;
+  pointer-events: none;
+}
 .orb-card-ring {
   position: absolute;
   width: 60%;
   aspect-ratio: 1;
   border-radius: 50%;
-  border: 2px solid rgba(111, 232, 224, 0.4);
-  box-shadow: 0 0 14px rgba(111, 232, 224, 0.3);
+  border: 2px solid rgba(245, 172, 61, 0.55);
+  box-shadow: 0 0 14px rgba(245, 172, 61, 0.35);
+}
+.orb-card-ring::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 1px dashed rgba(245, 172, 61, 0.3);
 }
 .orb-card-mark {
   position: relative;
   font-size: 34px;
   font-weight: 800;
-  color: #d8fffb;
-  text-shadow: 0 0 14px rgba(111, 232, 224, 0.85);
+  color: #f5d9a8;
+  text-shadow: 0 0 14px rgba(245, 172, 61, 0.85);
 }
 .orb-card-shine {
   position: absolute;
@@ -753,32 +768,54 @@
   gap: 5px;
 }
 .sfx-card .back {
-  background: linear-gradient(150deg, #2a2450, #141c30 70%);
-  border: 3px solid #3a3568;
-  color: #6fe8e0;
+  background: radial-gradient(circle at 50% 38%, #1c2440 0%, #05070f 78%);
+  border: 3px solid #f5ac3d;
+  box-shadow: 0 0 18px rgba(245, 172, 61, 0.4), inset 0 0 20px rgba(245, 172, 61, 0.12);
+  color: #f5d9a8;
   position: relative;
   overflow: hidden;
 }
-.back-ring {
+.sfx-card .back::before {
+  content: '';
   position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(245, 172, 61, 0.05) 0,
+    rgba(245, 172, 61, 0.05) 2px,
+    transparent 2px,
+    transparent 13px
+  );
+}
+.sfx-card .back::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(245, 172, 61, 0.4);
+  border-radius: 9px;
+  pointer-events: none;
+}
+.back-ring {
+  position: relative;
   width: 70%;
   aspect-ratio: 1;
   border-radius: 50%;
-  border: 2px solid rgba(111, 232, 224, 0.4);
-  box-shadow: 0 0 18px rgba(111, 232, 224, 0.35);
+  border: 2px solid rgba(245, 172, 61, 0.6);
+  box-shadow: 0 0 18px rgba(245, 172, 61, 0.4);
 }
 .back-ring::before {
   content: '';
   position: absolute;
   inset: -8px;
   border-radius: 50%;
-  border: 1px dashed rgba(159, 232, 255, 0.3);
+  border: 1px dashed rgba(245, 172, 61, 0.35);
 }
 .back-mark {
   position: relative;
   font-size: 30px;
   font-weight: 700;
-  text-shadow: 0 0 12px rgba(111, 232, 224, 0.8);
+  color: #f5d9a8;
+  text-shadow: 0 0 12px rgba(245, 172, 61, 0.85);
 }
 .sfx-grid.ten .sfx-card .back-mark { font-size: 22px; }
 .sfx-grid.ten .sfx-card .back-ring { width: 62%; }
