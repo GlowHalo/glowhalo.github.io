@@ -4,7 +4,5 @@ import "./heroSkills";
 
 export const HEROES: Hero[] = heroesJson as Hero[];
 
-// Unknown 등급은 히든 장비 없이는 전투 불가 (스탯 0 자리표시자)
-export const PLAYABLE_HEROES: Hero[] = HEROES.filter(
-  (h) => h.grade !== "Unknown"
-);
+// 히든(Unknown) 5종도 이제 실제 스탯·스킬이 있어 전투 가능. 자리표시자(스탯 0)만 걸러낸다
+export const PLAYABLE_HEROES: Hero[] = HEROES.filter((h) => h.baseHp > 0);
