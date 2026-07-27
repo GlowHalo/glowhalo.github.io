@@ -244,11 +244,11 @@ export function makeTowerEnemy(key: string, name: string, floor: number, boss: b
 }
 
 /* ── 진영 시너지 ──
- * 3원소(불꽃/바람/물)는 순환 상성, 빛↔어둠은 상호 카운터(전투 대미지 계산에서 별도 처리 예정).
+ * 3원소(불/바람/물)는 순환 상성, 빛↔어둠은 상호 카운터(전투 대미지 계산에서 별도 처리 예정).
  * 여기서는 편성 구성에 따른 진영 시너지(동일 진영 스택 vs 레인보우)만 다룬다.
  * 히든(불명) 진영은 시너지 집계에서 제외된다(무진영).
  */
-export const REAL_FACTIONS = ["불꽃", "물", "바람", "빛", "어둠"];
+export const REAL_FACTIONS = ["불", "물", "바람", "빛", "어둠"];
 
 export interface FactionSynergy {
   label: string;

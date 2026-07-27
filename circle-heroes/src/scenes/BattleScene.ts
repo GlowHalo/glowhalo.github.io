@@ -24,7 +24,7 @@ export const GAME_W = 420;
 export const GAME_H = 740;
 
 const FACTION_COLORS: Record<string, number> = {
-  불꽃: 0xe8683a,
+  불: 0xe8683a,
   바람: 0x5fbf77,
   빛: 0xf0c95c,
   어둠: 0x8a63c9,
