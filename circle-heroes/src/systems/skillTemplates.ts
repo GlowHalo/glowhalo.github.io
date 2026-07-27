@@ -33,11 +33,16 @@ export interface SkillTemplateDef {
 export const SKILL_TEMPLATES: Record<string, SkillTemplateDef> = {
   // ── 전 등급 배정 가능 (기본 부품) ──
   single_burst: {
+    // 옛 "처형(execute)" 템플릿 통합: 저체력 적에게는 확정 처단 배율 적용.
     label: "단일 강타",
     make: (p) => (s, a, f, now) => {
       const r: ReturnType<ActiveFn> = [];
-      const t = pickTarget(s, f, now);
-      if (t) dealDamage(s, t, a, f, now, r, { mult: p.mult ?? 1.6 });
+      const alive = aliveOf(f);
+      if (alive.length === 0) return r;
+      const weakest = alive.reduce((x, y) => (x.hp / x.maxHp <= y.hp / y.maxHp ? x : y));
+      const isLow = weakest.hp / weakest.maxHp <= (p.execThreshold ?? 0.3);
+      const t = isLow ? weakest : pickTarget(s, f, now);
+      if (t) dealDamage(s, t, a, f, now, r, { mult: isLow ? p.execMult ?? 2.6 : p.mult ?? 1.6 });
       return r;
     },
   },
@@ -108,19 +113,6 @@ export const SKILL_TEMPLATES: Record<string, SkillTemplateDef> = {
   },
 
   // ── SR 이상 ──
-  execute: {
-    label: "처형",
-    minGrade: "SR",
-    make: (p) => (s, a, f, now) => {
-      const r: ReturnType<ActiveFn> = [];
-      const alive = aliveOf(f);
-      if (alive.length === 0) return r;
-      const weakest = alive.reduce((x, y) => (x.hp / x.maxHp <= y.hp / y.maxHp ? x : y));
-      const isLow = weakest.hp / weakest.maxHp <= (p.threshold ?? 0.3);
-      dealDamage(s, weakest, a, f, now, r, { mult: isLow ? p.execMult ?? 2.6 : p.mult ?? 1.3 });
-      return r;
-    },
-  },
   heal_all: {
     label: "전체 치유",
     minGrade: "SR",
