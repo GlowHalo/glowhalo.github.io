@@ -58,8 +58,10 @@ interface UnitView {
   artScale: number;
 }
 
-/** 스테이지/무한의탑/요일던전 몬스터 → 실제 몬스터 아트 매핑. 탑·요일던전 전용 아트는 아직 없어 슬라임으로 대체(디자인 요청 목록에 기재) */
-function monsterSpriteKey(boss: boolean): string {
+/** 스테이지/무한의탑/요일던전 몬스터 → 실제 몬스터 아트 매핑 (탑·요일던전 전용 아트 반영 완료) */
+function monsterSpriteKey(mode: BattleMode, boss: boolean): string {
+  if (mode === "tower") return boss ? "tower_guardian_001" : "tower_soldier_001";
+  if (mode === "raid") return "raid_boss_001";
   return boss ? "boss_slime_001" : "slime_green_001";
 }
 
@@ -119,6 +121,9 @@ export class BattleScene extends Phaser.Scene {
     }
     this.load.image("monster-slime_green_001", "slime_green_001.png");
     this.load.image("monster-boss_slime_001", "boss_slime_001.png");
+    this.load.image("monster-tower_soldier_001", "tower_soldier_001.png");
+    this.load.image("monster-tower_guardian_001", "tower_guardian_001.png");
+    this.load.image("monster-raid_boss_001", "raid_boss_001.png");
     this.load.image("bg-battle", "battle-grassland.png");
 
     this.load.image("fx-cast-aura", "cast-aura.png");
@@ -311,7 +316,7 @@ export class BattleScene extends Phaser.Scene {
       });
     } else {
       const enemyX = GAME_W - 108;
-      const monsterKey = monsterSpriteKey(boss);
+      const monsterKey = monsterSpriteKey(this.mode, boss);
       this.enemies.forEach((u, i) => {
         const y = boss ? 360 : 250 + i * 74;
         this.views.set(u, this.makeUnitView(u, enemyX + (i % 2) * 30, y, boss, monsterKey));
