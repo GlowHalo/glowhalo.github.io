@@ -1,6 +1,6 @@
 import "./ui.css";
 import { on, emit } from "../state/bus";
-import { save, calcOfflineReward, addGold, addHero, resetSave } from "../state/save";
+import { save, calcOfflineReward, addGold, addGems, addHero, resetSave } from "../state/save";
 import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView } from "./screens";
 import { isFirebaseConfigured, getBackupCode, backupNow, restoreFromCode } from "../state/backup";
 import { HEROES } from "../data/heroes";
@@ -172,24 +172,33 @@ function renderSubbar() {
 
 const HIDDEN_HERO_IDS = HEROES.filter((h) => h.grade === "Unknown").map((h) => h.id);
 
+/** 코드는 대소문자 구분 없이 매칭(숫자 코드는 그대로 비교되므로 영향 없음) */
 const SECRET_CODES: Record<string, { message: string; grant: () => void }> = {
   "0203": {
     message: "🎉 히든 영웅 5종을 모두 획득했습니다!",
     grant: () => HIDDEN_HERO_IDS.forEach((id) => addHero(id)),
   },
+  GOLD: {
+    message: "🪙 골드 10,000 획득!",
+    grant: () => addGold(10000),
+  },
+  DIA: {
+    message: "💎 다이아몬드 3,000 획득!",
+    grant: () => addGems(3000),
+  },
 };
 
-function buildEventSection(): HTMLElement {
-  const box = h("div", "event-box");
-  box.appendChild(h("h4", "", "🎁 시크릿 코드"));
-  box.appendChild(h("p", "muted", "이벤트로 공개된 코드를 입력하면 보상을 받을 수 있어요."));
+function buildCodeSection(): HTMLElement {
+  const box = h("div", "code-box");
+  box.appendChild(h("h4", "", "🔑 코드 입력"));
+  box.appendChild(h("p", "muted", "공개된 코드를 입력하면 보상을 받을 수 있어요."));
   const row = h("div", "row");
   const input = h("input", "code-input") as HTMLInputElement;
-  input.placeholder = "시크릿 코드를 입력하세요";
+  input.placeholder = "코드를 입력하세요";
   input.maxLength = 12;
   const redeemBtn = h("button", "btn primary", "받기") as HTMLButtonElement;
   const redeem = () => {
-    const code = input.value.trim();
+    const code = input.value.trim().toUpperCase();
     const entry = SECRET_CODES[code];
     if (!entry) {
       toast("유효하지 않은 코드예요");
@@ -198,7 +207,6 @@ function buildEventSection(): HTMLElement {
     entry.grant();
     toast(entry.message);
     input.value = "";
-    closeModal();
   };
   redeemBtn.onclick = redeem;
   input.addEventListener("keydown", (e) => {
@@ -301,19 +309,14 @@ export function buildShell() {
     b.onclick = onClick;
     return b;
   };
-  corner.appendChild(
-    mkCorner("icon-gift.png", "이벤트", true, () => {
-      const body = h("div");
-      body.appendChild(buildEventSection());
-      modal("이벤트", body);
-    })
-  );
+  corner.appendChild(mkCorner("icon-gift.png", "이벤트", true, () => toast("이벤트 — 준비 중입니다")));
   corner.appendChild(mkCorner("icon-mail.png", "우편", false, () => toast("우편함 — 준비 중입니다")));
   corner.appendChild(
     mkCorner("icon-settings.png", "설정", false, () => {
       const body = h("div");
       const p = h("p", "", "버전 0.2.0 · 세이브는 이 기기에 저장됩니다.");
       body.appendChild(p);
+      body.appendChild(buildCodeSection());
       body.appendChild(buildBackupSection());
       const danger = h("button", "btn", "세이브 초기화") as HTMLButtonElement;
       danger.onclick = () => {
