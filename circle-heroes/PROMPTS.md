@@ -227,3 +227,6 @@ Transparent background. No text, no watermark. Square 1:1.
 | 카드: 관우 | **커밋됨** — `assets/cards/guan_yu_001.png` |
 | 카드: 데스나이트 | **커밋됨** — `assets/cards/death_knight_001.png` (황금빛 대검, 묘지 배경, R3) |
 | 카드: 서큐버스 | **커밋됨** — `assets/cards/succubus_dark_001.png` (C2 톤 표준 확정본) |
+| UI: 하단탭 5종 | **커밋됨** — `assets/icons/tab-{hero,summon,shop,mission,battle}.png` |
+| UI: 코너버튼 3종 | **커밋됨** — `assets/icons/icon-{gift,mail,settings}.png` |
+| UI: 공용 버튼 배경 | **커밋됨** — `assets/icons/btn-primary-bg.png` |
