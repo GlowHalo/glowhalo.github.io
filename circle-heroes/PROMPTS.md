@@ -230,3 +230,5 @@ Transparent background. No text, no watermark. Square 1:1.
 | UI: 하단탭 5종 | **커밋됨** — `assets/icons/tab-{hero,summon,shop,mission,battle}.png` |
 | UI: 코너버튼 3종 | **커밋됨** — `assets/icons/icon-{gift,mail,settings}.png` |
 | UI: 공용 버튼 배경 | **커밋됨** — `assets/icons/btn-primary-bg.png` |
+| UI: 서브메뉴 칩 배경 | **커밋됨** — `assets/icons/chip-bg.png` (텍스트 없음, HTML 라벨 얹는 용도) |
+| UI: 진영 필터 아이콘 6종 | **커밋됨** — `assets/icons/elem-{all,fire,wind,light,dark,water}.png` |
