@@ -83,6 +83,38 @@ zeus_light
 되고 있지만 육안으로 알아채기 어려운 수준). 재작업하게 되면 몬스터도 "명확히 한쪽을 보는
 자세"로 부탁드려요.
 
+## 2026-07-27 (4차): 좌우반전 재작업 완료 (1군+2군+몬스터 56종 검수 반영)
+
+위 1군(28종)·2군(26종)·몬스터(2종) 좌우반전 재작업을 전부 생성하고 5개씩 검수받아 반영함.
+Leonardo API 토큰이 중간에 고갈되어 충전 후 재개(계정 결제 필요, 이미지 세션에서 자체 처리
+불가한 유일한 종류의 블로커 — 앞으로도 발생 가능하니 참고).
+
+**재작업 적용됨 (44종)** — `assets/characters/` 또는 `assets/monsters/`에 기존 파일 교체:
+```
+arachne_dark, athena_light, balrog_flame, beast_dark, belle_light, cao_cao_dark,
+da_qiao_wind, diaochan_dark, guan_yu, hades_dark, harpy_wind, hua_tuo_light,
+incubus_dark, medusa_dark, michael_light, pang_tong_dark, persephone_dark,
+raphael_light, siren_water, snowwhite_light, succubus_dark, xiao_qiao_water,
+zhu_bajie_water, knight_flame, mage_light, mage_water, mage_wind, soldier_dark,
+soldier_flame, soldier_light, soldier_water, soldier_wind, ares_flame, artemis_wind,
+hercules_flame, minotaur_flame, poseidon_water, puss_boots_wind, sun_wukong_flame,
+uriel_light, xu_chu_flame, zeus_light, slime_green(몬스터), boss_slime(몬스터)
+```
+
+**주인님 검수 후 기존 유지 결정 (12종)** — 재작업 결과가 있었지만 원본이 더 낫다고 판단되어
+그대로 둠 (재시도해도 계속 대칭으로 돌아오거나, 디자인 드리프트가 있었던 케이스 포함):
+```
+cerberus_dark, dian_wei_flame, hong_gildong_wind, pinocchio_wind, zhuge_liang_wind,
+knight_dark, knight_light, knight_water, knight_wind, mage_dark(기준이미지 아님),
+mage_flame(★그림체 기준이미지★ — 재작업본은 로브 복구까지 잘 됐지만 최종적으로 기존 유지 선택됨),
+death_knight
+```
+
+**기술 메모**: `--ref` + `--strength Mid` + "3/4 각도로 몸을 틀고 무기를 한쪽에" 식 강한 비대칭
+지시문 조합이 대부분 효과적이었음. 일부(arachne_dark, dian_wei_flame)는 5회 안팎 재시도(각도·
+strength 변경 포함)에도 계속 대칭으로 수렴 — 이런 케이스는 `--ref` 자체를 버리고 순수 텍스트로
+처음부터 다시 그리는 방식을 다음에 시도해볼 것.
+
 ## 2026-07-27: 코드 반영 현황 + 리소스 검토의견 + 남은 갭 (게임 코드 세션 기록)
 
 ### 이번 반영 내역
