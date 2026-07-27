@@ -34,13 +34,13 @@ const FACTION_COLORS: Record<string, number> = {
 };
 
 const WAVES_PER_STAGE = 3;
-// 최대 5인: 앞열 2 + 뒷열 3
+// 최대 5인: 앞열 2 + 뒷열 3 (스프라이트 확대에 맞춰 슬롯 간격도 넓힘)
 const HERO_SLOTS: Array<[number, number]> = [
-  [118, 300],
-  [118, 400],
-  [58, 265],
-  [58, 365],
-  [58, 465],
+  [132, 290],
+  [132, 405],
+  [48, 225],
+  [48, 345],
+  [48, 462],
 ];
 
 interface UnitView {
@@ -148,7 +148,7 @@ export class BattleScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.speedBtn = this.add
-      .text(14, 545, "▶ x2", {
+      .text(14, 578, "▶ x2", {
         fontFamily: "sans-serif",
         fontSize: "14px",
         color: "#bfdcf0",
@@ -310,11 +310,11 @@ export class BattleScene extends Phaser.Scene {
         this.views.set(u, this.makeUnitView(u, GAME_W - x, y, false));
       });
     } else {
-      const enemyX = GAME_W - 100;
+      const enemyX = GAME_W - 108;
       const monsterKey = monsterSpriteKey(boss);
       this.enemies.forEach((u, i) => {
-        const y = boss ? 370 : 280 + i * 68;
-        this.views.set(u, this.makeUnitView(u, enemyX + (i % 2) * 26, y, boss, monsterKey));
+        const y = boss ? 360 : 250 + i * 74;
+        this.views.set(u, this.makeUnitView(u, enemyX + (i % 2) * 30, y, boss, monsterKey));
       });
     }
 
@@ -326,7 +326,7 @@ export class BattleScene extends Phaser.Scene {
 
   private makeUnitView(unit: Unit, x: number, y: number, big: boolean, monsterKey?: string): UnitView {
     const isArenaFoe = unit.key.startsWith("arena_");
-    const r = unit.isHero || isArenaFoe ? 26 : big ? 42 : 21;
+    const r = unit.isHero || isArenaFoe ? 32 : big ? 50 : 26;
     const fallbackColor = unit.isHero || isArenaFoe
       ? FACTION_COLORS[unit.faction] ?? 0x888888
       : big
@@ -453,6 +453,8 @@ export class BattleScene extends Phaser.Scene {
       ],
       onComplete: () => view.root.setDepth(0),
     });
+    // 돌진 순간 잔상(스피드라인) — 예비동작 끝나는 시점에 맞춰 스폰
+    this.delayed(d * 0.3, () => this.spawnDashTrail(view));
     if (view.flashImage) {
       const s = view.artScale;
       this.tweens.chain({
@@ -462,6 +464,27 @@ export class BattleScene extends Phaser.Scene {
           { scaleX: s * 1.1, scaleY: s * 0.9, duration: d * 0.4, ease: "Quad.easeIn" },
           { scaleX: s, scaleY: s, duration: d * 0.55, ease: "Back.easeOut" },
         ],
+      });
+    }
+  }
+
+  /** 돌진 순간 원본 실루엣을 복제해 빠르게 페이드시키는 잔상(스피드라인 대체) */
+  private spawnDashTrail(view: UnitView) {
+    if (!view.flashImage) return;
+    const src = view.flashImage;
+    for (let i = 0; i < 2; i++) {
+      const ghost = this.add.image(view.root.x, view.root.y, src.texture.key);
+      ghost.setFlipX(src.flipX);
+      ghost.setScale(src.scaleX, src.scaleY);
+      ghost.setTintFill(0xbfd8ff);
+      ghost.setAlpha(0.22 - i * 0.08);
+      ghost.setDepth(9 - i);
+      this.tweens.add({
+        targets: ghost,
+        alpha: 0,
+        duration: (90 + i * 30) / this.speedMult,
+        ease: "Quad.easeOut",
+        onComplete: () => ghost.destroy(),
       });
     }
   }
@@ -524,6 +547,22 @@ export class BattleScene extends Phaser.Scene {
           ease: "Quad.easeIn",
           onComplete: () => fx.destroy(),
         }),
+    });
+  }
+
+  /** 크리티컬 임팩트 순간 화면 전체를 살짝 밝히는 플래시(카메라 쉐이크와 함께 타격감 마무리) */
+  private critFlash() {
+    const flash = this.add
+      .rectangle(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, 0xfff2c8)
+      .setDepth(90)
+      .setAlpha(0.32)
+      .setBlendMode(Phaser.BlendModes.ADD);
+    this.tweens.add({
+      targets: flash,
+      alpha: 0,
+      duration: 160 / this.speedMult,
+      ease: "Quad.easeOut",
+      onComplete: () => flash.destroy(),
     });
   }
 
@@ -590,10 +629,12 @@ export class BattleScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setScale(1.5)
       .setDepth(100);
+    if (isBigHit) floater.setRotation(Phaser.Math.FloatBetween(-0.18, 0.18));
     // 팝 등장 → 살짝 튀어오르며 사라짐 (마이티아레나식 임팩트)
     this.tweens.add({
       targets: floater,
       scale: 1,
+      rotation: 0,
       duration: 110 / this.speedMult,
       ease: "Back.easeOut",
     });
@@ -606,7 +647,10 @@ export class BattleScene extends Phaser.Scene {
       ease: "Quad.easeIn",
       onComplete: () => floater.destroy(),
     });
-    if (isBigHit) this.cameras.main.shake(90 / this.speedMult, 0.006);
+    if (isBigHit) {
+      this.cameras.main.shake(110 / this.speedMult, 0.008);
+      this.critFlash();
+    }
     if (!t.alive) {
       this.tweens.add({
         targets: view.root,
@@ -634,7 +678,14 @@ export class BattleScene extends Phaser.Scene {
   private syncBars() {
     for (const view of this.views.values()) {
       const ratio = Phaser.Math.Clamp(view.unit.hp / view.unit.maxHp, 0, 1);
-      view.hpBar.width = view.hpBg.width * ratio;
+      const targetW = view.hpBg.width * ratio;
+      // 순간이동 대신 살짝 지연되며 깎이는 체력바(타격감 강화)
+      this.tweens.add({
+        targets: view.hpBar,
+        width: targetW,
+        duration: 140 / this.speedMult,
+        ease: "Quad.easeOut",
+      });
     }
   }
 
