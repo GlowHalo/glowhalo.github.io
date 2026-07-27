@@ -227,6 +227,7 @@ Transparent background. No text, no watermark. Square 1:1.
 | 카드: 관우 | **커밋됨** — `assets/cards/guan_yu_001.png` |
 | 카드: 데스나이트 | **커밋됨** — `assets/cards/death_knight_001.png` (황금빛 대검, 묘지 배경, R3) |
 | 카드: 서큐버스 | **커밋됨** — `assets/cards/succubus_dark_001.png` (C2 톤 표준 확정본) |
+| 카드: 나머지 62종 | **커밋됨** — 로스터 66명 전원 카드 완료 (`assets/cards/<캐릭터id>.png`, 배틀 스프라이트와 동일 파일명). 성별 드리프트(유비/조조/조운/여포/방통/손오공/포세이돈/장비/전위/장료/화타/곽가/아레스/마초/허저/하후돈) 및 종족 드리프트(저팔계=사람→돼지로 재작업) 전부 수정 완료. 히든 5종은 카드 미제작(미스터리 실루엣 유지, 카드 불필요 판단). |
 | UI: 하단탭 5종 | **커밋됨** — `assets/icons/tab-{hero,summon,shop,mission,battle}.png` |
 | UI: 코너버튼 3종 | **커밋됨** — `assets/icons/icon-{gift,mail,settings}.png` |
 | UI: 공용 버튼 배경 | **커밋됨** — `assets/icons/btn-primary-bg.png` |
