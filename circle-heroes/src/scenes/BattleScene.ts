@@ -77,6 +77,12 @@ export class BattleScene extends Phaser.Scene {
     super("battle");
   }
 
+  preload() {
+    for (const h of PLAYABLE_HEROES) {
+      this.load.image(`portrait-${h.id}`, `${h.id}.png`);
+    }
+  }
+
   create() {
     this.cameras.main.setBackgroundColor("#182236");
     this.add.rectangle(GAME_W / 2, 545, GAME_W, 2, 0x2c3a58);
@@ -273,9 +279,25 @@ export class BattleScene extends Phaser.Scene {
     const root = this.add.container(x, y);
     const shadow = this.add.ellipse(0, r + 7, r * 1.6, 9, 0x000000, 0.25);
     const body = this.add.circle(0, 0, r, color).setStrokeStyle(3, 0x10131c, 0.6);
-    const eyeOffset = r * 0.35;
-    const eyeL = this.add.circle(-eyeOffset, -r * 0.1, r * 0.11, 0x10131c);
-    const eyeR = this.add.circle(eyeOffset, -r * 0.1, r * 0.11, 0x10131c);
+    root.add([shadow, body]);
+
+    const portraitKey = `portrait-${unit.heroId}`;
+    const hasPortrait = !!unit.heroId && this.textures.exists(portraitKey);
+    if (hasPortrait) {
+      const portrait = this.add.image(0, 0, portraitKey);
+      // 정사각형 중앙 크롭(cover) 후 원형 프레임 안쪽에 맞춰 표시 — 컨테이너+마스크 조합 없이 크롭만으로 처리
+      const cropSize = Math.min(portrait.width, portrait.height);
+      portrait.setCrop((portrait.width - cropSize) / 2, (portrait.height - cropSize) / 2, cropSize, cropSize);
+      const displaySize = r * 1.3;
+      portrait.setDisplaySize(displaySize, displaySize);
+      root.add(portrait);
+    } else {
+      const eyeOffset = r * 0.35;
+      const eyeL = this.add.circle(-eyeOffset, -r * 0.1, r * 0.11, 0x10131c);
+      const eyeR = this.add.circle(eyeOffset, -r * 0.1, r * 0.11, 0x10131c);
+      root.add([eyeL, eyeR]);
+    }
+
     const label = this.add
       .text(0, r + 17, unit.isHero ? unit.name.split(" ").pop() ?? unit.name : unit.name, {
         fontFamily: "sans-serif",
@@ -288,7 +310,7 @@ export class BattleScene extends Phaser.Scene {
     const hpBar = this.add
       .rectangle(-barW / 2, -r - 11, barW, 5, unit.isHero ? 0x5fbf77 : 0xe8683a)
       .setOrigin(0, 0.5);
-    root.add([shadow, body, eyeL, eyeR, label, hpBg, hpBar]);
+    root.add([label, hpBg, hpBar]);
     return { unit, root, body, hpBg, hpBar, homeX: x, homeY: y };
   }
 

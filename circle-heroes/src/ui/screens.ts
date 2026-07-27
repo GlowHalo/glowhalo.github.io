@@ -31,6 +31,14 @@ function el(tag: string, cls?: string, text?: string): HTMLElement {
   return n;
 }
 
+/** 영웅 초상화를 .face 배경으로 채운다. 이미지 로드 실패 시 진영 색상이 그대로 남는다 */
+function setFace(face: HTMLElement, hero: Hero) {
+  face.style.background = FACTION_COLORS[hero.faction] ?? "#888";
+  face.style.backgroundImage = `url(${hero.id}.png)`;
+  face.style.backgroundSize = "cover";
+  face.style.backgroundPosition = "center top";
+}
+
 /* ── 영웅 탭 ── */
 function statLine(label: string, value: string): HTMLElement {
   const row = el("div", "stat-row");
@@ -51,7 +59,7 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
 
   const head = el("div", "detail-head");
   const face = el("div", "face");
-  face.style.background = FACTION_COLORS[hero.faction] ?? "#888";
+  setFace(face, hero);
   head.appendChild(face);
   const info = el("div");
   info.appendChild(el("div", "dh-name", hero.nameKr));
@@ -143,7 +151,7 @@ export function renderHeroes(root: HTMLElement) {
     const slot = el("div", "party-slot" + (hero ? " filled" : ""));
     if (hero) {
       const face = el("div", "face");
-      face.style.background = FACTION_COLORS[hero.faction] ?? "#888";
+      setFace(face, hero);
       slot.appendChild(face);
       slot.appendChild(el("div", "ps-nm", hero.nameKr.split(" ").pop() ?? ""));
       slot.appendChild(el("div", "ps-lv", `Lv.${getLevel(hero.id)}`));
@@ -196,7 +204,7 @@ export function renderHeroes(root: HTMLElement) {
     const card = el("div", "hero-card" + (inParty(hero.id) ? " in-party" : ""));
     card.onclick = () => openHeroDetail(hero, rerender);
     const face = el("div", "face");
-    face.style.background = FACTION_COLORS[hero.faction] ?? "#888";
+    setFace(face, hero);
     card.appendChild(face);
     card.appendChild(el("div", "st", "★".repeat(stars)));
     card.appendChild(el("div", "nm", hero.nameKr));
@@ -266,7 +274,7 @@ export function renderSummon(root: HTMLElement) {
     pulls.forEach((r) => {
       const card = el("div", "pull-card");
       const face = el("div", "face");
-      face.style.background = FACTION_COLORS[r.hero.faction] ?? "#888";
+      setFace(face, r.hero);
       card.appendChild(face);
       card.appendChild(el("div", "", r.hero.nameKr));
       card.appendChild(el("div", `gd grade-${r.hero.grade}`, r.hero.grade));
@@ -343,7 +351,7 @@ function playSummonFx(pulls: ReturnType<typeof pull>, onClose: () => void) {
       inner.appendChild(el("div", "back"));
       const front = el("div", "front");
       const face = el("div", "face");
-      face.style.background = FACTION_COLORS[r.hero.faction] ?? "#888";
+      setFace(face, r.hero);
       front.appendChild(face);
       front.appendChild(el("div", "", r.hero.nameKr));
       front.appendChild(el("div", `gd grade-${r.hero.grade}`, r.hero.grade));

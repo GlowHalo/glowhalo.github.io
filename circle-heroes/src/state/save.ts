@@ -42,8 +42,8 @@ export const PARTY_SIZE = 5;
 const DEFAULTS: SaveState = {
   gold: 0,
   gems: 1000, // 초기 지급 (테스트 겸 튜토리얼 소환용)
-  owned: { warrior_flame_001: 1, archer_wind_001: 1 },
-  party: ["warrior_flame_001", "archer_wind_001"],
+  owned: { minotaur_flame_001: 1, ma_chao_wind_001: 1 },
+  party: ["minotaur_flame_001", "ma_chao_wind_001"],
   levels: {},
   stars: {},
   stage: 1,
