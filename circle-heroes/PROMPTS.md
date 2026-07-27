@@ -233,3 +233,18 @@ Transparent background. No text, no watermark. Square 1:1.
 | UI: 서브메뉴 칩 배경 | **커밋됨** — `assets/icons/chip-bg.png` (텍스트 없음, HTML 라벨 얹는 용도) |
 | UI: 진영 필터 아이콘 6종 | **커밋됨** — `assets/icons/elem-{all,fire,wind,light,dark,water}.png` |
 | UI: 배속토글/위험버튼/닫기 | **커밋됨** — `assets/icons/icon-speed.png`, `btn-danger-bg.png`, `icon-close.png` — UI 마무리 완료 |
+
+## 로스터 66+5종 진행 현황 (Notion "로스터 초안 검토" 기준)
+
+`--ref` 없이 순수 텍스트(치비 super-deformed 비율 문구 + 캐릭터 설명)로 1장씩 생성.
+등급은 아직 아트에 반영 안 함(주인님 확인 — 등급은 이미지 나온 뒤 재조정 예정이라 무관).
+10개 단위로 승인받아 진행 중.
+
+| 등급 | 완료 | 파일 |
+|---|---|---|
+| UR (4) | **4/4 완료** | `guan_yu_001`, `snowwhite_light_001`, `zhuge_liang_wind_001`, `zeus_light_001` |
+| Unknown 히든 (5) | **5/5 완료** | `unknown_hidden_001~005` (빛나는 물음표 실루엣, 동일 디자인 재사용) |
+| SSR (13) | 1/13 (`death_knight_001`) | 나머지 12종 진행 예정 |
+| SR (29) | 2/29 (`succubus_dark_001`, `mage_flame_001`=불마법사 매칭) | 나머지 27종 진행 예정 |
+| R (13) | 0/13 | 미착수 |
+| N (7) | 0/7 | 미착수 |
