@@ -45,11 +45,19 @@ const HERO_SLOTS: Array<[number, number]> = [
 interface UnitView {
   unit: Unit;
   root: Phaser.GameObjects.Container;
-  body: Phaser.GameObjects.Arc;
+  /** 피격 시 흰색으로 반짝이는 대상 — 아트가 있으면 이미지, 없으면 플레이스홀더 원 */
+  flashImage?: Phaser.GameObjects.Image;
+  flashShape?: Phaser.GameObjects.Arc;
+  flashShapeColor: number;
   hpBg: Phaser.GameObjects.Rectangle;
   hpBar: Phaser.GameObjects.Rectangle;
   homeX: number;
   homeY: number;
+}
+
+/** 스테이지/무한의탑/요일던전 몬스터 → 실제 몬스터 아트 매핑. 탑·요일던전 전용 아트는 아직 없어 슬라임으로 대체(디자인 요청 목록에 기재) */
+function monsterSpriteKey(boss: boolean): string {
+  return boss ? "boss_slime_001" : "slime_green_001";
 }
 
 type BattleMode = "stage" | "tower" | "arena" | "raid";
@@ -81,10 +89,16 @@ export class BattleScene extends Phaser.Scene {
     for (const h of PLAYABLE_HEROES) {
       this.load.image(`portrait-${h.id}`, `${h.id}.png`);
     }
+    this.load.image("monster-slime_green_001", "slime_green_001.png");
+    this.load.image("monster-boss_slime_001", "boss_slime_001.png");
+    this.load.image("bg-battle", "battle-grassland.png");
   }
 
   create() {
     this.cameras.main.setBackgroundColor("#182236");
+    const bg = this.add.image(GAME_W / 2, GAME_H / 2, "bg-battle");
+    const bgScale = Math.max(GAME_W / bg.width, GAME_H / bg.height);
+    bg.setScale(bgScale).setDepth(-10);
     this.add.rectangle(GAME_W / 2, 545, GAME_W, 2, 0x2c3a58);
 
     this.stageText = this.add
@@ -102,7 +116,7 @@ export class BattleScene extends Phaser.Scene {
       .setOrigin(0, 1)
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
-        this.speedMult = this.speedMult === 2 ? 3 : 2;
+        this.speedMult = this.speedMult === 3 ? 1 : this.speedMult + 1;
         this.speedBtn.setText(`▶ x${this.speedMult}`);
       });
 
@@ -255,9 +269,10 @@ export class BattleScene extends Phaser.Scene {
       });
     } else {
       const enemyX = GAME_W - 100;
+      const monsterKey = monsterSpriteKey(boss);
       this.enemies.forEach((u, i) => {
         const y = boss ? 370 : 280 + i * 68;
-        this.views.set(u, this.makeUnitView(u, enemyX + (i % 2) * 26, y, boss));
+        this.views.set(u, this.makeUnitView(u, enemyX + (i % 2) * 26, y, boss, monsterKey));
       });
     }
 
@@ -267,51 +282,61 @@ export class BattleScene extends Phaser.Scene {
     this.refreshHud();
   }
 
-  private makeUnitView(unit: Unit, x: number, y: number, big: boolean): UnitView {
+  private makeUnitView(unit: Unit, x: number, y: number, big: boolean, monsterKey?: string): UnitView {
     const isArenaFoe = unit.key.startsWith("arena_");
     const r = unit.isHero || isArenaFoe ? 26 : big ? 42 : 21;
-    const color = unit.isHero || isArenaFoe
+    const fallbackColor = unit.isHero || isArenaFoe
       ? FACTION_COLORS[unit.faction] ?? 0x888888
       : big
         ? 0x9b59d0
         : 0x67b26f;
 
-    const root = this.add.container(x, y);
-    const shadow = this.add.ellipse(0, r + 7, r * 1.6, 9, 0x000000, 0.25);
-    const body = this.add.circle(0, 0, r, color).setStrokeStyle(3, 0x10131c, 0.6);
-    root.add([shadow, body]);
-
     const portraitKey = `portrait-${unit.heroId}`;
     const hasPortrait = !!unit.heroId && this.textures.exists(portraitKey);
-    if (hasPortrait) {
-      const portrait = this.add.image(0, 0, portraitKey);
-      // 정사각형 중앙 크롭(cover) 후 원형 프레임 안쪽에 맞춰 표시 — 컨테이너+마스크 조합 없이 크롭만으로 처리
-      const cropSize = Math.min(portrait.width, portrait.height);
-      portrait.setCrop((portrait.width - cropSize) / 2, (portrait.height - cropSize) / 2, cropSize, cropSize);
-      const displaySize = r * 1.3;
-      portrait.setDisplaySize(displaySize, displaySize);
-      root.add(portrait);
+    const monsterTexKey = monsterKey ? `monster-${monsterKey}` : undefined;
+    const hasMonsterArt = !!monsterTexKey && this.textures.exists(monsterTexKey);
+    const spriteKey = hasPortrait ? portraitKey : hasMonsterArt ? monsterTexKey : undefined;
+
+    // 아트가 있는 유닛은 원형 크롭 없이 누끼(투명배경) 원본 실루엣 그대로, 슬롯 반지름 배수로 크기만 맞춘다
+    const artSize = r * (big ? 2.3 : 2.5);
+    const halfH = spriteKey ? artSize / 2 : r;
+
+    const root = this.add.container(x, y);
+    const shadow = this.add.ellipse(0, halfH + 6, r * 1.5, 8, 0x000000, 0.28);
+    root.add(shadow);
+
+    let flashImage: Phaser.GameObjects.Image | undefined;
+    let flashShape: Phaser.GameObjects.Arc | undefined;
+
+    if (spriteKey) {
+      const img = this.add.image(0, 0, spriteKey);
+      img.setScale(artSize / Math.max(img.width, img.height));
+      img.setFlipX(!unit.isHero); // 아군은 오른쪽, 적군은 왼쪽을 보도록 좌우반전
+      root.add(img);
+      flashImage = img;
     } else {
+      const body = this.add.circle(0, 0, r, fallbackColor).setStrokeStyle(3, 0x10131c, 0.6);
       const eyeOffset = r * 0.35;
       const eyeL = this.add.circle(-eyeOffset, -r * 0.1, r * 0.11, 0x10131c);
       const eyeR = this.add.circle(eyeOffset, -r * 0.1, r * 0.11, 0x10131c);
-      root.add([eyeL, eyeR]);
+      root.add([body, eyeL, eyeR]);
+      flashShape = body;
     }
 
     const label = this.add
-      .text(0, r + 17, unit.isHero ? unit.name.split(" ").pop() ?? unit.name : unit.name, {
+      .text(0, halfH + 17, unit.isHero ? unit.name.split(" ").pop() ?? unit.name : unit.name, {
         fontFamily: "sans-serif",
         fontSize: "11px",
         color: unit.isHero ? "#bfdcf0" : "#d8a0a0",
       })
       .setOrigin(0.5);
     const barW = r * 2;
-    const hpBg = this.add.rectangle(0, -r - 11, barW, 5, 0x10131c).setOrigin(0.5);
+    const hpBg = this.add.rectangle(0, -halfH - 11, barW, 5, 0x10131c).setOrigin(0.5);
     const hpBar = this.add
-      .rectangle(-barW / 2, -r - 11, barW, 5, unit.isHero ? 0x5fbf77 : 0xe8683a)
+      .rectangle(-barW / 2, -halfH - 11, barW, 5, unit.isHero ? 0x5fbf77 : 0xe8683a)
       .setOrigin(0, 0.5);
     root.add([label, hpBg, hpBar]);
-    return { unit, root, body, hpBg, hpBar, homeX: x, homeY: y };
+    return { unit, root, flashImage, flashShape, flashShapeColor: fallbackColor, hpBg, hpBar, homeX: x, homeY: y };
   }
 
   update(time: number, delta: number) {
@@ -366,15 +391,13 @@ export class BattleScene extends Phaser.Scene {
     const t = r.target;
 
     if (r.kind === "damage") {
-      view.body.setFillStyle(0xffffff);
-      this.time.delayedCall(70 / this.speedMult, () => {
-        const original = t.isHero || t.key.startsWith("arena_")
-          ? FACTION_COLORS[t.faction] ?? 0x888888
-          : view.body.radius > 38
-            ? 0x9b59d0
-            : 0x67b26f;
-        view.body.setFillStyle(original);
-      });
+      if (view.flashImage) {
+        view.flashImage.setTintFill(0xffffff);
+        this.time.delayedCall(70 / this.speedMult, () => view.flashImage?.clearTint());
+      } else if (view.flashShape) {
+        view.flashShape.setFillStyle(0xffffff);
+        this.time.delayedCall(70 / this.speedMult, () => view.flashShape?.setFillStyle(view.flashShapeColor));
+      }
     }
 
     const style: Record<HitResult["kind"], [string, string]> = {

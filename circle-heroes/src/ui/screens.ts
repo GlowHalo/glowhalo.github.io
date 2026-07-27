@@ -31,12 +31,37 @@ function el(tag: string, cls?: string, text?: string): HTMLElement {
   return n;
 }
 
-/** 영웅 초상화를 .face 배경으로 채운다. 이미지 로드 실패 시 진영 색상이 그대로 남는다 */
+/** 영웅 초상화를 .face 배경으로 채운다(얼굴 클로즈업 크롭). 이미지 로드 실패 시 진영 색상이 그대로 남는다 */
 function setFace(face: HTMLElement, hero: Hero) {
   face.style.background = FACTION_COLORS[hero.faction] ?? "#888";
   face.style.backgroundImage = `url(${hero.id}.png)`;
-  face.style.backgroundSize = "cover";
-  face.style.backgroundPosition = "center top";
+  // SD 전신 일러스트 상단 ~45%가 얼굴 — 확대해서 얼굴만 보이도록 크롭(전투화면은 전신 그대로 별도 처리)
+  face.style.backgroundSize = "230% 230%";
+  face.style.backgroundPosition = "center 4%";
+  face.style.backgroundRepeat = "no-repeat";
+}
+
+const FACTION_ICON: Record<string, string> = {
+  전체: "elem-all.png",
+  불: "elem-fire.png",
+  물: "elem-water.png",
+  바람: "elem-wind.png",
+  빛: "elem-light.png",
+  어둠: "elem-dark.png",
+};
+
+const GRADE_BORDER: Record<string, string> = {
+  N: "#7d9ab5",
+  R: "#4a9be8",
+  SR: "#b060f0",
+  SSR: "#ffd34d",
+  UR: "#ff5a6e",
+  Unknown: "#8a8f9c",
+};
+
+/** 카드/슬롯에 등급을 텍스트 대신 테두리 색으로 표시(상세화면 제외 규칙) */
+function setGradeBorder(el: HTMLElement, grade: string) {
+  el.style.borderColor = GRADE_BORDER[grade] ?? "#888";
 }
 
 /* ── 영웅 탭 ── */
@@ -82,24 +107,8 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
   skills.appendChild(el("div", "sk", `🛡 ${hero.skill2Name} — ${hero.skill2Desc}`));
   body.appendChild(skills);
 
-  // 각성(성급)
-  if (stars < MAX_STARS) {
-    const need = ascendCost(stars);
-    const have = dupeCount(hero.id);
-    const ascRow = el("div", "asc-row");
-    ascRow.appendChild(el("span", "", `⭐ 다음 각성 재료: 중복 ${Math.min(have, need)}/${need}`));
-    const ascBtn = el("button", "btn" + (have >= need ? " primary" : ""), "각성") as HTMLButtonElement;
-    ascBtn.disabled = have < need;
-    ascBtn.onclick = () => {
-      if (tryAscend(hero.id)) {
-        toast(`${hero.nameKr} ${getStars(hero.id)}성 각성! 능력치 +30%`);
-        openHeroDetail(hero, rerender);
-        rerender();
-      }
-    };
-    ascRow.appendChild(ascBtn);
-    body.appendChild(ascRow);
-  } else {
+  // 각성(성급)은 전용 승급 화면(영웅 탭 → 승급 서브메뉴)에서 진행
+  if (stars >= MAX_STARS) {
     body.appendChild(el("p", "", "⭐ 최대 성급 달성"));
   }
 
@@ -138,9 +147,21 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
 
 let heroFilter = "전체";
 
+type HeroesSubView = "party" | "ascend";
+let heroesSubView: HeroesSubView = "party";
+
+export function setHeroesSubView(v: HeroesSubView) {
+  heroesSubView = v;
+}
+
 export function renderHeroes(root: HTMLElement) {
   root.innerHTML = "";
   const rerender = () => renderHeroes(root);
+
+  if (heroesSubView === "ascend") {
+    renderAscend(root);
+    return;
+  }
 
   root.appendChild(el("h2", "", `편성 (${save.party.length}/${PARTY_SIZE})`));
   root.appendChild(el("div", "desc", "편성된 영웅만 전투에 출전합니다. 카드를 눌러 편성·레벨업하세요."));
@@ -184,8 +205,16 @@ export function renderHeroes(root: HTMLElement) {
   const factions = ["전체", ...new Set(PLAYABLE_HEROES.map((h) => h.faction))];
   const ftabs = el("div", "faction-tabs");
   for (const f of factions) {
-    const chip = el("button", "f-chip" + (heroFilter === f ? " on" : ""), f);
+    const chip = el("button", "f-chip" + (heroFilter === f ? " on" : ""));
     if (f !== "전체") chip.style.borderColor = FACTION_COLORS[f] ?? "#888";
+    const icon = FACTION_ICON[f];
+    if (icon) {
+      const img = el("img", "fc-icon") as HTMLImageElement;
+      img.src = icon;
+      img.alt = "";
+      chip.appendChild(img);
+    }
+    chip.appendChild(el("span", "", f));
     chip.onclick = () => {
       heroFilter = f;
       rerender();
@@ -202,13 +231,14 @@ export function renderHeroes(root: HTMLElement) {
   for (const hero of visible.filter((h) => (save.owned[h.id] ?? 0) > 0)) {
     const stars = getStars(hero.id);
     const card = el("div", "hero-card" + (inParty(hero.id) ? " in-party" : ""));
+    setGradeBorder(card, hero.grade);
     card.onclick = () => openHeroDetail(hero, rerender);
     const face = el("div", "face");
     setFace(face, hero);
     card.appendChild(face);
     card.appendChild(el("div", "st", "★".repeat(stars)));
     card.appendChild(el("div", "nm", hero.nameKr));
-    card.appendChild(el("div", `gd grade-${hero.grade}`, `${hero.grade} · Lv.${getLevel(hero.id)}`));
+    card.appendChild(el("div", "lv", `Lv.${getLevel(hero.id)}`));
     // 수집 카운트 (마이티식 4/4)
     if (stars < MAX_STARS) {
       const need = ascendCost(stars);
@@ -222,24 +252,110 @@ export function renderHeroes(root: HTMLElement) {
     grid.appendChild(card);
   }
   root.appendChild(grid);
+  // 미보유 영웅은 여기서 표시하지 않음 — 도감(승급 화면 하위)에서 확인
+}
 
-  const missing = visible.filter((h) => !(save.owned[h.id] > 0));
-  if (missing.length > 0) {
-    root.appendChild(el("div", "desc", ""));
-    root.appendChild(el("h2", "", "미보유"));
-    const grid2 = el("div", "hero-grid");
-    for (const hero of missing) {
-      const card = el("div", "hero-card");
-      card.style.opacity = "0.45";
-      const face = el("div", "face");
-      face.style.background = "#3a4458";
-      card.appendChild(face);
-      card.appendChild(el("div", "nm", "???"));
-      card.appendChild(el("div", `gd grade-${hero.grade}`, hero.grade));
-      grid2.appendChild(card);
-    }
-    root.appendChild(grid2);
+/* ── 승급 화면(마이티아레나식): 승급할 영웅 선택 → 재료(중복분) 슬롯 확인 → 승급 ── */
+let ascendTargetId: string | null = null;
+
+function renderAscend(root: HTMLElement) {
+  root.innerHTML = "";
+  const rerender = () => renderAscend(root);
+  root.appendChild(el("h2", "", "영웅 승급"));
+  root.appendChild(el("div", "desc", "승급할 영웅을 고르면 재료(중복 보유분) 슬롯이 채워집니다. 슬롯이 다 차면 승급하세요."));
+
+  const owned = PLAYABLE_HEROES.filter((h) => (save.owned[h.id] ?? 0) > 0);
+  const target = ascendTargetId ? owned.find((h) => h.id === ascendTargetId) ?? null : null;
+
+  // 승급 대상 + 재료 슬롯 패널
+  const panel = el("div", "ascend-panel");
+  const targetSlot = el("div", "ascend-slot ascend-target" + (target ? " filled" : ""));
+  if (target) {
+    setGradeBorder(targetSlot, target.grade);
+    const face = el("div", "face");
+    setFace(face, target);
+    targetSlot.appendChild(face);
+    targetSlot.appendChild(el("div", "as-nm", target.nameKr));
+    targetSlot.appendChild(el("div", "as-stars", starText(getStars(target.id))));
+  } else {
+    targetSlot.appendChild(el("div", "ps-empty", "+"));
+    targetSlot.appendChild(el("div", "as-label", "승급 대상"));
   }
+  targetSlot.onclick = () => {
+    ascendTargetId = null;
+    rerender();
+  };
+  panel.appendChild(targetSlot);
+
+  const arrow = el("div", "ascend-arrow", "→");
+  panel.appendChild(arrow);
+
+  const matSlots = el("div", "ascend-mats");
+  if (target) {
+    const stars = getStars(target.id);
+    if (stars >= MAX_STARS) {
+      matSlots.appendChild(el("div", "as-label", "⭐ 이미 최대 성급이에요"));
+    } else {
+      const need = ascendCost(stars);
+      const have = dupeCount(target.id);
+      for (let i = 0; i < need; i++) {
+        const filled = i < have;
+        const slot = el("div", "ascend-slot ascend-mat" + (filled ? " filled" : ""));
+        if (filled) {
+          const face = el("div", "face");
+          setFace(face, target);
+          slot.appendChild(face);
+        } else {
+          slot.appendChild(el("div", "ps-empty", "+"));
+        }
+        matSlots.appendChild(slot);
+      }
+      matSlots.appendChild(el("div", "as-label", `중복 보유 ${Math.min(have, need)}/${need} — 같은 영웅을 더 뽑으면 채워져요`));
+    }
+  } else {
+    matSlots.appendChild(el("div", "as-label", "먼저 승급할 영웅을 골라주세요"));
+  }
+  panel.appendChild(matSlots);
+  root.appendChild(panel);
+
+  const ascBtn = el("button", "btn primary ascend-btn", "승급하기") as HTMLButtonElement;
+  const ready = !!target && getStars(target.id) < MAX_STARS && dupeCount(target.id) >= ascendCost(getStars(target.id));
+  ascBtn.disabled = !ready;
+  ascBtn.onclick = () => {
+    if (!target) return;
+    if (tryAscend(target.id)) {
+      toast(`${target.nameKr} ${getStars(target.id)}성 각성! 능력치 +30%`);
+      rerender();
+    }
+  };
+  root.appendChild(ascBtn);
+
+  // 승급 대상 선택용 보유 영웅 목록
+  root.appendChild(el("h2", "", "보유 영웅"));
+  const grid = el("div", "hero-grid");
+  for (const hero of owned) {
+    const stars = getStars(hero.id);
+    const card = el("div", "hero-card" + (hero.id === ascendTargetId ? " in-party" : ""));
+    setGradeBorder(card, hero.grade);
+    card.onclick = () => {
+      ascendTargetId = hero.id;
+      rerender();
+    };
+    const face = el("div", "face");
+    setFace(face, hero);
+    card.appendChild(face);
+    card.appendChild(el("div", "st", "★".repeat(stars)));
+    card.appendChild(el("div", "nm", hero.nameKr));
+    if (stars < MAX_STARS) {
+      const need = ascendCost(stars);
+      const have = Math.min(dupeCount(hero.id), need);
+      card.appendChild(el("div", "cp" + (have >= need ? " ready" : ""), `${have}/${need}`));
+    } else {
+      card.appendChild(el("div", "cp", "MAX"));
+    }
+    grid.appendChild(card);
+  }
+  root.appendChild(grid);
 }
 
 /* ── 소환 탭 ── */
@@ -249,12 +365,15 @@ export function renderSummon(root: HTMLElement) {
   root.appendChild(el("div", "desc", `보석으로 소환합니다. ${PITY_LIMIT}회 안에 최고 등급이 반드시 등장합니다.`));
 
   const box = el("div", "summon-box");
-  box.appendChild(el("div", "orb"));
+  const orb = el("div", "orb");
+  orb.appendChild(el("div", "orb-ring"));
+  orb.appendChild(el("div", "orb-core"));
+  for (let i = 0; i < 5; i++) orb.appendChild(el("span", `orb-spark s${i}`, "✦"));
+  box.appendChild(orb);
 
-  const btnRow = el("div");
-  btnRow.style.cssText = "display:flex;gap:10px;justify-content:center";
+  const btnRow = el("div", "summon-btn-row");
   const single = el("button", "btn primary", `1회 소환 (💎${SINGLE_COST})`) as HTMLButtonElement;
-  const ten = el("button", "btn primary", `10연 소환 (💎${TEN_COST})`) as HTMLButtonElement;
+  const ten = el("button", "btn primary", `10회 소환 (💎${TEN_COST})`) as HTMLButtonElement;
   btnRow.append(single, ten);
   box.appendChild(btnRow);
 
@@ -273,11 +392,11 @@ export function renderSummon(root: HTMLElement) {
     results.innerHTML = "";
     pulls.forEach((r) => {
       const card = el("div", "pull-card");
+      setGradeBorder(card, r.hero.grade);
       const face = el("div", "face");
       setFace(face, r.hero);
       card.appendChild(face);
       card.appendChild(el("div", "", r.hero.nameKr));
-      card.appendChild(el("div", `gd grade-${r.hero.grade}`, r.hero.grade));
       if (r.isNew) card.appendChild(el("div", "new", "NEW!"));
       results.appendChild(card);
     });
@@ -294,7 +413,7 @@ export function renderSummon(root: HTMLElement) {
       fillInlineResults(pulls);
       updatePity();
       emit("roster-changed");
-    });
+    }, doPull);
   };
   single.onclick = () => doPull(1, SINGLE_COST);
   ten.onclick = () => doPull(10, TEN_COST);
@@ -303,10 +422,15 @@ export function renderSummon(root: HTMLElement) {
 /* ── 소환 연출: 오브 차징 → 카드 순차 뒤집기 → 고등급 예고·플래시. 탭하면 스킵 ── */
 const HIGH_GRADES = new Set(["SR", "SSR", "UR"]);
 
-function playSummonFx(pulls: ReturnType<typeof pull>, onClose: () => void) {
+function playSummonFx(
+  pulls: ReturnType<typeof pull>,
+  onClose: () => void,
+  onPullAgain: (count: number, cost: number) => void
+) {
   const overlay = el("div");
   overlay.id = "summon-fx";
   document.getElementById("ui")!.appendChild(overlay);
+  document.getElementById("screen-summon")?.classList.add("fx-active");
 
   const timers: number[] = [];
   const later = (fn: () => void, ms: number) => {
@@ -316,6 +440,7 @@ function playSummonFx(pulls: ReturnType<typeof pull>, onClose: () => void) {
 
   const close = () => {
     overlay.remove();
+    document.getElementById("screen-summon")?.classList.remove("fx-active");
     document.removeEventListener("keydown", onKeydown);
     onClose();
   };
@@ -329,10 +454,28 @@ function playSummonFx(pulls: ReturnType<typeof pull>, onClose: () => void) {
       c.classList.add("flipped");
     });
     hint.textContent = "화면을 누르면 계속";
+
+    const again = el("div", "sfx-again");
+    const mkAgainBtn = (label: string, count: number, cost: number) => {
+      const b = el("button", "btn primary", label) as HTMLButtonElement;
+      b.onclick = (e) => {
+        e.stopPropagation();
+        close();
+        onPullAgain(count, cost);
+      };
+      return b;
+    };
+    again.append(
+      mkAgainBtn(`1회 소환 (💎${SINGLE_COST})`, 1, SINGLE_COST),
+      mkAgainBtn(`10회 소환 (💎${TEN_COST})`, 10, TEN_COST)
+    );
+    overlay.insertBefore(again, hint);
   };
 
   // 1단계: 오브 차징 (탭하면 바로 카드로)
   const orb = el("div", "sfx-orb");
+  orb.appendChild(el("div", "sfx-orb-ring"));
+  orb.appendChild(el("div", "sfx-orb-core"));
   overlay.appendChild(orb);
   const hint = el("div", "sfx-hint", "화면을 누르면 건너뜁니다");
   overlay.appendChild(hint);
@@ -348,13 +491,15 @@ function playSummonFx(pulls: ReturnType<typeof pull>, onClose: () => void) {
       const card = el("div", `sfx-card grade-${r.hero.grade}` + (isHigh ? "" : " fast"));
       card.style.animationDelay = `${i * 0.05}s`;
       const inner = el("div", "inner");
-      inner.appendChild(el("div", "back"));
+      const back = el("div", "back");
+      back.appendChild(el("div", "back-ring"));
+      back.appendChild(el("div", "back-mark", "?"));
+      inner.appendChild(back);
       const front = el("div", "front");
       const face = el("div", "face");
       setFace(face, r.hero);
       front.appendChild(face);
       front.appendChild(el("div", "", r.hero.nameKr));
-      front.appendChild(el("div", `gd grade-${r.hero.grade}`, r.hero.grade));
       if (r.isNew) front.appendChild(el("div", "newtag", "NEW!"));
       inner.appendChild(front);
       card.appendChild(inner);
