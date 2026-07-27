@@ -5,7 +5,7 @@ import { emit } from "../state/bus";
 // ⚠ 진영 체계가 바뀌면 이 배열만 고치면 된다 (일~토 순).
 export const DAY_FACTIONS: (string | null)[] = [
   null,    // 일
-  "불꽃",  // 월
+  "불",  // 월
   "물",    // 화
   "바람",  // 수
   "빛",    // 목

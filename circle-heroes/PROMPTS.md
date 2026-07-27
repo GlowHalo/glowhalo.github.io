@@ -149,14 +149,14 @@ Single effect, centered. Transparent background. No text, no watermark. Square 1
 
 ### E2~E6. 속성별 타격 이펙트 (256×256, 5종 — 진영 색상에 맞춰)
 E1과 동일한 구도(중앙에서 방사하는 임팩트)로, 색상만 진영별로:
-- **불꽃**: 주황-빨강 화염 폭발
+- **불**: 주황-빨강 화염 폭발
 - **물**: 파란 물보라/물결 파열
 - **바람**: 청록-연두 회오리 슬래시
 - **빛**: 금색-흰색 성스러운 광채 폭발
 - **어둠**: 보라-검정 어둠 소용돌이
 
 ```
-Mobile game elemental hit-impact VFX sprite, [불꽃: orange-red fire burst /
+Mobile game elemental hit-impact VFX sprite, [불: orange-red fire burst /
 물: blue water splash burst / 바람: teal-green whirlwind slash / 빛: gold-white
 holy light burst / 어둠: purple-black dark vortex burst], radiating from center,
 anime game style, glowing edges, high contrast.
@@ -179,7 +179,7 @@ Single effect, centered, circular, meant to sit under a character's feet.
 Transparent background. No text, no watermark. Square 1:1.
 ```
 
-이 8종은 `assets/effects/`에 `hit-impact.png`, `hit-불꽃.png`, `hit-물.png`, `hit-바람.png`,
+이 8종은 `assets/effects/`에 `hit-impact.png`, `hit-불.png`, `hit-물.png`, `hit-바람.png`,
 `hit-빛.png`, `hit-어둠.png`, `hit-crit.png`, `cast-aura.png` 파일명으로 커밋해주면
 게임 코드에서 순차 연결하겠습니다.
 

@@ -16,7 +16,7 @@ import { toast, modal, closeModal } from "./shell";
 import { emit } from "../state/bus";
 
 const FACTION_COLORS: Record<string, string> = {
-  불꽃: "#e8683a",
+  불: "#e8683a",
   바람: "#5fbf77",
   빛: "#f0c95c",
   어둠: "#8a63c9",
