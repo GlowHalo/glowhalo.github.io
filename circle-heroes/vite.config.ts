@@ -8,7 +8,7 @@ import { resolve, extname } from "node:path";
 
 // 코드에서 실제로 쓰는 에셋 폴더만 루트에 평평하게 서빙(dev+build 공통).
 // cards/(116MB)는 아직 코드에서 참조하지 않으므로 제외 — 쓰게 되면 여기 목록에 추가.
-const SERVED_ASSET_DIRS = ["characters", "monsters", "backgrounds", "icons"];
+const SERVED_ASSET_DIRS = ["characters", "monsters", "backgrounds", "icons", "effects"];
 
 const MIME: Record<string, string> = {
   ".png": "image/png",
@@ -23,7 +23,8 @@ function gameAssets() {
     name: "circle-heroes-game-assets",
     configureServer(server: import("vite").ViteDevServer) {
       server.middlewares.use((req, res, next) => {
-        const url = req.url?.split("?")[0] ?? "";
+        // 한글 파일명(예: hit-불.png)은 브라우저가 요청 시 퍼센트 인코딩하므로 디코딩 후 조회해야 함
+        const url = decodeURIComponent(req.url?.split("?")[0] ?? "");
         const ext = extname(url);
         if (!MIME[ext]) return next();
         for (const dir of SERVED_ASSET_DIRS) {

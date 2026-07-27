@@ -16,6 +16,7 @@ import {
   makeEnemy,
   makeTowerEnemy,
   unitFromHero,
+  SKILL_EVERY_N_ACTIONS,
   type HitResult,
   type Unit,
 } from "../systems/battle";
@@ -53,12 +54,39 @@ interface UnitView {
   hpBar: Phaser.GameObjects.Rectangle;
   homeX: number;
   homeY: number;
+  /** flashImage의 기본(비율 1) 스케일 — 스쿼시&스트레치 트윈이 매번 여기서부터 계산하도록 고정값으로 보관 */
+  artScale: number;
 }
 
 /** 스테이지/무한의탑/요일던전 몬스터 → 실제 몬스터 아트 매핑. 탑·요일던전 전용 아트는 아직 없어 슬라임으로 대체(디자인 요청 목록에 기재) */
 function monsterSpriteKey(boss: boolean): string {
   return boss ? "boss_slime_001" : "slime_green_001";
 }
+
+/**
+ * flipX는 기본적으로 "원화는 오른쪽을 본다"는 가정으로 아군=그대로/적군=반전 처리한다.
+ * 히든 5종(정면 대칭 실루엣이라 반전해도 그대로지만, 실제로는 왼쪽을 보는 원화라 아군인데도
+ * 반전 없이 표시하면 왼쪽을 봄)과 재작업된 슬라임·보스슬라임(왼쪽을 보도록 새로 그려짐)은
+ * 반대 관례라 기본 규칙을 뒤집어야 한다.
+ */
+const REVERSED_FACING_KEYS = new Set([
+  "unknown_hidden_001",
+  "unknown_hidden_002",
+  "unknown_hidden_003",
+  "unknown_hidden_004",
+  "unknown_hidden_005",
+  "slime_green_001",
+  "boss_slime_001",
+]);
+
+/** 속성별 피격 이펙트 텍스처 키. 무진영(불명) 등 매핑이 없으면 범용 hit-impact로 대체 */
+const HIT_FX_BY_FACTION: Record<string, string> = {
+  불: "fx-hit-불",
+  물: "fx-hit-물",
+  바람: "fx-hit-바람",
+  빛: "fx-hit-빛",
+  어둠: "fx-hit-어둠",
+};
 
 type BattleMode = "stage" | "tower" | "arena" | "raid";
 
@@ -92,6 +120,13 @@ export class BattleScene extends Phaser.Scene {
     this.load.image("monster-slime_green_001", "slime_green_001.png");
     this.load.image("monster-boss_slime_001", "boss_slime_001.png");
     this.load.image("bg-battle", "battle-grassland.png");
+
+    this.load.image("fx-cast-aura", "cast-aura.png");
+    this.load.image("fx-hit-crit", "hit-crit.png");
+    this.load.image("fx-hit-impact", "hit-impact.png");
+    for (const key of Object.values(HIT_FX_BY_FACTION)) {
+      this.load.image(key, `${key.replace("fx-", "")}.png`);
+    }
   }
 
   create() {
@@ -314,11 +349,16 @@ export class BattleScene extends Phaser.Scene {
 
     let flashImage: Phaser.GameObjects.Image | undefined;
     let flashShape: Phaser.GameObjects.Arc | undefined;
+    let artScale = 1;
 
     if (spriteKey) {
       const img = this.add.image(0, 0, spriteKey);
-      img.setScale(artSize / Math.max(img.width, img.height));
-      img.setFlipX(!unit.isHero); // 아군은 오른쪽, 적군은 왼쪽을 보도록 좌우반전
+      artScale = artSize / Math.max(img.width, img.height);
+      img.setScale(artScale);
+      // 아군은 오른쪽, 적군은 왼쪽을 보도록 좌우반전(REVERSED_FACING_KEYS는 원화 자체가 반대 방향이라 규칙을 뒤집음)
+      const artId = hasPortrait ? unit.heroId : hasMonsterArt ? monsterKey : undefined;
+      const baseFlip = !unit.isHero;
+      img.setFlipX(artId && REVERSED_FACING_KEYS.has(artId) ? !baseFlip : baseFlip);
       root.add(img);
       flashImage = img;
     } else {
@@ -352,7 +392,7 @@ export class BattleScene extends Phaser.Scene {
       .rectangle(-barW / 2, -halfH - 11, barW, 5, unit.isHero ? 0x5fbf77 : 0xe8683a)
       .setOrigin(0, 0.5);
     root.add([labelBg, label, hpBg, hpBar]);
-    return { unit, root, flashImage, flashShape, flashShapeColor: fallbackColor, hpBg, hpBar, homeX: x, homeY: y };
+    return { unit, root, flashImage, flashShape, flashShapeColor: fallbackColor, hpBg, hpBar, homeX: x, homeY: y, artScale };
   }
 
   update(time: number, delta: number) {
@@ -368,8 +408,17 @@ export class BattleScene extends Phaser.Scene {
 
       const allies = unit.isHero ? this.heroes : this.enemies;
       const foes = unit.isHero ? this.enemies : this.heroes;
+      // 스킬 사용 여부를 act() 호출 전에 미리 예측(actionCount는 act() 내부에서 증가) — 시전 이펙트용
+      const isSkillCast = !!unit.heroId && (unit.actionCount + 1) % SKILL_EVERY_N_ACTIONS === 0;
       const results = act(unit, allies, foes, now);
-      if (results.length > 0) this.lunge(unit, results[0].kind);
+      if (results.length > 0) {
+        if (isSkillCast) {
+          this.castGlow(unit);
+          this.delayed(70 / this.speedMult, () => this.lunge(unit, results[0].kind));
+        } else {
+          this.lunge(unit, results[0].kind);
+        }
+      }
       for (const r of results) {
         this.showResult(r);
         if (r.revived) this.animateRevive(r.revived);
@@ -387,17 +436,94 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
+  /** 예비동작(살짝 뒤로) → 돌진 → 탄성있게 복귀하는 3단 트윈 + 스쿼시&스트레치로 타격감 강화 */
   private lunge(attacker: Unit, kind: HitResult["kind"]) {
     if (kind === "stun" && attacker.stunUntil > 0) return; // 매혹당한 유닛은 돌진 없음
     const view = this.views.get(attacker);
     if (!view) return;
-    const dir = attacker.isHero ? 24 : -24;
-    this.tweens.add({
+    const dir = attacker.isHero ? 1 : -1;
+    const d = 100 / this.speedMult;
+    view.root.setDepth(10);
+    this.tweens.chain({
       targets: view.root,
-      x: view.homeX + dir,
-      duration: 90 / this.speedMult,
-      yoyo: true,
+      tweens: [
+        { x: view.homeX - dir * 7, duration: d * 0.3, ease: "Sine.easeOut" },
+        { x: view.homeX + dir * 26, duration: d * 0.4, ease: "Quad.easeIn" },
+        { x: view.homeX, duration: d * 0.55, ease: "Back.easeOut" },
+      ],
+      onComplete: () => view.root.setDepth(0),
+    });
+    if (view.flashImage) {
+      const s = view.artScale;
+      this.tweens.chain({
+        targets: view.flashImage,
+        tweens: [
+          { scaleX: s * 0.92, scaleY: s * 1.08, duration: d * 0.3, ease: "Sine.easeOut" },
+          { scaleX: s * 1.1, scaleY: s * 0.9, duration: d * 0.4, ease: "Quad.easeIn" },
+          { scaleX: s, scaleY: s, duration: d * 0.55, ease: "Back.easeOut" },
+        ],
+      });
+    }
+  }
+
+  /** 시전 순간 발밑에서 피어오르는 진영색 오라 링(마이티아레나식 스킬 예고) */
+  private castGlow(caster: Unit) {
+    if (!this.textures.exists("fx-cast-aura")) return;
+    const view = this.views.get(caster);
+    if (!view) return;
+    const tint = FACTION_COLORS[caster.faction] ?? 0xffffff;
+    const fx = this.add.image(view.root.x, view.root.y + 16, "fx-cast-aura").setDepth(5);
+    fx.setBlendMode(Phaser.BlendModes.ADD);
+    fx.setTint(tint);
+    fx.setScale(0.22);
+    fx.setAlpha(0);
+    this.tweens.add({
+      targets: fx,
+      alpha: 0.85,
+      scale: 0.5,
+      duration: 130 / this.speedMult,
       ease: "Quad.easeOut",
+      onComplete: () =>
+        this.tweens.add({
+          targets: fx,
+          alpha: 0,
+          scale: 0.62,
+          duration: 160 / this.speedMult,
+          ease: "Quad.easeIn",
+          onComplete: () => fx.destroy(),
+        }),
+    });
+  }
+
+  /** 타격/치유/버프 등에 재사용하는 이펙트 스프라이트 팝(스케일업 페이드인 → 페이드아웃) */
+  private spawnFx(
+    x: number,
+    y: number,
+    textureKey: string,
+    opts: { scale?: number; tint?: number } = {}
+  ) {
+    if (!this.textures.exists(textureKey)) return;
+    const targetScale = opts.scale ?? 0.5;
+    const fx = this.add.image(x, y, textureKey).setDepth(20);
+    fx.setBlendMode(Phaser.BlendModes.ADD);
+    if (opts.tint !== undefined) fx.setTint(opts.tint);
+    fx.setScale(targetScale * 0.4);
+    fx.setAlpha(0);
+    this.tweens.add({
+      targets: fx,
+      alpha: 1,
+      scale: targetScale,
+      duration: 90 / this.speedMult,
+      ease: "Quad.easeOut",
+      onComplete: () =>
+        this.tweens.add({
+          targets: fx,
+          alpha: 0,
+          scale: targetScale * 1.25,
+          duration: 180 / this.speedMult,
+          ease: "Quad.easeIn",
+          onComplete: () => fx.destroy(),
+        }),
     });
   }
 
@@ -414,6 +540,29 @@ export class BattleScene extends Phaser.Scene {
         view.flashShape.setFillStyle(0xffffff);
         this.time.delayedCall(70 / this.speedMult, () => view.flashShape?.setFillStyle(view.flashShapeColor));
       }
+      // 공격자 속성에 맞는 타격 이펙트, 크리티컬이면 강조 이펙트를 겹쳐 재생
+      const fxKey = HIT_FX_BY_FACTION[r.attacker.faction] ?? "fx-hit-impact";
+      this.spawnFx(view.root.x, view.root.y, fxKey, { scale: r.crit ? 0.85 : 0.6 });
+      if (r.crit) this.spawnFx(view.root.x, view.root.y, "fx-hit-crit", { scale: 1.05 });
+      // 넉백: 맞은 유닛이 진영 안쪽에서 바깥쪽으로 살짝 튕겨나감
+      const knockDir = t.isHero ? -1 : 1;
+      this.tweens.add({
+        targets: view.root,
+        x: view.homeX + knockDir * 10,
+        duration: 60 / this.speedMult,
+        yoyo: true,
+        ease: "Quad.easeOut",
+      });
+    } else if (r.kind === "heal") {
+      this.spawnFx(view.root.x, view.root.y + 10, "fx-cast-aura", { scale: 0.45, tint: 0x7de8a0 });
+    } else if (r.kind === "shield") {
+      this.spawnFx(view.root.x, view.root.y + 10, "fx-cast-aura", { scale: 0.45, tint: 0x8ecdf0 });
+    } else if (r.kind === "buff") {
+      this.spawnFx(view.root.x, view.root.y + 10, "fx-cast-aura", { scale: 0.4, tint: 0xffd34d });
+    } else if (r.kind === "taunt") {
+      this.spawnFx(view.root.x, view.root.y, "fx-hit-impact", { scale: 0.5, tint: 0x8ecdf0 });
+    } else if (r.kind === "stun") {
+      this.spawnFx(view.root.x, view.root.y, "fx-hit-crit", { scale: 0.55, tint: 0xff9ed0 });
     }
 
     const style: Record<HitResult["kind"], [string, string]> = {
