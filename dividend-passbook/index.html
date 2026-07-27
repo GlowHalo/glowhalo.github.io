@@ -2,8 +2,16 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>배당통장</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="theme-color" content="#1F2A44" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="배당통장" />
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
   * { box-sizing: border-box; }
@@ -32,9 +40,13 @@
   .stamp { border:1.5px solid #9C7A3C; color:#9C7A3C; transform:rotate(-6deg); display:inline-block; font-size:10px; padding:2px 8px; border-radius:2px; font-weight:600; font-family:'IBM Plex Mono', monospace; }
   .progress-track { height:8px; border-radius:999px; background:#EDE9DC; overflow:hidden; margin-top:8px; }
   .progress-fill { height:100%; border-radius:999px; }
-  .tabs { display:flex; gap:6px; padding:20px 20px 0; }
-  .tab-btn { flex:1; padding:8px; border-radius:8px; font-size:12px; font-weight:500; border:1px solid #E4DCC5; background:#FFFDF8; color:#4B5670; cursor:pointer; }
+  .tabs { display:flex; gap:6px; padding:20px 20px 0; overflow-x:auto; scrollbar-width:none; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab-btn { flex:0 0 auto; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:500; white-space:nowrap; border:1px solid #E4DCC5; background:#FFFDF8; color:#4B5670; cursor:pointer; }
   .tab-btn.active { background:#1F2A44; color:#F5F1E6; border:none; }
+  .subtoggle { display:flex; gap:6px; }
+  .subtoggle-btn { flex:1; padding:6px; border-radius:8px; font-size:11px; font-weight:500; border:1px solid #E4DCC5; background:#F5F1E6; color:#4B5670; cursor:pointer; }
+  .subtoggle-btn.active { background:#1F2A44; color:#F5F1E6; border:none; }
   .content { padding:16px 20px 40px; }
   .holding-card { background:#FFFDF8; border:1px solid #E4DCC5; border-radius:12px; padding:14px; display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
   .stock-name { font-size:14px; font-weight:500; color:#1F2A44; }
@@ -64,7 +76,7 @@
 
 <script>
 /* ----------------------------- 기준일 & 환율 (데모용) ----------------------------- */
-const TODAY = new Date("2026-07-09");
+const TODAY = new Date(new Date().toISOString().slice(0, 10));
 const FX_USD_KRW = 1380;
 
 function addMonths(date, n) { const d = new Date(date); d.setMonth(d.getMonth() + n); return d; }
@@ -93,6 +105,26 @@ function generateDividends({ startDate, freqMonths, baseAmount, annualGrowth, pa
   return events;
 }
 
+// 실제 계좌에서 확인한 분배금(real)에 이어서, 그 평균 단가로 향후 몇 달치를
+// "estimated"로 이어붙인다 — 커버드콜류처럼 금액이 매달 변동해서 공식으로
+// 못 만드는 종목은 이 방식으로 "실제 확정분 + 추정 이어붙이기"만 가능하다.
+function generateRealDividends({ real, freqMonths, payLagDays, projectMonths }) {
+  const known = real.map((r) => ({ ...r, status: "paid" }));
+  const avg = real.reduce((s, r) => s + r.perShare, 0) / real.length;
+  const events = [...known];
+  let d = addMonths(new Date(real[real.length - 1].exDate), freqMonths);
+  const endBound = addMonths(TODAY, projectMonths || 6);
+  let guard = 0;
+  while (d <= endBound && guard < 24) {
+    const payDate = new Date(d);
+    payDate.setDate(payDate.getDate() + payLagDays);
+    events.push({ exDate: fmt(d), payDate: fmt(payDate), perShare: +avg.toFixed(4), status: "estimated" });
+    d = addMonths(d, freqMonths);
+    guard++;
+  }
+  return events;
+}
+
 const STOCKS = [
   { ticker: "005930", name: "삼성전자", market: "KR", currency: "KRW",
     dividends: generateDividends({ startDate: "2023-12-28", freqMonths: 3, baseAmount: 361, annualGrowth: 0.03, payLagDays: 45, confirmWindowDays: 55 }) },
@@ -114,8 +146,105 @@ const STOCKS = [
     dividends: generateDividends({ startDate: "2024-01-15", freqMonths: 1, baseAmount: 0.256, annualGrowth: 0.02, payLagDays: 12, confirmWindowDays: 35 }) },
   { ticker: "T", name: "AT&T", market: "US", currency: "USD",
     dividends: generateDividends({ startDate: "2024-01-10", freqMonths: 3, baseAmount: 0.2775, annualGrowth: 0.0, payLagDays: 14, confirmWindowDays: 40 }) },
+
+  // ----- 실제 보유종목 (N2 HTS 입출금내역에서 확인한 실제 분배금 + 그 평균으로 이어붙인 추정치) -----
+  { ticker: "491620", name: "RISE 미국테크100데일리고정커버드콜", market: "KR", currency: "KRW",
+    dividends: generateRealDividends({
+      real: [
+        { exDate: "2026-03-31", payDate: "2026-04-02", perShare: 160 },
+        { exDate: "2026-04-30", payDate: "2026-05-06", perShare: 276 },
+        { exDate: "2026-05-31", payDate: "2026-06-02", perShare: 240 },
+        { exDate: "2026-06-30", payDate: "2026-07-02", perShare: 271 },
+      ],
+      freqMonths: 1, payLagDays: 2,
+    }) },
+  { ticker: "0138T0", name: "RISE 미국S&P500데일리고정커버드콜", market: "KR", currency: "KRW",
+    dividends: generateRealDividends({
+      real: [
+        { exDate: "2026-04-15", payDate: "2026-04-17", perShare: 118 },
+        { exDate: "2026-05-15", payDate: "2026-05-19", perShare: 163 },
+        { exDate: "2026-06-15", payDate: "2026-06-17", perShare: 109 },
+        { exDate: "2026-07-15", payDate: "2026-07-20", perShare: 144 },
+      ],
+      freqMonths: 1, payLagDays: 3,
+    }) },
+  { ticker: "441640", name: "KODEX 미국배당커버드콜액티브", market: "KR", currency: "KRW",
+    dividends: generateRealDividends({
+      real: [
+        { exDate: "2026-04-15", payDate: "2026-04-17", perShare: 99 },
+        { exDate: "2026-05-15", payDate: "2026-05-19", perShare: 100 },
+        { exDate: "2026-06-15", payDate: "2026-06-17", perShare: 101 },
+        { exDate: "2026-07-15", payDate: "2026-07-20", perShare: 103 },
+      ],
+      freqMonths: 1, payLagDays: 3,
+    }) },
+  { ticker: "QQQI", name: "네오스 나스닥100 고배당 ETF (NEOS QQQI)", market: "US", currency: "USD",
+    dividends: generateRealDividends({
+      real: [
+        { exDate: "2026-05-01", payDate: "2026-05-25", perShare: 0.573 },
+        { exDate: "2026-06-15", payDate: "2026-06-19", perShare: 0.5587 },
+      ],
+      freqMonths: 1, payLagDays: 20,
+    }) },
 ];
-const getStock = (ticker) => STOCKS.find((s) => s.ticker === ticker);
+/* ----------------------------- 커스텀 종목 (데모 목록에 없는 실제 보유종목) ----------------------------- */
+// 데모 10종목은 배당을 공식으로 생성하지만, 커스텀 종목은 배당 데이터가 없어서
+// 사용자가 실제 입금받은 금액을 하나씩 기록해야만 배당 이력이 쌓인다.
+const CUSTOM_STOCKS_KEY = "dividend-passbook:customStocks:v1";
+function loadCustomStocks() {
+  try {
+    const raw = localStorage.getItem(CUSTOM_STOCKS_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+function saveCustomStocks() {
+  try {
+    localStorage.setItem(CUSTOM_STOCKS_KEY, JSON.stringify(customStocks));
+  } catch {}
+}
+let customStocks = loadCustomStocks() || [];
+
+function getStock(tickerOrName) {
+  return STOCKS.find((s) => s.ticker === tickerOrName)
+    || customStocks.find((s) => s.ticker === tickerOrName || s.name === tickerOrName);
+}
+function isCustomStock(ticker) {
+  return !STOCKS.find((s) => s.ticker === ticker) && !!customStocks.find((s) => s.ticker === ticker);
+}
+function getOrCreateCustomStock(ticker, name, currency) {
+  let stock = getStock(ticker) || getStock(name);
+  if (stock) return stock;
+  stock = { ticker: ticker || name, name: name || ticker, market: currency === "KRW" ? "KR" : "US", currency: currency || "KRW", dividends: [] };
+  customStocks.push(stock);
+  saveCustomStocks();
+  return stock;
+}
+function addCustomDividend(ticker, exDate, perShare) {
+  const stock = getStock(ticker);
+  if (!stock) return;
+  stock.dividends.push({ exDate, payDate: exDate, perShare, status: "paid" });
+  stock.dividends.sort((a, b) => a.exDate.localeCompare(b.exDate));
+  saveCustomStocks();
+  render();
+}
+
+let addDividendForHoldingId = null;
+function toggleAddDividendForm(holdingId) {
+  addDividendForHoldingId = addDividendForHoldingId === holdingId ? null : holdingId;
+  render();
+}
+function submitCustomDividend(holdingId) {
+  const h = holdings.find((x) => x.id === holdingId);
+  if (!h) return;
+  const dateVal = document.getElementById(`div-date-${holdingId}`).value;
+  const amtVal = Number(document.getElementById(`div-amount-${holdingId}`).value);
+  if (!dateVal || !amtVal || amtVal <= 0) return;
+  addDividendForHoldingId = null;
+  addCustomDividend(h.ticker, dateVal, amtVal);
+}
 
 const won = (n) => `₩${Math.round(n).toLocaleString("ko-KR")}`;
 const monthKey = (dateStr) => dateStr.slice(0, 7);
@@ -124,6 +253,14 @@ const thisMonthKey = fmt(TODAY).slice(0, 7);
 function grossKRW(event, stock, qty) {
   const gross = event.perShare * qty;
   return stock.currency === "KRW" ? gross : gross * FX_USD_KRW;
+}
+
+// 매입금액(원금, 원화 환산) — 매입단가(price)를 입력한 보유분만 계산 가능
+function costBasisKRW(h) {
+  const stock = getStock(h.ticker);
+  if (!stock || !h.price) return 0;
+  const cost = h.price * h.quantity;
+  return stock.currency === "KRW" ? cost : cost * FX_USD_KRW;
 }
 
 const ACCOUNT_TYPES = [
@@ -146,15 +283,61 @@ function classifyAmount(event, stock, qty, accountType) {
   return { gross, net: null, certain: false, taxNote: TAX_NOTE[accountType] };
 }
 
-/* ----------------------------- 상태 ----------------------------- */
-let holdings = [
-  { id: 1, ticker: "005930", quantity: 10, purchaseDate: "2024-01-10", accountType: "general" },
-  { id: 2, ticker: "O", quantity: 5, purchaseDate: "2023-11-01", accountType: "isa" },
-  { id: 3, ticker: "033780", quantity: 20, purchaseDate: "2024-02-01", accountType: "pension" },
+/* ----------------------------- 상태 (localStorage 영속) ----------------------------- */
+// v3: 매입단가(price) 필드 추가 — 비중/원금추이 계산용
+const HOLDINGS_STORAGE_KEY = "dividend-passbook:holdings:v3";
+function loadHoldings() {
+  try {
+    const raw = localStorage.getItem(HOLDINGS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+function saveHoldings() {
+  try {
+    localStorage.setItem(HOLDINGS_STORAGE_KEY, JSON.stringify(holdings));
+  } catch {}
+}
+
+let holdings = loadHoldings() || [
+  // 일반위탁 (203-02-227281) — QQQI (매입단가는 실제 체결단가, USD)
+  { id: 1, ticker: "QQQI", quantity: 10, price: 53.55, purchaseDate: "2026-04-28", sellDate: null, accountType: "general" },
+  { id: 2, ticker: "QQQI", quantity: 33, price: 53.56, purchaseDate: "2026-04-28", sellDate: null, accountType: "general" },
+  { id: 3, ticker: "QQQI", quantity: 1, price: 56.47, purchaseDate: "2026-05-19", sellDate: null, accountType: "general" },
+  { id: 4, ticker: "QQQI", quantity: 16, price: 56.10, purchaseDate: "2026-06-11", sellDate: null, accountType: "general" },
+  { id: 5, ticker: "QQQI", quantity: 13, price: 54.47, purchaseDate: "2026-07-22", sellDate: null, accountType: "general" },
+  // 중개형ISA (211-02-404170) — RISE 491620 (매입단가는 실제 체결단가, KRW)
+  { id: 6, ticker: "491620", quantity: 20, price: 10505, purchaseDate: "2026-03-12", sellDate: null, accountType: "isa" },
+  { id: 7, ticker: "491620", quantity: 491, price: 10140, purchaseDate: "2026-04-03", sellDate: null, accountType: "isa" },
+  { id: 8, ticker: "491620", quantity: 500, price: 11105, purchaseDate: "2026-04-23", sellDate: null, accountType: "isa" },
+  { id: 9, ticker: "491620", quantity: 64, price: 11660, purchaseDate: "2026-06-30", sellDate: null, accountType: "isa" },
+  { id: 10, ticker: "491620", quantity: 36, price: 11295, purchaseDate: "2026-07-22", sellDate: null, accountType: "isa" },
+  // 중개형ISA — RISE 0138T0
+  { id: 11, ticker: "0138T0", quantity: 317, price: 9475, purchaseDate: "2026-04-03", sellDate: null, accountType: "isa" },
+  { id: 12, ticker: "0138T0", quantity: 300, price: 9875, purchaseDate: "2026-04-23", sellDate: null, accountType: "isa" },
+  // 중개형ISA — KODEX 441640
+  { id: 13, ticker: "441640", quantity: 156, price: 12845, purchaseDate: "2026-04-03", sellDate: null, accountType: "isa" },
+  { id: 14, ticker: "441640", quantity: 5, price: 12970, purchaseDate: "2026-04-23", sellDate: null, accountType: "isa" },
+  { id: 15, ticker: "441640", quantity: 95, price: 12975, purchaseDate: "2026-04-23", sellDate: null, accountType: "isa" },
 ];
-let tab = "holdings";
+let tab = "dividend";
 let showAdd = false;
 let form = { ticker: STOCKS[0].ticker, quantity: "", purchaseDate: "", accountType: "general" };
+
+// 도미노 벤치마킹 탭들의 UI 상태
+let selectedMonthKey = thisMonthKey;
+let profitPeriod = "total";
+let allocationView = "ticker";
+let dividendShowNet = true;
+let dividendShowForeign = true;
+
+function selectMonth(m) { selectedMonthKey = m; render(); }
+function setProfitPeriod(p) { profitPeriod = p; render(); }
+function setAllocationView(v) { allocationView = v; render(); }
+function toggleDividendNet() { dividendShowNet = !dividendShowNet; render(); }
+function toggleDividendForeign() { dividendShowForeign = !dividendShowForeign; render(); }
 
 function setTab(t) { tab = t; render(); }
 function toggleAdd() { showAdd = !showAdd; render(); }
@@ -164,13 +347,187 @@ function addHolding() {
   const qty = Number(document.getElementById("f-qty").value);
   const pdate = document.getElementById("f-date").value;
   const ticker = document.getElementById("f-ticker").value;
+  const priceRaw = document.getElementById("f-price").value;
+  const price = priceRaw ? Number(priceRaw) : null;
+  const sellDate = document.getElementById("f-sell-date").value || null;
   if (!qty || !pdate) return;
-  holdings.push({ id: Date.now(), ticker, quantity: qty, purchaseDate: pdate, accountType: form.accountType });
+  if (sellDate && sellDate < pdate) { alert("매도일은 매입일보다 빠를 수 없어요."); return; }
+  holdings.push({ id: Date.now(), ticker, quantity: qty, price, purchaseDate: pdate, sellDate, accountType: form.accountType });
   form = { ticker: STOCKS[0].ticker, quantity: "", purchaseDate: "", accountType: "general" };
   showAdd = false;
+  saveHoldings();
   render();
 }
-function removeHolding(id) { holdings = holdings.filter((h) => h.id !== id); render(); }
+function removeHolding(id) { holdings = holdings.filter((h) => h.id !== id); saveHoldings(); render(); }
+
+/* ----------------------------- CSV 일괄 가져오기 (매수 배치·매도 이력 지원) ----------------------------- */
+let csvImport = { open: false, fileName: "", headerError: null, results: [] };
+
+const CSV_HEADER_ALIASES = {
+  ticker: ["ticker", "종목코드", "티커", "코드"],
+  name: ["name", "종목명", "상품명"],
+  currency: ["currency", "통화"],
+  quantity: ["quantity", "수량", "주식수"],
+  price: ["price", "매입단가", "가격", "체결단가"],
+  purchaseDate: ["purchasedate", "매입일", "매수일"],
+  accountType: ["accounttype", "계좌유형", "계좌"],
+  sellDate: ["selldate", "매도일"],
+};
+const ACCOUNT_TYPE_ALIASES = {
+  general: ["general", "일반", "일반위탁"],
+  isa: ["isa"],
+  pension: ["pension", "연금", "연금저축", "irp", "연금저축·irp"],
+};
+
+function toggleCsvImport() { csvImport = { open: !csvImport.open, fileName: "", headerError: null, results: [] }; render(); }
+
+function parseCSV(text) {
+  const lines = text.split(/\r\n|\n|\r/).filter((l) => l.trim().length > 0);
+  const parseLine = (line) => {
+    const cells = [];
+    let cur = "", inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQuotes) {
+        if (ch === '"') { if (line[i + 1] === '"') { cur += '"'; i++; } else inQuotes = false; }
+        else cur += ch;
+      } else {
+        if (ch === '"') inQuotes = true;
+        else if (ch === ",") { cells.push(cur); cur = ""; }
+        else cur += ch;
+      }
+    }
+    cells.push(cur);
+    return cells.map((c) => c.trim());
+  };
+  if (lines.length === 0) return { headers: [], rows: [] };
+  return { headers: parseLine(lines[0]), rows: lines.slice(1).map(parseLine) };
+}
+
+function resolveHeaderIndex(headers) {
+  const norm = headers.map((h) => h.toLowerCase().replace(/\s/g, ""));
+  const idx = {};
+  Object.entries(CSV_HEADER_ALIASES).forEach(([key, aliases]) => {
+    idx[key] = norm.findIndex((h) => aliases.some((a) => a.toLowerCase() === h));
+  });
+  return idx;
+}
+
+function resolveAccountType(raw) {
+  const norm = (raw || "").toLowerCase().replace(/\s/g, "");
+  for (const [key, aliases] of Object.entries(ACCOUNT_TYPE_ALIASES)) {
+    if (aliases.some((a) => a.toLowerCase() === norm)) return key;
+  }
+  return null;
+}
+
+function isValidDateStr(s) { return /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(new Date(s).getTime()); }
+
+function validateCsvRow(cols, idx, rowNum) {
+  const get = (key) => (idx[key] >= 0 ? (cols[idx[key]] || "").trim() : "");
+  const tickerRaw = get("ticker");
+  const nameRaw = get("name");
+  const currencyRaw = get("currency").toUpperCase();
+  const qtyRaw = get("quantity");
+  const priceRaw = get("price");
+  const dateRaw = get("purchaseDate");
+  const accRaw = get("accountType");
+  const sellRaw = get("sellDate");
+
+  if (!tickerRaw && !nameRaw) return { ok: false, error: "종목코드와 종목명이 둘 다 비어있어요 (최소 하나는 필요)" };
+  let resolvedTicker = tickerRaw && (getStock(tickerRaw.toUpperCase()) || getStock(tickerRaw)) ? (getStock(tickerRaw.toUpperCase()) || getStock(tickerRaw)).ticker : null;
+  if (!resolvedTicker && nameRaw && getStock(nameRaw)) resolvedTicker = getStock(nameRaw).ticker;
+  // 데모 10종목·기존 커스텀 종목에도 없으면, 종목명이 있는 한 새 커스텀 종목으로 등록 예정
+  // (실제 생성은 확정(가져오기) 시점에만 — 미리보기 단계에서 취소해도 흔적이 안 남도록)
+  let pendingCustomStock = null;
+  if (!resolvedTicker) {
+    if (!nameRaw) return { ok: false, error: `"${tickerRaw}"는 지원하지 않는 종목이에요 (종목명을 같이 적어주면 커스텀 종목으로 등록돼요)` };
+    resolvedTicker = tickerRaw || nameRaw;
+    pendingCustomStock = { ticker: resolvedTicker, name: nameRaw, currency: currencyRaw === "USD" ? "USD" : "KRW" };
+  }
+
+  const qty = Number(qtyRaw);
+  if (!qtyRaw || !Number.isFinite(qty) || qty <= 0) return { ok: false, error: `수량이 올바르지 않아요 (${qtyRaw})` };
+
+  let price = null;
+  if (priceRaw) {
+    price = Number(priceRaw);
+    if (!Number.isFinite(price) || price <= 0) return { ok: false, error: `매입단가가 올바르지 않아요 (${priceRaw})` };
+  }
+
+  if (!isValidDateStr(dateRaw)) return { ok: false, error: `매입일 형식이 올바르지 않아요 (YYYY-MM-DD, "${dateRaw}")` };
+
+  const accountType = accRaw ? resolveAccountType(accRaw) : "general";
+  if (!accountType) return { ok: false, error: `계좌유형을 알 수 없어요 ("${accRaw}")` };
+
+  let sellDate = null;
+  if (sellRaw) {
+    if (!isValidDateStr(sellRaw)) return { ok: false, error: `매도일 형식이 올바르지 않아요 (YYYY-MM-DD, "${sellRaw}")` };
+    if (sellRaw < dateRaw) return { ok: false, error: "매도일이 매입일보다 빨라요" };
+    sellDate = sellRaw;
+  }
+
+  return {
+    ok: true,
+    pendingCustomStock,
+    holding: { id: Date.now() * 1000 + rowNum, ticker: resolvedTicker, quantity: qty, price, purchaseDate: dateRaw, sellDate, accountType },
+  };
+}
+
+function handleCsvFile(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const { headers, rows } = parseCSV(String(reader.result || ""));
+    const idx = resolveHeaderIndex(headers);
+    if ((idx.ticker < 0 && idx.name < 0) || idx.quantity < 0 || idx.purchaseDate < 0) {
+      csvImport = { open: true, fileName: file.name, headerError: "필수 컬럼(종목코드 또는 종목명 / 수량 / 매입일)을 찾을 수 없어요. 헤더명을 확인해주세요.", results: [] };
+      render();
+      return;
+    }
+    const results = rows.map((cols, i) => {
+      const rowNum = i + 2;
+      const v = validateCsvRow(cols, idx, rowNum);
+      return { rowNum, raw: cols.join(", "), ...v };
+    });
+    csvImport = { open: true, fileName: file.name, headerError: null, results };
+    render();
+  };
+  reader.readAsText(file, "UTF-8");
+}
+
+function confirmCsvImport() {
+  const okResults = csvImport.results.filter((r) => r.ok);
+  if (okResults.length === 0) return;
+  okResults.forEach((r) => {
+    if (r.pendingCustomStock) {
+      getOrCreateCustomStock(r.pendingCustomStock.ticker, r.pendingCustomStock.name, r.pendingCustomStock.currency);
+    }
+  });
+  holdings = holdings.concat(okResults.map((r) => r.holding));
+  saveHoldings();
+  csvImport = { open: false, fileName: "", headerError: null, results: [] };
+  render();
+}
+
+function downloadSampleCsv() {
+  const sample = "종목코드,종목명,통화,수량,매입단가,매입일,계좌유형,매도일\n"
+    + "005930,,,10,71500,2024-01-10,일반,\n"
+    + "005930,,,5,74200,2024-06-01,일반,\n"
+    + "O,,,5,54.2,2023-11-01,ISA,\n"
+    + "033780,,,10,95000,2024-02-01,연금,2026-03-02\n"
+    + ",네오스 나스닥100 고배당 ETF,USD,10,53.55,2026-04-28,일반,\n";
+  const blob = new Blob(["﻿" + sample], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "배당통장_샘플.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 /* ----------------------------- 계산 ----------------------------- */
 function computeAll() {
@@ -178,7 +535,8 @@ function computeAll() {
   holdings.forEach((h) => {
     const stock = getStock(h.ticker);
     if (!stock) return;
-    stock.dividends.filter((e) => e.exDate >= h.purchaseDate).forEach((e) => {
+    // 매도일 당일까지는 배당락일 기준 소유로 보고 배당 자격 유지, 그 다음날부터 제외
+    stock.dividends.filter((e) => e.exDate >= h.purchaseDate && (!h.sellDate || e.exDate <= h.sellDate)).forEach((e) => {
       const c = classifyAmount(e, stock, h.quantity, h.accountType);
       allEvents.push({ ...e, holdingId: h.id, ticker: h.ticker, name: stock.name, market: stock.market,
         currency: stock.currency, qty: h.quantity, accountType: h.accountType,
@@ -203,13 +561,104 @@ function computeAll() {
   paidEvents.forEach((e) => { running += e.gross; ledgerAsc.push({ ...e, running }); });
   const ledgerDesc = [...ledgerAsc].reverse();
 
-  const byMonth = {};
-  ledgerAsc.forEach((e) => { byMonth[monthKey(e.exDate)] = e.running; });
-  const chartData = Object.entries(byMonth).map(([m, v]) => ({ month: m, value: v }));
-
-  return { paidEvents, confirmedEvents, estimatedEvents, thisMonthEvents, yearGross,
-    generalNetAllTime, isaGrossAllTime, pensionGrossAllTime, ledgerDesc, chartData };
+  return { allEvents, paidEvents, confirmedEvents, estimatedEvents, thisMonthEvents, yearGross,
+    generalNetAllTime, isaGrossAllTime, pensionGrossAllTime, ledgerDesc };
 }
+
+/* ----------------------------- 배당 탭: 최근 12개월(실제) + 다음달(추정) 13개월 분해 ----------------------------- */
+// 연도 단위로 끊으면 올해 하반기처럼 아직 안 일어난 "추정" 달까지 연간 합계에 섞여
+// 허무맹랑해지므로, 오늘 기준 과거로 굴러가는 실제 12개월 + 다음달 추정 1개월만 보여준다.
+function trailing13Months(allEvents) {
+  const months = [];
+  for (let i = -11; i <= 1; i++) {
+    const mKey = monthKey(fmt(addMonths(TODAY, i)));
+    const events = allEvents.filter((e) => monthKey(e.exDate) === mKey);
+    months.push({ month: mKey, value: events.reduce((s, e) => s + e.gross, 0), events, isFuture: i > 0 });
+  }
+  return months;
+}
+
+// 같은 종목의 매수 배치(구매기록)별로 흩어진 이벤트를 종목+배당락일 기준 한 줄로 합친다
+// (배당락일 기준 보유수량만 반영되므로 그 시점에 실제로 들고 있던 주수의 합이 된다)
+function mergeEventsByTicker(events) {
+  const map = {};
+  events.forEach((e) => {
+    const key = `${e.ticker}__${e.exDate}`;
+    if (!map[key]) {
+      map[key] = { ticker: e.ticker, name: e.name, currency: e.currency, perShare: e.perShare,
+        exDate: e.exDate, payDate: e.payDate, status: e.status, qty: 0, gross: 0, net: 0, allCertain: true, accountTypes: new Set(), taxNote: e.taxNote };
+    }
+    const m = map[key];
+    m.qty += e.qty;
+    m.gross += e.gross;
+    if (e.certain) m.net += e.net; else m.allCertain = false;
+    m.accountTypes.add(e.accountType);
+  });
+  return Object.values(map).map((m) => ({ ...m, accountTypes: Array.from(m.accountTypes) }));
+}
+
+/* ----------------------------- 수익 탭: 기간별 배당 합계 ----------------------------- */
+function periodDividendTotal(period, paidEvents) {
+  if (period === "total") return paidEvents.reduce((s, e) => s + e.gross, 0);
+  if (period === "today") return paidEvents.filter((e) => e.exDate === fmt(TODAY)).reduce((s, e) => s + e.gross, 0);
+  if (period === "week") {
+    const start = new Date(TODAY);
+    start.setDate(TODAY.getDate() - TODAY.getDay());
+    return paidEvents.filter((e) => new Date(e.exDate) >= start).reduce((s, e) => s + e.gross, 0);
+  }
+  if (period === "month") return paidEvents.filter((e) => monthKey(e.exDate) === thisMonthKey).reduce((s, e) => s + e.gross, 0);
+  if (period === "quarter") {
+    const q = Math.floor(TODAY.getMonth() / 3);
+    return paidEvents.filter((e) => {
+      const d = new Date(e.exDate);
+      return d.getFullYear() === TODAY.getFullYear() && Math.floor(d.getMonth() / 3) === q;
+    }).reduce((s, e) => s + e.gross, 0);
+  }
+  if (period === "year") return paidEvents.filter((e) => e.exDate.slice(0, 4) === String(TODAY.getFullYear())).reduce((s, e) => s + e.gross, 0);
+  return 0;
+}
+
+/* ----------------------------- 비중 탭: 매입금액(원금) 기준 그룹 ----------------------------- */
+function costBasisGroups(holdingsList) {
+  const byTicker = {}, byMarket = {}, byAccount = {};
+  let total = 0;
+  holdingsList.forEach((h) => {
+    if (h.sellDate) return;
+    const cost = costBasisKRW(h);
+    if (!cost) return;
+    const stock = getStock(h.ticker);
+    if (!stock) return;
+    if (!byTicker[h.ticker]) byTicker[h.ticker] = { key: h.ticker, label: stock.name, value: 0 };
+    byTicker[h.ticker].value += cost;
+    const marketLabel = stock.market === "KR" ? "국내" : "해외";
+    byMarket[marketLabel] = (byMarket[marketLabel] || 0) + cost;
+    const accLabel = getAccountType(h.accountType).label;
+    byAccount[accLabel] = (byAccount[accLabel] || 0) + cost;
+    total += cost;
+  });
+  const toList = (obj) => Object.entries(obj).map(([label, value]) => ({ key: label, label, value })).sort((a, b) => b.value - a.value);
+  return {
+    total,
+    ticker: Object.values(byTicker).sort((a, b) => b.value - a.value),
+    market: toList(byMarket),
+    account: toList(byAccount),
+    uncosted: holdingsList.filter((h) => !h.sellDate && !h.price).length,
+  };
+}
+
+/* ----------------------------- 추이 탭: 원금(매입금액) 누적 추이 ----------------------------- */
+function costBasisTrend(holdingsList) {
+  const withCost = holdingsList.filter((h) => h.price).slice().sort((a, b) => a.purchaseDate.localeCompare(b.purchaseDate));
+  const byMonth = {};
+  let running = 0;
+  withCost.forEach((h) => {
+    running += costBasisKRW(h);
+    byMonth[monthKey(h.purchaseDate)] = Math.round(running);
+  });
+  return Object.entries(byMonth).map(([m, v]) => ({ month: m, value: v }));
+}
+
+const wonCompact = (n) => (Math.abs(n) >= 10000 ? `${(n / 10000).toFixed(1)}만` : Math.round(n).toLocaleString("ko-KR"));
 
 /* ----------------------------- 미니 차트(SVG) ----------------------------- */
 function sparkline(chartData) {
@@ -231,17 +680,82 @@ function sparkline(chartData) {
   </svg>`;
 }
 
+// 과거 8개월(지급완료, 남색) + 이번달(브라스) + 향후 3개월(추정치, 점선 테두리) 막대그래프
+// 배당 탭용 13개월(최근 12개월 실제 + 다음달 추정) 막대그래프 — 막대 위 금액 라벨, 클릭 시 해당 월 선택, 추정월은 점선
+function trailingBarChart(months, selectedMonthKey) {
+  const w = 380, h = 116, pad = 4, labelH = 14;
+  const max = Math.max(1, ...months.map((d) => d.value));
+  const slot = (w - pad * 2) / months.length;
+  const barW = slot * 0.6;
+  const bars = months.map((d, i) => {
+    const x = pad + i * slot + (slot - barW) / 2;
+    const barH = Math.max(2, (d.value / max) * (h - pad - labelH - 12));
+    const y = h - labelH - barH;
+    const isSel = d.month === selectedMonthKey;
+    const fill = isSel ? "#9C7A3C" : d.isFuture ? "#EDE9DC" : "#1F2A44";
+    const stroke = d.isFuture ? ` stroke="#C9C0A5" stroke-width="1" stroke-dasharray="3,2"` : "";
+    return `<g onclick="selectMonth('${d.month}')" style="cursor:pointer;">
+      <rect x="${x.toFixed(1)}" y="${(pad).toFixed(1)}" width="${barW.toFixed(1)}" height="${(h - labelH - pad).toFixed(1)}" fill="transparent"></rect>
+      ${d.value > 0 ? `<text x="${(x + barW / 2).toFixed(1)}" y="${(y - 3).toFixed(1)}" font-size="7" fill="#8B93A8" text-anchor="middle" font-family="'IBM Plex Mono', monospace">${wonCompact(d.value)}</text>` : ""}
+      <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="2" fill="${fill}"${stroke}></rect>
+      <text x="${(x + barW / 2).toFixed(1)}" y="${h - 3}" font-size="7" fill="${isSel ? "#9C7A3C" : "#8B93A8"}" font-weight="${isSel ? "700" : "400"}" text-anchor="middle" font-family="'IBM Plex Mono', monospace">${d.month.slice(5)}</text>
+    </g>`;
+  }).join("");
+  return `<svg class="chart" style="height:116px;" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${bars}</svg>`;
+}
+
+// 비중 탭용 도넛 차트
+const DONUT_COLORS = ["#1F2A44", "#9C7A3C", "#8B93A8", "#B23A3A", "#4B5670", "#C9C0A5"];
+function donutChart(segments) {
+  const size = 140, cx = size / 2, cy = size / 2, r = 50, strokeW = 22;
+  const total = segments.reduce((s, seg) => s + seg.value, 0) || 1;
+  const circumference = 2 * Math.PI * r;
+  let offset = 0;
+  const arcs = segments.map((seg, i) => {
+    const dash = (seg.value / total) * circumference;
+    const el = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${DONUT_COLORS[i % DONUT_COLORS.length]}" stroke-width="${strokeW}" stroke-dasharray="${dash.toFixed(1)} ${(circumference - dash).toFixed(1)}" stroke-dashoffset="${(-offset).toFixed(1)}" transform="rotate(-90 ${cx} ${cy})"></circle>`;
+    offset += dash;
+    return el;
+  }).join("");
+  return `<svg viewBox="0 0 ${size} ${size}" style="width:140px; height:140px; display:block; margin:0 auto;">${arcs}</svg>`;
+}
+
 /* ----------------------------- 렌더 ----------------------------- */
 function render() {
-  const { paidEvents, confirmedEvents, estimatedEvents, thisMonthEvents, yearGross,
-    generalNetAllTime, isaGrossAllTime, pensionGrossAllTime, ledgerDesc, chartData } = computeAll();
+  const { allEvents, paidEvents, confirmedEvents, estimatedEvents, thisMonthEvents, yearGross,
+    generalNetAllTime, isaGrossAllTime, pensionGrossAllTime, ledgerDesc } = computeAll();
 
   const THRESHOLD = 20000000;
   const pct = Math.min(100, (yearGross / THRESHOLD) * 100);
 
+  // 도미노 벤치마킹 탭들이 쓰는 파생 데이터
+  const trailingMonths = trailing13Months(allEvents);
+  if (!trailingMonths.some((m) => m.month === selectedMonthKey)) selectedMonthKey = thisMonthKey;
+  const selectedMonthData = trailingMonths.find((m) => m.month === selectedMonthKey);
+  // "실제 데이터로만" — 추정월(다음달)을 뺀 최근 12개월의 실제 지급분만 합산
+  const realTrailingEvents = trailingMonths.filter((m) => !m.isFuture).flatMap((m) => m.events).filter((e) => e.status === "paid");
+  const trailing12Total = realTrailingEvents.reduce((s, e) => s + e.gross, 0);
+
+  const costGroups = costBasisGroups(holdings);
+  const costTrendData = costBasisTrend(holdings);
+
   const stockOptions = STOCKS.map((s) =>
     `<option value="${s.ticker}" ${form.ticker === s.ticker ? "selected" : ""}>${s.name} (${s.market === "KR" ? "국내" : "해외"} · ${s.ticker})</option>`
   ).join("");
+
+  function allocationListHtml(list) {
+    return list.map((seg, i) => `
+      <div class="row-between" style="padding:8px 0; border-bottom:1px solid #EDE9DC;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="width:9px; height:9px; border-radius:50%; background:${DONUT_COLORS[i % DONUT_COLORS.length]}; display:inline-block; flex-shrink:0;"></span>
+          <span class="ink" style="font-size:13px; font-weight:500;">${seg.label}</span>
+        </div>
+        <div style="text-align:right;">
+          <div class="mono ink" style="font-size:13px; font-weight:600;">${costGroups.total > 0 ? ((seg.value / costGroups.total) * 100).toFixed(1) : "0.0"}%</div>
+          <div class="mono muted" style="font-size:10px;">${won(seg.value)}</div>
+        </div>
+      </div>`).join("");
+  }
 
   const thisMonthHtml = thisMonthEvents.length === 0
     ? `<p class="muted" style="font-size:14px;">이번 달 확정된 배당이 아직 없어요.</p>`
@@ -261,8 +775,6 @@ function render() {
           </div>`).join("")}
       </div>`;
 
-  const chartHtml = chartData.length > 1 ? `<div class="mt3">${sparkline(chartData)}</div>` : "";
-
   const holdingsHtml = holdings.map((h) => {
     const stock = getStock(h.ticker);
     if (!stock) return "";
@@ -270,21 +782,37 @@ function render() {
     const events = paidEvents.filter((e) => e.holdingId === h.id);
     const totalGross = events.reduce((s, e) => s + e.gross, 0);
     const totalNet = events.reduce((s, e) => s + (e.net || 0), 0);
+    const custom = isCustomStock(h.ticker);
+    const dividendFormHtml = custom && addDividendForHoldingId === h.id ? `
+      <div class="mt2" style="padding-top:8px; border-top:1px dashed #E4DCC5;">
+        <div class="muted" style="font-size:10px;">배당(분배금) 지급일</div>
+        <input id="div-date-${h.id}" class="form-input" type="date" style="margin-top:4px;" />
+        <div class="muted" style="font-size:10px; margin-top:6px;">주당 지급액 (${stock.currency})</div>
+        <input id="div-amount-${h.id}" class="form-input" type="number" step="0.0001" style="margin-top:4px;" />
+        <button type="button" class="submit-btn" style="margin-top:8px;" onclick="submitCustomDividend(${h.id})">기록 추가</button>
+      </div>` : "";
     return `
-      <div class="holding-card">
-        <div>
-          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-            <span class="stock-name">${stock.name}</span>
-            <span class="badge">${stock.market === "KR" ? "국내" : "해외"}</span>
-            <span class="badge ${h.accountType !== "general" ? "badge-brass" : ""}">${acc.label}</span>
+      <div class="holding-card" style="${custom ? "flex-direction:column; align-items:stretch;" : ""}">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; width:100%;">
+          <div>
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              <span class="stock-name">${stock.name}</span>
+              <span class="badge">${stock.market === "KR" ? "국내" : "해외"}</span>
+              <span class="badge ${h.accountType !== "general" ? "badge-brass" : ""}">${acc.label}</span>
+              ${custom ? `<span class="badge" style="background:#E4E9F0; color:#4B5670;">커스텀</span>` : ""}
+              ${h.sellDate ? `<span class="badge" style="background:#F3E3E3; color:#B23A3A;">매도 ${h.sellDate}</span>` : ""}
+            </div>
+            <div class="muted mt1" style="font-size:11px;">${h.quantity}주 · ${h.purchaseDate} 매입</div>
+            <div class="mono ink mt1" style="font-size:11px;">누적 세전 ${won(totalGross)}</div>
+            ${h.accountType === "general"
+              ? `<div class="mono brass" style="font-size:11px;">세후 확정 ${won(totalNet)}</div>`
+              : `<div class="muted" style="font-size:10px;">${TAX_NOTE[h.accountType]}</div>`}
+            ${custom && stock.dividends.length === 0 ? `<div class="muted" style="font-size:10px; margin-top:2px;">아직 기록된 배당이 없어요. 입금 알림 받으면 직접 추가해주세요.</div>` : ""}
           </div>
-          <div class="muted mt1" style="font-size:11px;">${h.quantity}주 · ${h.purchaseDate} 매입</div>
-          <div class="mono ink mt1" style="font-size:11px;">누적 세전 ${won(totalGross)}</div>
-          ${h.accountType === "general"
-            ? `<div class="mono brass" style="font-size:11px;">세후 확정 ${won(totalNet)}</div>`
-            : `<div class="muted" style="font-size:10px;">${TAX_NOTE[h.accountType]}</div>`}
+          <button class="del-btn" onclick="removeHolding(${h.id})">✕</button>
         </div>
-        <button class="del-btn" onclick="removeHolding(${h.id})">✕</button>
+        ${custom ? `<button type="button" class="add-btn mt2" style="padding:6px; font-size:11px; background:#4B5670;" onclick="toggleAddDividendForm(${h.id})">${addDividendForHoldingId === h.id ? "닫기" : "+ 배당 기록 추가"}</button>` : ""}
+        ${dividendFormHtml}
       </div>`;
   }).join("");
 
@@ -298,37 +826,74 @@ function render() {
         </div>
         <select id="f-ticker" class="form-select mono">${stockOptions}</select>
         <input id="f-qty" class="form-input" type="number" placeholder="보유 수량" />
+        <input id="f-price" class="form-input" type="number" step="0.01" placeholder="매입단가 (선택, 비중·원금 계산에 사용)" />
+        <div class="muted" style="font-size:10px; margin-top:8px;">매입일</div>
         <input id="f-date" class="form-input" type="date" />
+        <div class="muted" style="font-size:10px; margin-top:8px;">매도일 (선택, 계속 보유 중이면 비워두기)</div>
+        <input id="f-sell-date" class="form-input" type="date" />
         <div class="acc-btns">
           ${ACCOUNT_TYPES.map((a) => `<button class="acc-btn ${form.accountType === a.key ? "active" : ""}" onclick="setFormAccount('${a.key}')">${a.short}</button>`).join("")}
         </div>
         <button class="submit-btn" onclick="addHolding()">추가하기</button>
       </div>`;
 
-  const confirmedHtml = confirmedEvents.length === 0
+  const csvResultsHtml = csvImport.results.length > 0 ? `
+    <div style="margin-top:10px; max-height:220px; overflow-y:auto; border:1px solid #E4DCC5; border-radius:8px;">
+      ${csvImport.results.map((r) => `
+        <div style="padding:8px 10px; border-bottom:1px solid #EDE9DC; font-size:11px;">
+          <div style="color:${r.ok ? "#1F2A44" : "#B23A3A"};">${r.ok ? "✅" : "❌"} ${r.rowNum}행 · ${r.raw}</div>
+          ${!r.ok ? `<div class="red" style="margin-top:2px;">${r.error}</div>` : ""}
+        </div>`).join("")}
+    </div>
+    <div class="muted" style="font-size:11px; margin-top:8px;">확인됨 ${csvImport.results.filter((r) => r.ok).length}건 · 오류 ${csvImport.results.filter((r) => !r.ok).length}건</div>
+    <button type="button" class="submit-btn" ${csvImport.results.filter((r) => r.ok).length === 0 ? "disabled" : ""} onclick="confirmCsvImport()">가져오기 (${csvImport.results.filter((r) => r.ok).length}건)</button>
+  ` : "";
+
+  const csvImportHtml = !csvImport.open
+    ? `<button class="add-btn" style="background:#4B5670;" onclick="toggleCsvImport()">⇪ CSV로 여러 종목 가져오기</button>`
+    : `
+      <div class="form-card">
+        <div class="row-between">
+          <span class="muted" style="font-size:12px; font-weight:500;">CSV로 여러 종목 가져오기</span>
+          <button class="del-btn" style="color:#8B93A8;" onclick="toggleCsvImport()">✕</button>
+        </div>
+        <div class="muted" style="font-size:11px; margin-top:6px; line-height:1.5;">
+          컬럼: 종목코드, 종목명, 통화(KRW/USD), 수량, 매입단가(선택), 매입일(YYYY-MM-DD), 계좌유형(일반/ISA/연금), 매도일(선택)<br/>
+          종목코드가 없어도 종목명만 있으면 커스텀 종목으로 등록돼요 (배당은 직접 기록 필요). 매입단가를 넣으면 비중·원금추이에 반영돼요. 매수 배치마다 한 행씩 적고, 매도한 배치는 매도일도 채워주세요.
+        </div>
+        <button type="button" class="submit-btn" style="background:#8B93A8;" onclick="downloadSampleCsv()">샘플 CSV 받기</button>
+        <input type="file" accept=".csv,text/csv" class="form-input" onchange="handleCsvFile(this)" />
+        ${csvImport.fileName ? `<div class="muted" style="font-size:11px; margin-top:4px;">파일: ${csvImport.fileName}</div>` : ""}
+        ${csvImport.headerError ? `<div class="red" style="font-size:11px; margin-top:6px;">${csvImport.headerError}</div>` : ""}
+        ${csvResultsHtml}
+      </div>`;
+
+  const confirmedGroups = mergeEventsByTicker(confirmedEvents);
+  const confirmedHtml = confirmedGroups.length === 0
     ? `<p class="muted" style="font-size:12px;">확정된 예정 배당이 없어요.</p>`
-    : confirmedEvents.map((e) => `
+    : confirmedGroups.map((g) => `
       <div class="upcoming-card upcoming-confirmed">
         <div class="row-between">
           <div>
-            <div class="ink" style="font-size:14px;">${e.name} <span class="mono muted" style="font-size:10px;">${getAccountType(e.accountType).short}</span></div>
-            <div class="muted" style="font-size:11px;">배당락 ${e.exDate} · 지급 ${e.payDate}</div>
+            <div class="ink" style="font-size:14px;">${g.name} · ${g.qty.toLocaleString("ko-KR")}주 ${g.accountTypes.map((a) => `<span class="mono muted" style="font-size:10px;">${getAccountType(a).short}</span>`).join(" ")}</div>
+            <div class="muted" style="font-size:11px;">배당락 ${g.exDate} · 지급 ${g.payDate}</div>
           </div>
-          <span class="mono ink" style="font-size:14px; font-weight:500;">${won(e.gross)}</span>
+          <span class="mono ink" style="font-size:14px; font-weight:500;">${won(g.gross)}</span>
         </div>
         <div style="text-align:right; font-size:10px; margin-top:2px;">
-          ${e.certain ? `<span class="mono brass">세후 확정 ${won(e.net)}</span>` : `<span class="muted">${e.taxNote}</span>`}
+          ${g.allCertain ? `<span class="mono brass">세후 확정 ${won(g.net)}</span>` : `<span class="muted">${g.taxNote}</span>`}
         </div>
       </div>`).join("");
 
-  const estimatedHtml = estimatedEvents.slice(0, 6).map((e) => `
+  const estimatedGroups = mergeEventsByTicker(estimatedEvents).slice(0, 6);
+  const estimatedHtml = estimatedGroups.map((g) => `
     <div class="upcoming-card upcoming-estimated">
       <div class="row-between">
         <div>
-          <div class="muted" style="font-size:14px;">${e.name} <span class="mono" style="font-size:10px;">${getAccountType(e.accountType).short}</span></div>
-          <div class="muted" style="font-size:11px;">배당락 예상 ${e.exDate}</div>
+          <div class="muted" style="font-size:14px;">${g.name} · ${g.qty.toLocaleString("ko-KR")}주 ${g.accountTypes.map((a) => `<span class="mono" style="font-size:10px;">${getAccountType(a).short}</span>`).join(" ")}</div>
+          <div class="muted" style="font-size:11px;">배당락 예상 ${g.exDate}</div>
         </div>
-        <span class="mono muted" style="font-size:14px;">약 ${won(e.gross)} (세전)</span>
+        <span class="mono muted" style="font-size:14px;">약 ${won(g.gross)} (세전)</span>
       </div>
     </div>`).join("");
 
@@ -347,6 +912,182 @@ function render() {
           </div>
         </div>`).join("")}</div>`;
 
+  /* ===================== 도미노 벤치마킹 5탭 + 관리 탭 ===================== */
+
+  // --- 수익 ---
+  const PROFIT_PERIODS = [
+    { key: "today", label: "오늘" }, { key: "total", label: "총" }, { key: "week", label: "이번주" },
+    { key: "month", label: "이번달" }, { key: "quarter", label: "이번분기" }, { key: "year", label: "올해" },
+  ];
+  const profitDividend = periodDividendTotal(profitPeriod, paidEvents);
+  const profitTabHtml = `
+    <div class="card">
+      <span class="muted" style="font-size:12px; font-weight:500;">수익 현황</span>
+      <div class="subtoggle mt2">
+        ${PROFIT_PERIODS.map((p) => `<button class="subtoggle-btn ${profitPeriod === p.key ? "active" : ""}" onclick="setProfitPeriod('${p.key}')">${p.label}</button>`).join("")}
+      </div>
+      <div class="mt3" style="border-top:1px dashed #E4DCC5; padding-top:12px;">
+        <div class="row-between">
+          <span class="muted" style="font-size:12px;">평가수익</span>
+          <span class="mono muted" style="font-size:12px;">현재가 연동 준비중</span>
+        </div>
+        <div class="row-between mt2">
+          <span class="muted" style="font-size:12px;">실현수익</span>
+          <span class="mono muted" style="font-size:12px;">매도 체결가 기록 준비중</span>
+        </div>
+        <div class="row-between mt2">
+          <span class="muted" style="font-size:12px;">배당금</span>
+          <span class="mono brass" style="font-size:15px; font-weight:700;">+${won(profitDividend)}</span>
+        </div>
+      </div>
+      <div class="mt3" style="border-top:1px solid #EDE9DC; padding-top:10px;">
+        <div class="muted" style="font-size:10px;">합계 (지금은 배당금만 반영)</div>
+        <div class="mono ink" style="font-size:22px; font-weight:700;">+${won(profitDividend)}</div>
+      </div>
+    </div>
+    <div class="footer-note mt3">
+      "평가수익"과 "실현수익"은 종목 현재가·매도 체결가 데이터가 있어야 계산돼요. 지금은 실시간 시세 연동이 안 돼 있어서 확실한 배당금만 정확하게 보여드리고 있어요.
+    </div>`;
+
+  // --- 세금 ---
+  const allAccountsYearGross = paidEvents.filter((e) => e.exDate.slice(0, 4) === String(TODAY.getFullYear()))
+    .reduce((s, e) => s + e.gross, 0);
+  const taxTabHtml = `
+    <div class="card">
+      <span class="muted" style="font-size:12px; font-weight:500;">${TODAY.getFullYear()}년 전체 배당소득 (세전, 전계좌 합산)</span>
+      <div class="serif mono ink mt1" style="font-size:22px; font-weight:700;">${won(allAccountsYearGross)}</div>
+    </div>
+    <div class="card mt3">
+      <div class="row-between" style="align-items:baseline;">
+        <span class="muted" style="font-size:12px;">일반위탁 종합과세 대상 (세전)</span>
+        <span class="mono muted" style="font-size:11px;">기준 2,000만원</span>
+      </div>
+      <div class="mid-num serif mono ink mt1">${won(yearGross)}</div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${pct > 80 ? "#B23A3A" : "#9C7A3C"};"></div></div>
+      ${pct > 70 ? `<p class="red mt1" style="font-size:11px;">종합과세 기준(2천만원)에 가까워지고 있어요. 정확한 세액은 세무사 확인을 권장해요.</p>` : ""}
+    </div>
+    <div class="card mt3">
+      <span class="muted" style="font-size:12px; font-weight:500;">계좌유형별 세후/세전 구분</span>
+      <div class="mt2">
+        <div class="summary-line"><span class="muted">일반위탁 누적 (세후 확정)</span><span class="mono ink" style="font-weight:500;">${won(generalNetAllTime)}</span></div>
+        <div class="summary-line"><span class="muted">ISA 누적 (세전, 만기 정산 예정)</span><span class="mono brass" style="font-weight:500;">${won(isaGrossAllTime)}</span></div>
+        <div class="summary-line"><span class="muted">연금계좌 누적 (세전, 인출 시 정산 예정)</span><span class="mono brass" style="font-weight:500;">${won(pensionGrossAllTime)}</span></div>
+      </div>
+      <p class="muted mt2" style="font-size:10px; line-height:1.5;">일반위탁은 세율이 고정(15.4%/15%)돼 있어 세후 금액을 확정적으로 계산해요. ISA·연금저축·IRP는 최종 세액이 만기·인출 시점에 결정되므로 세전 금액만 보여드려요.</p>
+    </div>`;
+
+  // --- 배당 ---
+  const headlineAmount = dividendShowNet
+    ? realTrailingEvents.reduce((s, e) => s + (e.certain ? e.net : e.gross), 0)
+    : trailing12Total;
+  const rangeLabel = `${trailingMonths[0].month} ~ ${trailingMonths[11].month} 실제 · ${trailingMonths[12].month} 예정`;
+  const monthGroups = mergeEventsByTicker(selectedMonthData.events);
+  const monthListHtml = monthGroups.length === 0
+    ? `<p class="muted mt2" style="font-size:12px;">이 달은 배당 내역이 없어요.</p>`
+    : monthGroups.slice().sort((a, b) => a.exDate.localeCompare(b.exDate)).map((g) => {
+        const nativeAmount = g.perShare * g.qty;
+        return `
+        <div class="row-between" style="padding:10px 0; border-bottom:1px solid #EDE9DC;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div style="width:28px; height:28px; border-radius:50%; background:#EDE9DC; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#4B5670; flex-shrink:0;">${g.name.slice(0, 1)}</div>
+            <div>
+              <div class="ink" style="font-size:13px; font-weight:500;">${g.name}</div>
+              <div class="muted" style="font-size:10px;">${g.qty.toLocaleString("ko-KR")}주 · 1주당 ${g.currency === "USD" ? "$" : "₩"}${g.perShare} ${g.accountTypes.map((a) => `<span class="badge" style="margin-left:2px;">${getAccountType(a).short}</span>`).join("")}</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div class="mono ink" style="font-size:13px; font-weight:600;">${won(dividendShowNet && g.allCertain ? g.net : g.gross)}</div>
+            ${dividendShowForeign && g.currency !== "KRW" ? `<div class="mono muted" style="font-size:10px;">$${nativeAmount.toFixed(2)}</div>` : ""}
+            <div class="muted" style="font-size:9px;">${g.exDate.slice(8)}일 · ${g.status === "estimated" ? "추정" : g.status === "confirmed" ? "확정예정" : "지급완료"}</div>
+          </div>
+        </div>`;
+      }).join("");
+
+  const dividendTabHtml = `
+    <div class="card">
+      <div class="mt1" style="text-align:center;">
+        <div class="muted" style="font-size:11px;">배당금 (최근 12개월)</div>
+        <div class="serif mono ink mt1" style="font-size:24px; font-weight:700;">${won(headlineAmount)}</div>
+        <div class="muted mt1" style="font-size:9px;">${rangeLabel}</div>
+        ${costGroups.total > 0 && trailing12Total > 0 ? `<div class="muted mt1" style="font-size:10px;">투자배당률 ${((trailing12Total / costGroups.total) * 100).toFixed(2)}%</div>` : ""}
+      </div>
+      <div class="row-between mt2">
+        <button class="subtoggle-btn ${dividendShowNet ? "active" : ""}" style="flex:none; padding:4px 10px;" onclick="toggleDividendNet()">실수령액 ${dividendShowNet ? "✓" : ""}</button>
+        <button class="subtoggle-btn ${dividendShowForeign ? "active" : ""}" style="flex:none; padding:4px 10px;" onclick="toggleDividendForeign()">외화보기 ${dividendShowForeign ? "✓" : ""}</button>
+      </div>
+      <div class="mt3">${trailingBarChart(trailingMonths, selectedMonthKey)}</div>
+    </div>
+
+    <div class="card mt3">
+      <div class="row-between">
+        <span class="ink" style="font-size:13px; font-weight:600;">${selectedMonthData.month}${selectedMonthData.isFuture ? " (예정)" : ""}</span>
+        <span class="mono ink" style="font-size:14px; font-weight:600;">${won(selectedMonthData.value)}</span>
+      </div>
+      <div class="mt1">${monthListHtml}</div>
+    </div>
+
+    <div class="card mt3">
+      <div class="row-between" style="margin-bottom:8px;">
+        <span class="stamp" style="font-size:10px;">확정</span><span class="muted" style="font-size:11px;">이사회 결의 등으로 금액·일정이 정해진 배당</span>
+      </div>
+      ${confirmedHtml}
+      <div class="row-between mt3" style="margin-bottom:8px;">
+        <span style="font-size:10px; padding:2px 8px; border:1.5px solid #8B93A8; color:#8B93A8; border-radius:2px; font-weight:600; font-family:'IBM Plex Mono',monospace;">예상</span><span class="muted" style="font-size:11px;">과거 지급 패턴 기반 추정치</span>
+      </div>
+      ${estimatedHtml}
+    </div>
+
+    <div class="card mt3">
+      <span class="muted" style="font-size:12px; font-weight:500;">전체 지급 기록 (누적)</span>
+      <div class="ledger-header mt2"><span>거래일 / 종목·계좌</span><span>세전 수령액 / 누적</span></div>
+      ${ledgerHtml}
+      <div class="mt3" style="border-top:1px dashed #E4DCC5; padding-top:10px;">
+        <div class="summary-line"><span class="muted">일반위탁 누적 (세후 확정)</span><span class="mono ink" style="font-weight:500;">${won(generalNetAllTime)}</span></div>
+        <div class="summary-line"><span class="muted">ISA 누적 (세전, 만기 정산 예정)</span><span class="mono brass" style="font-weight:500;">${won(isaGrossAllTime)}</span></div>
+        <div class="summary-line"><span class="muted">연금계좌 누적 (세전, 인출 시 정산 예정)</span><span class="mono brass" style="font-weight:500;">${won(pensionGrossAllTime)}</span></div>
+      </div>
+    </div>`;
+
+  // --- 추이 ---
+  const trendTabHtml = `
+    <div class="card">
+      <span class="muted" style="font-size:12px; font-weight:500;">투자 원금 추이</span>
+      ${costTrendData.length > 1 ? `
+        <div class="mt2">${sparkline(costTrendData)}</div>
+        <div class="row-between mt1">
+          <span class="muted" style="font-size:11px;">누적 매입원금</span>
+          <span class="mono ink" style="font-size:14px; font-weight:600;">${won(costTrendData[costTrendData.length - 1].value)}</span>
+        </div>` : `<p class="muted mt2" style="font-size:13px;">매입단가가 입력된 종목이 없어서 원금 추이를 계산할 수 없어요.</p>`}
+    </div>
+    <div class="footer-note mt3">
+      "자산"(현재 평가금액) 라인은 종목 현재가가 있어야 계산되는데, 아직 실시간 시세 연동이 안 돼 있어요. 지금은 "원금"(매입금액 누적)만 보여드려요.
+    </div>`;
+
+  // --- 비중 ---
+  const ALLOCATION_VIEWS = [
+    { key: "ticker", label: "종목별", data: costGroups.ticker },
+    { key: "market", label: "시장별", data: costGroups.market },
+    { key: "account", label: "계좌별", data: costGroups.account },
+  ];
+  const currentAllocData = (ALLOCATION_VIEWS.find((v) => v.key === allocationView) || ALLOCATION_VIEWS[0]).data;
+  const allocationTabHtml = `
+    <div class="card">
+      <div class="subtoggle">
+        ${ALLOCATION_VIEWS.map((v) => `<button class="subtoggle-btn ${allocationView === v.key ? "active" : ""}" onclick="setAllocationView('${v.key}')">${v.label}</button>`).join("")}
+      </div>
+      ${costGroups.total === 0 ? `<p class="muted mt3" style="font-size:13px;">매입단가가 입력된 종목이 없어서 비중을 계산할 수 없어요.</p>` : `
+        <div class="mt3">${donutChart(currentAllocData)}</div>
+        <div class="mt3">${allocationListHtml(currentAllocData)}</div>
+        <div class="row-between mt2" style="padding-top:8px; border-top:1px solid #EDE9DC;">
+          <span class="muted" style="font-size:11px;">총 매입원금</span>
+          <span class="mono ink" style="font-size:14px; font-weight:600;">${won(costGroups.total)}</span>
+        </div>
+        ${costGroups.uncosted > 0 ? `<p class="muted mt2" style="font-size:10px;">매입단가 미입력 ${costGroups.uncosted}건은 비중 계산에서 제외됐어요.</p>` : ""}`}
+    </div>`;
+
+  // --- 관리 (구 매수내역 탭 그대로) ---
+  const manageTabHtml = `${addFormHtml}<div class="mt2">${csvImportHtml}</div><div class="mt3">${holdingsHtml}</div>`;
+
   const app = document.getElementById("app");
   app.innerHTML = `
     <div class="header">
@@ -356,64 +1097,22 @@ function render() {
       <div class="perforation">${Array.from({ length: 30 }).map((_, i) => `<div style="background:${i % 2 === 0 ? "#1F2A44" : "transparent"};"></div>`).join("")}</div>
     </div>
 
-    <div class="section mt6">
-      <div class="card">
-        <div class="row-between">
-          <span class="muted" style="font-size:12px; font-weight:500;">이번 달 확정 배당</span>
-          ${thisMonthEvents.length > 0 ? `<span class="stamp">확정</span>` : ""}
-        </div>
-        <div class="mt2">${thisMonthHtml}</div>
-      </div>
-    </div>
-
-    <div class="section mt4">
-      <div class="card">
-        <div class="row-between" style="align-items:baseline;">
-          <span class="muted" style="font-size:12px;">${TODAY.getFullYear()}년 누적 배당소득 (세전)</span>
-          <span class="mono muted" style="font-size:11px;">기준 2,000만원</span>
-        </div>
-        <div class="mid-num serif mono ink mt1">${won(yearGross)}</div>
-        <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${pct > 80 ? "#B23A3A" : "#9C7A3C"};"></div></div>
-        ${pct > 70 ? `<p class="red mt1" style="font-size:11px;">종합과세 기준(2천만원)에 가까워지고 있어요. 정확한 세액은 세무사 확인을 권장해요.</p>` : ""}
-        <div class="summary-split">
-          <div class="summary-line"><span class="muted">일반위탁 누적 (세후 확정)</span><span class="mono ink" style="font-weight:500;">${won(generalNetAllTime)}</span></div>
-          <div class="summary-line"><span class="muted">ISA 누적 (세전, 만기 정산 예정)</span><span class="mono brass" style="font-weight:500;">${won(isaGrossAllTime)}</span></div>
-          <div class="summary-line"><span class="muted">연금계좌 누적 (세전, 인출 시 정산 예정)</span><span class="mono brass" style="font-weight:500;">${won(pensionGrossAllTime)}</span></div>
-        </div>
-        ${chartHtml}
-      </div>
-    </div>
-
-    <div class="tabs">
-      <button class="tab-btn ${tab === "holdings" ? "active" : ""}" onclick="setTab('holdings')">보유종목</button>
-      <button class="tab-btn ${tab === "upcoming" ? "active" : ""}" onclick="setTab('upcoming')">예정배당</button>
-      <button class="tab-btn ${tab === "ledger" ? "active" : ""}" onclick="setTab('ledger')">지난기록</button>
+    <div class="tabs mt6">
+      <button class="tab-btn ${tab === "dividend" ? "active" : ""}" onclick="setTab('dividend')">배당</button>
+      <button class="tab-btn ${tab === "profit" ? "active" : ""}" onclick="setTab('profit')">수익</button>
+      <button class="tab-btn ${tab === "tax" ? "active" : ""}" onclick="setTab('tax')">세금</button>
+      <button class="tab-btn ${tab === "trend" ? "active" : ""}" onclick="setTab('trend')">추이</button>
+      <button class="tab-btn ${tab === "allocation" ? "active" : ""}" onclick="setTab('allocation')">비중</button>
+      <button class="tab-btn ${tab === "manage" ? "active" : ""}" onclick="setTab('manage')">관리</button>
     </div>
 
     <div class="content">
-      ${tab === "holdings" ? `${addFormHtml}<div class="mt3">${holdingsHtml}</div>` : ""}
-      ${tab === "upcoming" ? `
-        <div>
-          <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
-            <span class="stamp">확정</span><span class="muted" style="font-size:12px;">이사회 결의 등으로 금액·일정이 정해진 배당</span>
-          </div>
-          ${confirmedHtml}
-        </div>
-        <div class="mt4">
-          <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
-            <span style="font-size:10px; padding:2px 8px; border:1.5px solid #8B93A8; color:#8B93A8; border-radius:2px; font-weight:600; font-family:'IBM Plex Mono',monospace;">예상</span>
-            <span class="muted" style="font-size:12px;">과거 지급 패턴 기반 추정치</span>
-          </div>
-          ${estimatedHtml}
-        </div>` : ""}
-      ${tab === "ledger" ? `
-        <div class="ledger-header"><span>거래일 / 종목·계좌</span><span>세전 수령액 / 누적</span></div>
-        ${ledgerHtml}
-        <div class="card mt3">
-          <div class="summary-line"><span class="muted">일반위탁 누적 (세후 확정)</span><span class="mono ink" style="font-weight:500;">${won(generalNetAllTime)}</span></div>
-          <div class="summary-line"><span class="muted">ISA 누적 (세전, 만기 정산 예정)</span><span class="mono brass" style="font-weight:500;">${won(isaGrossAllTime)}</span></div>
-          <div class="summary-line"><span class="muted">연금계좌 누적 (세전, 인출 시 정산 예정)</span><span class="mono brass" style="font-weight:500;">${won(pensionGrossAllTime)}</span></div>
-        </div>` : ""}
+      ${tab === "profit" ? profitTabHtml : ""}
+      ${tab === "tax" ? taxTabHtml : ""}
+      ${tab === "dividend" ? dividendTabHtml : ""}
+      ${tab === "trend" ? trendTabHtml : ""}
+      ${tab === "allocation" ? allocationTabHtml : ""}
+      ${tab === "manage" ? manageTabHtml : ""}
     </div>
 
     <div class="footer-note">
@@ -423,6 +1122,12 @@ function render() {
 }
 
 render();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
 </script>
 </body>
 </html>

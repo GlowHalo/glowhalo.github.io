@@ -8,6 +8,11 @@
 >   키는 환경변수/`.env`의 `LEONARDO_API_KEY` (발급: https://app.leonardo.ai/api-access).
 >   `--ref`로 참조 이미지 업로드 시 Style Reference ControlNet 적용, `--list-models`로 실제 계정
 >   모델 목록 확인 가능 (기본값은 Phoenix).
+>   **기준 이미지 확정됨**: `assets/characters/mage_flame_001.png` — 이후 캐릭터는
+>   `--ref assets/characters/mage_flame_001.png` 로 그림체를 통일한다.
+>   Leonardo가 배경을 순백색(`pure white background, no shadow`)으로만 뱉어서, 다운로드 후
+>   `python3 scripts/strip-white-bg.py <입력.png> <출력.png>` (pip install pillow numpy)로
+>   테두리에 붙은 흰 배경만 flood-fill 투명화한다 (내부의 흰색 하이라이트는 보존).
 > - **Gemini(`gen-assets.mjs`, 대안)** — 키는 `GEMINI_API_KEY`. **결제 계정 연결 필요**
 >   (무료 등급은 이미지 생성 할당량 0 — 429 확인됨). 결제 연결 시 바로 사용 가능.
 >
@@ -60,24 +65,38 @@ Full body, single character only, facing right (3/4 view), feet at bottom center
 Transparent background (alpha PNG). No text, no watermark, no frame. Square 1:1.
 ```
 
-### 3. 데스나이트 (512×512)
+### 3. 데스나이트 (512×512) — 리니지 데스나이트 참고 (은색 갑옷 + 금장 + 해골 + 황금빛 검)
 ```
-A menacing death knight in heavy black-and-silver plate armor with glowing
-ice-blue accents, tattered dark cape, massive glowing blue greatsword over his
-shoulder, glowing eyes inside the helmet.
+A death knight in silver plate armor with ornate gold trim and rivets, a
+skeletal skull visible inside the open-faced helmet, tattered dark cloth
+wrappings at the waist, holding a large glowing golden greatsword radiating
+warm light.
+Full body, single character only, facing right (3/4 view), feet at bottom center, small margin.
+Transparent background (alpha PNG). No text, no watermark, no frame. Square 1:1.
+```
+
+### 3-1. 관우(삼국지) (512×512)
+```
+Guan Yu, a legendary Chinese general from Romance of the Three Kingdoms,
+with a deep reddish-toned face, long flowing black beard, wearing ornate green
+robes over golden armor, holding a massive green-bladed guandao (crescent
+moon blade polearm), dignified confident expression.
 Full body, single character only, facing right (3/4 view), feet at bottom center, small margin.
 Transparent background (alpha PNG). No text, no watermark, no frame. Square 1:1.
 ```
 
 ### 4. 슬라임 (512×512)
 ```
-A cute green slime monster with big glossy eyes and a happy open mouth,
-jelly-like translucent body with shine highlights.
+A green slime monster with a classic simple retro game monster design --
+short and squat teardrop-shaped blob body, wider than it is tall, flattened
+rounded top (not a tall pointed peak), glossy jelly surface with a shine
+highlight, small simple dot eyes, a flat neutral or slightly grumpy small
+mouth (not smiling, not laughing, not cute), no limbs, no blush cheeks.
 Single creature only, facing right, centered, small margin.
 Transparent background (alpha PNG). No text, no watermark. Square 1:1.
 ```
 
-### 5. 보스슬라임 (768×768)
+### 5. 보스슬라임 (768×768) — 몬스터(스테이지 보스), 플레이 가능 캐릭터 아님 → `assets/monsters/`
 ```
 A giant menacing purple crystal slime boss, jagged crystal spikes growing from
 its jelly body, angry glowing eyes, small green slimes absorbed inside its
@@ -111,19 +130,27 @@ sparkle highlights, thick dark outline, anime game UI style, matching the gold c
 Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
 ```
 
-## 카드 일러스트 (1024×1536 세로) — ⚠ 그림체 섞임 최다 발생 구간
+## 카드 일러스트 (1024×1536 세로)
 
-카드도 반드시 **전투 캐릭터와 같은 기준 이미지를 첨부**하고 STYLE BLOCK을 반복한다.
-1차 시도에서 카드만 세미리얼로 튀었던 원因이 스타일 블록 생략이었음.
+> **Rev.3 결정**: 전투 스프라이트(치비)와 카드는 **의도적으로 다른 화풍**을 쓴다.
+> 전투 스프라이트 = 치비/SD 유지, 카드 = "프리미엄 애니메 가챠 일러스트" 톤
+> (준-사실적, 정밀한 채색, 은은한 페인터리 셰이딩 — 서큐버스 카드 5종 비교에서
+> "C2" 안으로 확정). STYLE BLOCK(치비 비율 문구)은 카드에는 **적용하지 않는다.**
+> `--ref`로 해당 캐릭터의 확정 전투 이미지를 강하게(`--strength High`) 걸어서
+> 얼굴·의상·색은 유지하고 포즈·배경만 바꾼다.
+>
+> 주의: "no frame/no border" 같은 부정형 지시를 넣으면 오히려 그 프레임이
+> 생기는 경우가 있었음(Phoenix 특성) — 부정형 대신 "full bleed illustration
+> filling the entire canvas edge to edge" 같은 긍정형 표현이 더 잘 먹힘.
+> `--ref` 영향이 강해서 5가지 화풍 프롬프트를 줘도 결과가 비슷하게 수렴하는
+> 경향이 있음 — 캐릭터마다 디테일(무기 발광색 등)은 개별 확인 필요.
 
 ```
-[STYLE BLOCK 붙여넣기 + 해당 캐릭터의 전투 이미지 첨부]
-Vertical 2:3 portrait card illustration of the SAME character as the attached
-image — identical face, outfit, colors, and art style, only the pose and
-background change. Dramatic dynamic pose, epic themed background
-([flames rising / dark purple mist / frozen graveyard]), cinematic lighting.
-IMPORTANT: pure artwork only — no text, no letters, no numbers, no stars,
-no stat bars, no frame, no border, no UI elements, no watermark.
+Vertical 2:3 portrait card illustration of [캐릭터 설명], matching the attached
+reference image's face and design. Premium semi-realistic anime mobile gacha
+illustration style, soft blended painterly shading, realistic detailed
+rendering, polished top-tier gacha game splash art. Dynamic pose, [테마 배경],
+dramatic lighting, full bleed illustration filling the entire canvas edge to edge.
 ```
 
 ## 참고 (게임 코드 세션 → 이미지 세션)
@@ -187,12 +214,16 @@ Transparent background. No text, no watermark. Square 1:1.
 
 | 에셋 | 상태 |
 |---|---|
-| 화염마법사 전투 | 1차 수신 (치비 스타일) — 스타일 재통일 예정 |
-| 서큐버스 전투 | 1차 수신 (치비 스타일) — 재통일 예정 |
-| 데스나이트 전투 | 미수신 |
-| 슬라임 | 1차 수신 — 품질 양호 |
-| 보스슬라임 | 미수신 |
-| 전투 배경 | 미수신 |
-| 골드 아이콘 | 미수신 |
-| 다이아몬드 아이콘 | 1차 수신 — 품질 양호 |
-| 카드 3종 | 서큐버스 1장 수신 — 스타일 불일치(세미리얼), 재생성 대상 |
+| 화염마법사 전투 | **커밋됨** — `assets/characters/mage_flame_001.png` (2.4등신, 순수 텍스트 방식) |
+| 관우(삼국지) 전투 | **커밋됨** — `assets/characters/guan_yu_001.png` (1.9등신) |
+| 서큐버스 전투 | **커밋됨** — `assets/characters/succubus_dark_001.png` (뿔+박쥐날개+꼬리, 2.0등신) |
+| 데스나이트 전투 | **커밋됨** — `assets/characters/death_knight_001.png` (리니지풍 은갑옷+금장+해골+황금검, 2.4등신) |
+| 슬라임 (몬스터, 캐릭터 아님) | **커밋됨** — `assets/monsters/slime_green_001.png` (납작한 물방울형, 무표정) — 경로 정정 |
+| 보스슬라임 (몬스터, 캐릭터 아님) | **커밋됨** — `assets/monsters/boss_slime_001.png` — 경로 정정 |
+| 전투 배경 | **커밋됨** — `assets/backgrounds/battle-grassland.png` (864×1536 생성 후 1080×1920 업스케일) |
+| 골드 아이콘 | **커밋됨** — `assets/icons/gold.png` (512 생성 후 128 축소) |
+| 다이아몬드 아이콘 | **커밋됨** — `assets/icons/gem.png` (512 생성 후 128 축소) |
+| 카드: 화염마법사 | **커밋됨** — `assets/cards/mage_flame_001.png` (프리미엄 애니메 가챠 톤) |
+| 카드: 관우 | **커밋됨** — `assets/cards/guan_yu_001.png` |
+| 카드: 데스나이트 | **커밋됨** — `assets/cards/death_knight_001.png` (황금빛 대검, 묘지 배경, R3) |
+| 카드: 서큐버스 | **커밋됨** — `assets/cards/succubus_dark_001.png` (C2 톤 표준 확정본) |
