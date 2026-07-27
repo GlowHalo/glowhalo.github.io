@@ -1,8 +1,9 @@
 import "./ui.css";
 import { on, emit } from "../state/bus";
-import { save, calcOfflineReward, addGold, resetSave } from "../state/save";
+import { save, calcOfflineReward, addGold, addHero, resetSave } from "../state/save";
 import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView } from "./screens";
 import { isFirebaseConfigured, getBackupCode, backupNow, restoreFromCode } from "../state/backup";
+import { HEROES } from "../data/heroes";
 
 type TabKey = "heroes" | "summon" | "battle" | "shop" | "missions";
 
@@ -94,6 +95,7 @@ function refreshHud() {
 
 function switchTab(key: TabKey) {
   currentTab = key;
+  document.getElementById("ui")!.classList.toggle("on-battle", key === "battle");
   document.querySelectorAll<HTMLElement>("#tabbar .tab").forEach((el) => {
     el.classList.toggle("on", el.dataset.key === key && !el.classList.contains("center"));
   });
@@ -168,6 +170,45 @@ function renderSubbar() {
   });
 }
 
+const HIDDEN_HERO_IDS = HEROES.filter((h) => h.grade === "Unknown").map((h) => h.id);
+
+const SECRET_CODES: Record<string, { message: string; grant: () => void }> = {
+  "0203": {
+    message: "🎉 히든 영웅 5종을 모두 획득했습니다!",
+    grant: () => HIDDEN_HERO_IDS.forEach((id) => addHero(id)),
+  },
+};
+
+function buildEventSection(): HTMLElement {
+  const box = h("div", "event-box");
+  box.appendChild(h("h4", "", "🎁 시크릿 코드"));
+  box.appendChild(h("p", "muted", "이벤트로 공개된 코드를 입력하면 보상을 받을 수 있어요."));
+  const row = h("div", "row");
+  const input = h("input", "code-input") as HTMLInputElement;
+  input.placeholder = "시크릿 코드를 입력하세요";
+  input.maxLength = 12;
+  const redeemBtn = h("button", "btn primary", "받기") as HTMLButtonElement;
+  const redeem = () => {
+    const code = input.value.trim();
+    const entry = SECRET_CODES[code];
+    if (!entry) {
+      toast("유효하지 않은 코드예요");
+      return;
+    }
+    entry.grant();
+    toast(entry.message);
+    input.value = "";
+    closeModal();
+  };
+  redeemBtn.onclick = redeem;
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") redeem();
+  });
+  row.append(input, redeemBtn);
+  box.appendChild(row);
+  return box;
+}
+
 function buildBackupSection(): HTMLElement {
   const box = h("div", "backup-box");
   box.appendChild(h("h4", "", "☁ 클라우드 백업"));
@@ -223,6 +264,12 @@ export function buildShell() {
   const ui = h("div");
   ui.id = "ui";
 
+  // 전투 캔버스가 최상단(HUD·코너 아이콘 뒤)까지 그려지므로, 전투 탭이 아닐 때는
+  // 이 백드롭이 그 부분을 가려서 다른 화면에 배경 이미지가 비치지 않게 한다
+  const topbarBg = h("div");
+  topbarBg.id = "topbar-bg";
+  ui.appendChild(topbarBg);
+
   // HUD
   const hud = h("div");
   hud.id = "hud";
@@ -254,7 +301,13 @@ export function buildShell() {
     b.onclick = onClick;
     return b;
   };
-  corner.appendChild(mkCorner("icon-gift.png", "이벤트", true, () => toast("이벤트 — 준비 중입니다")));
+  corner.appendChild(
+    mkCorner("icon-gift.png", "이벤트", true, () => {
+      const body = h("div");
+      body.appendChild(buildEventSection());
+      modal("이벤트", body);
+    })
+  );
   corner.appendChild(mkCorner("icon-mail.png", "우편", false, () => toast("우편함 — 준비 중입니다")));
   corner.appendChild(
     mkCorner("icon-settings.png", "설정", false, () => {

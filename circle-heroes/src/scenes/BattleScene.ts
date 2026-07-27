@@ -102,7 +102,14 @@ export class BattleScene extends Phaser.Scene {
     this.add.rectangle(GAME_W / 2, 545, GAME_W, 2, 0x2c3a58);
 
     this.stageText = this.add
-      .text(GAME_W / 2, 72, "", { fontFamily: "sans-serif", fontSize: "19px", color: "#f2f8ff", fontStyle: "bold" })
+      .text(GAME_W / 2, 72, "", {
+        fontFamily: "sans-serif",
+        fontSize: "19px",
+        color: "#f2f8ff",
+        fontStyle: "bold",
+        stroke: "#0a0d16",
+        strokeThickness: 5,
+      })
       .setOrigin(0.5);
 
     this.speedBtn = this.add
@@ -323,19 +330,28 @@ export class BattleScene extends Phaser.Scene {
       flashShape = body;
     }
 
+    // 배경 이미지 위에서도 항상 읽히도록 두꺼운 외곽선 + 반투명 알약 배경을 함께 사용
+    const nameText = unit.isHero ? unit.name.split(" ").pop() ?? unit.name : unit.name;
+    const labelBg = this.add
+      .rectangle(0, halfH + 17, 10, 15, 0x0a0d16, 0.62)
+      .setOrigin(0.5);
     const label = this.add
-      .text(0, halfH + 17, unit.isHero ? unit.name.split(" ").pop() ?? unit.name : unit.name, {
+      .text(0, halfH + 17, nameText, {
         fontFamily: "sans-serif",
         fontSize: "11px",
-        color: unit.isHero ? "#bfdcf0" : "#d8a0a0",
+        color: unit.isHero ? "#eaf6ff" : "#ffe2d8",
+        fontStyle: "bold",
+        stroke: "#0a0d16",
+        strokeThickness: 4,
       })
       .setOrigin(0.5);
+    labelBg.setSize(label.width + 10, label.height + 4);
     const barW = r * 2;
     const hpBg = this.add.rectangle(0, -halfH - 11, barW, 5, 0x10131c).setOrigin(0.5);
     const hpBar = this.add
       .rectangle(-barW / 2, -halfH - 11, barW, 5, unit.isHero ? 0x5fbf77 : 0xe8683a)
       .setOrigin(0, 0.5);
-    root.add([label, hpBg, hpBar]);
+    root.add([labelBg, label, hpBg, hpBar]);
     return { unit, root, flashImage, flashShape, flashShapeColor: fallbackColor, hpBg, hpBar, homeX: x, homeY: y };
   }
 
