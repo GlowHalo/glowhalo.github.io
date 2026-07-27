@@ -1,5 +1,6 @@
 import type { Hero } from "./heroTypes";
 import heroesJson from "../../data/master/heroes.json";
+import "./heroSkills";
 
 export const HEROES: Hero[] = heroesJson as Hero[];
 
