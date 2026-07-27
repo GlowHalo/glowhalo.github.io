@@ -136,7 +136,7 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
   }
 
   const cost = levelUpCost(lv);
-  const lvBtn = el("button", "btn primary", `레벨업 🪙${cost.toLocaleString()}`) as HTMLButtonElement;
+  const lvBtn = el("button", "btn primary btn-cta", `레벨업 🪙${cost.toLocaleString()}`) as HTMLButtonElement;
   lvBtn.disabled = save.gold < cost;
   lvBtn.onclick = () => {
     if (tryLevelUp(hero.id)) {

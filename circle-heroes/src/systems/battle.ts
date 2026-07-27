@@ -75,7 +75,7 @@ export interface HitResult {
 }
 
 const BASE_ATTACK_INTERVAL_MS = 1800;
-const SKILL_EVERY_N_ACTIONS = 3;
+export const SKILL_EVERY_N_ACTIONS = 3;
 
 interface PassiveDef {
   spdMult?: number;
