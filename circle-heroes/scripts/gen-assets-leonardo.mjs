@@ -28,9 +28,9 @@ const API = "https://cloud.leonardo.ai/api/rest/v1";
 // Phoenix 1.0 — Leonardo 자체 파운데이션 모델. --model-id 로 다른 모델(예: 애니메 특화)로 교체 가능,
 // --list-models 로 계정에서 실제 쓸 수 있는 모델 UUID를 먼저 확인할 것.
 const DEFAULT_MODEL_ID = "de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3";
-// Style Reference ControlNet preprocessor (공식 문서 확인됨). Character Reference ID는
-// 모델별로 달라 아직 미확정 — 필요 시 --preprocessor-id 로 직접 지정.
-const DEFAULT_PREPROCESSOR_ID = 67;
+// Style Reference ControlNet preprocessor ID는 모델 계열마다 다르다 (SDXL=67, Phoenix=166).
+// 기본 모델이 Phoenix라 166을 쓴다 — --model-id 로 SDXL 계열로 바꾸면 --preprocessor-id 67 필요.
+const DEFAULT_PREPROCESSOR_ID = 166;
 
 // ---------- CLI ----------
 
@@ -89,10 +89,18 @@ if (!entry) {
 
 const count = Math.min(4, Number(opt("--n", "1")) || 1);
 const outDir = opt("--out", join(ROOT, "assets-gen", key));
+const widthOverride = opt("--w", null); // Phoenix는 최대 1536 — 카탈로그 규격이 넘으면 이걸로 낮춰서 생성 후 업스케일
+const heightOverride = opt("--h", null);
 const ref = opt("--ref", null);
 const modelId = opt("--model-id", DEFAULT_MODEL_ID);
 const preprocessorId = Number(opt("--preprocessor-id", DEFAULT_PREPROCESSOR_ID));
 const strengthType = opt("--strength", "Mid");
+// Leonardo 전용 스타일 고정 파라미터 (asset-catalog.mjs는 Gemini와 공유라 여기 CLI로만 노출).
+// 목록: https://docs.leonardo.ai/docs/commonly-used-api-values (Phoenix 호환 styleUUID)
+const styleUUID = opt("--style-uuid", null);
+const negativePrompt = opt("--negative", null);
+const extra = opt("--extra", null); // 카탈로그를 건드리지 않고 프롬프트 뒤에 테스트용 문장 추가
+const rawPrompt = opt("--raw-prompt", null); // 카탈로그 전체를 무시하고 프롬프트를 통째로 교체 (그림체 실험용)
 
 const MIME = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp" };
 
@@ -140,13 +148,17 @@ async function pollGeneration(id) {
 }
 
 async function generateBatch(initImageId) {
+  let prompt = rawPrompt ?? buildPrompt(key, !!initImageId);
+  if (extra) prompt += "\n" + extra;
   const body = {
-    prompt: buildPrompt(key, !!initImageId).slice(0, 1490), // Leonardo 프롬프트 길이 제한 여유
+    prompt: prompt.slice(0, 1490), // Leonardo 프롬프트 길이 제한 여유
     modelId,
-    width: entry.w,
-    height: entry.h,
+    width: Number(widthOverride ?? entry.w),
+    height: Number(heightOverride ?? entry.h),
     num_images: count,
   };
+  if (styleUUID) body.styleUUID = styleUUID;
+  if (negativePrompt) body.negativePrompt = negativePrompt;
   if (initImageId) {
     body.controlnets = [{ initImageId, initImageType: "UPLOADED", preprocessorId, strengthType }];
   }

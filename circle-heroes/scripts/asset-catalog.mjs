@@ -37,9 +37,21 @@ ${CHAR_TAIL}`,
     styled: true,
     w: 512,
     h: 512,
-    prompt: `A menacing death knight in heavy black-and-silver plate armor with glowing
-ice-blue accents, tattered dark cape, massive glowing blue greatsword over his
-shoulder, glowing eyes inside the helmet.
+    prompt: `A death knight in silver plate armor with ornate gold trim and rivets, a
+skeletal skull visible inside the open-faced helmet, tattered dark cloth
+wrappings at the waist, holding a large glowing golden greatsword radiating
+warm light.
+${CHAR_TAIL}`,
+  },
+  "guan-yu": {
+    desc: "관우(삼국지) 전투 캐릭터 (512²)",
+    styled: true,
+    w: 512,
+    h: 512,
+    prompt: `Guan Yu, a legendary Chinese general from Romance of the Three Kingdoms,
+with a deep reddish-toned face, long flowing black beard, wearing ornate green
+robes over golden armor, holding a massive green-bladed guandao (crescent
+moon blade polearm), dignified confident expression.
 ${CHAR_TAIL}`,
   },
   slime: {
@@ -47,8 +59,11 @@ ${CHAR_TAIL}`,
     styled: true,
     w: 512,
     h: 512,
-    prompt: `A cute green slime monster with big glossy eyes and a happy open mouth,
-jelly-like translucent body with shine highlights.
+    prompt: `A green slime monster with a classic simple retro game monster design --
+short and squat teardrop-shaped blob body, wider than it is tall, flattened
+rounded top (not a tall pointed peak), glossy jelly surface with a shine
+highlight, small simple dot eyes, a flat neutral or slightly grumpy small
+mouth (not smiling, not laughing, not cute), no limbs, no blush cheeks.
 Single creature only, facing right, centered, small margin.
 Pure white background, no shadow. No text, no watermark. Square 1:1.`,
   },
@@ -75,19 +90,21 @@ No characters, no text, no watermark, no UI elements.`,
   },
   "gold-icon": {
     desc: "골드 아이콘 (128²)",
-    styled: true,
+    styled: false,
     w: 128,
     h: 128,
-    prompt: `Mobile game currency icon, glossy golden coin with a crown emblem, thick dark
+    prompt: `Mobile game currency icon, a single glossy golden coin object (NOT a character,
+NOT a person, no face) with a small crown symbol embossed on its face, thick dark
 outline, shiny highlight, anime game UI style.
 Single icon, centered. Pure white background. No text, no watermark. Square 1:1.`,
   },
   "gem-icon": {
     desc: "다이아몬드 아이콘 (128²)",
-    styled: true,
+    styled: false,
     w: 128,
     h: 128,
-    prompt: `Mobile game currency icon, glossy blue diamond gem with bright facets and
+    prompt: `Mobile game currency icon, a single glossy blue diamond gem object (NOT a
+character, NOT a person, no face) with bright facets and
 sparkle highlights, thick dark outline, anime game UI style, matching the gold coin.
 Single icon, centered. Pure white background. No text, no watermark. Square 1:1.`,
   },
