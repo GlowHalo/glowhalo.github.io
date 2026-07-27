@@ -1,7 +1,7 @@
 import "./ui.css";
 import { on, emit } from "../state/bus";
 import { save, calcOfflineReward, addGold, resetSave } from "../state/save";
-import { renderHeroes, renderSummon, renderShop, renderMissions } from "./screens";
+import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView } from "./screens";
 import { isFirebaseConfigured, getBackupCode, backupNow, restoreFromCode } from "../state/backup";
 
 type TabKey = "heroes" | "summon" | "battle" | "shop" | "missions";
@@ -16,11 +16,11 @@ interface TabDef {
 
 // DESIGN.md Rev.C — 탭 순서: 영웅 · 소환 · 전투(중앙) · 상점 · 임무
 const TABS: TabDef[] = [
-  { key: "heroes", label: "영웅", icon: "🦸", subs: ["보유·편성", "장비", "승급", "도감"] },
-  { key: "summon", label: "소환", icon: "✨", subs: ["영웅 소환", "확률·천장"] },
-  { key: "battle", label: "전투", icon: "🛡️", center: true, subs: ["스테이지", "무한의탑", "아레나", "요일던전"] },
-  { key: "shop", label: "상점", icon: "🛒", subs: ["골드 상점", "보석 상점", "일일 무료"] },
-  { key: "missions", label: "임무", icon: "📋", subs: ["일일", "주간", "업적"] },
+  { key: "heroes", label: "영웅", icon: "tab-hero.png", subs: ["보유·편성", "장비", "승급", "도감"] },
+  { key: "summon", label: "소환", icon: "tab-summon.png", subs: ["영웅 소환", "확률·천장"] },
+  { key: "battle", label: "전투", icon: "tab-battle.png", center: true, subs: ["스테이지", "무한의탑", "아레나", "요일던전"] },
+  { key: "shop", label: "상점", icon: "tab-shop.png", subs: ["골드 상점", "보석 상점", "일일 무료"] },
+  { key: "missions", label: "임무", icon: "tab-mission.png", subs: ["일일", "주간", "업적"] },
 ];
 
 const RENDERERS: Record<TabKey, ((el: HTMLElement) => void) | null> = {
@@ -80,9 +80,16 @@ function fmt(n: number): string {
   return n.toLocaleString();
 }
 
+function icon(src: string): HTMLElement {
+  const img = h("img", "hud-icon") as HTMLImageElement;
+  img.src = src;
+  img.alt = "";
+  return img;
+}
+
 function refreshHud() {
-  document.getElementById("hud-gold")!.textContent = `🪙 ${fmt(save.gold)}`;
-  document.getElementById("hud-gems")!.textContent = `💎 ${fmt(save.gems)}`;
+  document.getElementById("hud-gold-val")!.textContent = fmt(save.gold);
+  document.getElementById("hud-gems-val")!.textContent = fmt(save.gems);
 }
 
 function switchTab(key: TabKey) {
@@ -106,6 +113,7 @@ const BATTLE_MODES: Record<string, string> = {
   "요일던전": "raid",
 };
 let battleMode = "stage";
+let heroesSubLabel = "보유·편성";
 
 function renderSubbar() {
   const bar = document.getElementById("subbar")!;
@@ -125,6 +133,25 @@ function renderSubbar() {
         battleMode = mode;
         emit("battle-mode", mode);
         renderSubbar();
+      };
+      bar.appendChild(chip);
+    });
+    return;
+  }
+
+  if (currentTab === "heroes") {
+    def.subs.forEach((label) => {
+      const chip = h("button", "sub-chip" + (label === heroesSubLabel ? " on" : ""), label);
+      chip.onclick = () => {
+        if (label === "보유·편성" || label === "승급") {
+          if (label === heroesSubLabel) return;
+          heroesSubLabel = label;
+          setHeroesSubView(label === "승급" ? "ascend" : "party");
+          renderSubbar();
+          renderHeroes(document.getElementById("screen-heroes")!);
+        } else {
+          toast(`${label} — 준비 중입니다`);
+        }
       };
       bar.appendChild(chip);
     });
@@ -201,26 +228,36 @@ export function buildShell() {
   hud.id = "hud";
   const gold = h("span", "hud-chip");
   gold.id = "hud-gold";
+  gold.appendChild(icon("gold.png"));
+  const goldVal = h("span");
+  goldVal.id = "hud-gold-val";
+  gold.appendChild(goldVal);
   const gems = h("span", "hud-chip");
   gems.id = "hud-gems";
+  gems.appendChild(icon("gem.png"));
+  const gemsVal = h("span");
+  gemsVal.id = "hud-gems-val";
+  gems.appendChild(gemsVal);
   hud.append(gold, gems);
   ui.appendChild(hud);
 
   // 우상단 플로팅
   const corner = h("div");
   corner.id = "corner";
-  const mkCorner = (icon: string, label: string, badge: boolean, onClick: () => void) => {
+  const mkCorner = (iconSrc: string, label: string, badge: boolean, onClick: () => void) => {
     const b = h("button", "corner-btn");
-    b.appendChild(h("span", "ci", icon));
+    const ci = icon(iconSrc);
+    ci.classList.add("ci");
+    b.appendChild(ci);
     b.appendChild(h("span", "", label));
     if (badge) b.appendChild(h("span", "badge"));
     b.onclick = onClick;
     return b;
   };
-  corner.appendChild(mkCorner("🎁", "이벤트", true, () => toast("이벤트 — 준비 중입니다")));
-  corner.appendChild(mkCorner("📮", "우편", false, () => toast("우편함 — 준비 중입니다")));
+  corner.appendChild(mkCorner("icon-gift.png", "이벤트", true, () => toast("이벤트 — 준비 중입니다")));
+  corner.appendChild(mkCorner("icon-mail.png", "우편", false, () => toast("우편함 — 준비 중입니다")));
   corner.appendChild(
-    mkCorner("⚙", "설정", false, () => {
+    mkCorner("icon-settings.png", "설정", false, () => {
       const body = h("div");
       const p = h("p", "", "버전 0.2.0 · 세이브는 이 기기에 저장됩니다.");
       body.appendChild(p);
@@ -261,7 +298,9 @@ export function buildShell() {
   for (const t of TABS) {
     const b = h("button", "tab" + (t.center ? " center" : ""));
     b.dataset.key = t.key;
-    b.appendChild(h("span", "ti", t.icon));
+    const tabIcon = icon(t.icon);
+    tabIcon.classList.add("ti");
+    b.appendChild(tabIcon);
     b.appendChild(h("span", "", t.label));
     b.onclick = () => switchTab(t.key);
     tabbar.appendChild(b);
