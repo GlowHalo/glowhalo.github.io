@@ -28,6 +28,40 @@
 > 해결: ① 아래 STYLE BLOCK을 **모든 프롬프트에 통째로 반복** ② 잘 나온 기준 이미지 1장을 **매번 참조로 첨부**하고
 > "Match the exact art style of the attached reference image"를 덧붙인다.
 
+## 2026-07-27 (2차): 정면 포즈 캐릭터/몬스터 리스트업 (좌우반전 재작업 대상)
+
+전투 화면에서 아군=오른쪽, 적군=왼쪽을 보도록 좌우반전(`flipX`)을 적용했는데, 일부 소스는
+**정면을 보는 대칭 포즈**라 반전해도 티가 안 난다(주인님이 실제 빌드에서 확인). 코드 문제가
+아니라(픽셀 단위로 대조해서 반전 자체는 정상 작동 확인함) 소스 자체가 좌우 비대칭 요소가
+없어서 생기는 문제. 71장 전체를 훑어서 정리한 목록:
+
+**1군 — 확실한 정면/대칭(반전 효과 거의 없음, 재작업 권장)** — 24종
+```
+arachne_dark, athena_light, balrog_flame, beast_dark, belle_light, cao_cao_dark,
+cerberus_dark, da_qiao_wind, dian_wei_flame, diaochan_dark, guan_yu, hades_dark,
+harpy_wind, hong_gildong_wind, hua_tuo_light, incubus_dark, medusa_dark,
+michael_light, pang_tong_dark, persephone_dark, pinocchio_wind, raphael_light,
+siren_water, snowwhite_light, succubus_dark, xiao_qiao_water, zhu_bajie_water,
+zhuge_liang_wind
+```
+재작업 시 프롬프트에 "body turned to face right, weight on one leg, weapon/prop
+held on one side" 처럼 뚜렷한 좌우 비대칭 지시를 넣어주면 반전이 잘 보일 것 같다.
+
+**2군 — 동일 포즈 템플릿이라 약한 비대칭만 있음(애매함, 필요시만)** — 15종 + 개별 11종
+```
+knight_{dark,flame,light,water,wind}, mage_{dark,flame,light,water,wind},
+soldier_{dark,flame,light,water,wind}  (검+지팡이가 한쪽 손에 있어 아주 약하게 비대칭)
+ares_flame, artemis_wind, death_knight, hercules_flame, minotaur_flame,
+poseidon_water, puss_boots_wind, sun_wukong_flame, uriel_light, xu_chu_flame,
+zeus_light
+```
+이 그룹은 지금도 최소한의 방향성은 있어서 급하지 않음 — 1군부터 재작업 부탁드립니다.
+
+**몬스터도 같은 문제** — `slime_green_001`, `boss_slime_001` 둘 다 정면/대칭 실루엣이라
+반전이 잘 안 보임(보스슬라임은 확인해보니 눈 모양 등 미세한 비대칭은 있어서 반전 자체는
+되고 있지만 육안으로 알아채기 어려운 수준). 재작업하게 되면 몬스터도 "명확히 한쪽을 보는
+자세"로 부탁드려요.
+
 ## 2026-07-27: 코드 반영 현황 + 리소스 검토의견 + 남은 갭 (게임 코드 세션 기록)
 
 ### 이번 반영 내역

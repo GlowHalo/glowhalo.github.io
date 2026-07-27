@@ -31,9 +31,10 @@ function el(tag: string, cls?: string, text?: string): HTMLElement {
   return n;
 }
 
-/** 영웅 초상화를 .face 배경으로 채운다(얼굴 클로즈업 크롭). 이미지 로드 실패 시 진영 색상이 그대로 남는다 */
+/** 영웅 초상화를 .face 배경으로 채운다(얼굴 클로즈업 크롭). 프레임 배경은 진영색이 아닌 중립 검정 —
+ * 진영은 카드 전체 배경(setCardFaction)으로 표시한다 */
 function setFace(face: HTMLElement, hero: Hero) {
-  face.style.background = FACTION_COLORS[hero.faction] ?? "#888";
+  face.style.background = "#0a0d16";
   face.style.backgroundImage = `url(${hero.id}.png)`;
   // SD 전신 일러스트 상단 ~45%가 얼굴 — 확대해서 얼굴만 보이도록 크롭(전투화면은 전신 그대로 별도 처리)
   face.style.backgroundSize = "230% 230%";
@@ -49,6 +50,27 @@ const FACTION_ICON: Record<string, string> = {
   빛: "elem-light.png",
   어둠: "elem-dark.png",
 };
+
+/** 진영별 카드 배경 그라디언트(위→아래, 진영색 → 패널 어두운톤) */
+const FACTION_CARD_BG: Record<string, string> = {
+  불: "linear-gradient(165deg, #6e2a12 0%, #3a1a12 45%, #1f2c47 100%)",
+  물: "linear-gradient(165deg, #123a55 0%, #17293e 45%, #1f2c47 100%)",
+  바람: "linear-gradient(165deg, #1f5535 0%, #1c3428 45%, #1f2c47 100%)",
+  빛: "linear-gradient(165deg, #6b551a 0%, #4a3e1f 45%, #1f2c47 100%)",
+  어둠: "linear-gradient(165deg, #3a1f5c 0%, #2a1f3e 45%, #1f2c47 100%)",
+  불명: "linear-gradient(165deg, #3a4458 0%, #262f42 45%, #1f2c47 100%)",
+};
+
+/** 카드 전체에 진영 배경(그라디언트 + 큰 진영 워터마크 아이콘)을 입힌다. 카드는 position:relative 여야 함 */
+function setCardFaction(card: HTMLElement, hero: Hero) {
+  card.style.background = FACTION_CARD_BG[hero.faction] ?? FACTION_CARD_BG["불명"];
+  const iconSrc = FACTION_ICON[hero.faction];
+  if (!iconSrc) return;
+  const wm = el("img", "card-wm") as HTMLImageElement;
+  wm.src = iconSrc;
+  wm.alt = "";
+  card.insertBefore(wm, card.firstChild);
+}
 
 const GRADE_BORDER: Record<string, string> = {
   N: "#7d9ab5",
@@ -83,6 +105,7 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
   const body = el("div");
 
   const head = el("div", "detail-head");
+  setCardFaction(head, hero);
   const face = el("div", "face");
   setFace(face, hero);
   head.appendChild(face);
@@ -171,6 +194,7 @@ export function renderHeroes(root: HTMLElement) {
     const hero = id ? PLAYABLE_HEROES.find((h) => h.id === id) : undefined;
     const slot = el("div", "party-slot" + (hero ? " filled" : ""));
     if (hero) {
+      setCardFaction(slot, hero);
       const face = el("div", "face");
       setFace(face, hero);
       slot.appendChild(face);
@@ -232,6 +256,7 @@ export function renderHeroes(root: HTMLElement) {
     const stars = getStars(hero.id);
     const card = el("div", "hero-card" + (inParty(hero.id) ? " in-party" : ""));
     setGradeBorder(card, hero.grade);
+    setCardFaction(card, hero);
     card.onclick = () => openHeroDetail(hero, rerender);
     const face = el("div", "face");
     setFace(face, hero);
@@ -272,6 +297,7 @@ function renderAscend(root: HTMLElement) {
   const targetSlot = el("div", "ascend-slot ascend-target" + (target ? " filled" : ""));
   if (target) {
     setGradeBorder(targetSlot, target.grade);
+    setCardFaction(targetSlot, target);
     const face = el("div", "face");
     setFace(face, target);
     targetSlot.appendChild(face);
@@ -337,6 +363,7 @@ function renderAscend(root: HTMLElement) {
     const stars = getStars(hero.id);
     const card = el("div", "hero-card" + (hero.id === ascendTargetId ? " in-party" : ""));
     setGradeBorder(card, hero.grade);
+    setCardFaction(card, hero);
     card.onclick = () => {
       ascendTargetId = hero.id;
       rerender();
@@ -366,9 +393,14 @@ export function renderSummon(root: HTMLElement) {
 
   const box = el("div", "summon-box");
   const orb = el("div", "orb");
-  orb.appendChild(el("div", "orb-ring"));
-  orb.appendChild(el("div", "orb-core"));
-  for (let i = 0; i < 5; i++) orb.appendChild(el("span", `orb-spark s${i}`, "✦"));
+  orb.appendChild(el("div", "orb-card orb-card-back2"));
+  orb.appendChild(el("div", "orb-card orb-card-back1"));
+  const orbMain = el("div", "orb-card orb-card-main");
+  orbMain.appendChild(el("div", "orb-card-ring"));
+  orbMain.appendChild(el("div", "orb-card-mark", "?"));
+  orbMain.appendChild(el("div", "orb-card-shine"));
+  orb.appendChild(orbMain);
+  for (let i = 0; i < 4; i++) orb.appendChild(el("span", `orb-spark s${i}`, "✦"));
   box.appendChild(orb);
 
   const btnRow = el("div", "summon-btn-row");
@@ -393,10 +425,11 @@ export function renderSummon(root: HTMLElement) {
     pulls.forEach((r) => {
       const card = el("div", "pull-card");
       setGradeBorder(card, r.hero.grade);
+      setCardFaction(card, r.hero);
       const face = el("div", "face");
       setFace(face, r.hero);
       card.appendChild(face);
-      card.appendChild(el("div", "", r.hero.nameKr));
+      card.appendChild(el("div", "pc-nm", r.hero.nameKr));
       if (r.isNew) card.appendChild(el("div", "new", "NEW!"));
       results.appendChild(card);
     });
@@ -472,10 +505,15 @@ function playSummonFx(
     overlay.insertBefore(again, hint);
   };
 
-  // 1단계: 오브 차징 (탭하면 바로 카드로)
+  // 1단계: 카드 차징 (탭하면 바로 카드로)
   const orb = el("div", "sfx-orb");
-  orb.appendChild(el("div", "sfx-orb-ring"));
-  orb.appendChild(el("div", "sfx-orb-core"));
+  orb.appendChild(el("div", "orb-card orb-card-back2"));
+  orb.appendChild(el("div", "orb-card orb-card-back1"));
+  const orbMain = el("div", "orb-card orb-card-main sfx-orb-main");
+  orbMain.appendChild(el("div", "orb-card-ring"));
+  orbMain.appendChild(el("div", "orb-card-mark", "?"));
+  orbMain.appendChild(el("div", "orb-card-shine"));
+  orb.appendChild(orbMain);
   overlay.appendChild(orb);
   const hint = el("div", "sfx-hint", "화면을 누르면 건너뜁니다");
   overlay.appendChild(hint);
@@ -496,6 +534,7 @@ function playSummonFx(
       back.appendChild(el("div", "back-mark", "?"));
       inner.appendChild(back);
       const front = el("div", "front");
+      setCardFaction(front, r.hero);
       const face = el("div", "face");
       setFace(face, r.hero);
       front.appendChild(face);
