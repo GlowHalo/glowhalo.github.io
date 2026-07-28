@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { PLAYABLE_HEROES } from "../data/heroes";
 import type { Hero } from "../data/heroTypes";
+import { REVERSED_FACING_KEYS } from "../data/facing";
 import {
   save, addGold, addGems, setStage, getLevel, getStars,
   setTowerFloor, applyArenaResult,
@@ -70,19 +71,9 @@ function monsterSpriteKey(mode: BattleMode, boss: boolean): string {
 
 /**
  * flipX는 기본적으로 "원화는 오른쪽을 본다"는 가정으로 아군=그대로/적군=반전 처리한다.
- * 히든 5종(정면 대칭 실루엣이라 반전해도 그대로지만, 실제로는 왼쪽을 보는 원화라 아군인데도
- * 반전 없이 표시하면 왼쪽을 봄)과 재작업된 슬라임·보스슬라임(왼쪽을 보도록 새로 그려짐)은
- * 반대 관례라 기본 규칙을 뒤집어야 한다.
+ * REVERSED_FACING_KEYS(실제 원화가 왼쪽을 보는 예외 목록)에 포함된 id는 반대 관례라
+ * 기본 규칙을 뒤집어야 한다 — 목록은 `src/data/facing.ts` 참고(주인님 확인표 기준 확정).
  */
-const REVERSED_FACING_KEYS = new Set([
-  "unknown_hidden_001",
-  "unknown_hidden_002",
-  "unknown_hidden_003",
-  "unknown_hidden_004",
-  "unknown_hidden_005",
-  "slime_green_001",
-  "boss_slime_001",
-]);
 
 /** 속성별 피격 이펙트 텍스처 키. 무진영(불명) 등 매핑이 없으면 범용 hit-impact로 대체 */
 const HIT_FX_BY_FACTION: Record<string, string> = {
