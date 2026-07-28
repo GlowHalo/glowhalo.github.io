@@ -11,6 +11,8 @@ import { calcFactionSynergy } from "../systems/battle";
 import {
   DAILY_MISSIONS, ALL_CLEAR_KEY, ALL_CLEAR_BONUS,
   missionProgress, isClaimed, claimable, claim, track,
+  WEEKLY_MISSIONS, WEEKLY_ALL_CLEAR_BONUS, weeklyProgress, weeklyIsClaimed, weeklyClaimable, weeklyClaim,
+  ACHIEVEMENTS, achievementClaimed, achievementClaimable, achievementClaim,
 } from "../systems/missions";
 import { toast, modal, closeModal } from "./shell";
 import { emit } from "../state/bus";
@@ -706,16 +708,31 @@ export function renderShop(root: HTMLElement) {
 }
 
 /* ── 임무 탭 ── */
-export function renderMissions(root: HTMLElement) {
-  root.innerHTML = "";
-  root.appendChild(el("h2", "", "일일 임무"));
-  root.appendChild(el("div", "desc", "매일 자정에 리셋됩니다. 완료 후 보상을 수령하세요."));
+type MissionsSubView = "daily" | "weekly" | "achievements";
+let missionsSubView: MissionsSubView = "daily";
 
-  const rewardText = (r: { gold?: number; gems?: number }) =>
-    r.gems ? `\uD83D\uDC8E ${r.gems}` : `\uD83E\uDE99 ${r.gold}`;
+export function setMissionsSubView(v: MissionsSubView) {
+  missionsSubView = v;
+}
 
-  for (const m of DAILY_MISSIONS) {
-    const cur = missionProgress(m.key);
+const rewardText = (r: { gold?: number; gems?: number }) =>
+  r.gems ? `\uD83D\uDC8E ${r.gems}` : `\uD83E\uDE99 ${r.gold}`;
+
+/** 일일/주간처럼 "리셋 + 전체완료 보너스" 구조를 공유하는 임무 목록 렌더러 */
+function renderMissionList(
+  root: HTMLElement,
+  defs: { key: string; icon: string; label: string; goal: number; reward: { gold?: number; gems?: number } }[],
+  opts: {
+    progress: (key: string) => number;
+    isClaimed: (key: string) => boolean;
+    claimable: (key: string) => boolean;
+    claim: (key: string) => boolean;
+    allClearLabel: string;
+    allClearBonus: { gold?: number; gems?: number };
+  },
+) {
+  for (const m of defs) {
+    const cur = opts.progress(m.key);
     const done = cur >= m.goal;
     const card = el("div", "list-card");
     card.appendChild(el("span", "", m.icon));
@@ -729,13 +746,13 @@ export function renderMissions(root: HTMLElement) {
     g.appendChild(el("div", "s", `${cur}/${m.goal} · 보상 ${rewardText(m.reward)}`));
     card.appendChild(g);
 
-    if (isClaimed(m.key)) {
+    if (opts.isClaimed(m.key)) {
       card.appendChild(el("span", "s", "수령 완료"));
     } else {
       const btn = el("button", "btn" + (done ? " primary" : ""), "수령") as HTMLButtonElement;
-      btn.disabled = !claimable(m.key);
+      btn.disabled = !opts.claimable(m.key);
       btn.onclick = () => {
-        if (claim(m.key)) {
+        if (opts.claim(m.key)) {
           toast(`보상 수령! ${rewardText(m.reward)}`);
           renderMissions(root);
         }
@@ -749,22 +766,93 @@ export function renderMissions(root: HTMLElement) {
   const allCard = el("div", "list-card all-bonus");
   allCard.appendChild(el("span", "", "\uD83C\uDF81"));
   const ag = el("div", "grow");
-  ag.appendChild(el("div", "t", "오늘의 임무 전체 완료"));
-  const doneCount = DAILY_MISSIONS.filter((m) => isClaimed(m.key)).length;
-  ag.appendChild(el("div", "s", `${doneCount}/${DAILY_MISSIONS.length} 수령 · 보너스 \uD83D\uDC8E ${ALL_CLEAR_BONUS.gems}`));
+  ag.appendChild(el("div", "t", opts.allClearLabel));
+  const doneCount = defs.filter((m) => opts.isClaimed(m.key)).length;
+  ag.appendChild(el("div", "s", `${doneCount}/${defs.length} 수령 · 보너스 ${rewardText(opts.allClearBonus)}`));
   allCard.appendChild(ag);
-  if (isClaimed(ALL_CLEAR_KEY)) {
+  if (opts.isClaimed(ALL_CLEAR_KEY)) {
     allCard.appendChild(el("span", "s", "수령 완료"));
   } else {
-    const btn = el("button", "btn" + (claimable(ALL_CLEAR_KEY) ? " primary" : ""), "수령") as HTMLButtonElement;
-    btn.disabled = !claimable(ALL_CLEAR_KEY);
+    const btn = el("button", "btn" + (opts.claimable(ALL_CLEAR_KEY) ? " primary" : ""), "수령") as HTMLButtonElement;
+    btn.disabled = !opts.claimable(ALL_CLEAR_KEY);
     btn.onclick = () => {
-      if (claim(ALL_CLEAR_KEY)) {
-        toast(`전체 완료 보너스! \uD83D\uDC8E ${ALL_CLEAR_BONUS.gems}`);
+      if (opts.claim(ALL_CLEAR_KEY)) {
+        toast(`전체 완료 보너스! ${rewardText(opts.allClearBonus)}`);
         renderMissions(root);
       }
     };
     allCard.appendChild(btn);
   }
   root.appendChild(allCard);
+}
+
+/** 메인 임무(업적) — 리셋 없이 영구 누적, 전체완료 보너스 없음 */
+function renderAchievements(root: HTMLElement) {
+  root.appendChild(el("h2", "", "메인 임무"));
+  root.appendChild(el("div", "desc", "리셋되지 않는 영구 목표입니다. 조건을 달성하면 수령하세요."));
+
+  for (const a of ACHIEVEMENTS) {
+    const cur = Math.min(a.goal, a.progress());
+    const done = cur >= a.goal;
+    const card = el("div", "list-card");
+    card.appendChild(el("span", "", a.icon));
+    const g = el("div", "grow");
+    g.appendChild(el("div", "t", a.label));
+    const barWrap = el("div", "mbar");
+    const bar = el("div", "mbar-fill");
+    bar.style.width = `${Math.min(100, (cur / a.goal) * 100)}%`;
+    barWrap.appendChild(bar);
+    g.appendChild(barWrap);
+    g.appendChild(el("div", "s", `${cur}/${a.goal} · 보상 ${rewardText(a.reward)}`));
+    card.appendChild(g);
+
+    if (achievementClaimed(a.key)) {
+      card.appendChild(el("span", "s", "수령 완료"));
+    } else {
+      const btn = el("button", "btn" + (done ? " primary" : ""), "수령") as HTMLButtonElement;
+      btn.disabled = !achievementClaimable(a.key);
+      btn.onclick = () => {
+        if (achievementClaim(a.key)) {
+          toast(`업적 달성! ${rewardText(a.reward)}`);
+          renderMissions(root);
+        }
+      };
+      card.appendChild(btn);
+    }
+    root.appendChild(card);
+  }
+}
+
+export function renderMissions(root: HTMLElement) {
+  root.innerHTML = "";
+
+  if (missionsSubView === "weekly") {
+    root.appendChild(el("h2", "", "주간 임무"));
+    root.appendChild(el("div", "desc", "매주 월요일에 리셋됩니다. 완료 후 보상을 수령하세요."));
+    renderMissionList(root, WEEKLY_MISSIONS, {
+      progress: weeklyProgress,
+      isClaimed: weeklyIsClaimed,
+      claimable: weeklyClaimable,
+      claim: weeklyClaim,
+      allClearLabel: "이번 주 임무 전체 완료",
+      allClearBonus: WEEKLY_ALL_CLEAR_BONUS,
+    });
+    return;
+  }
+
+  if (missionsSubView === "achievements") {
+    renderAchievements(root);
+    return;
+  }
+
+  root.appendChild(el("h2", "", "일일 임무"));
+  root.appendChild(el("div", "desc", "매일 자정에 리셋됩니다. 완료 후 보상을 수령하세요."));
+  renderMissionList(root, DAILY_MISSIONS, {
+    progress: missionProgress,
+    isClaimed: isClaimed,
+    claimable: claimable,
+    claim: claim,
+    allClearLabel: "오늘의 임무 전체 완료",
+    allClearBonus: ALL_CLEAR_BONUS,
+  });
 }

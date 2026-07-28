@@ -41,6 +41,14 @@ export interface SaveState {
     progress: Record<string, number>;
     claimed: string[];
   };
+  /** 주간 임무 상태 (ISO 주차가 바뀌면 리셋) */
+  weeklyMissions: {
+    week: string;
+    progress: Record<string, number>;
+    claimed: string[];
+  };
+  /** 메인(업적) 임무 — 리셋 없이 영구 누적, 달성 시 1회만 수령 */
+  achievementsClaimed: string[];
   /** 요일던전: 진영별 보스 누적 처치 수 (잡을수록 강해짐) */
   raidKills: Record<string, number>;
   /** 클라우드 백업 복구 코드 (없으면 아직 백업 안 함) */
@@ -67,6 +75,8 @@ const DEFAULTS: SaveState = {
   arenaRating: 1000,
   arenaWinDate: "",
   missions: { date: "", progress: {}, claimed: [] },
+  weeklyMissions: { week: "", progress: {}, claimed: [] },
+  achievementsClaimed: [],
   raidKills: {},
   backupCode: "",
   mail: [],
