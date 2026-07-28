@@ -137,6 +137,10 @@ function showHome() {
 /** 클릭 가능한 2D 허브타운 — AFK Arena/HoC 벤치마크(BENCHMARK.md §14)의 "건물별 콘텐츠 진입점" 구조를
  * 차용하되, 3D 마을이 아니라 우리 SD/치비 무드에 맞는 절차적 배경(코드 생성) 위에 배치한다.
  * 실제 건물 일러스트는 디자인리소스 세션 후속 작업 — 지금은 기존 탭 아이콘을 재활용한 1차 버전. */
+/** AFK Journey(AFK 아레나2) 벤치마킹 — 5개 목적지를 동일 크기 타일로 나열하던 이전 방식 대신,
+ * "메인 진행(전투)은 하단에 크게 단독 CTA로, 나머지 기능은 상단에 작은 원형 퀵액세스 줄로"
+ * 라는 비대칭 구조를 차용한다. 실제 스크린샷 대조는 못 했음(참고자료 확보 실패) — 리서치로 확인한
+ * 설계 방향(탐험형 허브 + 캠페인 중심 큰 CTA)만 반영한 1차 버전, 스크린샷 받으면 정밀 조정 예정 */
 function renderHub(root: HTMLElement) {
   root.innerHTML = "";
   root.classList.add("hub-screen");
@@ -148,26 +152,39 @@ function renderHub(root: HTMLElement) {
   root.appendChild(sky);
 
   root.appendChild(h("h2", "hub-title", "Circle Heroes 마을"));
-  root.appendChild(h("div", "desc", "건물을 눌러 이동하세요."));
 
-  const town = h("div", "hub-town");
-  for (const t of TABS) {
-    const hut = h("button", "hub-hut" + (t.center ? " hub-hut-main" : ""));
-    hut.style.setProperty("--roof", HUB_ROOF[t.key]);
-    hut.appendChild(h("div", "hub-roof"));
-    const body = h("div", "hub-body");
+  const sideTabs = TABS.filter((t) => !t.center);
+  const mainTab = TABS.find((t) => t.center)!;
+
+  // 상단 퀵액세스 줄 — 영웅·소환·상점·임무를 작은 원형 아이콘으로, 한 번에 훑어보고 바로 진입
+  const quick = h("div", "hub-quickrow");
+  for (const t of sideTabs) {
+    const btn = h("button", "hub-quick");
+    btn.style.setProperty("--roof", HUB_ROOF[t.key]);
     const hi = icon(t.icon);
-    hi.classList.add("hub-icon");
-    body.appendChild(hi);
-    body.appendChild(h("div", "hub-label", t.label));
-    body.appendChild(h("div", "hub-flavor", HUB_FLAVOR[t.key]));
-    hut.appendChild(body);
-    hut.onclick = () => switchTab(t.key);
-    town.appendChild(hut);
+    hi.classList.add("hub-quick-icon");
+    btn.appendChild(hi);
+    btn.appendChild(h("span", "hub-quick-label", t.label));
+    btn.onclick = () => switchTab(t.key);
+    quick.appendChild(btn);
   }
-  root.appendChild(town);
+  root.appendChild(quick);
 
+  root.appendChild(h("div", "hub-spacer"));
   root.appendChild(h("div", "hub-ground"));
+
+  // 하단 대형 CTA — 핵심 진행(전투)만 단독으로 강조, 나머지와 시각 무게를 분리
+  const cta = h("button", "hub-cta");
+  cta.style.setProperty("--roof", HUB_ROOF[mainTab.key]);
+  const ctaIcon = icon(mainTab.icon);
+  ctaIcon.classList.add("hub-cta-icon");
+  cta.appendChild(ctaIcon);
+  const ctaBody = h("div", "hub-cta-body");
+  ctaBody.appendChild(h("div", "hub-cta-label", "전투 시작"));
+  ctaBody.appendChild(h("div", "hub-cta-flavor", HUB_FLAVOR[mainTab.key]));
+  cta.appendChild(ctaBody);
+  cta.onclick = () => switchTab(mainTab.key);
+  root.appendChild(cta);
 }
 
 // 전투 탭 서브메뉴 ↔ 전투 모드 연결
