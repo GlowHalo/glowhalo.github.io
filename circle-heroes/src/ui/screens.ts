@@ -14,6 +14,7 @@ import {
 } from "../systems/missions";
 import { toast, modal, closeModal } from "./shell";
 import { emit } from "../state/bus";
+import { isReversedFacing } from "../data/facing";
 
 const FACTION_COLORS: Record<string, string> = {
   불: "#e8683a",
@@ -40,6 +41,8 @@ function setFace(face: HTMLElement, hero: Hero) {
   face.style.backgroundSize = "230% 230%";
   face.style.backgroundPosition = "center 4%";
   face.style.backgroundRepeat = "no-repeat";
+  // 카드는 항상 아군(오른쪽 보기) 방향으로 통일 — 원화가 왼쪽을 보는 예외는 좌우반전
+  face.style.transform = isReversedFacing(hero.id) ? "scaleX(-1)" : "";
 }
 
 const FACTION_ICON: Record<string, string> = {
