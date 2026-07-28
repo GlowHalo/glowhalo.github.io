@@ -1,13 +1,9 @@
 name: Circle Heroes — Android APK
 
 on:
+  # APK는 자동 빌드하지 않는다 — 웹플레이(GitHub Pages)만 push마다 자동 갱신되고,
+  # APK는 필요할 때 Actions 탭에서 이 워크플로우를 수동 실행(workflow_dispatch)해서만 패키징한다.
   workflow_dispatch: {}
-  push:
-    branches:
-      - "**"
-    paths:
-      - "circle-heroes/**"
-      - ".github/workflows/circle-heroes-android.yml"
 
 permissions:
   contents: write
