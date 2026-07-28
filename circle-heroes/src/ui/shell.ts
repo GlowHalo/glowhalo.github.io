@@ -1,6 +1,9 @@
 import "./ui.css";
 import { on, emit } from "../state/bus";
-import { save, calcOfflineReward, addGold, addGems, addHero, resetSave } from "../state/save";
+import {
+  save, calcOfflineReward, addGold, addGems, addHero, resetSave,
+  unreadMailCount, markMailRead, claimMail, type MailItem,
+} from "../state/save";
 import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView } from "./screens";
 import { isFirebaseConfigured, getBackupCode, backupNow, restoreFromCode } from "../state/backup";
 import { HEROES } from "../data/heroes";
@@ -297,6 +300,76 @@ function buildCodeSection(): HTMLElement {
   return box;
 }
 
+const MAIL_KIND_ICON: Record<string, string> = { item: "🎁", notice: "📢", normal: "✉️" };
+
+function buildMailRow(m: MailItem): HTMLElement {
+  const row = h("div", "mail-row" + (m.read ? " read" : " unread"));
+  const head = h("div", "mail-row-head");
+  head.appendChild(h("span", "mail-kind", MAIL_KIND_ICON[m.kind] ?? "✉️"));
+  head.appendChild(h("span", "mail-title", m.title));
+  const dot = h("span", "mail-dot");
+  if (!m.read) head.appendChild(dot);
+  row.appendChild(head);
+
+  const expand = h("div", "mail-expand");
+  expand.appendChild(h("p", "mail-body", m.body));
+  if (m.reward) {
+    const rewardRow = h("div", "mail-reward-row");
+    if (m.reward.gold) {
+      const chip = h("span", "mail-reward-chip");
+      chip.appendChild(icon("gold.png"));
+      chip.appendChild(h("span", "", m.reward.gold.toLocaleString()));
+      rewardRow.appendChild(chip);
+    }
+    if (m.reward.gems) {
+      const chip = h("span", "mail-reward-chip");
+      chip.appendChild(icon("gem.png"));
+      chip.appendChild(h("span", "", m.reward.gems.toLocaleString()));
+      rewardRow.appendChild(chip);
+    }
+    expand.appendChild(rewardRow);
+    if (m.claimed) {
+      expand.appendChild(h("div", "mail-claimed", "✔ 수령 완료"));
+    } else {
+      const claimBtn = h("button", "btn primary", "수령") as HTMLButtonElement;
+      claimBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (!claimMail(m.id)) return;
+        toast("보상을 수령했습니다");
+        claimBtn.replaceWith(h("div", "mail-claimed", "✔ 수령 완료"));
+      };
+      expand.appendChild(claimBtn);
+    }
+  }
+  const closeBtn = h("button", "btn", "닫기") as HTMLButtonElement;
+  closeBtn.onclick = (e) => {
+    e.stopPropagation();
+    row.classList.remove("open");
+    markMailRead(m.id);
+    row.classList.remove("unread");
+    row.classList.add("read");
+    dot.remove();
+  };
+  expand.appendChild(closeBtn);
+  row.appendChild(expand);
+
+  head.onclick = () => row.classList.toggle("open");
+  return row;
+}
+
+function openMailModal() {
+  const box = h("div", "mail-box");
+  const list = [...save.mail].sort((a, b) => b.createdAt - a.createdAt);
+  if (!list.length) {
+    box.appendChild(h("p", "muted", "받은 우편이 없습니다."));
+  } else {
+    list.forEach((m) => box.appendChild(buildMailRow(m)));
+  }
+  const ok = h("button", "btn primary", "닫기") as HTMLButtonElement;
+  ok.onclick = closeModal;
+  modal("우편함", box, [ok]);
+}
+
 function buildBackupSection(): HTMLElement {
   const box = h("div", "backup-box");
   box.appendChild(h("h4", "", "☁ 클라우드 백업"));
@@ -395,7 +468,18 @@ export function buildShell() {
   homeBtn.onclick = showHome;
   corner.appendChild(homeBtn);
   corner.appendChild(mkCorner("icon-gift.png", "이벤트", true, () => toast("이벤트 — 준비 중입니다")));
-  corner.appendChild(mkCorner("icon-mail.png", "우편", false, () => toast("우편함 — 준비 중입니다")));
+  const mailBtn = mkCorner("icon-mail.png", "우편", false, openMailModal);
+  corner.appendChild(mailBtn);
+  const refreshMailBadge = () => {
+    let dot = mailBtn.querySelector<HTMLElement>(".badge");
+    if (unreadMailCount() > 0) {
+      if (!dot) mailBtn.appendChild(h("span", "badge"));
+    } else {
+      dot?.remove();
+    }
+  };
+  refreshMailBadge();
+  on("mail-changed", refreshMailBadge);
   corner.appendChild(
     mkCorner("icon-settings.png", "설정", false, () => {
       const body = h("div");

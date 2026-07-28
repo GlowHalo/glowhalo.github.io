@@ -1,5 +1,16 @@
 import { emit } from "./bus";
 
+export interface MailItem {
+  id: string;
+  kind: "item" | "notice" | "normal";
+  title: string;
+  body: string;
+  reward?: { gold?: number; gems?: number };
+  read: boolean;
+  claimed: boolean;
+  createdAt: number;
+}
+
 // 세이브 본체는 기기 로컬(localStorage). Firebase 백업은 추후 이 모듈에 붙는다.
 export interface SaveState {
   gold: number;
@@ -34,6 +45,8 @@ export interface SaveState {
   raidKills: Record<string, number>;
   /** 클라우드 백업 복구 코드 (없으면 아직 백업 안 함) */
   backupCode: string;
+  /** 우편함 */
+  mail: MailItem[];
 }
 
 const KEY = "circle-heroes-save-v1";
@@ -56,6 +69,7 @@ const DEFAULTS: SaveState = {
   missions: { date: "", progress: {}, claimed: [] },
   raidKills: {},
   backupCode: "",
+  mail: [],
 };
 
 function load(): SaveState {
@@ -221,6 +235,49 @@ export function calcOfflineReward(): { minutes: number; gold: number } | null {
   const capped = Math.min(elapsedMin, OFFLINE_CAP_HOURS * 60);
   return { minutes: capped, gold: capped * save.stage * 5 };
 }
+
+/* ── 우편함 ── */
+export function unreadMailCount(): number {
+  return save.mail.filter((m) => !m.read).length;
+}
+
+export function markMailRead(id: string) {
+  const m = save.mail.find((x) => x.id === id);
+  if (!m || m.read) return;
+  m.read = true;
+  persist();
+  emit("mail-changed");
+}
+
+export function claimMail(id: string): boolean {
+  const m = save.mail.find((x) => x.id === id);
+  if (!m || m.claimed || !m.reward) return false;
+  if (m.reward.gold) save.gold += m.reward.gold;
+  if (m.reward.gems) save.gems += m.reward.gems;
+  m.claimed = true;
+  persist();
+  if (m.reward.gold) emit("gold-changed");
+  if (m.reward.gems) emit("gems-changed");
+  emit("mail-changed");
+  return true;
+}
+
+/** 최초 설치 시 1회만 지급 — id 존재 여부로 idempotent하게 판단 */
+function ensureWelcomeMail() {
+  if (save.mail.some((m) => m.id === "welcome")) return;
+  save.mail.push({
+    id: "welcome",
+    kind: "item",
+    title: "환영합니다!",
+    body: "Circle Heroes에 오신 것을 진심으로 환영합니다.\n작은 선물을 드리니 즐거운 모험 되세요!",
+    reward: { gold: 10000, gems: 3000 },
+    read: false,
+    claimed: false,
+    createdAt: Date.now(),
+  });
+  persist();
+}
+ensureWelcomeMail();
 
 // 주기적으로 lastSeen 갱신 (앱 켜둔 채 방치해도 오프라인 보상이 중복 적립되지 않도록)
 setInterval(persist, 30_000);
