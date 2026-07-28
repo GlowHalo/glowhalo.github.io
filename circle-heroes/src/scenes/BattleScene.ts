@@ -13,6 +13,7 @@ import {
   act,
   applyAuras,
   attackIntervalMs,
+  calcFactionSynergy,
   makeEnemy,
   makeTowerEnemy,
   unitFromHero,
@@ -114,6 +115,7 @@ export class BattleScene extends Phaser.Scene {
 
   private stageText!: Phaser.GameObjects.Text;
   private speedBtn!: Phaser.GameObjects.Text;
+  private synergyText!: Phaser.GameObjects.Text;
 
   constructor() {
     super("battle");
@@ -153,6 +155,18 @@ export class BattleScene extends Phaser.Scene {
         fontStyle: "bold",
         stroke: "#0a0d16",
         strokeThickness: 5,
+      })
+      .setOrigin(0.5);
+
+    // 편성 화면엔 시너지 텍스트가 있었지만 전투 중엔 실제 적용 여부를 확인할 길이 없었음 — 전투 화면에도 표시
+    this.synergyText = this.add
+      .text(GAME_W / 2, 98, "", {
+        fontFamily: "sans-serif",
+        fontSize: "12.5px",
+        color: "#ffd34d",
+        fontStyle: "bold",
+        stroke: "#0a0d16",
+        strokeThickness: 4,
       })
       .setOrigin(0.5);
 
@@ -331,6 +345,13 @@ export class BattleScene extends Phaser.Scene {
     applyAuras(this.enemies, this.heroes);
 
     this.refreshHud();
+    // 진영 시너지는 applyAuras()에서 스탯에 실제 반영되지만, 지금까지 전투 화면엔 그 사실이 안 보였음
+    const synergy = calcFactionSynergy(this.heroes.map((u) => u.faction));
+    this.synergyText.setText(
+      synergy
+        ? `⚡ ${synergy.label}${synergy.atkMult > 1 ? ` 공격력+${Math.round((synergy.atkMult - 1) * 100)}%` : ""}${synergy.dmgTakenMult < 1 ? ` 받는피해-${Math.round((1 - synergy.dmgTakenMult) * 100)}%` : ""}`
+        : ""
+    );
 
     if (this.isTurnBased()) {
       this.turnQueue = [];
@@ -888,12 +909,12 @@ export class BattleScene extends Phaser.Scene {
     if (this.mode === "stage") {
       this.stageText.setText(`STAGE ${this.stage}  ·  WAVE ${this.wave}/${WAVES_PER_STAGE}`);
     } else if (this.mode === "tower") {
-      this.stageText.setText(`⏳ 턴제 · 무한의 탑 · ${save.towerFloor}층`);
+      this.stageText.setText(`무한의 탑 · ${save.towerFloor}층`);
     } else if (this.mode === "raid") {
       const f = todayFaction();
       this.stageText.setText(`요일던전 · ${raidBossName()} Lv.${raidKills() + 1}${f ? ` (${f}만 출전)` : " (전 진영)"}`);
     } else {
-      this.stageText.setText(`⏳ 턴제 · 아레나 · ${save.arenaRating}점`);
+      this.stageText.setText(`아레나 · ${save.arenaRating}점`);
     }
   }
 
