@@ -56,6 +56,8 @@ interface UnitView {
   homeY: number;
   /** flashImage의 기본(비율 1) 스케일 — 스쿼시&스트레치 트윈이 매번 여기서부터 계산하도록 고정값으로 보관 */
   artScale: number;
+  /** 보호막 보유 중 캐릭터를 감싸는 상시 링(보호막 값이 있는 동안만 보임) */
+  shieldRing: Phaser.GameObjects.Arc;
 }
 
 /** 스테이지/무한의탑/요일던전 몬스터 → 실제 몬스터 아트 매핑 (탑·요일던전 전용 아트 반영 완료) */
@@ -396,8 +398,24 @@ export class BattleScene extends Phaser.Scene {
     const hpBar = this.add
       .rectangle(-barW / 2, -halfH - 11, barW, 5, unit.isHero ? 0x5fbf77 : 0xe8683a)
       .setOrigin(0, 0.5);
-    root.add([labelBg, label, hpBg, hpBar]);
-    return { unit, root, flashImage, flashShape, flashShapeColor: fallbackColor, hpBg, hpBar, homeX: x, homeY: y, artScale };
+    const shieldRing = this.add
+      .circle(0, 0, halfH * 0.92)
+      .setStrokeStyle(3, 0x7fd8ff, 0.85)
+      .setFillStyle(0x7fd8ff, 0.06)
+      .setVisible(false);
+    this.tweens.add({
+      targets: shieldRing,
+      alpha: 0.55,
+      duration: 650,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+    });
+    root.add([shieldRing, labelBg, label, hpBg, hpBar]);
+    return {
+      unit, root, flashImage, flashShape, flashShapeColor: fallbackColor,
+      hpBg, hpBar, homeX: x, homeY: y, artScale, shieldRing,
+    };
   }
 
   update(time: number, delta: number) {
@@ -447,27 +465,28 @@ export class BattleScene extends Phaser.Scene {
     const view = this.views.get(attacker);
     if (!view) return;
     const dir = attacker.isHero ? 1 : -1;
-    const d = 100 / this.speedMult;
+    // 사전동작을 대기시간 대비 눈에 띄게 늘림(기존엔 전체 모션이 너무 빨라 예비동작이 안 보였음)
+    const d = 240 / this.speedMult;
     view.root.setDepth(10);
     this.tweens.chain({
       targets: view.root,
       tweens: [
-        { x: view.homeX - dir * 7, duration: d * 0.3, ease: "Sine.easeOut" },
-        { x: view.homeX + dir * 26, duration: d * 0.4, ease: "Quad.easeIn" },
-        { x: view.homeX, duration: d * 0.55, ease: "Back.easeOut" },
+        { x: view.homeX - dir * 13, duration: d * 0.45, ease: "Sine.easeInOut" },
+        { x: view.homeX + dir * 26, duration: d * 0.25, ease: "Quad.easeIn" },
+        { x: view.homeX, duration: d * 0.3, ease: "Back.easeOut" },
       ],
       onComplete: () => view.root.setDepth(0),
     });
     // 돌진 순간 잔상(스피드라인) — 예비동작 끝나는 시점에 맞춰 스폰
-    this.delayed(d * 0.3, () => this.spawnDashTrail(view));
+    this.delayed(d * 0.45, () => this.spawnDashTrail(view));
     if (view.flashImage) {
       const s = view.artScale;
       this.tweens.chain({
         targets: view.flashImage,
         tweens: [
-          { scaleX: s * 0.92, scaleY: s * 1.08, duration: d * 0.3, ease: "Sine.easeOut" },
-          { scaleX: s * 1.1, scaleY: s * 0.9, duration: d * 0.4, ease: "Quad.easeIn" },
-          { scaleX: s, scaleY: s, duration: d * 0.55, ease: "Back.easeOut" },
+          { scaleX: s * 0.94, scaleY: s * 1.06, duration: d * 0.45, ease: "Sine.easeInOut" },
+          { scaleX: s * 1.1, scaleY: s * 0.9, duration: d * 0.25, ease: "Quad.easeIn" },
+          { scaleX: s, scaleY: s, duration: d * 0.3, ease: "Back.easeOut" },
         ],
       });
     }
@@ -598,9 +617,25 @@ export class BattleScene extends Phaser.Scene {
         ease: "Quad.easeOut",
       });
     } else if (r.kind === "heal") {
-      this.spawnFx(view.root.x, view.root.y + 10, "fx-cast-aura", { scale: 0.45, tint: 0x7de8a0 });
+      // 회복량이 클수록(치유량 비례) 더 크고 오래가는 초록빛 오라 + 캐릭터 자체에 옅은 녹색 펄스
+      const healScale = Phaser.Math.Clamp(0.45 + r.amount / 400, 0.45, 0.85);
+      this.spawnFx(view.root.x, view.root.y, "fx-cast-aura", { scale: healScale, tint: 0x7de8a0 });
+      if (view.flashImage) {
+        view.flashImage.setTintFill(0x8ff5b0);
+        this.time.delayedCall(160 / this.speedMult, () => view.flashImage?.clearTint());
+      }
     } else if (r.kind === "shield") {
-      this.spawnFx(view.root.x, view.root.y + 10, "fx-cast-aura", { scale: 0.45, tint: 0x8ecdf0 });
+      // 보호막은 발밑 오라 대신 캐릭터를 감싸는 링이 확 커졌다 상시 크기로 줄어드는 "방어막 전개" 연출
+      const ring = this.add.circle(view.root.x, view.root.y, view.shieldRing.radius * 1.9);
+      ring.setStrokeStyle(4, 0x7fd8ff, 0.95).setFillStyle(0x7fd8ff, 0.16).setDepth(15);
+      this.tweens.add({
+        targets: ring,
+        radius: view.shieldRing.radius,
+        alpha: 0.4,
+        duration: 260 / this.speedMult,
+        ease: "Back.easeOut",
+        onComplete: () => ring.destroy(),
+      });
     } else if (r.kind === "buff") {
       this.spawnFx(view.root.x, view.root.y + 10, "fx-cast-aura", { scale: 0.4, tint: 0xffd34d });
     } else if (r.kind === "taunt") {
@@ -663,6 +698,33 @@ export class BattleScene extends Phaser.Scene {
         scale: 0.85,
         duration: 200 / this.speedMult,
       });
+      if (r.kind === "damage") {
+        // 처형·마무리 일격 강조 — "처치!" 플래버 + 큰 임팩트 이펙트(기본 타격 연출과 구분)
+        this.spawnFx(view.root.x, view.root.y, "fx-hit-crit", { scale: 1.15, tint: 0xffffff });
+        const kill = this.add
+          .text(view.root.x, view.root.y - 66, "처치!", {
+            fontFamily: "sans-serif",
+            fontSize: "18px",
+            color: "#ffe27a",
+            fontStyle: "bold",
+            stroke: "#10131c",
+            strokeThickness: 4,
+          })
+          .setOrigin(0.5)
+          .setScale(1.4)
+          .setDepth(101);
+        this.tweens.add({ targets: kill, scale: 1, duration: 120 / this.speedMult, ease: "Back.easeOut" });
+        this.tweens.add({
+          targets: kill,
+          y: kill.y - 26,
+          alpha: 0,
+          delay: 260 / this.speedMult,
+          duration: 420 / this.speedMult,
+          ease: "Quad.easeIn",
+          onComplete: () => kill.destroy(),
+        });
+        if (!isBigHit) this.cameras.main.shake(80 / this.speedMult, 0.005);
+      }
     }
   }
 
@@ -691,6 +753,9 @@ export class BattleScene extends Phaser.Scene {
         duration: 140 / this.speedMult,
         ease: "Quad.easeOut",
       });
+      // 보호막 보유 중에는 캐릭터를 감싸는 링을 상시 표시(적용 순간 반짝임만으로는 눈에 잘 안 띄었음)
+      const hasShield = view.unit.shield > 0;
+      if (hasShield !== view.shieldRing.visible) view.shieldRing.setVisible(hasShield);
     }
   }
 
