@@ -109,6 +109,8 @@ export class BattleScene extends Phaser.Scene {
   private speedMult = 2;
   private battleOver = false;
   private rosterDirty = false;
+  /** 턴제(탑/아레나) 진행용 행동 순서 큐 — 비면 생존 유닛을 속도순으로 다시 채운다 */
+  private turnQueue: Unit[] = [];
 
   private stageText!: Phaser.GameObjects.Text;
   private speedBtn!: Phaser.GameObjects.Text;
@@ -329,6 +331,11 @@ export class BattleScene extends Phaser.Scene {
     applyAuras(this.enemies, this.heroes);
 
     this.refreshHud();
+
+    if (this.isTurnBased()) {
+      this.turnQueue = [];
+      this.delayed(450 / this.speedMult, () => this.stepTurn());
+    }
   }
 
   private makeUnitView(unit: Unit, x: number, y: number, big: boolean, monsterKey?: string): UnitView {
@@ -418,8 +425,13 @@ export class BattleScene extends Phaser.Scene {
     };
   }
 
+  /** 탑·아레나는 턴제(전략적 완속 진행), 스테이지·요일던전은 지금처럼 실시간 동시공격 */
+  private isTurnBased(): boolean {
+    return this.mode === "tower" || this.mode === "arena";
+  }
+
   update(time: number, delta: number) {
-    if (this.battleOver) return;
+    if (this.battleOver || this.isTurnBased()) return; // 턴제는 stepTurn() 체인이 별도 진행
     const dt = delta * this.speedMult;
     const now = time * this.speedMult;
 
@@ -429,34 +441,67 @@ export class BattleScene extends Phaser.Scene {
       if (unit.attackTimer < attackIntervalMs(unit)) continue;
       unit.attackTimer = 0;
 
-      const allies = unit.isHero ? this.heroes : this.enemies;
-      const foes = unit.isHero ? this.enemies : this.heroes;
-      // 스킬 사용 여부를 act() 호출 전에 미리 예측(actionCount는 act() 내부에서 증가) — 시전 이펙트용
-      const isSkillCast = !!unit.heroId && (unit.actionCount + 1) % SKILL_EVERY_N_ACTIONS === 0;
-      const results = act(unit, allies, foes, now);
-      if (results.length > 0) {
-        if (isSkillCast) {
-          this.castGlow(unit);
-          this.delayed(70 / this.speedMult, () => this.lunge(unit, results[0].kind));
-        } else {
-          this.lunge(unit, results[0].kind);
-        }
-      }
-      for (const r of results) {
-        this.showResult(r);
-        if (r.revived) this.animateRevive(r.revived);
-      }
-      this.syncBars();
+      if (this.resolveUnitAction(unit, now)) return; // 전투 종료
+    }
+  }
 
-      if (this.enemies.every((u) => !u.alive)) {
-        this.onWaveClear();
-        return;
-      }
-      if (this.heroes.every((u) => !u.alive)) {
-        this.onDefeat();
-        return;
+  /** 한 유닛의 행동 1회를 실행(액티브/기본공격 → 모션·이펙트 → 결과 표시). 전투가 끝났으면 true 반환 */
+  private resolveUnitAction(unit: Unit, now: number): boolean {
+    const allies = unit.isHero ? this.heroes : this.enemies;
+    const foes = unit.isHero ? this.enemies : this.heroes;
+    // 스킬 사용 여부를 act() 호출 전에 미리 예측(actionCount는 act() 내부에서 증가) — 시전 이펙트용
+    const isSkillCast = !!unit.heroId && (unit.actionCount + 1) % SKILL_EVERY_N_ACTIONS === 0;
+    const results = act(unit, allies, foes, now);
+    if (results.length > 0) {
+      if (isSkillCast) {
+        this.castGlow(unit);
+        this.delayed(70 / this.speedMult, () => this.lunge(unit, results[0].kind));
+      } else {
+        this.lunge(unit, results[0].kind);
       }
     }
+    for (const r of results) {
+      this.showResult(r);
+      if (r.revived) this.animateRevive(r.revived);
+    }
+    this.syncBars();
+
+    if (this.enemies.every((u) => !u.alive)) {
+      this.onWaveClear();
+      return true;
+    }
+    if (this.heroes.every((u) => !u.alive)) {
+      this.onDefeat();
+      return true;
+    }
+    return false;
+  }
+
+  /** 턴제(탑/아레나) 진행 — 생존 유닛을 속도순으로 정렬해 한 명씩 행동, 라운드가 끝나면 재정렬 */
+  private stepTurn() {
+    if (this.battleOver || !this.isTurnBased()) return;
+
+    if (this.turnQueue.length === 0) {
+      this.turnQueue = [...this.heroes, ...this.enemies]
+        .filter((u) => u.alive)
+        .sort((a, b) => b.spd - a.spd);
+      if (this.turnQueue.length === 0) return; // 안전장치(이론상 도달 안 함)
+    }
+    const unit = this.turnQueue.shift()!;
+    if (!unit.alive) {
+      this.stepTurn();
+      return;
+    }
+
+    const now = this.time.now * this.speedMult;
+    const isSkillCast = !!unit.heroId && (unit.actionCount + 1) % SKILL_EVERY_N_ACTIONS === 0;
+    const battleEnded = this.resolveUnitAction(unit, now);
+    if (battleEnded) return;
+
+    // 다음 턴은 이번 행동의 모션(시전 예고+돌진 애니메이션)이 다 끝난 뒤 시작 — 턴이 겹쳐 보이지 않도록
+    const animMs = isSkillCast ? 70 + 240 : 240;
+    const gap = Math.max(animMs + 140, 300);
+    this.delayed(gap / this.speedMult, () => this.stepTurn());
   }
 
   /** 예비동작(살짝 뒤로) → 돌진 → 탄성있게 복귀하는 3단 트윈 + 스쿼시&스트레치로 타격감 강화 */
@@ -843,12 +888,12 @@ export class BattleScene extends Phaser.Scene {
     if (this.mode === "stage") {
       this.stageText.setText(`STAGE ${this.stage}  ·  WAVE ${this.wave}/${WAVES_PER_STAGE}`);
     } else if (this.mode === "tower") {
-      this.stageText.setText(`무한의 탑 · ${save.towerFloor}층`);
+      this.stageText.setText(`⏳ 턴제 · 무한의 탑 · ${save.towerFloor}층`);
     } else if (this.mode === "raid") {
       const f = todayFaction();
       this.stageText.setText(`요일던전 · ${raidBossName()} Lv.${raidKills() + 1}${f ? ` (${f}만 출전)` : " (전 진영)"}`);
     } else {
-      this.stageText.setText(`아레나 · ${save.arenaRating}점`);
+      this.stageText.setText(`⏳ 턴제 · 아레나 · ${save.arenaRating}점`);
     }
   }
 
