@@ -1,27 +1,21 @@
 #!/usr/bin/env python3
-"""Circle Heroes — Leonardo가 뱉는 순백색 배경(pure white, no shadow)을 투명 PNG로 변환.
+"""
+strip-white-bg.py의 2차 패스("연결 안 된 순백 픽셀은 전부 투명화")가 캐릭터 내부의
+정당한 흰색 디테일(갑옷 하이라이트, 슬라임 반점 등)까지 지워 구멍을 냈던 문제를 복구.
+RGB는 훼손되지 않고 alpha만 0이 됐으므로, 테두리 연결 흰 배경만 다시 계산해서
+알파를 재생성하면 원본 없이도 복구 가능하다.
 
-PROMPTS.md "사용 순서" 3번: 투명 배경이 안 되면 pure white로 받아서 Claude가 배경을 제거한다.
-테두리에서부터 연결된 흰 영역만 flood-fill로 지우기 때문에, 캐릭터 내부의 흰색 하이라이트
-(눈동자 반사광 등)는 보존된다.
-
-**2026-07-27 버그 수정**: 예전 버전은 "테두리와 분리된 순백(RGB>=248) 얼룩은 2차로 전부
-투명화"하는 패스가 있었는데, 이게 발밑 그림자 같은 진짜 배경 잔여물뿐 아니라 갑옷 하이라이트·
-슬라임 반점처럼 캐릭터 내부의 정당한 흰색 디테일까지 몽땅 구멍을 내버렸다(71종 전체 영향,
-scripts/repair-alpha.py로 복구함). 그 2차 패스를 제거했다 — 테두리 연결 배경만 지운다.
-
-의존성: pip install pillow numpy
-
-사용법:
-  python3 scripts/strip-white-bg.py <입력.png> <출력.png> [--thresh 235]
+사용법: python3 scripts/repair-alpha.py <입력.png> <출력.png> [--thresh 235]
 """
 import sys
 from collections import deque
+from pathlib import Path
+
 from PIL import Image
 import numpy as np
 
 
-def strip_white_bg(in_path, out_path, thresh=235, soft_tol=18):
+def repair(in_path, out_path, thresh=235, soft_tol=18):
     img = Image.open(in_path).convert("RGBA")
     arr = np.array(img)
     h, w = arr.shape[:2]
@@ -41,7 +35,6 @@ def strip_white_bg(in_path, out_path, thresh=235, soft_tol=18):
             if is_bgish[y, x] and not visited[y, x]:
                 visited[y, x] = True
                 q.append((x, y))
-
     while q:
         x, y = q.popleft()
         for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
@@ -50,7 +43,7 @@ def strip_white_bg(in_path, out_path, thresh=235, soft_tol=18):
                 visited[ny, nx] = True
                 q.append((nx, ny))
 
-    alpha = arr[:, :, 3].copy()
+    alpha = np.full((h, w), 255, dtype=np.uint8)
     alpha[visited] = 0
 
     vis_shift = (
@@ -60,10 +53,11 @@ def strip_white_bg(in_path, out_path, thresh=235, soft_tol=18):
     soft_candidates = vis_shift & ~visited & np.all(rgb >= (thresh - soft_tol), axis=2)
     alpha[soft_candidates] = 120
 
+    # 2차 "순백은 무조건 투명화" 패스는 의도적으로 넣지 않는다(원흉이었음).
     arr[:, :, 3] = alpha
     Image.fromarray(arr, "RGBA").save(out_path)
     removed = visited.sum()
-    print(f"{in_path} -> {out_path}: removed {removed}/{h * w} px ({removed / (h * w) * 100:.1f}%)")
+    print(f"{in_path} -> {out_path}: bg {removed}/{h*w} ({removed/(h*w)*100:.1f}%)")
 
 
 if __name__ == "__main__":
@@ -73,4 +67,4 @@ if __name__ == "__main__":
     t = 235
     if "--thresh" in sys.argv:
         t = int(sys.argv[sys.argv.index("--thresh") + 1])
-    strip_white_bg(sys.argv[1], sys.argv[2], thresh=t)
+    repair(sys.argv[1], sys.argv[2], thresh=t)
