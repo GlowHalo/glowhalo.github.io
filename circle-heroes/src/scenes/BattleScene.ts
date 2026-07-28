@@ -927,7 +927,7 @@ export class BattleScene extends Phaser.Scene {
         this.wave += 1;
         this.delayed(800 / this.speedMult, () => this.spawnTeams());
       } else {
-        this.showBanner(`STAGE ${this.stage} 클리어! +${reward}G`, "#7de8a0");
+        this.showVictoryBanner(`STAGE ${this.stage} 클리어`, [`🪙 +${reward}`]);
         const next = this.stage + 1;
         setStage(next);
         this.delayed(1400 / this.speedMult, () => this.startStage(next));
@@ -940,7 +940,7 @@ export class BattleScene extends Phaser.Scene {
       const gems = 10 + f * 5;
       addGems(gems);
       track("tower");
-      this.showBanner(`${f}층 돌파! 💎+${gems}`, "#7de8a0");
+      this.showVictoryBanner(`${f}층 돌파`, [`💎 +${gems}`]);
       setTowerFloor(f + 1);
       this.refreshHud();
       this.delayed(1400 / this.speedMult, () => this.startTower());
@@ -949,7 +949,7 @@ export class BattleScene extends Phaser.Scene {
 
     if (this.mode === "raid") {
       const gems = applyRaidKill();
-      this.showBanner(`${raidBossName()} 격파! 💎+${gems} — 더 강해져 돌아옵니다`, "#7de8a0");
+      this.showVictoryBanner(`${raidBossName()} 격파 — 더 강해져 돌아옵니다`, [`💎 +${gems}`]);
       this.refreshHud();
       this.delayed(1600 / this.speedMult, () => this.startRaid());
       return;
@@ -958,10 +958,9 @@ export class BattleScene extends Phaser.Scene {
     // arena 승리
     const { rating, bonusGems } = applyArenaResult(true);
     track("arenaWin");
-    this.showBanner(
-      bonusGems > 0 ? `아레나 승리! +25점 · 오늘 첫 승리 💎+${bonusGems}` : `아레나 승리! +25점 (${rating})`,
-      "#7de8a0"
-    );
+    const arenaRewards = [`🏆 +25점 (${rating})`];
+    if (bonusGems > 0) arenaRewards.push(`💎 +${bonusGems}`);
+    this.showVictoryBanner("아레나 승리", arenaRewards);
     this.refreshHud();
     this.delayed(1600 / this.speedMult, () => this.startArena());
   }
@@ -1026,6 +1025,38 @@ export class BattleScene extends Phaser.Scene {
       yoyo: true,
       hold: 900 / this.speedMult,
       onComplete: () => banner.destroy(),
+    });
+  }
+
+  /** 승리 플로팅 배너 — "승리" 타이틀 + 상세문구 + 보상 아이콘 나열(AFK Arena 레퍼런스 캡쳐 참고) */
+  private showVictoryBanner(subtitle: string, rewards: string[]) {
+    const cx = GAME_W / 2;
+    const title = this.add
+      .text(cx, 148, "승리", { fontFamily: "sans-serif", fontSize: "30px", fontStyle: "bold", color: "#ffd34d" })
+      .setOrigin(0.5)
+      .setAlpha(0);
+    const sub = this.add
+      .text(cx, 182, subtitle, { fontFamily: "sans-serif", fontSize: "12px", color: "#bfdcf0" })
+      .setOrigin(0.5)
+      .setAlpha(0);
+    const rewardLine = this.add
+      .text(cx, 208, rewards.join("    "), {
+        fontFamily: "sans-serif",
+        fontSize: "15px",
+        color: "#f2f8ff",
+        backgroundColor: "#10131cdd",
+        padding: { x: 14, y: 6 },
+      })
+      .setOrigin(0.5)
+      .setAlpha(0);
+    const group = [title, sub, rewardLine];
+    this.tweens.add({
+      targets: group,
+      alpha: 1,
+      duration: 220,
+      yoyo: true,
+      hold: 1100 / this.speedMult,
+      onComplete: () => group.forEach((g) => g.destroy()),
     });
   }
 }

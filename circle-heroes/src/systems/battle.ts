@@ -195,6 +195,12 @@ export function unitFromHero(hero: Hero, level = 1, stars = 1): Unit {
   return u;
 }
 
+/** 편성 화면 등에 표시하는 "전투력" 단일 수치 — 실제 전투 스탯(레벨/성급 반영)을 가중합산 */
+export function heroPower(hero: Hero, level: number, stars: number): number {
+  const u = unitFromHero(hero, level, stars);
+  return Math.round(u.atk * 3.5 + u.def * 2 + u.maxHp / 10 + u.spd * 1.2);
+}
+
 export function makeEnemy(key: string, name: string, stage: number, boss: boolean): Unit {
   const mult = Math.pow(1.22, stage - 1) * (boss ? 3.2 : 1);
   const hp = Math.round(320 * mult);
