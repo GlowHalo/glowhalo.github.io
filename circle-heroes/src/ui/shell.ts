@@ -4,7 +4,7 @@ import {
   save, calcOfflineReward, addGold, addGems, addHero, resetSave,
   unreadMailCount, markMailRead, claimMail, type MailItem,
 } from "../state/save";
-import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView } from "./screens";
+import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView, setMissionsSubView } from "./screens";
 import { isFirebaseConfigured, getBackupCode, backupNow, restoreFromCode } from "../state/backup";
 import { HEROES } from "../data/heroes";
 
@@ -200,6 +200,13 @@ const BATTLE_MODES: Record<string, string> = {
 let battleMode = "stage";
 let heroesSubLabel = "보유·편성";
 
+const MISSIONS_SUBVIEWS: Record<string, "daily" | "weekly" | "achievements"> = {
+  "일일": "daily",
+  "주간": "weekly",
+  "업적": "achievements",
+};
+let missionsSubLabel = "일일";
+
 function renderSubbar() {
   const bar = document.getElementById("subbar")!;
   bar.innerHTML = "";
@@ -237,6 +244,21 @@ function renderSubbar() {
         } else {
           toast(`${label} — 준비 중입니다`);
         }
+      };
+      bar.appendChild(chip);
+    });
+    return;
+  }
+
+  if (currentTab === "missions") {
+    def.subs.forEach((label) => {
+      const chip = h("button", "sub-chip" + (label === missionsSubLabel ? " on" : ""), label);
+      chip.onclick = () => {
+        if (label === missionsSubLabel) return;
+        missionsSubLabel = label;
+        setMissionsSubView(MISSIONS_SUBVIEWS[label] ?? "daily");
+        renderSubbar();
+        renderMissions(document.getElementById("screen-missions")!);
       };
       bar.appendChild(chip);
     });
