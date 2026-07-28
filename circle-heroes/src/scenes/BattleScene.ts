@@ -117,6 +117,12 @@ export class BattleScene extends Phaser.Scene {
   private speedBtn!: Phaser.GameObjects.Text;
   private synergyText!: Phaser.GameObjects.Text;
 
+  /** 필살기 컷인(§11) 대상 판별용 — UR 등급만 풀스크린 연출 특권을 가진다 */
+  private urHeroIds = new Set(PLAYABLE_HEROES.filter((h) => h.grade === "UR").map((h) => h.id));
+  private isUrHero(heroId?: string): boolean {
+    return !!heroId && this.urHeroIds.has(heroId);
+  }
+
   constructor() {
     super("battle");
   }
@@ -472,9 +478,13 @@ export class BattleScene extends Phaser.Scene {
     const foes = unit.isHero ? this.enemies : this.heroes;
     // 스킬 사용 여부를 act() 호출 전에 미리 예측(actionCount는 act() 내부에서 증가) — 시전 이펙트용
     const isSkillCast = !!unit.heroId && (unit.actionCount + 1) % SKILL_EVERY_N_ACTIONS === 0;
+    const isUrCast = isSkillCast && this.isUrHero(unit.heroId);
     const results = act(unit, allies, foes, now);
     if (results.length > 0) {
-      if (isSkillCast) {
+      if (isUrCast) {
+        this.ultimateCutin(unit);
+        this.delayed(70 / this.speedMult, () => this.lunge(unit, results[0].kind));
+      } else if (isSkillCast) {
         this.castGlow(unit);
         this.delayed(70 / this.speedMult, () => this.lunge(unit, results[0].kind));
       } else {
@@ -516,11 +526,13 @@ export class BattleScene extends Phaser.Scene {
 
     const now = this.time.now * this.speedMult;
     const isSkillCast = !!unit.heroId && (unit.actionCount + 1) % SKILL_EVERY_N_ACTIONS === 0;
+    const isUrCast = isSkillCast && this.isUrHero(unit.heroId);
     const battleEnded = this.resolveUnitAction(unit, now);
     if (battleEnded) return;
 
     // 다음 턴은 이번 행동의 모션(시전 예고+돌진 애니메이션)이 다 끝난 뒤 시작 — 턴이 겹쳐 보이지 않도록
-    const animMs = isSkillCast ? 70 + 240 : 240;
+    // UR 필살기 컷인은 연출이 훨씬 길어서(§11) 별도 여유를 더 준다
+    const animMs = isUrCast ? 70 + 620 : isSkillCast ? 70 + 240 : 240;
     const gap = Math.max(animMs + 140, 300);
     this.delayed(gap / this.speedMult, () => this.stepTurn());
   }
@@ -605,6 +617,93 @@ export class BattleScene extends Phaser.Scene {
           ease: "Quad.easeIn",
           onComplete: () => fx.destroy(),
         }),
+    });
+  }
+
+  /** UR 전용 필살기 풀스크린 컷인(§11, BENCHMARK.md 킬러콘텐츠 1순위) — 등급 격차를 연출로 체감시키는 장치.
+   * 신규 스프라이트 없이 기존 초상화(portrait-*)·이펙트 텍스처를 스케일업/재활용해서 구성한다. */
+  private ultimateCutin(caster: Unit) {
+    const view = this.views.get(caster);
+    if (!view) return;
+    const tint = FACTION_COLORS[caster.faction] ?? 0xffd34d;
+    const cx = GAME_W / 2;
+    const cy = GAME_H / 2;
+
+    // 배경 암전 + 진영색 스피드라인 버스트로 시선을 화면 중앙에 집중
+    const dim = this.add.rectangle(cx, cy, GAME_W, GAME_H, 0x000000).setDepth(150).setAlpha(0);
+    const burst = this.textures.exists("fx-cast-aura")
+      ? this.add.image(cx, cy, "fx-cast-aura").setDepth(151).setBlendMode(Phaser.BlendModes.ADD).setTint(tint)
+      : undefined;
+    burst?.setScale(0.3).setAlpha(0);
+
+    this.cameras.main.shake(260 / this.speedMult, 0.014);
+
+    this.tweens.add({
+      targets: dim,
+      alpha: 0.55,
+      duration: 120 / this.speedMult,
+      ease: "Quad.easeOut",
+    });
+    if (burst) {
+      this.tweens.add({
+        targets: burst,
+        alpha: 1,
+        scale: 2.4,
+        duration: 220 / this.speedMult,
+        ease: "Quad.easeOut",
+      });
+    }
+
+    // 시전자 초상화가 진영 반대편에서 슬라이드해 화면 중앙에 크게 등장
+    const portraitKey = `portrait-${caster.heroId}`;
+    let portrait: Phaser.GameObjects.Image | undefined;
+    if (this.textures.exists(portraitKey)) {
+      const fromX = caster.isHero ? -140 : GAME_W + 140;
+      portrait = this.add.image(fromX, cy, portraitKey).setDepth(152);
+      const baseScale = (GAME_H * 0.62) / portrait.height;
+      portrait.setScale(baseScale * 0.85).setAlpha(0);
+      portrait.setFlipX(!caster.isHero);
+      this.tweens.add({
+        targets: portrait,
+        x: cx + (caster.isHero ? -30 : 30),
+        alpha: 1,
+        scale: baseScale,
+        duration: 200 / this.speedMult,
+        ease: "Back.easeOut",
+      });
+    }
+
+    const nameLabel = this.add
+      .text(cx, GAME_H * 0.78, `⚡ ${caster.name} 필살기!`, {
+        fontFamily: "sans-serif",
+        fontSize: "22px",
+        color: "#ffd34d",
+        fontStyle: "bold",
+        stroke: "#0a0d16",
+        strokeThickness: 6,
+      })
+      .setOrigin(0.5)
+      .setDepth(153)
+      .setAlpha(0)
+      .setScale(0.7);
+    this.tweens.add({
+      targets: nameLabel,
+      alpha: 1,
+      scale: 1,
+      duration: 160 / this.speedMult,
+      ease: "Back.easeOut",
+    });
+
+    // 짧게 홀드한 뒤 전원 페이드아웃
+    this.time.delayedCall(280 / this.speedMult, () => {
+      const fadeTargets = [dim, burst, portrait, nameLabel].filter(Boolean) as Phaser.GameObjects.GameObject[];
+      this.tweens.add({
+        targets: fadeTargets,
+        alpha: 0,
+        duration: 220 / this.speedMult,
+        ease: "Quad.easeIn",
+        onComplete: () => fadeTargets.forEach((t) => (t as Phaser.GameObjects.Image).destroy()),
+      });
     });
   }
 

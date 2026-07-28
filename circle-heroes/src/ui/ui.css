@@ -88,6 +88,7 @@
   cursor: pointer;
 }
 .corner-btn .ci { width: 22px; height: 22px; object-fit: contain; }
+.corner-btn .ce { font-size: 19px; line-height: 1; }
 .corner-btn .badge {
   position: absolute;
   top: -3px;
@@ -126,6 +127,86 @@
 
 /* 전투 탭은 캔버스가 비치도록 투명 */
 #screen-battle { background: none; pointer-events: none; }
+
+/* ── 허브타운(§14, 2026-07-28 결정) ── 3D 마을 대신 우리 아트무드(SD/치비)에 맞춘 절차적 2D 배경.
+ * 실제 건물 일러스트는 디자인리소스 세션 후속 작업 — 지금은 기존 탭 아이콘을 재활용한 1차(코드) 버전 */
+#screen-home.hub-screen {
+  padding: 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, #6fb8e8 0%, #a9dbef 38%, #e7c98a 72%, #c99a5b 100%);
+}
+#screen-home.hub-screen.on {
+  display: flex;
+  flex-direction: column;
+}
+.hub-sky {
+  position: relative;
+  height: 30%;
+  min-height: 90px;
+  overflow: hidden;
+  flex: none;
+}
+.hub-cloud {
+  position: absolute;
+  background: #ffffff;
+  opacity: 0.75;
+  border-radius: 999px;
+  filter: blur(0.5px);
+}
+.hub-cloud.c1 { width: 70px; height: 26px; top: 18px; left: 10%; }
+.hub-cloud.c2 { width: 54px; height: 20px; top: 42px; left: 58%; }
+.hub-cloud.c3 { width: 46px; height: 18px; top: 10px; left: 74%; }
+.hub-title {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  margin: 0;
+  font-size: 19px;
+  color: #10131c;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.hub-screen .desc { text-align: center; color: #3a2c14; opacity: 0.75; margin: 0; }
+.hub-town {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  justify-content: center;
+  gap: 14px 12px;
+  padding: 10px 16px 12px;
+  overflow-y: auto;
+}
+.hub-ground { flex: none; height: 4%; min-height: 12px; }
+.hub-hut {
+  --roof: #f5ac3d;
+  width: 118px;
+  border: none;
+  border-radius: 14px;
+  background: #fff7e8ee;
+  box-shadow: 0 4px 10px rgba(40, 25, 5, 0.25);
+  cursor: pointer;
+  padding: 0 0 10px;
+  overflow: hidden;
+}
+.hub-hut-main { width: 130px; box-shadow: 0 6px 16px rgba(245, 172, 61, 0.45); }
+.hub-roof {
+  height: 16px;
+  background: var(--roof);
+  border-radius: 14px 14px 0 0;
+}
+.hub-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-top: 8px;
+}
+.hub-icon { width: 34px; height: 34px; object-fit: contain; margin-bottom: 2px; }
+.hub-hut-main .hub-icon { width: 40px; height: 40px; }
+.hub-label { font-size: 13px; font-weight: 700; color: #241a08; }
+.hub-flavor { font-size: 10px; color: #6b5530; }
 
 /* ── 하단 서브메뉴 바 (P2) ── */
 #subbar {
@@ -607,6 +688,23 @@
 .as-label { font-size: 11px; color: var(--ink3); width: 100%; }
 .ascend-btn { width: 100%; margin-bottom: 16px; }
 
+/* ── 승급 전/후 스탯 프리뷰(§9) ── */
+.ascend-preview {
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+.ap-title { font-size: 12.5px; color: #ffd34d; font-weight: 700; margin-bottom: 6px; }
+.ap-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.ap-stat { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; font-size: 11px; }
+.ap-lbl { color: var(--ink3); }
+.ap-vals { display: flex; align-items: center; gap: 4px; }
+.ap-now { color: var(--ink3); text-decoration: line-through; font-variant-numeric: tabular-nums; }
+.ap-arrow { color: var(--ink3); font-size: 10px; }
+.ap-next { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+
 /* ── 영웅 상세 모달 ── */
 .detail-head {
   position: relative;
@@ -646,6 +744,22 @@
 .stat-row .sv { color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; flex-shrink: 0; margin-left: 8px; }
 .skill-box { margin-bottom: 10px; }
 .skill-box .sk { font-size: 11.5px; color: var(--ink2); padding: 3px 0; }
+
+/* ── 상성 관계 안내(§10) ── */
+.matchup-box {
+  display: flex;
+  gap: 14px;
+  background: #141c30;
+  border-radius: 9px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+}
+.mu-row { display: flex; align-items: center; gap: 5px; font-size: 12px; }
+.mu-arrow { font-size: 10px; }
+.mu-strong .mu-arrow { color: #6fd98a; }
+.mu-weak .mu-arrow { color: #e8683a; }
+.mu-icon { width: 16px; height: 16px; }
+.mu-txt { color: var(--ink2); }
 
 /* ── 진영 탭 · 성급 · 수집 카운트 ── */
 .faction-tabs {
