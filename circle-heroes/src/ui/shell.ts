@@ -235,10 +235,10 @@ function renderSubbar() {
     def.subs.forEach((label) => {
       const chip = h("button", "sub-chip" + (label === heroesSubLabel ? " on" : ""), label);
       chip.onclick = () => {
-        if (label === "보유·편성" || label === "승급") {
+        if (label === "보유·편성" || label === "승급" || label === "도감") {
           if (label === heroesSubLabel) return;
           heroesSubLabel = label;
-          setHeroesSubView(label === "승급" ? "ascend" : "party");
+          setHeroesSubView(label === "승급" ? "ascend" : label === "도감" ? "codex" : "party");
           renderSubbar();
           renderHeroes(document.getElementById("screen-heroes")!);
         } else {

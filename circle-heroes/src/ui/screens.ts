@@ -1,5 +1,5 @@
 import type { Hero } from "../data/heroTypes";
-import { PLAYABLE_HEROES } from "../data/heroes";
+import { HEROES, PLAYABLE_HEROES } from "../data/heroes";
 import {
   save, spendGems, addGems, persist,
   getLevel, levelUpCost, tryLevelUp,
@@ -7,7 +7,7 @@ import {
   getStars, ascendCost, dupeCount, tryAscend, MAX_STARS,
 } from "../state/save";
 import { pull, SINGLE_COST, TEN_COST, PITY_LIMIT } from "../systems/gacha";
-import { calcFactionSynergy } from "../systems/battle";
+import { calcFactionSynergy, heroPower } from "../systems/battle";
 import {
   DAILY_MISSIONS, ALL_CLEAR_KEY, ALL_CLEAR_BONUS,
   missionProgress, isClaimed, claimable, claim, track,
@@ -136,6 +136,17 @@ function renderAscendPreview(hero: Hero): HTMLElement {
   return box;
 }
 
+/** 영웅 카드 일러스트 전체화면 뷰(§11) */
+function openIllustration(hero: Hero) {
+  const overlay = el("div", "illust-overlay");
+  const img = el("img", "illust-img") as HTMLImageElement;
+  img.src = `${hero.id}.webp`;
+  img.alt = hero.nameKr;
+  overlay.appendChild(img);
+  overlay.onclick = () => overlay.remove();
+  document.body.appendChild(overlay);
+}
+
 function openHeroDetail(hero: Hero, rerender: () => void) {
   const lv = getLevel(hero.id);
   const stars = getStars(hero.id);
@@ -147,6 +158,15 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
   const face = el("div", "face");
   setFace(face, hero);
   head.appendChild(face);
+  // 카드 일러스트(assets/cards-webp/)가 있는 영웅만 클릭 시 전체화면으로 보여준다 —
+  // 71종 중 5종(히든)은 아직 없어서 로드 성공 여부로 조용히 판단한다(§11)
+  const illustProbe = new Image();
+  illustProbe.onload = () => {
+    face.classList.add("has-illustration");
+    face.title = "일러스트 보기";
+    face.onclick = () => openIllustration(hero);
+  };
+  illustProbe.src = `${hero.id}.webp`;
   const info = el("div");
   info.appendChild(el("div", "dh-name", hero.nameKr));
   info.appendChild(el("div", `gd grade-${hero.grade}`, `${hero.grade} · ${hero.faction} · ${hero.heroClass}`));
@@ -230,11 +250,59 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
 
 let heroFilter = "전체";
 
-type HeroesSubView = "party" | "ascend";
+type HeroesSubView = "party" | "ascend" | "codex";
 let heroesSubView: HeroesSubView = "party";
 
 export function setHeroesSubView(v: HeroesSubView) {
   heroesSubView = v;
+}
+
+const CLASS_ICON: Record<string, string> = {
+  딜러: "⚔️",
+  탱커: "🛡️",
+  서포터: "✨",
+};
+
+/** 보유 그리드/도감 공용 카드 — 대표 사진만 놓고 네 모서리에 배지만 표시(설명 텍스트 없음).
+ * 테두리=등급, 좌상단=진영, 우상단=레벨, 우하단=클래스, 좌하단=편성중 체크 또는 성급.
+ * locked=true(미보유)면 흑백 처리 + 자물쇠만 표시하고 다른 배지는 생략 */
+function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean; onClick?: () => void } = {}): HTMLElement {
+  const card = el(
+    "div",
+    "hero-card" +
+      (!opts.locked && inParty(hero.id) ? " in-party" : "") +
+      (opts.selected ? " selected" : "") +
+      (opts.locked ? " locked" : "")
+  );
+  setGradeBorder(card, hero.grade);
+  setCardFaction(card, hero);
+  const face = el("div", "face");
+  setFace(face, hero);
+  card.appendChild(face);
+
+  if (opts.locked) {
+    card.appendChild(el("div", "hc-lock", "🔒"));
+    return card;
+  }
+
+  const factionIcon = FACTION_ICON[hero.faction];
+  if (factionIcon) {
+    const img = el("img", "hc-badge hc-badge-tl") as HTMLImageElement;
+    img.src = factionIcon;
+    img.alt = "";
+    card.appendChild(img);
+  }
+  card.appendChild(el("div", "hc-badge hc-badge-tr", `Lv.${getLevel(hero.id)}`));
+  const classIcon = CLASS_ICON[hero.heroClass];
+  if (classIcon) card.appendChild(el("div", "hc-badge hc-badge-br", classIcon));
+  if (inParty(hero.id)) {
+    card.appendChild(el("div", "hc-badge hc-badge-bl hc-check", "✓"));
+  } else {
+    card.appendChild(el("div", "hc-badge hc-badge-bl", `★${getStars(hero.id)}`));
+  }
+
+  if (opts.onClick) card.onclick = opts.onClick;
+  return card;
 }
 
 export function renderHeroes(root: HTMLElement) {
@@ -245,8 +313,19 @@ export function renderHeroes(root: HTMLElement) {
     renderAscend(root);
     return;
   }
+  if (heroesSubView === "codex") {
+    renderCodex(root);
+    return;
+  }
 
-  root.appendChild(el("h2", "", `편성 (${save.party.length}/${PARTY_SIZE})`));
+  const powerRow = el("div", "power-row");
+  powerRow.appendChild(el("h2", "", `편성 (${save.party.length}/${PARTY_SIZE})`));
+  const partyPower = save.party.reduce((sum, id) => {
+    const hero = PLAYABLE_HEROES.find((h) => h.id === id);
+    return hero ? sum + heroPower(hero, getLevel(hero.id), getStars(hero.id)) : sum;
+  }, 0);
+  powerRow.appendChild(el("div", "power-chip", `⚔️ 전투력 ${partyPower.toLocaleString()}`));
+  root.appendChild(powerRow);
   root.appendChild(el("div", "desc", "편성된 영웅만 전투에 출전합니다. 카드를 눌러 편성·레벨업하세요."));
   const partyRow = el("div", "party-row");
   for (let i = 0; i < PARTY_SIZE; i++) {
@@ -312,34 +391,53 @@ export function renderHeroes(root: HTMLElement) {
     (h) => heroFilter === "전체" || h.faction === heroFilter
   );
 
-  const grid = el("div", "hero-grid");
+  const grid = el("div", "hero-grid owned-grid");
   for (const hero of visible.filter((h) => (save.owned[h.id] ?? 0) > 0)) {
-    const stars = getStars(hero.id);
-    const card = el("div", "hero-card" + (inParty(hero.id) ? " in-party" : ""));
-    setGradeBorder(card, hero.grade);
-    setCardFaction(card, hero);
-    card.onclick = () => openHeroDetail(hero, rerender);
-    const face = el("div", "face");
-    setFace(face, hero);
-    card.appendChild(face);
-    // 좌상단 참전 리본(벤치마크 리포트의 "카드 좌상단 출전 태그" 규칙 적용)
-    if (inParty(hero.id)) card.appendChild(el("div", "hc-ribbon", "출전"));
-    card.appendChild(el("div", "st", "★".repeat(stars)));
-    card.appendChild(el("div", "nm", hero.nameKr));
-    card.appendChild(el("div", "lv", `Lv.${getLevel(hero.id)}`));
-    // 수집 카운트 (마이티식 4/4)
-    if (stars < MAX_STARS) {
-      const need = ascendCost(stars);
-      const have = Math.min(dupeCount(hero.id), need);
-      const cnt = el("div", "cp" + (have >= need ? " ready" : ""), `${have}/${need}`);
-      card.appendChild(cnt);
-    } else {
-      card.appendChild(el("div", "cp", "MAX"));
-    }
-    grid.appendChild(card);
+    grid.appendChild(buildHeroCard(hero, { onClick: () => openHeroDetail(hero, rerender) }));
   }
   root.appendChild(grid);
-  // 미보유 영웅은 여기서 표시하지 않음 — 도감(승급 화면 하위)에서 확인
+  // 캡쳐처럼 2줄(10칸)이 온전히 보이고 3번째 줄은 위쪽만 살짝 보이도록 실측 카드 높이로 클리핑
+  requestAnimationFrame(() => {
+    const first = grid.querySelector<HTMLElement>(".hero-card");
+    if (!first) return;
+    const cardH = first.offsetHeight;
+    const gapPx = parseFloat(getComputedStyle(grid).rowGap || "8");
+    grid.style.maxHeight = `${cardH * 2 + gapPx + cardH * 0.34}px`;
+  });
+  // 미보유 영웅은 여기서 표시하지 않음 — 도감 서브탭에서 확인
+}
+
+/* ── 도감(Codex) 화면: 등급별 구분선 + 전체 로스터, 미보유는 흑백 ── */
+const GRADE_ORDER: Hero["grade"][] = ["UR", "SSR", "SR", "R", "N"];
+
+function renderCodex(root: HTMLElement) {
+  root.appendChild(el("h2", "", "영웅 도감"));
+  const ownedCount = HEROES.filter((h) => h.grade !== "Unknown" && (save.owned[h.id] ?? 0) > 0).length;
+  const totalCount = HEROES.filter((h) => h.grade !== "Unknown").length;
+  root.appendChild(el("div", "desc", `보유 ${ownedCount}/${totalCount} · 미보유 영웅은 흑백으로 표시됩니다.`));
+
+  for (const grade of GRADE_ORDER) {
+    const roster = HEROES.filter((h) => h.grade === grade);
+    if (!roster.length) continue;
+    const divider = el("div", "codex-divider");
+    divider.appendChild(el("span", `codex-grade grade-${grade}`, grade));
+    divider.appendChild(el("span", "codex-count", `${roster.filter((h) => (save.owned[h.id] ?? 0) > 0).length}/${roster.length}`));
+    root.appendChild(divider);
+
+    const grid = el("div", "hero-grid codex-grid");
+    for (const hero of roster) {
+      const owned = (save.owned[hero.id] ?? 0) > 0;
+      grid.appendChild(
+        buildHeroCard(hero, {
+          locked: !owned,
+          onClick: owned
+            ? () => openHeroDetail(hero, () => renderCodex(root))
+            : () => toast(`${hero.nameKr} — 아직 획득하지 않았습니다`),
+        })
+      );
+    }
+    root.appendChild(grid);
+  }
 }
 
 /* ── 승급 화면(마이티아레나식): 승급할 영웅 선택 → 재료(중복분) 슬롯 확인 → 승급 ── */
@@ -426,27 +524,15 @@ function renderAscend(root: HTMLElement) {
   root.appendChild(el("h2", "", "보유 영웅"));
   const grid = el("div", "hero-grid");
   for (const hero of owned) {
-    const stars = getStars(hero.id);
-    const card = el("div", "hero-card" + (hero.id === ascendTargetId ? " in-party" : ""));
-    setGradeBorder(card, hero.grade);
-    setCardFaction(card, hero);
-    card.onclick = () => {
-      ascendTargetId = hero.id;
-      rerender();
-    };
-    const face = el("div", "face");
-    setFace(face, hero);
-    card.appendChild(face);
-    card.appendChild(el("div", "st", "★".repeat(stars)));
-    card.appendChild(el("div", "nm", hero.nameKr));
-    if (stars < MAX_STARS) {
-      const need = ascendCost(stars);
-      const have = Math.min(dupeCount(hero.id), need);
-      card.appendChild(el("div", "cp" + (have >= need ? " ready" : ""), `${have}/${need}`));
-    } else {
-      card.appendChild(el("div", "cp", "MAX"));
-    }
-    grid.appendChild(card);
+    grid.appendChild(
+      buildHeroCard(hero, {
+        selected: hero.id === ascendTargetId,
+        onClick: () => {
+          ascendTargetId = hero.id;
+          rerender();
+        },
+      })
+    );
   }
   root.appendChild(grid);
 }
