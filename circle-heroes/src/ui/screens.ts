@@ -72,6 +72,11 @@ function setCardFaction(card: HTMLElement, hero: Hero) {
   card.insertBefore(wm, card.firstChild);
 }
 
+/** 진영 상성(§10, DESIGN.md 확정) — 3원소 순환(불→바람→물→불) + 빛↔어둠 상호 카운터. 히든(불명)은 면역이라 관계 없음.
+ * 로직(대미지 계산)은 아직 미구현 — 여기서는 표시만 한다(BENCHMARK.md §10). */
+const FACTION_STRONG_AGAINST: Record<string, string> = { 불: "바람", 바람: "물", 물: "불", 빛: "어둠", 어둠: "빛" };
+const FACTION_WEAK_AGAINST: Record<string, string> = { 불: "물", 바람: "불", 물: "바람", 빛: "어둠", 어둠: "빛" };
+
 const GRADE_BORDER: Record<string, string> = {
   N: "#7d9ab5",
   R: "#4a9be8",
@@ -96,6 +101,34 @@ function statLine(label: string, value: string): HTMLElement {
 
 function starText(stars: number): string {
   return "★".repeat(stars) + "☆".repeat(MAX_STARS - stars);
+}
+
+/** 승급 전/후 스탯 수치 미리보기(§9) — 재화 소비 전에 얼마나 세지는지 보여준다 */
+function renderAscendPreview(hero: Hero): HTMLElement {
+  const lv = getLevel(hero.id);
+  const stars = getStars(hero.id);
+  const multNow = (1 + 0.1 * (lv - 1)) * (1 + 0.3 * (stars - 1));
+  const multNext = (1 + 0.1 * (lv - 1)) * (1 + 0.3 * stars);
+  const pct = Math.round((multNext / multNow - 1) * 100);
+
+  const box = el("div", "ascend-preview");
+  box.appendChild(el("div", "ap-title", `승급 시 능력치 +${pct}%`));
+  const row = el("div", "ap-row");
+  const stat = (label: string, base: number) => {
+    const c = el("div", "ap-stat");
+    c.appendChild(el("span", "ap-lbl", label));
+    const vals = el("div", "ap-vals");
+    vals.appendChild(el("span", "ap-now", `${Math.round(base * multNow).toLocaleString()}`));
+    vals.appendChild(el("span", "ap-arrow", "→"));
+    vals.appendChild(el("span", "ap-next", `${Math.round(base * multNext).toLocaleString()}`));
+    c.appendChild(vals);
+    return c;
+  };
+  row.appendChild(stat("체력", hero.baseHp));
+  row.appendChild(stat("공격", hero.baseAtk));
+  row.appendChild(stat("방어", hero.baseDef));
+  box.appendChild(row);
+  return box;
 }
 
 function openHeroDetail(hero: Hero, rerender: () => void) {
@@ -129,6 +162,28 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
   skills.appendChild(el("div", "sk", `⚔️ ${hero.skill1Name} — ${hero.skill1Desc}`));
   skills.appendChild(el("div", "sk", `🛡 ${hero.skill2Name} — ${hero.skill2Desc}`));
   body.appendChild(skills);
+
+  const strong = FACTION_STRONG_AGAINST[hero.faction];
+  const weak = FACTION_WEAK_AGAINST[hero.faction];
+  if (strong && weak) {
+    const rel = el("div", "matchup-box");
+    const mk = (cls: string, arrow: string, label: string, faction: string) => {
+      const row = el("div", `mu-row ${cls}`);
+      row.appendChild(el("span", "mu-arrow", arrow));
+      const icon = FACTION_ICON[faction];
+      if (icon) {
+        const img = el("img", "mu-icon") as HTMLImageElement;
+        img.src = icon;
+        img.alt = "";
+        row.appendChild(img);
+      }
+      row.appendChild(el("span", "mu-txt", `${label} ${faction}`));
+      return row;
+    };
+    rel.appendChild(mk("mu-strong", "▲", "강함:", strong));
+    rel.appendChild(mk("mu-weak", "▼", "약함:", weak));
+    body.appendChild(rel);
+  }
 
   // 각성(성급)은 전용 승급 화면(영웅 탭 → 승급 서브메뉴)에서 진행
   if (stars >= MAX_STARS) {
@@ -343,6 +398,10 @@ function renderAscend(root: HTMLElement) {
   }
   panel.appendChild(matSlots);
   root.appendChild(panel);
+
+  if (target && getStars(target.id) < MAX_STARS) {
+    root.appendChild(renderAscendPreview(target));
+  }
 
   const ascBtn = el("button", "btn primary ascend-btn", "승급하기") as HTMLButtonElement;
   const ready = !!target && getStars(target.id) < MAX_STARS && dupeCount(target.id) >= ascendCost(getStars(target.id));

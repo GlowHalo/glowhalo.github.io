@@ -24,6 +24,22 @@ const TABS: TabDef[] = [
   { key: "missions", label: "임무", icon: "tab-mission.png", subs: ["일일", "주간", "업적"] },
 ];
 
+// 허브타운(§14) 건물 플레이버 — 5탭 구조(Rev.C 확정)는 그대로 두고, 같은 목적지로 가는 클릭형 진입점을 추가한다
+const HUB_FLAVOR: Record<TabKey, string> = {
+  heroes: "영웅의 전당",
+  summon: "소환의 제단",
+  battle: "전투 광장",
+  shop: "상점가",
+  missions: "의뢰 게시판",
+};
+const HUB_ROOF: Record<TabKey, string> = {
+  heroes: "#5a9bd8",
+  summon: "#b060f0",
+  battle: "#f5ac3d",
+  shop: "#5fbf77",
+  missions: "#e8683a",
+};
+
 const RENDERERS: Record<TabKey, ((el: HTMLElement) => void) | null> = {
   heroes: renderHeroes,
   summon: renderSummon,
@@ -99,12 +115,59 @@ function switchTab(key: TabKey) {
   document.querySelectorAll<HTMLElement>("#tabbar .tab").forEach((el) => {
     el.classList.toggle("on", el.dataset.key === key && !el.classList.contains("center"));
   });
+  // screen-home은 tabKey가 없으므로 항상 꺼짐 — 탭 이동은 곧 허브 이탈을 의미
   document.querySelectorAll<HTMLElement>(".screen").forEach((el) => {
     el.classList.toggle("on", el.id === `screen-${key}`);
   });
   renderSubbar();
   const renderer = RENDERERS[key];
   if (renderer) renderer(document.getElementById(`screen-${key}`)!);
+}
+
+/** 허브타운(§14, 2026-07-28 결정)으로 돌아간다 — 탭바 선택 표시를 모두 해제하고 홈 화면만 노출 */
+function showHome() {
+  document.getElementById("ui")!.classList.remove("on-battle");
+  document.querySelectorAll<HTMLElement>("#tabbar .tab").forEach((el) => el.classList.remove("on"));
+  document.querySelectorAll<HTMLElement>(".screen").forEach((el) => {
+    el.classList.toggle("on", el.id === "screen-home");
+  });
+  document.getElementById("subbar")!.innerHTML = "";
+}
+
+/** 클릭 가능한 2D 허브타운 — AFK Arena/HoC 벤치마크(BENCHMARK.md §14)의 "건물별 콘텐츠 진입점" 구조를
+ * 차용하되, 3D 마을이 아니라 우리 SD/치비 무드에 맞는 절차적 배경(코드 생성) 위에 배치한다.
+ * 실제 건물 일러스트는 디자인리소스 세션 후속 작업 — 지금은 기존 탭 아이콘을 재활용한 1차 버전. */
+function renderHub(root: HTMLElement) {
+  root.innerHTML = "";
+  root.classList.add("hub-screen");
+
+  const sky = h("div", "hub-sky");
+  sky.appendChild(h("div", "hub-cloud c1"));
+  sky.appendChild(h("div", "hub-cloud c2"));
+  sky.appendChild(h("div", "hub-cloud c3"));
+  root.appendChild(sky);
+
+  root.appendChild(h("h2", "hub-title", "Circle Heroes 마을"));
+  root.appendChild(h("div", "desc", "건물을 눌러 이동하세요."));
+
+  const town = h("div", "hub-town");
+  for (const t of TABS) {
+    const hut = h("button", "hub-hut" + (t.center ? " hub-hut-main" : ""));
+    hut.style.setProperty("--roof", HUB_ROOF[t.key]);
+    hut.appendChild(h("div", "hub-roof"));
+    const body = h("div", "hub-body");
+    const hi = icon(t.icon);
+    hi.classList.add("hub-icon");
+    body.appendChild(hi);
+    body.appendChild(h("div", "hub-label", t.label));
+    body.appendChild(h("div", "hub-flavor", HUB_FLAVOR[t.key]));
+    hut.appendChild(body);
+    hut.onclick = () => switchTab(t.key);
+    town.appendChild(hut);
+  }
+  root.appendChild(town);
+
+  root.appendChild(h("div", "hub-ground"));
 }
 
 // 전투 탭 서브메뉴 ↔ 전투 모드 연결
@@ -309,6 +372,11 @@ export function buildShell() {
     b.onclick = onClick;
     return b;
   };
+  const homeBtn = h("button", "corner-btn");
+  homeBtn.appendChild(h("span", "ce", "🏠"));
+  homeBtn.appendChild(h("span", "", "마을"));
+  homeBtn.onclick = showHome;
+  corner.appendChild(homeBtn);
   corner.appendChild(mkCorner("icon-gift.png", "이벤트", true, () => toast("이벤트 — 준비 중입니다")));
   corner.appendChild(mkCorner("icon-mail.png", "우편", false, () => toast("우편함 — 준비 중입니다")));
   corner.appendChild(
@@ -337,12 +405,16 @@ export function buildShell() {
   // 스크린들
   const screens = h("div");
   screens.id = "screens";
+  const homeScreen = h("div", "screen");
+  homeScreen.id = "screen-home";
+  screens.appendChild(homeScreen);
   for (const t of TABS) {
     const sc = h("div", "screen");
     sc.id = `screen-${t.key}`;
     screens.appendChild(sc);
   }
   ui.appendChild(screens);
+  renderHub(homeScreen);
 
   // 서브메뉴 바 + 탭바
   const subbar = h("div");
@@ -384,7 +456,7 @@ export function buildShell() {
     battleMode = m as string;
     if (currentTab === "battle") renderSubbar();
   });
-  switchTab("battle");
+  showHome();
 
   // 오프라인 보상
   const reward = calcOfflineReward();
