@@ -644,12 +644,40 @@
   width: 56px; height: 56px; border-radius: 12px;
   border: 2px solid #10131c;
 }
-.party-slot .ps-nm, .party-slot .ps-lv { position: relative; z-index: 1; }
-.party-slot .ps-nm { font-size: 10px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.party-slot .ps-lv { font-size: 9px; color: var(--ink3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.party-slot .ps-nm { position: relative; z-index: 1; font-size: 10px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+/* 좌상단 Lv 뱃지(벤치마크: AFK Arena Companions 파티원 카드 규칙) */
+.party-slot .ps-lv-badge {
+  position: absolute;
+  z-index: 2;
+  top: 4px;
+  left: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #10131c;
+  background: var(--amber);
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-variant-numeric: tabular-nums;
+}
 .party-slot .ps-empty { font-size: 22px; color: var(--ink3); }
 .hero-card { cursor: pointer; }
 .hero-card.in-party { border-color: var(--amber); }
+/* 좌상단 참전 리본(벤치마크: AFK Arena Companions "출전" 태그 규칙) */
+.hero-card .hc-ribbon {
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  left: -22px;
+  width: 90px;
+  transform: rotate(-45deg);
+  text-align: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #10131c;
+  background: var(--amber);
+  padding: 2px 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
 
 /* ── 승급 화면 (마이티아레나식 대상+재료 슬롯) ── */
 .ascend-panel {

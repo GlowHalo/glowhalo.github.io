@@ -253,8 +253,9 @@ export function renderHeroes(root: HTMLElement) {
       const face = el("div", "face");
       setFace(face, hero);
       slot.appendChild(face);
+      // 좌상단 Lv뱃지(벤치마크 리포트의 "파티원 카드 좌상단 Lv뱃지" 규칙 적용)
+      slot.appendChild(el("div", "ps-lv-badge", `Lv.${getLevel(hero.id)}`));
       slot.appendChild(el("div", "ps-nm", hero.nameKr.split(" ").pop() ?? ""));
-      slot.appendChild(el("div", "ps-lv", `Lv.${getLevel(hero.id)}`));
       slot.onclick = () => openHeroDetail(hero, rerender);
     } else {
       slot.appendChild(el("div", "ps-empty", "+"));
@@ -316,6 +317,8 @@ export function renderHeroes(root: HTMLElement) {
     const face = el("div", "face");
     setFace(face, hero);
     card.appendChild(face);
+    // 좌상단 참전 리본(벤치마크 리포트의 "카드 좌상단 출전 태그" 규칙 적용)
+    if (inParty(hero.id)) card.appendChild(el("div", "hc-ribbon", "출전"));
     card.appendChild(el("div", "st", "★".repeat(stars)));
     card.appendChild(el("div", "nm", hero.nameKr));
     card.appendChild(el("div", "lv", `Lv.${getLevel(hero.id)}`));
@@ -328,7 +331,6 @@ export function renderHeroes(root: HTMLElement) {
     } else {
       card.appendChild(el("div", "cp", "MAX"));
     }
-    if (inParty(hero.id)) card.appendChild(el("div", "cp", "출전 중"));
     grid.appendChild(card);
   }
   root.appendChild(grid);
