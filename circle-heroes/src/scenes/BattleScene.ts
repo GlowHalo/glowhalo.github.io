@@ -3,7 +3,7 @@ import { PLAYABLE_HEROES } from "../data/heroes";
 import type { Hero } from "../data/heroTypes";
 import { REVERSED_FACING_KEYS } from "../data/facing";
 import {
-  save, addGold, addGems, setStage, getLevel, getStars,
+  save, addGold, addGems, addEnhanceStone, setStage, getLevel, getStars,
   setTowerFloor, applyArenaResult,
 } from "../state/save";
 import { track } from "../systems/missions";
@@ -70,11 +70,33 @@ interface UnitView {
   attackTexKey?: string;
 }
 
+/** 무한의 탑 몬스터 테마 순환(§타워 다양화, 2026-07-29) — 스테이지처럼 새 아트를 새로 만들지 않고
+ * STAGE_TIERS 로스터를 재사용해 15층마다 한 바퀴 돈다. 탑 전용 아트(tower_soldier/guardian)는
+ * 1번째 순환에, 나머지는 스테이지 지역 몬스터를 빌려온다 — 아직 아트가 없는 구간은 기존 스테이지와
+ * 동일하게 makeUnitView가 조용히 플레이스홀더로 대체하므로 아트가 도착하면 자동으로 살아난다 */
+const TOWER_TIERS: { normalKey: string; bossKey: string; normalName: string; bossName: string }[] = [
+  { normalKey: "tower_soldier_001", bossKey: "tower_guardian_001", normalName: "탑 병사", bossName: "탑의 수호자" },
+  { normalKey: "wolf_001", bossKey: "boss_direwolf_001", normalName: "탑의 늑대", bossName: "다이어울프" },
+  { normalKey: "bat_001", bossKey: "boss_golem_001", normalName: "탑의 박쥐", bossName: "탑의 골렘" },
+  { normalKey: "imp_001", bossKey: "boss_salamander_001", normalName: "탑의 임프", bossName: "샐러맨더" },
+  { normalKey: "frost_wolf_001", bossKey: "boss_yeti_001", normalName: "서리 늑대", bossName: "예티" },
+  { normalKey: "wraith_001", bossKey: "boss_demonlord_001", normalName: "탑의 망령", bossName: "마령왕" },
+];
+const TOWER_FLOORS_PER_TIER = 15;
+
+function towerTier(floor: number) {
+  const idx = Math.floor((floor - 1) / TOWER_FLOORS_PER_TIER) % TOWER_TIERS.length;
+  return TOWER_TIERS[idx];
+}
+
 /** 스테이지/무한의탑/요일던전 몬스터 → 실제 몬스터 아트 매핑 (탑·요일던전 전용 아트 반영 완료).
  * 일반 스테이지는 stageTiers.ts 구간에 따라 몬스터가 바뀐다(§4 지역 전환, 아트 없는 구간은
  * makeUnitView의 텍스처 존재 체크가 알아서 플레이스홀더로 대체하므로 여기선 그냥 원하는 키를 반환) */
 function monsterSpriteKey(mode: BattleMode, boss: boolean, stage: number): string {
-  if (mode === "tower") return boss ? "tower_guardian_001" : "tower_soldier_001";
+  if (mode === "tower") {
+    const tier = towerTier(save.towerFloor);
+    return boss ? tier.bossKey : tier.normalKey;
+  }
   if (mode === "raid") return "raid_boss_001";
   const tier = stageTierFor(stage);
   return boss ? tier.bossKey : tier.normalKey;
@@ -359,8 +381,9 @@ export class BattleScene extends Phaser.Scene {
       const f = save.towerFloor;
       boss = f % 5 === 0;
       const count = boss ? 1 : Math.min(2 + Math.floor(f / 3), 5);
+      const tt = towerTier(f);
       this.enemies = Array.from({ length: count }, (_, i) =>
-        makeTowerEnemy(`tower_${i}`, boss ? "탑의 수호자" : "탑 병사", f, boss)
+        makeTowerEnemy(`tower_${i}`, boss ? tt.bossName : tt.normalName, f, boss)
       );
     } else if (this.mode === "raid") {
       boss = true;
@@ -995,7 +1018,11 @@ export class BattleScene extends Phaser.Scene {
         this.wave += 1;
         this.delayed(800 / this.speedMult, () => this.spawnTeams());
       } else {
-        this.showVictoryBanner(`STAGE ${this.stage} 클리어`, [`🪙 +${reward}`]);
+        // 스테이지 보스 웨이브(마지막 웨이브) 클리어 시에만 강화석 소량 지급 — 장비 강화(§장비
+        // 시스템 MVP)의 상시 파밍 경로. 매 웨이브마다 주면 너무 흔해져서 보스 클리어로 한정
+        const stones = 2;
+        addEnhanceStone(stones);
+        this.showVictoryBanner(`STAGE ${this.stage} 클리어`, [`🪙 +${reward}`, `🔩 +${stones}`]);
         const next = this.stage + 1;
         setStage(next);
         this.delayed(1400 / this.speedMult, () => this.startStage(next));
@@ -1006,9 +1033,11 @@ export class BattleScene extends Phaser.Scene {
     if (this.mode === "tower") {
       const f = save.towerFloor;
       const gems = 10 + f * 5;
+      const stones = 1;
       addGems(gems);
+      addEnhanceStone(stones);
       track("tower");
-      this.showVictoryBanner(`${f}층 돌파`, [`💎 +${gems}`]);
+      this.showVictoryBanner(`${f}층 돌파`, [`💎 +${gems}`, `🔩 +${stones}`]);
       setTowerFloor(f + 1);
       this.refreshHud();
       this.delayed(1400 / this.speedMult, () => this.startTower());
