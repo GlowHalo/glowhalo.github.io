@@ -14,7 +14,7 @@ import {
   SSR_PITY_LIMIT, UR_PITY_LIMIT, monthlyFeaturedUR, urPityCount, pickupHeroFor,
   GRADE_WEIGHT, PICKUP_RATE_UP, gradeRosterCount,
 } from "../systems/gacha";
-import { calcFactionSynergy, partyPower } from "../systems/battle";
+import { calcFactionSynergy, partyPower, FACTION_STRONG_AGAINST, FACTION_WEAK_AGAINST } from "../systems/battle";
 import {
   DAILY_MISSIONS, ALL_CLEAR_KEY, ALL_CLEAR_BONUS,
   missionProgress, isClaimed, claimable, claim, track,
@@ -85,11 +85,6 @@ function setCardFaction(card: HTMLElement, hero: Hero) {
   wm.alt = "";
   card.insertBefore(wm, card.firstChild);
 }
-
-/** 진영 상성(§10, DESIGN.md 확정) — 3원소 순환(불→바람→물→불) + 빛↔어둠 상호 카운터. 히든(불명)은 면역이라 관계 없음.
- * 로직(대미지 계산)은 아직 미구현 — 여기서는 표시만 한다(BENCHMARK.md §10). */
-const FACTION_STRONG_AGAINST: Record<string, string> = { 불: "바람", 바람: "물", 물: "불", 빛: "어둠", 어둠: "빛" };
-const FACTION_WEAK_AGAINST: Record<string, string> = { 불: "물", 바람: "불", 물: "바람", 빛: "어둠", 어둠: "빛" };
 
 const GRADE_BORDER: Record<string, string> = {
   N: "#7d9ab5",
