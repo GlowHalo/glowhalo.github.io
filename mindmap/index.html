@@ -45,6 +45,30 @@
   .btn.primary:hover { background: #3D5CE8; }
   .btn.icon { padding: 7px 10px; }
 
+  .lib-wrap { position: relative; }
+  #active-name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: bottom; white-space: nowrap; }
+  .lib-panel {
+    display: none; position: absolute; top: calc(100% + 6px); left: 0; width: 260px;
+    background: #fff; color: #14151A; border-radius: 10px; border: 1px solid #E4E4E9;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18); padding: 8px; z-index: 30;
+    max-height: 340px; overflow-y: auto;
+  }
+  .lib-panel.open { display: block; }
+  .lib-new-btn {
+    width: 100%; text-align: left; padding: 8px; border-radius: 8px;
+    border: 1px dashed #C7C8D1; background: none; cursor: pointer;
+    font-size: 12px; color: #4C6FFF; font-weight: 700; margin-bottom: 6px;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  .lib-item { display: flex; align-items: center; gap: 6px; padding: 8px; border-radius: 8px; cursor: pointer; }
+  .lib-item:hover { background: #F5F5F7; }
+  .lib-item.active { background: #EEF1FF; }
+  .lib-item-name { flex: 1; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lib-item-date { font-size: 10px; color: #9A9CA5; white-space: nowrap; }
+  .lib-item-actions { display: flex; gap: 2px; flex: none; }
+  .lib-item-actions button { border: none; background: transparent; cursor: pointer; font-size: 12px; padding: 3px; border-radius: 4px; }
+  .lib-item-actions button:hover { background: #E4E5EA; }
+
   .viewport {
     position: absolute; top: 52px; left: 0; right: 0; bottom: 0;
     overflow: hidden;
@@ -139,10 +163,14 @@
   <h1>🧠 <span>마인드맵</span></h1>
   <span class="hint">Tab 하위추가 · Enter 형제추가 · Delete 삭제 · 더블클릭 이름변경</span>
   <div class="spacer"></div>
+  <div class="lib-wrap">
+    <button class="btn" id="btn-library">📂 <span id="active-name">마인드맵</span></button>
+    <div class="lib-panel" id="lib-panel"></div>
+  </div>
   <button class="btn icon" id="btn-zoom-out" title="축소">－</button>
   <button class="btn icon" id="btn-zoom-in" title="확대">＋</button>
   <button class="btn" id="btn-fit">화면 맞춤</button>
-  <button class="btn" id="btn-reset">새로 시작</button>
+  <button class="btn" id="btn-reset">비우기</button>
   <button class="btn primary" id="btn-share">🔗 공유 링크 복사</button>
 </div>
 
@@ -159,11 +187,13 @@
 (function () {
   'use strict';
 
-  var STORAGE_KEY = 'mindmap-autosave-v1';
+  var LIBRARY_KEY = 'mindmap-library-v1';
+  var LEGACY_KEY = 'mindmap-autosave-v1';
   var COL_W = 220, ROW_H = 64, NODE_W = 180, NODE_H = 44, PAD = 80;
   var DEPTH_COLORS = ['#14151A', '#4C6FFF', '#2E8B57', '#F2994A', '#EB5757', '#9B51E0'];
 
   var tree = null;
+  var library = null; // { items: [{id, name, data, updatedAt}], activeId }
   var selectedId = null;
   var editingId = null;
   var idCounter = 1;
@@ -175,6 +205,8 @@
   var edgesSvg = document.getElementById('edges');
   var nodesLayer = document.getElementById('nodes');
   var toastEl = document.getElementById('toast');
+  var libPanel = document.getElementById('lib-panel');
+  var activeNameEl = document.getElementById('active-name');
 
   function genId() {
     return 'n' + (idCounter++) + '_' + Math.random().toString(36).slice(2, 7);
@@ -233,12 +265,162 @@
     return JSON.parse(decodeURIComponent(str));
   }
 
-  function persist() {
-    var enc = encodeState();
+  function nowTs() { return Date.now(); }
+
+  function formatDate(ts) {
+    var d = new Date(ts);
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
+  function makeItem(name, data) {
+    return { id: genId(), name: name, data: data, updatedAt: nowTs() };
+  }
+
+  function loadLibrary() {
     try {
-      history.replaceState(null, '', '#d=' + enc);
-      localStorage.setItem(STORAGE_KEY, enc);
-    } catch (e) { /* ignore quota / privacy-mode errors */ }
+      var raw = localStorage.getItem(LIBRARY_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && parsed.items && parsed.items.length) {
+          library = parsed;
+          return;
+        }
+      }
+    } catch (e) { /* ignore */ }
+
+    var migratedData = null;
+    try {
+      var legacy = localStorage.getItem(LEGACY_KEY);
+      if (legacy) migratedData = decodeState(legacy);
+    } catch (e) { /* ignore */ }
+
+    var item = makeItem('마인드맵 1', migratedData || serialize(defaultTree()));
+    library = { items: [item], activeId: item.id };
+    saveLibrary();
+  }
+
+  function saveLibrary() {
+    try { localStorage.setItem(LIBRARY_KEY, JSON.stringify(library)); } catch (e) { /* ignore quota / privacy-mode errors */ }
+  }
+
+  function getActiveItem() {
+    var found = null;
+    library.items.forEach(function (it) { if (it.id === library.activeId) found = it; });
+    return found || library.items[0];
+  }
+
+  function loadActiveIntoTree() {
+    var item = getActiveItem();
+    library.activeId = item.id;
+    tree = JSON.parse(JSON.stringify(item.data));
+    selectedId = null;
+    editingId = null;
+  }
+
+  function updateActiveNameLabel() {
+    activeNameEl.textContent = getActiveItem().name;
+  }
+
+  function saveActive() {
+    var item = getActiveItem();
+    if (item) {
+      item.data = serialize(tree);
+      item.updatedAt = nowTs();
+      saveLibrary();
+    }
+    try { history.replaceState(null, '', '#d=' + encodeState()); } catch (e) { /* ignore */ }
+    updateActiveNameLabel();
+  }
+
+  function nextDefaultName() {
+    var n = library.items.length + 1;
+    var name = '마인드맵 ' + n;
+    while (library.items.some(function (it) { return it.name === name; })) {
+      n++; name = '마인드맵 ' + n;
+    }
+    return name;
+  }
+
+  function createNewMindmap() {
+    var item = makeItem(nextDefaultName(), serialize(defaultTree()));
+    library.items.push(item);
+    library.activeId = item.id;
+    saveLibrary();
+    loadActiveIntoTree();
+    render();
+    fitView();
+    saveActive();
+    renderLibraryPanel();
+    closeLibraryPanel();
+    showToast('새 마인드맵을 만들었어요.');
+  }
+
+  function switchToMindmap(id) {
+    if (id === library.activeId) { closeLibraryPanel(); return; }
+    library.activeId = id;
+    saveLibrary();
+    loadActiveIntoTree();
+    render();
+    fitView();
+    saveActive();
+    closeLibraryPanel();
+  }
+
+  function renameMindmap(id) {
+    var item = library.items.filter(function (it) { return it.id === id; })[0];
+    if (!item) return;
+    var name = prompt('이름을 입력하세요', item.name);
+    if (name === null) return;
+    item.name = name.trim() || item.name;
+    saveLibrary();
+    updateActiveNameLabel();
+    renderLibraryPanel();
+  }
+
+  function deleteMindmap(id) {
+    var item = library.items.filter(function (it) { return it.id === id; })[0];
+    if (!item) return;
+    if (!confirm('\'' + item.name + '\' 마인드맵을 삭제할까요?')) return;
+    library.items = library.items.filter(function (it) { return it.id !== id; });
+    if (library.items.length === 0) {
+      library.items.push(makeItem('마인드맵 1', serialize(defaultTree())));
+    }
+    if (library.activeId === id) {
+      library.activeId = library.items[0].id;
+      loadActiveIntoTree();
+      render();
+      fitView();
+    }
+    saveLibrary();
+    saveActive();
+    renderLibraryPanel();
+  }
+
+  function renderLibraryPanel() {
+    var sorted = library.items.slice().sort(function (a, b) { return b.updatedAt - a.updatedAt; });
+    var html = '<button class="lib-new-btn" data-action="lib-new">+ 새 마인드맵</button>';
+    html += sorted.map(function (it) {
+      var activeCls = it.id === library.activeId ? ' active' : '';
+      return '<div class="lib-item' + activeCls + '" data-id="' + it.id + '">' +
+        '<div class="lib-item-name" title="' + escapeHtml(it.name) + '">' + escapeHtml(it.name) + '</div>' +
+        '<div class="lib-item-date">' + formatDate(it.updatedAt) + '</div>' +
+        '<div class="lib-item-actions">' +
+          '<button data-action="lib-rename" title="이름변경">✏️</button>' +
+          '<button data-action="lib-delete" title="삭제">🗑</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    libPanel.innerHTML = html;
+  }
+
+  function openLibraryPanel() {
+    renderLibraryPanel();
+    libPanel.classList.add('open');
+  }
+
+  function closeLibraryPanel() {
+    libPanel.classList.remove('open');
   }
 
   function showToast(msg) {
@@ -260,7 +442,7 @@
     node.children.push(child);
     selectedId = child.id;
     render();
-    persist();
+    saveActive();
     startEdit(child.id);
   }
 
@@ -273,7 +455,7 @@
     parent.children.splice(idx + 1, 0, sibling);
     selectedId = sibling.id;
     render();
-    persist();
+    saveActive();
     startEdit(sibling.id);
   }
 
@@ -289,7 +471,7 @@
     parent.children.splice(idx, 1);
     selectedId = parent.id;
     render();
-    persist();
+    saveActive();
   }
 
   function countDescendants(node) {
@@ -303,7 +485,7 @@
     if (!node) return;
     node.collapsed = !node.collapsed;
     render();
-    persist();
+    saveActive();
   }
 
   function commitEdit(id, newText) {
@@ -311,7 +493,7 @@
     if (node) node.text = newText.trim() || '(제목 없음)';
     editingId = null;
     render();
-    persist();
+    saveActive();
   }
 
   function startEdit(id) {
@@ -461,40 +643,43 @@
   // ---------- persistence / load ----------
 
   function loadInitial() {
+    loadLibrary();
     var hash = location.hash;
     if (hash && hash.indexOf('#d=') === 0) {
-      try {
-        tree = decodeState(hash.slice(3));
-        return;
-      } catch (e) {
-        showToast('공유 링크를 읽지 못했어요. 새 마인드맵으로 시작합니다.');
+      var incoming = null;
+      try { incoming = decodeState(hash.slice(3)); } catch (e) { /* ignore */ }
+      if (incoming) {
+        var wantsImport = confirm(
+          '공유된 마인드맵 링크입니다.\n\n' +
+          '확인 → 내 목록에 새 마인드맵으로 추가해서 엽니다.\n' +
+          '취소 → 무시하고 기존에 쓰던 마인드맵을 계속 봅니다.'
+        );
+        if (wantsImport) {
+          var item = makeItem('가져온 마인드맵 (' + formatDate(nowTs()) + ')', incoming);
+          library.items.push(item);
+          library.activeId = item.id;
+          saveLibrary();
+        }
+      } else {
+        showToast('공유 링크를 읽지 못했어요.');
       }
     }
-    try {
-      var saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        tree = decodeState(saved);
-        return;
-      }
-    } catch (e) { /* ignore */ }
-    tree = defaultTree();
+    loadActiveIntoTree();
   }
 
-  function resetAll() {
-    if (!confirm('정말 새로 시작할까요? 현재 내용이 사라집니다.')) return;
+  function clearActive() {
+    if (!confirm('현재 마인드맵 내용을 지우고 새로 시작할까요?')) return;
     tree = defaultTree();
     selectedId = null;
     editingId = null;
-    try {
-      history.replaceState(null, '', location.pathname);
-      localStorage.removeItem(STORAGE_KEY);
-    } catch (e) { /* ignore */ }
     render();
     fitView();
+    saveActive();
+    renderLibraryPanel();
   }
 
   function copyShareLink() {
-    persist();
+    saveActive();
     var url = location.href;
     var done = function () { showToast('공유 링크를 복사했어요. 다른 브라우저·기기에 붙여넣으면 지금 상태 그대로 보여요.'); };
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -610,14 +795,37 @@
   document.getElementById('btn-zoom-in').addEventListener('click', function () { zoomBy(0.15); });
   document.getElementById('btn-zoom-out').addEventListener('click', function () { zoomBy(-0.15); });
   document.getElementById('btn-fit').addEventListener('click', fitView);
-  document.getElementById('btn-reset').addEventListener('click', resetAll);
+  document.getElementById('btn-reset').addEventListener('click', clearActive);
   document.getElementById('btn-share').addEventListener('click', copyShareLink);
+
+  // library panel
+  document.getElementById('btn-library').addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (libPanel.classList.contains('open')) closeLibraryPanel();
+    else openLibraryPanel();
+  });
+  libPanel.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (e.target.closest('[data-action="lib-new"]')) { createNewMindmap(); return; }
+    var actionBtn = e.target.closest('[data-action="lib-rename"], [data-action="lib-delete"]');
+    var itemEl = e.target.closest('.lib-item');
+    if (actionBtn && itemEl) {
+      var id = itemEl.getAttribute('data-id');
+      if (actionBtn.getAttribute('data-action') === 'lib-rename') renameMindmap(id);
+      else deleteMindmap(id);
+      return;
+    }
+    if (itemEl) switchToMindmap(itemEl.getAttribute('data-id'));
+  });
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.lib-wrap')) closeLibraryPanel();
+  });
 
   // ---------- init ----------
   loadInitial();
   render();
   fitView();
-  persist();
+  saveActive();
 })();
 </script>
 </body>
