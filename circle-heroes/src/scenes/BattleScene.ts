@@ -3,7 +3,7 @@ import { PLAYABLE_HEROES } from "../data/heroes";
 import type { Hero } from "../data/heroTypes";
 import { REVERSED_FACING_KEYS } from "../data/facing";
 import {
-  save, addGold, addGems, addEnhanceStone, setStage, getLevel, getStars,
+  save, addGold, addGems, grantRandomEquip, setStage, getLevel, getStars,
   setTowerFloor, applyArenaResult,
 } from "../state/save";
 import { track } from "../systems/missions";
@@ -1018,11 +1018,11 @@ export class BattleScene extends Phaser.Scene {
         this.wave += 1;
         this.delayed(800 / this.speedMult, () => this.spawnTeams());
       } else {
-        // 스테이지 보스 웨이브(마지막 웨이브) 클리어 시에만 강화석 소량 지급 — 장비 강화(§장비
-        // 시스템 MVP)의 상시 파밍 경로. 매 웨이브마다 주면 너무 흔해져서 보스 클리어로 한정
-        const stones = 2;
-        addEnhanceStone(stones);
-        this.showVictoryBanner(`STAGE ${this.stage} 클리어`, [`🪙 +${reward}`, `🔩 +${stones}`]);
+        // 스테이지 보스 웨이브(마지막 웨이브) 클리어 시에만 장비 드랍 판정 — 장비 획득(§장비
+        // 시스템 v2)의 상시 파밍 경로. 매 웨이브마다 주면 너무 흔해져서 보스 클리어로 한정
+        const rewards = [`🪙 +${reward}`];
+        if (Math.random() < 0.4) rewards.push(`🎁 ${grantRandomEquip().grade} 장비 획득!`);
+        this.showVictoryBanner(`STAGE ${this.stage} 클리어`, rewards);
         const next = this.stage + 1;
         setStage(next);
         this.delayed(1400 / this.speedMult, () => this.startStage(next));
@@ -1033,11 +1033,11 @@ export class BattleScene extends Phaser.Scene {
     if (this.mode === "tower") {
       const f = save.towerFloor;
       const gems = 10 + f * 5;
-      const stones = 1;
       addGems(gems);
-      addEnhanceStone(stones);
       track("tower");
-      this.showVictoryBanner(`${f}층 돌파`, [`💎 +${gems}`, `🔩 +${stones}`]);
+      const rewards = [`💎 +${gems}`];
+      if (Math.random() < 0.25) rewards.push(`🎁 ${grantRandomEquip().grade} 장비 획득!`);
+      this.showVictoryBanner(`${f}층 돌파`, rewards);
       setTowerFloor(f + 1);
       this.refreshHud();
       this.delayed(1400 / this.speedMult, () => this.startTower());
