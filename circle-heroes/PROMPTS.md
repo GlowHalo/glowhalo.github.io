@@ -1,3 +1,31 @@
+## 2026-07-29: 효과음 13종 + BGM 1종(+예비 2종) 실파일 조달, 규격서에 맞춰 반영
+
+게임 코드 세션이 먼저 배선해둔 사운드 인프라(`src/systems/audio.ts`)와 `ASSETS.md`
+"사운드(BGM/SFX) 규격서"를 뒤늦게 확인 — 처음엔 내 임의 파일명(`assets/audio/sfx/*.ogg`,
+`bgm/*.mp3`, 폴더 구조도 다름)으로 커밋했다가, master pull로 규격서가 도착한 걸 보고
+**전부 규격에 맞게 다시 정리**함: `vite.config.ts`가 `assets/audio/`를 평평한 구조로만
+서빙하고(하위폴더 있으면 빌드 복사가 깨짐), `audio.ts`가 `sfx-${key}.mp3`/`bgm-${key}.mp3`
+로 확장자 `.mp3` 고정 하드코딩하는 걸 확인했기 때문.
+
+- 오디오 생성 API가 없어서 "무료 소스를 어디선가 구해오라"는 지시에 따라 **웹 전체가 아니라
+  GitHub에 실파일로 호스팅된 CC0 소스만** 사용해 조달함(이 세션 네트워크 정책상
+  opengameart.org/freesound.org/kenney.nl 등 일반 사이트는 차단, `github.com`·
+  `raw.githubusercontent.com` 은 접근 가능 — 확인됨).
+- `assets/audio/sfx-{hit,hit-crit,cast,ultimate,heal,shield,kill,victory,defeat,reveal,
+  reveal-high,levelup,equip}.mp3` 13종 — `BattleScene.ts`/`screens.ts`가 실제로 부르는
+  키 13개와 1:1로 정확히 맞춤(코드에서 `playSfx("...")` 호출부 전수 확인). 전부
+  Kenney.nl CC0 팩(Impact Sounds/Digital Audio/Music Jingles/RPG Audio)에서
+  `github.com/Boyquotes/kenney-*-for-godot` 리패키징 리포의 원본 `.ogg`를 가져와
+  ffmpeg으로 mp3 변환.
+- `assets/audio/bgm-battle.mp3`(코드가 실제 로드) + 예비 후보 2종
+  (`bgm-battle-alt-applecider.mp3`, `bgm-battle-alt-funrun.mp3`, 코드 미참조) — Zane
+  Little Music 작곡, CC0, `github.com/gdquest-demos/godot-open-rpg` 의 `assets/music/`
+  에서 확보. 원곡이 코믹한 곤충 게임잼용이라 판타지 가챠풍은 아님 — 스타터용 임시 채택,
+  톤이 안 맞으면 예비 후보로 교체하거나 재조달 필요.
+- 출처/라이선스 상세는 `assets/audio/CREDITS.md` 참고. **ffmpeg이 이 환경에 없어서(의존
+  라이브러리 `libcaca0`/`libva2` 계열 apt 404) `.deb`를 구버전 풀(`noble/main`)에서
+  개별로 받아 강제 설치해 우회함** — 다음에도 ffmpeg 필요하면 같은 방법 참고.
+
 ## 2026-07-29: 사운드 인프라 신설 + 마일스톤 포인트 트랙 구현
 
 "진행하자"로 확정된 다음 스텝 2건. 코드 전수조사로 오디오가 전혀 없는 걸 확인하고(파일도
