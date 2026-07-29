@@ -1302,3 +1302,32 @@
   transition: width 0.3s;
 }
 .list-card.all-bonus { border-color: var(--amber); }
+
+/* ── 일일 마일스톤 포인트 트랙(BENCHMARK.md §21) ── */
+.milestone-box {
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.milestone-title { font-size: 12.5px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+.milestone-bar { margin: 6px 0 10px; }
+.milestone-chests { display: flex; gap: 6px; }
+.milestone-chest {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 2px;
+  border-radius: 8px;
+  border: 1px dashed var(--line);
+  background: var(--panel);
+  cursor: default;
+}
+.milestone-chest.ready { border-style: solid; border-color: var(--amber); cursor: pointer; background: rgba(245, 172, 61, 0.12); }
+.milestone-chest.claimed { border-style: solid; opacity: 0.55; }
+.milestone-chest .mc-icon { font-size: 16px; }
+.milestone-chest .mc-pts { font-size: 10px; color: var(--ink3); font-variant-numeric: tabular-nums; }
+.milestone-chest .mc-reward { font-size: 9px; color: var(--ink2); white-space: nowrap; }

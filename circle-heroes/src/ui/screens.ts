@@ -20,9 +20,11 @@ import {
   missionProgress, isClaimed, claimable, claim, track,
   WEEKLY_MISSIONS, WEEKLY_ALL_CLEAR_BONUS, weeklyProgress, weeklyIsClaimed, weeklyClaimable, weeklyClaim,
   ACHIEVEMENTS, achievementClaimed, achievementClaimable, achievementClaim, currentAchievementTiers,
+  MILESTONE_TRACK, dailyPoints, milestoneClaimed, milestoneClaimable, milestoneClaim,
 } from "../systems/missions";
 import { toast, modal, closeModal } from "./shell";
 import { emit } from "../state/bus";
+import { playSfx } from "../systems/audio";
 import { isReversedFacing } from "../data/facing";
 
 const FACTION_COLORS: Record<string, string> = {
@@ -242,6 +244,7 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
   lvBtn.onclick = () => {
     if (tryLevelUp(hero.id)) {
       track("levelup");
+      playSfx("levelup");
       toast(`${hero.nameKr} Lv.${getLevel(hero.id)}!`);
       openHeroDetail(hero, rerender);
       rerender();
@@ -527,6 +530,7 @@ function renderAscend(root: HTMLElement) {
   ascBtn.onclick = () => {
     if (!target) return;
     if (tryAscend(target.id)) {
+      playSfx("levelup");
       toast(`${target.nameKr} ${getStars(target.id)}성 각성! 능력치 +30%`);
       rerender();
     }
@@ -621,6 +625,7 @@ function openEquipSlotModal(heroId: string, hero: Hero, slot: EquipSlot, onChang
       const equipBtn = el("button", "btn primary", "장착") as HTMLButtonElement;
       equipBtn.onclick = () => {
         equipItem(heroId, it.id);
+        playSfx("equip");
         toast(`${hero.nameKr} ${info.label} 장착!`);
         onChange();
         closeModal();
@@ -997,6 +1002,7 @@ function playSummonFx(
         card.classList.remove("tease", "revealing");
         card.classList.add("flipped");
         revealedCount++;
+        playSfx(isHigh ? "reveal-high" : "reveal");
         if (isHigh) {
           overlay.classList.remove("flash-sr");
           void overlay.offsetWidth;
@@ -1266,6 +1272,41 @@ function renderAchievements(root: HTMLElement) {
   }
 }
 
+/** 일일 마일스톤 포인트 트랙(BENCHMARK.md §21) — 임무 5개 완료마다 20점씩 쌓여 20/40/60/80/100
+ * 구간마다 별도 상자를 수령한다. 개별 임무 보상·전체완료 보너스와 별개인 3번째 보상 레이어 —
+ * 레퍼런스(두 벤치마크 게임 공통)의 "상단 마일스톤 트랙" 문법을 그대로 반영 */
+function renderMilestoneTrack(root: HTMLElement) {
+  const pts = dailyPoints();
+  const box = el("div", "milestone-box");
+  box.appendChild(el("div", "milestone-title", `일일 마일스톤 · ${pts}/100`));
+  const barWrap = el("div", "mbar milestone-bar");
+  const bar = el("div", "mbar-fill");
+  bar.style.width = `${Math.min(100, pts)}%`;
+  barWrap.appendChild(bar);
+  box.appendChild(barWrap);
+
+  const row = el("div", "milestone-chests");
+  for (const m of MILESTONE_TRACK) {
+    const claimed = milestoneClaimed(m.points);
+    const ready = milestoneClaimable(m.points);
+    const chest = el("div", "milestone-chest" + (claimed ? " claimed" : ready ? " ready" : ""));
+    chest.appendChild(el("div", "mc-icon", claimed ? "✅" : ready ? "🎁" : "🔒"));
+    chest.appendChild(el("div", "mc-pts", `${m.points}`));
+    chest.appendChild(el("div", "mc-reward", rewardText(m.reward)));
+    if (ready) {
+      chest.onclick = () => {
+        if (milestoneClaim(m.points)) {
+          toast(`마일스톤 보상! ${rewardText(m.reward)}`);
+          renderMissions(root);
+        }
+      };
+    }
+    row.appendChild(chest);
+  }
+  box.appendChild(row);
+  root.appendChild(box);
+}
+
 export function renderMissions(root: HTMLElement) {
   root.innerHTML = "";
 
@@ -1290,6 +1331,7 @@ export function renderMissions(root: HTMLElement) {
 
   root.appendChild(el("h2", "", "일일 임무"));
   root.appendChild(el("div", "desc", "매일 자정에 리셋됩니다. 완료 후 보상을 수령하세요."));
+  renderMilestoneTrack(root);
   renderMissionList(root, DAILY_MISSIONS, {
     progress: missionProgress,
     isClaimed: isClaimed,

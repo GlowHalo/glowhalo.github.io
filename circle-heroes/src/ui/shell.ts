@@ -8,6 +8,7 @@ import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubVie
 import { partyPower } from "../systems/battle";
 import { isFirebaseConfigured, getBackupCode, backupNow, restoreFromCode } from "../state/backup";
 import { HEROES } from "../data/heroes";
+import { isMuted, setMuted } from "../systems/audio";
 
 type TabKey = "heroes" | "summon" | "battle" | "shop" | "missions";
 
@@ -212,6 +213,20 @@ const SECRET_CODES: Record<string, { message: string; grant: () => void }> = {
     grant: () => addGems(3000),
   },
 };
+
+/** 사운드 켬/끔 — 배경음악·효과음이 자동재생되므로(§사운드 백로그, 2026-07-29) 최소한의 통제권을
+ * 설정 화면에 둔다. 음원 파일이 아직 없어도 안전하게 동작(재생 시도만 조용히 실패) */
+function buildSoundSection(): HTMLElement {
+  const box = h("div", "code-box");
+  box.appendChild(h("h4", "", "🔊 사운드"));
+  const btn = h("button", "btn", isMuted() ? "🔇 음소거됨 — 켜기" : "🔊 켜짐 — 끄기") as HTMLButtonElement;
+  btn.onclick = () => {
+    setMuted(!isMuted());
+    btn.textContent = isMuted() ? "🔇 음소거됨 — 켜기" : "🔊 켜짐 — 끄기";
+  };
+  box.appendChild(btn);
+  return box;
+}
 
 function buildCodeSection(): HTMLElement {
   const box = h("div", "code-box");
@@ -468,6 +483,7 @@ export function buildShell() {
       const body = h("div");
       const p = h("p", "", "버전 0.2.0 · 세이브는 이 기기에 저장됩니다.");
       body.appendChild(p);
+      body.appendChild(buildSoundSection());
       body.appendChild(buildCodeSection());
       body.appendChild(buildBackupSection());
       const danger = h("button", "btn danger", "세이브 초기화") as HTMLButtonElement;
