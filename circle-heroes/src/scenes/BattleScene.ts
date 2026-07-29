@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { PLAYABLE_HEROES } from "../data/heroes";
 import type { Hero } from "../data/heroTypes";
+import { REVERSED_FACING_KEYS } from "../data/facing";
 import {
   save, addGold, addGems, setStage, getLevel, getStars,
   setTowerFloor, applyArenaResult,
@@ -21,6 +22,7 @@ import {
   type HitResult,
   type Unit,
 } from "../systems/battle";
+import { STAGE_TIERS, stageTierFor } from "../data/stageTiers";
 
 export const GAME_W = 420;
 export const GAME_H = 740;
@@ -43,6 +45,9 @@ const HERO_SLOTS: Array<[number, number]> = [
   [48, 345],
   [48, 462],
 ];
+/** 슬롯 인덱스별 스프라이트 배율 — 뒷줄일수록 살짝 축소해 원근감 표현
+ * (레퍼런스 실측: "필드 위 캐릭터 스프라이트... 뒷줄일수록 살짝 축소", BENCHMARK.md §3) */
+const HERO_ROW_SCALE = [1, 1, 0.88, 0.88, 0.88];
 
 interface UnitView {
   unit: Unit;
@@ -61,28 +66,21 @@ interface UnitView {
   shieldRing: Phaser.GameObjects.Arc;
 }
 
-/** 스테이지/무한의탑/요일던전 몬스터 → 실제 몬스터 아트 매핑 (탑·요일던전 전용 아트 반영 완료) */
-function monsterSpriteKey(mode: BattleMode, boss: boolean): string {
+/** 스테이지/무한의탑/요일던전 몬스터 → 실제 몬스터 아트 매핑 (탑·요일던전 전용 아트 반영 완료).
+ * 일반 스테이지는 stageTiers.ts 구간에 따라 몬스터가 바뀐다(§4 지역 전환, 아트 없는 구간은
+ * makeUnitView의 텍스처 존재 체크가 알아서 플레이스홀더로 대체하므로 여기선 그냥 원하는 키를 반환) */
+function monsterSpriteKey(mode: BattleMode, boss: boolean, stage: number): string {
   if (mode === "tower") return boss ? "tower_guardian_001" : "tower_soldier_001";
   if (mode === "raid") return "raid_boss_001";
-  return boss ? "boss_slime_001" : "slime_green_001";
+  const tier = stageTierFor(stage);
+  return boss ? tier.bossKey : tier.normalKey;
 }
 
 /**
  * flipX는 기본적으로 "원화는 오른쪽을 본다"는 가정으로 아군=그대로/적군=반전 처리한다.
- * 히든 5종(정면 대칭 실루엣이라 반전해도 그대로지만, 실제로는 왼쪽을 보는 원화라 아군인데도
- * 반전 없이 표시하면 왼쪽을 봄)과 재작업된 슬라임·보스슬라임(왼쪽을 보도록 새로 그려짐)은
- * 반대 관례라 기본 규칙을 뒤집어야 한다.
+ * REVERSED_FACING_KEYS(실제 원화가 왼쪽을 보는 예외 목록)에 포함된 id는 반대 관례라
+ * 기본 규칙을 뒤집어야 한다 — 목록은 `src/data/facing.ts` 참고(주인님 확인표 기준 확정).
  */
-const REVERSED_FACING_KEYS = new Set([
-  "unknown_hidden_001",
-  "unknown_hidden_002",
-  "unknown_hidden_003",
-  "unknown_hidden_004",
-  "unknown_hidden_005",
-  "slime_green_001",
-  "boss_slime_001",
-]);
 
 /** 속성별 피격 이펙트 텍스처 키. 무진영(불명) 등 매핑이 없으면 범용 hit-impact로 대체 */
 const HIT_FX_BY_FACTION: Record<string, string> = {
@@ -113,9 +111,17 @@ export class BattleScene extends Phaser.Scene {
   /** 턴제(탑/아레나) 진행용 행동 순서 큐 — 비면 생존 유닛을 속도순으로 다시 채운다 */
   private turnQueue: Unit[] = [];
 
+  private bg!: Phaser.GameObjects.Image;
+  private bgTexKey = "";
   private stageText!: Phaser.GameObjects.Text;
   private speedBtn!: Phaser.GameObjects.Text;
   private synergyText!: Phaser.GameObjects.Text;
+
+  /** 필살기 컷인(§11) 대상 판별용 — UR 등급만 풀스크린 연출 특권을 가진다 */
+  private urHeroIds = new Set(PLAYABLE_HEROES.filter((h) => h.grade === "UR").map((h) => h.id));
+  private isUrHero(heroId?: string): boolean {
+    return !!heroId && this.urHeroIds.has(heroId);
+  }
 
   constructor() {
     super("battle");
@@ -125,12 +131,19 @@ export class BattleScene extends Phaser.Scene {
     for (const h of PLAYABLE_HEROES) {
       this.load.image(`portrait-${h.id}`, `${h.id}.png`);
     }
-    this.load.image("monster-slime_green_001", "slime_green_001.png");
-    this.load.image("monster-boss_slime_001", "boss_slime_001.png");
     this.load.image("monster-tower_soldier_001", "tower_soldier_001.png");
     this.load.image("monster-tower_guardian_001", "tower_guardian_001.png");
     this.load.image("monster-raid_boss_001", "raid_boss_001.png");
-    this.load.image("bg-battle", "battle-grassland.png");
+    // 스테이지 지역 전환(§4)용 티어별 배경·몬스터(1티어=초원이 기존 bg-battle 역할도 겸함) —
+    // 1티어 외엔 아직 실제 파일이 없어
+    // 개별 404가 나지만 Phaser 로더는 그 파일만 건너뛰고 계속 진행되고(다른 텍스처는 정상 로드),
+    // 사용하는 쪽(makeUnitView/updateBackgroundForStage)이 존재 여부를 확인해 초원/슬라임으로
+    // 폴백하므로 안전하다. 아트가 도착하면 파일만 추가하면 코드 변경 없이 자동 적용됨
+    for (const tier of STAGE_TIERS) {
+      this.load.image(`bg-${tier.bgKey}`, `${tier.bgKey}.png`);
+      this.load.image(`monster-${tier.normalKey}`, `${tier.normalKey}.png`);
+      this.load.image(`monster-${tier.bossKey}`, `${tier.bossKey}.png`);
+    }
 
     this.load.image("fx-cast-aura", "cast-aura.png");
     this.load.image("fx-hit-crit", "hit-crit.png");
@@ -142,9 +155,10 @@ export class BattleScene extends Phaser.Scene {
 
   create() {
     this.cameras.main.setBackgroundColor("#182236");
-    const bg = this.add.image(GAME_W / 2, GAME_H / 2, "bg-battle");
-    const bgScale = Math.max(GAME_W / bg.width, GAME_H / bg.height);
-    bg.setScale(bgScale).setDepth(-10);
+    this.bgTexKey = `bg-${STAGE_TIERS[0].bgKey}`;
+    this.bg = this.add.image(GAME_W / 2, GAME_H / 2, this.bgTexKey);
+    this.fitBg();
+    this.bg.setDepth(-10);
     this.add.rectangle(GAME_W / 2, 545, GAME_W, 2, 0x2c3a58);
 
     this.stageText = this.add
@@ -200,6 +214,23 @@ export class BattleScene extends Phaser.Scene {
     this.startStage(save.stage);
   }
 
+  private fitBg() {
+    const bgScale = Math.max(GAME_W / this.bg.width, GAME_H / this.bg.height);
+    this.bg.setScale(bgScale);
+  }
+
+  /** 스테이지 티어(§4 지역 전환)에 맞는 배경으로 교체 — 해당 티어 아트가 아직 없으면(로드 실패)
+   * 텍스처가 캐시에 없으므로 조용히 1티어(초원) 배경을 유지한다 */
+  private updateBackgroundForStage(stage: number) {
+    const tier = stageTierFor(stage);
+    const key = `bg-${tier.bgKey}`;
+    const resolved = this.textures.exists(key) ? key : `bg-${STAGE_TIERS[0].bgKey}`;
+    if (resolved === this.bgTexKey) return;
+    this.bgTexKey = resolved;
+    this.bg.setTexture(resolved);
+    this.fitBg();
+  }
+
   private setMode(m: BattleMode) {
     if (this.mode === m) return;
     this.mode = m;
@@ -231,6 +262,7 @@ export class BattleScene extends Phaser.Scene {
     this.wave = 1;
     this.heroes = this.buildTeam();
     this.rosterDirty = false;
+    this.updateBackgroundForStage(stage);
     this.spawnTeams();
   }
 
@@ -238,6 +270,7 @@ export class BattleScene extends Phaser.Scene {
     this.wave = 1;
     this.heroes = this.buildTeam();
     this.rosterDirty = false;
+    this.updateBackgroundForStage(1); // 탑/아레나/요일던전은 지역 전환 대상 아님 — 항상 기본(초원) 배경
     this.spawnTeams();
   }
 
@@ -245,6 +278,7 @@ export class BattleScene extends Phaser.Scene {
     this.wave = 1;
     this.heroes = this.buildTeam();
     this.rosterDirty = false;
+    this.updateBackgroundForStage(1);
     this.spawnTeams();
   }
 
@@ -252,6 +286,7 @@ export class BattleScene extends Phaser.Scene {
   private startRaid() {
     const faction = todayFaction();
     this.wave = 1;
+    this.updateBackgroundForStage(1);
     this.heroes = this.buildTeam().filter(
       (u) => faction === null || u.faction === faction
     );
@@ -325,16 +360,18 @@ export class BattleScene extends Phaser.Scene {
 
     this.heroes.forEach((u, i) => {
       const [x, y] = HERO_SLOTS[i] ?? HERO_SLOTS[HERO_SLOTS.length - 1];
-      this.views.set(u, this.makeUnitView(u, x, y, false));
+      const scaleMult = HERO_ROW_SCALE[i] ?? HERO_ROW_SCALE[HERO_ROW_SCALE.length - 1];
+      this.views.set(u, this.makeUnitView(u, x, y, false, undefined, scaleMult));
     });
     if (this.mode === "arena") {
       this.enemies.forEach((u, i) => {
         const [x, y] = HERO_SLOTS[i] ?? HERO_SLOTS[HERO_SLOTS.length - 1];
-        this.views.set(u, this.makeUnitView(u, GAME_W - x, y, false));
+        const scaleMult = HERO_ROW_SCALE[i] ?? HERO_ROW_SCALE[HERO_ROW_SCALE.length - 1];
+        this.views.set(u, this.makeUnitView(u, GAME_W - x, y, false, undefined, scaleMult));
       });
     } else {
       const enemyX = GAME_W - 108;
-      const monsterKey = monsterSpriteKey(this.mode, boss);
+      const monsterKey = monsterSpriteKey(this.mode, boss, this.stage);
       this.enemies.forEach((u, i) => {
         const y = boss ? 360 : 250 + i * 74;
         this.views.set(u, this.makeUnitView(u, enemyX + (i % 2) * 30, y, boss, monsterKey));
@@ -359,9 +396,9 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  private makeUnitView(unit: Unit, x: number, y: number, big: boolean, monsterKey?: string): UnitView {
+  private makeUnitView(unit: Unit, x: number, y: number, big: boolean, monsterKey?: string, scaleMult = 1): UnitView {
     const isArenaFoe = unit.key.startsWith("arena_");
-    const r = unit.isHero || isArenaFoe ? 32 : big ? 50 : 26;
+    const r = (unit.isHero || isArenaFoe ? 32 : big ? 50 : 26) * scaleMult;
     const fallbackColor = unit.isHero || isArenaFoe
       ? FACTION_COLORS[unit.faction] ?? 0x888888
       : big
@@ -472,9 +509,13 @@ export class BattleScene extends Phaser.Scene {
     const foes = unit.isHero ? this.enemies : this.heroes;
     // 스킬 사용 여부를 act() 호출 전에 미리 예측(actionCount는 act() 내부에서 증가) — 시전 이펙트용
     const isSkillCast = !!unit.heroId && (unit.actionCount + 1) % SKILL_EVERY_N_ACTIONS === 0;
+    const isUrCast = isSkillCast && this.isUrHero(unit.heroId);
     const results = act(unit, allies, foes, now);
     if (results.length > 0) {
-      if (isSkillCast) {
+      if (isUrCast) {
+        this.ultimateCutin(unit);
+        this.delayed(70 / this.speedMult, () => this.lunge(unit, results[0].kind));
+      } else if (isSkillCast) {
         this.castGlow(unit);
         this.delayed(70 / this.speedMult, () => this.lunge(unit, results[0].kind));
       } else {
@@ -516,11 +557,13 @@ export class BattleScene extends Phaser.Scene {
 
     const now = this.time.now * this.speedMult;
     const isSkillCast = !!unit.heroId && (unit.actionCount + 1) % SKILL_EVERY_N_ACTIONS === 0;
+    const isUrCast = isSkillCast && this.isUrHero(unit.heroId);
     const battleEnded = this.resolveUnitAction(unit, now);
     if (battleEnded) return;
 
     // 다음 턴은 이번 행동의 모션(시전 예고+돌진 애니메이션)이 다 끝난 뒤 시작 — 턴이 겹쳐 보이지 않도록
-    const animMs = isSkillCast ? 70 + 240 : 240;
+    // UR 필살기 컷인은 연출이 훨씬 길어서(§11) 별도 여유를 더 준다
+    const animMs = isUrCast ? 70 + 620 : isSkillCast ? 70 + 240 : 240;
     const gap = Math.max(animMs + 140, 300);
     this.delayed(gap / this.speedMult, () => this.stepTurn());
   }
@@ -605,6 +648,93 @@ export class BattleScene extends Phaser.Scene {
           ease: "Quad.easeIn",
           onComplete: () => fx.destroy(),
         }),
+    });
+  }
+
+  /** UR 전용 필살기 풀스크린 컷인(§11, BENCHMARK.md 킬러콘텐츠 1순위) — 등급 격차를 연출로 체감시키는 장치.
+   * 신규 스프라이트 없이 기존 초상화(portrait-*)·이펙트 텍스처를 스케일업/재활용해서 구성한다. */
+  private ultimateCutin(caster: Unit) {
+    const view = this.views.get(caster);
+    if (!view) return;
+    const tint = FACTION_COLORS[caster.faction] ?? 0xffd34d;
+    const cx = GAME_W / 2;
+    const cy = GAME_H / 2;
+
+    // 배경 암전 + 진영색 스피드라인 버스트로 시선을 화면 중앙에 집중
+    const dim = this.add.rectangle(cx, cy, GAME_W, GAME_H, 0x000000).setDepth(150).setAlpha(0);
+    const burst = this.textures.exists("fx-cast-aura")
+      ? this.add.image(cx, cy, "fx-cast-aura").setDepth(151).setBlendMode(Phaser.BlendModes.ADD).setTint(tint)
+      : undefined;
+    burst?.setScale(0.3).setAlpha(0);
+
+    this.cameras.main.shake(260 / this.speedMult, 0.014);
+
+    this.tweens.add({
+      targets: dim,
+      alpha: 0.55,
+      duration: 120 / this.speedMult,
+      ease: "Quad.easeOut",
+    });
+    if (burst) {
+      this.tweens.add({
+        targets: burst,
+        alpha: 1,
+        scale: 2.4,
+        duration: 220 / this.speedMult,
+        ease: "Quad.easeOut",
+      });
+    }
+
+    // 시전자 초상화가 진영 반대편에서 슬라이드해 화면 중앙에 크게 등장
+    const portraitKey = `portrait-${caster.heroId}`;
+    let portrait: Phaser.GameObjects.Image | undefined;
+    if (this.textures.exists(portraitKey)) {
+      const fromX = caster.isHero ? -140 : GAME_W + 140;
+      portrait = this.add.image(fromX, cy, portraitKey).setDepth(152);
+      const baseScale = (GAME_H * 0.62) / portrait.height;
+      portrait.setScale(baseScale * 0.85).setAlpha(0);
+      portrait.setFlipX(!caster.isHero);
+      this.tweens.add({
+        targets: portrait,
+        x: cx + (caster.isHero ? -30 : 30),
+        alpha: 1,
+        scale: baseScale,
+        duration: 200 / this.speedMult,
+        ease: "Back.easeOut",
+      });
+    }
+
+    const nameLabel = this.add
+      .text(cx, GAME_H * 0.78, `⚡ ${caster.name} 필살기!`, {
+        fontFamily: "sans-serif",
+        fontSize: "22px",
+        color: "#ffd34d",
+        fontStyle: "bold",
+        stroke: "#0a0d16",
+        strokeThickness: 6,
+      })
+      .setOrigin(0.5)
+      .setDepth(153)
+      .setAlpha(0)
+      .setScale(0.7);
+    this.tweens.add({
+      targets: nameLabel,
+      alpha: 1,
+      scale: 1,
+      duration: 160 / this.speedMult,
+      ease: "Back.easeOut",
+    });
+
+    // 짧게 홀드한 뒤 전원 페이드아웃
+    this.time.delayedCall(280 / this.speedMult, () => {
+      const fadeTargets = [dim, burst, portrait, nameLabel].filter(Boolean) as Phaser.GameObjects.GameObject[];
+      this.tweens.add({
+        targets: fadeTargets,
+        alpha: 0,
+        duration: 220 / this.speedMult,
+        ease: "Quad.easeIn",
+        onComplete: () => fadeTargets.forEach((t) => (t as Phaser.GameObjects.Image).destroy()),
+      });
     });
   }
 
@@ -837,7 +967,7 @@ export class BattleScene extends Phaser.Scene {
         this.wave += 1;
         this.delayed(800 / this.speedMult, () => this.spawnTeams());
       } else {
-        this.showBanner(`STAGE ${this.stage} 클리어! +${reward}G`, "#7de8a0");
+        this.showVictoryBanner(`STAGE ${this.stage} 클리어`, [`🪙 +${reward}`]);
         const next = this.stage + 1;
         setStage(next);
         this.delayed(1400 / this.speedMult, () => this.startStage(next));
@@ -850,7 +980,7 @@ export class BattleScene extends Phaser.Scene {
       const gems = 10 + f * 5;
       addGems(gems);
       track("tower");
-      this.showBanner(`${f}층 돌파! 💎+${gems}`, "#7de8a0");
+      this.showVictoryBanner(`${f}층 돌파`, [`💎 +${gems}`]);
       setTowerFloor(f + 1);
       this.refreshHud();
       this.delayed(1400 / this.speedMult, () => this.startTower());
@@ -859,7 +989,7 @@ export class BattleScene extends Phaser.Scene {
 
     if (this.mode === "raid") {
       const gems = applyRaidKill();
-      this.showBanner(`${raidBossName()} 격파! 💎+${gems} — 더 강해져 돌아옵니다`, "#7de8a0");
+      this.showVictoryBanner(`${raidBossName()} 격파 — 더 강해져 돌아옵니다`, [`💎 +${gems}`]);
       this.refreshHud();
       this.delayed(1600 / this.speedMult, () => this.startRaid());
       return;
@@ -868,10 +998,9 @@ export class BattleScene extends Phaser.Scene {
     // arena 승리
     const { rating, bonusGems } = applyArenaResult(true);
     track("arenaWin");
-    this.showBanner(
-      bonusGems > 0 ? `아레나 승리! +25점 · 오늘 첫 승리 💎+${bonusGems}` : `아레나 승리! +25점 (${rating})`,
-      "#7de8a0"
-    );
+    const arenaRewards = [`🏆 +25점 (${rating})`];
+    if (bonusGems > 0) arenaRewards.push(`💎 +${bonusGems}`);
+    this.showVictoryBanner("아레나 승리", arenaRewards);
     this.refreshHud();
     this.delayed(1600 / this.speedMult, () => this.startArena());
   }
@@ -880,7 +1009,9 @@ export class BattleScene extends Phaser.Scene {
     this.battleOver = true;
 
     if (this.mode === "stage") {
-      this.showBanner("패배… 부대를 정비해 재도전!", "#ff8f7a");
+      // 스테이지는 패배해도 내려가지 않고 같은 스테이지를 재도전한다 — 실패를 벌주는 대신
+      // "다시 도전" 쪽에 무게를 두려고 경고성 빨강 대신 중립 톤 + "패배" 표현 없이 안내
+      this.showBanner("부대를 정비하고 다시 도전합니다", "#bfdcf0");
       this.delayed(1600 / this.speedMult, () => this.startStage(this.stage));
       return;
     }
@@ -907,7 +1038,8 @@ export class BattleScene extends Phaser.Scene {
 
   private refreshHud() {
     if (this.mode === "stage") {
-      this.stageText.setText(`STAGE ${this.stage}  ·  WAVE ${this.wave}/${WAVES_PER_STAGE}`);
+      const tierName = stageTierFor(this.stage).name;
+      this.stageText.setText(`${tierName} STAGE ${this.stage}  ·  WAVE ${this.wave}/${WAVES_PER_STAGE}`);
     } else if (this.mode === "tower") {
       this.stageText.setText(`무한의 탑 · ${save.towerFloor}층`);
     } else if (this.mode === "raid") {
@@ -936,6 +1068,38 @@ export class BattleScene extends Phaser.Scene {
       yoyo: true,
       hold: 900 / this.speedMult,
       onComplete: () => banner.destroy(),
+    });
+  }
+
+  /** 승리 플로팅 배너 — "승리" 타이틀 + 상세문구 + 보상 아이콘 나열(AFK Arena 레퍼런스 캡쳐 참고) */
+  private showVictoryBanner(subtitle: string, rewards: string[]) {
+    const cx = GAME_W / 2;
+    const title = this.add
+      .text(cx, 148, "승리", { fontFamily: "sans-serif", fontSize: "30px", fontStyle: "bold", color: "#ffd34d" })
+      .setOrigin(0.5)
+      .setAlpha(0);
+    const sub = this.add
+      .text(cx, 182, subtitle, { fontFamily: "sans-serif", fontSize: "12px", color: "#bfdcf0" })
+      .setOrigin(0.5)
+      .setAlpha(0);
+    const rewardLine = this.add
+      .text(cx, 208, rewards.join("    "), {
+        fontFamily: "sans-serif",
+        fontSize: "15px",
+        color: "#f2f8ff",
+        backgroundColor: "#10131cdd",
+        padding: { x: 14, y: 6 },
+      })
+      .setOrigin(0.5)
+      .setAlpha(0);
+    const group = [title, sub, rewardLine];
+    this.tweens.add({
+      targets: group,
+      alpha: 1,
+      duration: 220,
+      yoyo: true,
+      hold: 1100 / this.speedMult,
+      onComplete: () => group.forEach((g) => g.destroy()),
     });
   }
 }

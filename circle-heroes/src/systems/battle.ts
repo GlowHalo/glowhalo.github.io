@@ -1,5 +1,6 @@
 import type { Hero } from "../data/heroTypes";
-import { addGold } from "../state/save";
+import { PLAYABLE_HEROES } from "../data/heroes";
+import { addGold, save, getLevel, getStars } from "../state/save";
 
 /*
  * 전투 코어 + 스킬 엔진.
@@ -193,6 +194,20 @@ export function unitFromHero(hero: Hero, level = 1, stars = 1): Unit {
   u.canRevive = p.canRevive ?? false;
   u.startShieldMult = p.startShieldMult ?? 0;
   return u;
+}
+
+/** 편성 화면 등에 표시하는 "전투력" 단일 수치 — 실제 전투 스탯(레벨/성급 반영)을 가중합산 */
+export function heroPower(hero: Hero, level: number, stars: number): number {
+  const u = unitFromHero(hero, level, stars);
+  return Math.round(u.atk * 3.5 + u.def * 2 + u.maxHp / 10 + u.spd * 1.2);
+}
+
+/** 현재 편성된 파티 전체의 전투력 합산 — HUD·편성 화면 공용 */
+export function partyPower(): number {
+  return save.party.reduce((sum, id) => {
+    const hero = PLAYABLE_HEROES.find((h) => h.id === id);
+    return hero ? sum + heroPower(hero, getLevel(hero.id), getStars(hero.id)) : sum;
+  }, 0);
 }
 
 export function makeEnemy(key: string, name: string, stage: number, boss: boolean): Unit {

@@ -7,8 +7,9 @@ import { resolve, extname } from "node:path";
 // 라이브 주소: https://tossneon.github.io/circle-heroes/play/
 
 // 코드에서 실제로 쓰는 에셋 폴더만 루트에 평평하게 서빙(dev+build 공통).
-// cards/(116MB)는 아직 코드에서 참조하지 않으므로 제외 — 쓰게 되면 여기 목록에 추가.
-const SERVED_ASSET_DIRS = ["characters", "monsters", "backgrounds", "icons", "effects"];
+// cards/(116MB, 원본 PNG)는 아직 코드에서 참조하지 않으므로 제외 — cards-webp(6.8MB, 압축본)는
+// 영웅 상세화면 일러스트 뷰(§11)에서 사용.
+const SERVED_ASSET_DIRS = ["characters", "monsters", "backgrounds", "icons", "effects", "cards-webp"];
 
 const MIME: Record<string, string> = {
   ".png": "image/png",
