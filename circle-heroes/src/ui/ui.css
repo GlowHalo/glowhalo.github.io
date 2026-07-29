@@ -568,6 +568,14 @@
   cursor: pointer;
 }
 .banner-card .face { position: absolute; inset: 3px; z-index: 1; border-radius: 7px; }
+/* 그냥뽑기 배너 — 특정 픽업 초상 대신 별빛 배경 + 주사위 아이콘 */
+.banner-card-standard {
+  background: radial-gradient(circle at 50% 35%, #3a2f5c 0%, #14101f 80%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.banner-card-standard-icon { font-size: 34px; }
 .banner-card-name {
   position: absolute;
   z-index: 2;
