@@ -111,6 +111,9 @@ export class BattleScene extends Phaser.Scene {
   private wave = 1;
   private speedMult = 2;
   private battleOver = false;
+  /** UR 필살기 컷인 재생 중엔 true — 그동안 실시간 모드의 다른 유닛 행동을 멈춰서 컷인이 다른
+   * 유닛 움직임과 뒤섞여 어수선해 보이지 않게 한다(§공격모션 버그 수정) */
+  private cutinActive = false;
   private rosterDirty = false;
   /** 턴제(탑/아레나) 진행용 행동 순서 큐 — 비면 생존 유닛을 속도순으로 다시 채운다 */
   private turnQueue: Unit[] = [];
@@ -336,6 +339,7 @@ export class BattleScene extends Phaser.Scene {
     for (const view of this.views.values()) view.root.destroy();
     this.views.clear();
     this.battleOver = false;
+    this.cutinActive = false; // 안전장치: 모드 전환/웨이브 재시작 시 이전 컷인 플래그가 남아있지 않게
 
     // 소환으로 영웅이 늘었으면 다음 웨이브부터 합류
     if (this.rosterDirty) {
@@ -501,7 +505,9 @@ export class BattleScene extends Phaser.Scene {
   }
 
   update(time: number, delta: number) {
-    if (this.battleOver || this.isTurnBased()) return; // 턴제는 stepTurn() 체인이 별도 진행
+    // 필살기 컷인 재생 중엔 다른 유닛의 행동을 잠시 멈춘다 — 안 그러면 실시간(스테이지) 모드에서
+    // 다른 유닛들이 컷인 뒤에 계속 움직여서 "화면이 갑자기 커졌다 사라지는" 것처럼 어수선해 보였음
+    if (this.battleOver || this.isTurnBased() || this.cutinActive) return; // 턴제는 stepTurn() 체인이 별도 진행
     const dt = delta * this.speedMult;
     const now = time * this.speedMult;
 
@@ -674,6 +680,7 @@ export class BattleScene extends Phaser.Scene {
   private ultimateCutin(caster: Unit) {
     const view = this.views.get(caster);
     if (!view) return;
+    this.cutinActive = true;
     const tint = FACTION_COLORS[caster.faction] ?? 0xffd34d;
     const cx = GAME_W / 2;
     const cy = GAME_H / 2;
@@ -751,7 +758,10 @@ export class BattleScene extends Phaser.Scene {
         alpha: 0,
         duration: 220 / this.speedMult,
         ease: "Quad.easeIn",
-        onComplete: () => fadeTargets.forEach((t) => (t as Phaser.GameObjects.Image).destroy()),
+        onComplete: () => {
+          fadeTargets.forEach((t) => (t as Phaser.GameObjects.Image).destroy());
+          this.cutinActive = false;
+        },
       });
     });
   }
