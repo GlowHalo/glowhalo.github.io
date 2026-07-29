@@ -278,6 +278,17 @@ export function makeTowerEnemy(key: string, name: string, floor: number, boss: b
  */
 export const REAL_FACTIONS = ["불", "물", "바람", "빛", "어둠"];
 
+/** 진영 상성표(DESIGN.md §10 확정) — 3원소 순환(불→바람→물→불) + 빛↔어둠 상호 카운터.
+ * 원래는 screens.ts에 표시 전용으로만 있었는데(§10, "로직은 아직 미구현"), 요일던전 출전 제한
+ * (§요일던전 카운터 진영, 2026-07-29)에 실제로 쓰이게 되면서 전투 도메인의 단일 소스로 이전 */
+export const FACTION_STRONG_AGAINST: Record<string, string> = { 불: "바람", 바람: "물", 물: "불", 빛: "어둠", 어둠: "빛" };
+export const FACTION_WEAK_AGAINST: Record<string, string> = { 불: "물", 바람: "불", 물: "바람", 빛: "어둠", 어둠: "빛" };
+
+/** 주어진 진영을 상대로 우세한(카운터 치는) 진영 — "바람의 마수엔 바람을 이기는 불만 출전"의 그 "불" */
+export function counterFactionOf(faction: string): string | undefined {
+  return FACTION_WEAK_AGAINST[faction];
+}
+
 export interface FactionSynergy {
   label: string;
   atkMult: number;

@@ -1,7 +1,8 @@
 import { save, persist } from "../state/save";
 import { emit } from "../state/bus";
+import { counterFactionOf } from "./battle";
 
-// 요일 → 출전 가능 진영. null = 전 진영 개방 (주말).
+// 요일 → 오늘 등장하는 보스 진영. null = 전 진영 개방(혼돈의 마수, 주말).
 // ⚠ 진영 체계가 바뀌면 이 배열만 고치면 된다 (일~토 순).
 export const DAY_FACTIONS: (string | null)[] = [
   null,    // 일
@@ -13,9 +14,37 @@ export const DAY_FACTIONS: (string | null)[] = [
   null,    // 토
 ];
 
+export const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
+
 export function todayFaction(): string | null {
   return DAY_FACTIONS[new Date().getDay()];
 }
+
+/** 오늘 이 요일던전에 출전 가능한 진영 — 보스 진영 자체가 아니라 그 진영을 "이기는" 상성 진영
+ * (예: 바람의 마수 → 바람을 이기는 불만 출전). 주말(전 진영 개방)이면 null */
+export function requiredFaction(): string | null {
+  const boss = todayFaction();
+  return boss ? counterFactionOf(boss) ?? null : null;
+}
+
+export function isRaidWeekend(): boolean {
+  return todayFaction() === null;
+}
+
+export interface RaidDungeon {
+  /** getDay() 기준 요일 인덱스(0=일 ~ 6=토) */
+  day: number;
+  /** 이 요일에 등장하는 보스 진영 */
+  bossFaction: string;
+  dayLabel: string;
+}
+
+/** 화면에 5개 요일던전 타일로 나열할 로스터 — DAY_FACTIONS에서 평일(비-null)만 뽑는다.
+ * §요일던전 5선택 화면, 2026-07-29 — 오늘 요일에 해당하는 타일만 활성화되고 나머지는 잠금 표시 */
+export const RAID_DUNGEONS: RaidDungeon[] = DAY_FACTIONS.reduce<RaidDungeon[]>((acc, f, day) => {
+  if (f) acc.push({ day, bossFaction: f, dayLabel: `${WEEKDAY_LABELS[day]}요일` });
+  return acc;
+}, []);
 
 function raidKey(): string {
   return todayFaction() ?? "전체";
