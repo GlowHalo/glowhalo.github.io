@@ -45,6 +45,19 @@ export const WEEKLY_MISSIONS: MissionDef[] = [
 ];
 export const WEEKLY_ALL_CLEAR_BONUS: { gold?: number; gems?: number } = { gems: 200 };
 
+/** 주간 마일스톤 포인트 트랙(§마이티 아레나 반영계획 F, 2026-07-29) — 일일 마일스톤(바로 아래)과
+ * 완전히 같은 구조를 주간에 재사용한다. WEEKLY_MISSIONS 5개를 하나 수령할 때마다 20점씩 쌓여
+ * 다 받으면 100점, 20/40/60/80/100 구간마다 상자를 따로 수령. 저장은 daily와 동일하게
+ * `save.weeklyMissions.claimed`에 "milestone_N" 키를 얹어 재사용(주간 리셋에 자동으로 같이 초기화) */
+export const WEEKLY_MISSION_POINTS = 20;
+export const WEEKLY_MILESTONE_TRACK: MilestoneDef[] = [
+  { points: 20, reward: { gold: 1200 } },
+  { points: 40, reward: { gems: 90 } },
+  { points: 60, reward: { gold: 3000 } },
+  { points: 80, reward: { gems: 180 } },
+  { points: 100, reward: { gold: 6000, gems: 300 } },
+];
+
 export interface AchievementDef {
   key: string;
   /** 같은 track끼리 하나의 연쇄로 묶인다 — 화면엔 이 중 "다음 목표"(첫 미달성분)만 노출되고,
@@ -265,6 +278,32 @@ export function milestoneClaim(points: number): boolean {
   if (!milestoneClaimable(points)) return false;
   const def = MILESTONE_TRACK.find((m) => m.points === points)!;
   save.missions.claimed.push(milestoneKey(points));
+  persist();
+  if (def.reward.gold) addGold(def.reward.gold);
+  if (def.reward.gems) addGems(def.reward.gems);
+  emit("missions-changed");
+  return true;
+}
+
+/* ── 주간 마일스톤 포인트 트랙 ── */
+export function weeklyPoints(): number {
+  ensureWeek();
+  return WEEKLY_MISSIONS.filter((m) => weeklyIsClaimed(m.key)).length * WEEKLY_MISSION_POINTS;
+}
+
+export function weeklyMilestoneClaimed(points: number): boolean {
+  ensureWeek();
+  return save.weeklyMissions.claimed.includes(milestoneKey(points));
+}
+
+export function weeklyMilestoneClaimable(points: number): boolean {
+  return !weeklyMilestoneClaimed(points) && weeklyPoints() >= points;
+}
+
+export function weeklyMilestoneClaim(points: number): boolean {
+  if (!weeklyMilestoneClaimable(points)) return false;
+  const def = WEEKLY_MILESTONE_TRACK.find((m) => m.points === points)!;
+  save.weeklyMissions.claimed.push(milestoneKey(points));
   persist();
   if (def.reward.gold) addGold(def.reward.gold);
   if (def.reward.gems) addGems(def.reward.gems);

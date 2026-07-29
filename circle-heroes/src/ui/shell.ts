@@ -2,16 +2,17 @@ import "./ui.css";
 import { on, emit } from "../state/bus";
 import {
   save, calcOfflineReward, addGold, addGems, addHero, resetSave,
-  unreadMailCount, markMailRead, claimMail, type MailItem,
+  unreadMailCount, markMailRead, claimMail, type MailItem, OFFLINE_CAP_HOURS,
 } from "../state/save";
-import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView, setMissionsSubView } from "./screens";
+import { renderHeroes, renderSummon, renderShop, renderMissions, renderCastle, setHeroesSubView, setMissionsSubView } from "./screens";
 import { partyPower } from "../systems/battle";
 import { isFirebaseConfigured, getBackupCode, backupNow, restoreFromCode } from "../state/backup";
 import { HEROES } from "../data/heroes";
 import { isMuted, setMuted } from "../systems/audio";
 import { RAID_DUNGEONS, WEEKDAY_LABELS, requiredFaction, isRaidWeekend } from "../systems/raid";
+import { checkNewlyUnlockedGates } from "../systems/featureGates";
 
-type TabKey = "heroes" | "summon" | "battle" | "shop" | "missions";
+type TabKey = "castle" | "heroes" | "summon" | "battle" | "shop" | "missions";
 
 interface TabDef {
   key: TabKey;
@@ -22,7 +23,10 @@ interface TabDef {
 }
 
 // DESIGN.md Rev.C — 탭 순서: 영웅 · 소환 · 전투(중앙) · 상점 · 임무
+// §마이티 아레나 반영계획 B(2026-07-29) — 맨 왼쪽에 "주성" 탭 추가. 하위 내용은 아직 미정이라
+// 서브메뉴 없이(subs: []) 건물 클릭지점 인프라만 넣는다(renderCastle 참고)
 const TABS: TabDef[] = [
+  { key: "castle", label: "주성", icon: "tab-castle.png", subs: [] },
   { key: "heroes", label: "영웅", icon: "tab-hero.png", subs: ["보유·편성", "장비", "승급", "도감"] },
   { key: "summon", label: "소환", icon: "tab-summon.png", subs: ["영웅 소환", "확률·천장"] },
   { key: "battle", label: "전투", icon: "tab-battle.png", center: true, subs: ["스테이지", "무한의탑", "아레나", "요일던전"] },
@@ -31,6 +35,7 @@ const TABS: TabDef[] = [
 ];
 
 const RENDERERS: Record<TabKey, ((el: HTMLElement) => void) | null> = {
+  castle: renderCastle,
   heroes: renderHeroes,
   summon: renderSummon,
   battle: null,
@@ -79,6 +84,31 @@ export function modal(title: string, body: string | HTMLElement, actions?: HTMLE
 
 export function closeModal() {
   document.getElementById("modal-root")!.classList.remove("on");
+}
+
+/** 스테이지 게이트 해금 알림(§마이티 아레나 반영계획 D, 2026-07-29) — 모달 대신 상단에서
+ * 내려왔다 올라가는 배너. 한 번에 여러 개 해금되면 순서대로 하나씩 보여준다 */
+let gateBannerQueue: string[] = [];
+let gateBannerShowing = false;
+function drainGateBannerQueue() {
+  if (gateBannerShowing || gateBannerQueue.length === 0) return;
+  gateBannerShowing = true;
+  const label = gateBannerQueue.shift()!;
+  const banner = h("div", "gate-banner", `🔓 ${label} 해금!`);
+  document.getElementById("ui")!.appendChild(banner);
+  requestAnimationFrame(() => banner.classList.add("in"));
+  window.setTimeout(() => {
+    banner.classList.remove("in");
+    window.setTimeout(() => {
+      banner.remove();
+      gateBannerShowing = false;
+      drainGateBannerQueue();
+    }, 400);
+  }, 2200);
+}
+export function showFeatureUnlockBanner(labels: string[]) {
+  gateBannerQueue.push(...labels);
+  drainGateBannerQueue();
 }
 
 function fmt(n: number): string {
@@ -496,21 +526,24 @@ export function buildShell() {
   topbar.id = "topbar";
   ui.appendChild(topbar);
 
-  // HUD
+  // HUD — §마이티 아레나 반영계획 A(2026-07-29): 골드→다이아→전투력 순서, 골드/다이아는
+  // 눌러서 상점으로 바로 이동(레퍼런스 상단바 문법)
   const hud = h("div");
   hud.id = "hud";
-  const gold = h("span", "hud-chip");
+  const gold = h("span", "hud-chip clickable");
   gold.id = "hud-gold";
   gold.appendChild(icon("gold.png"));
   const goldVal = h("span");
   goldVal.id = "hud-gold-val";
   gold.appendChild(goldVal);
-  const gems = h("span", "hud-chip");
+  gold.onclick = () => switchTab("shop");
+  const gems = h("span", "hud-chip clickable");
   gems.id = "hud-gems";
   gems.appendChild(icon("gem.png"));
   const gemsVal = h("span");
   gemsVal.id = "hud-gems-val";
   gems.appendChild(gemsVal);
+  gems.onclick = () => switchTab("shop");
   // 상단 고정바에 파티 전투력 상시 노출(레퍼런스: "유저 레벨+전투력+재화" 상단바 문법, BENCHMARK.md §3)
   const power = h("span", "hud-chip hud-power");
   power.id = "hud-power";
@@ -518,7 +551,7 @@ export function buildShell() {
   const powerVal = h("span");
   powerVal.id = "hud-power-val";
   power.appendChild(powerVal);
-  hud.append(power, gold, gems);
+  hud.append(gold, gems, power);
   topbar.appendChild(hud);
 
   // 우상단 플로팅
@@ -627,6 +660,15 @@ export function buildShell() {
   });
   switchTab(currentTab);
 
+  // 스테이지 게이트(§마이티 아레나 반영계획 D) — 처음 로드 시 이미 지나친 게이트는 조용히
+  // seen 처리만 하고(배너 몰아뜨기 방지), 그 이후 스테이지가 오를 때만 실제로 배너를 띄운다
+  checkNewlyUnlockedGates();
+  on("stage-changed", () => {
+    const newly = checkNewlyUnlockedGates();
+    if (newly.length) showFeatureUnlockBanner(newly.map((g) => g.label));
+    if (currentTab === "castle") renderCastle(document.getElementById("screen-castle")!);
+  });
+
   // 오프라인 보상
   const reward = calcOfflineReward();
   if (reward) {
@@ -639,6 +681,10 @@ export function buildShell() {
       closeModal();
       toast(`+${reward.gold.toLocaleString()} 골드!`);
     };
-    modal("💤 방치 보상", `자리를 비운 ${dur} 동안 부대가 싸웠습니다. 골드 ${reward.gold.toLocaleString()} 획득!`, [claim]);
+    modal(
+      "💤 방치 보상",
+      `자리를 비운 ${dur} 동안 부대가 싸웠습니다. 골드 ${reward.gold.toLocaleString()} 획득! (오프라인 적립은 최대 ${OFFLINE_CAP_HOURS}시간까지 쌓여요)`,
+      [claim]
+    );
   }
 }

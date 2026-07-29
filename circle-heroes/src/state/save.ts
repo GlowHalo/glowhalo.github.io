@@ -100,6 +100,8 @@ export interface SaveState {
   equipped: Record<string, Partial<Record<EquipSlot, EquipItem>>>;
   /** 장비 id 발급용 카운터(중복 없는 인스턴스 id를 위해) */
   equipItemSeq: number;
+  /** 스테이지 게이트(systems/featureGates.ts) 중 해금 배너를 이미 보여준 키 목록 — 중복 알림 방지 */
+  seenGates: string[];
 }
 
 const KEY = "circle-heroes-save-v1";
@@ -130,6 +132,7 @@ const DEFAULTS: SaveState = {
   equipInventory: [],
   equipped: {},
   equipItemSeq: 0,
+  seenGates: [],
 };
 
 function load(): SaveState {
@@ -372,7 +375,8 @@ export function resetSave() {
  * 별개로 그대로 유지되는 "실력에 따른 추가 수입" */
 export const STAGE_GOLD_PER_MIN = 5;
 
-/** 오프라인 적립: 분당 스테이지×5골드, 최대 240시간. 3분 미만이면 null */
+/** 오프라인 적립: 분당 스테이지×5골드, 최대 240시간(§마이티 아레나 반영계획 I, 2026-07-29 —
+ * 적립 방식(온라인 tick)은 그대로 유지하고 상한 시간만 화면에 표기하기로 함). 3분 미만이면 null */
 export const OFFLINE_CAP_HOURS = 240;
 export function calcOfflineReward(): { minutes: number; gold: number } | null {
   const elapsedMin = Math.floor((Date.now() - save.lastSeenMs) / 60000);

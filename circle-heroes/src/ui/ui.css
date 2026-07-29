@@ -1366,3 +1366,89 @@
 .raid-hut .hub-flavor { font-size: 10px; color: #6b5530; text-align: center; }
 .raid-hut.locked { filter: grayscale(1); opacity: 0.55; cursor: default; }
 .raid-lock { position: absolute; top: 6px; right: 8px; font-size: 14px; }
+
+/* ── HUD 클릭형 칩(§마이티 아레나 반영계획 A, 2026-07-29) — 골드/다이아를 누르면 상점으로 이동 */
+.hud-chip.clickable { cursor: pointer; }
+
+/* ── 스테이지 게이트 해금 배너(§마이티 아레나 반영계획 D) — 모달 대신 상단에서 내려왔다 올라간다 */
+.gate-banner {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -100%);
+  z-index: 60;
+  background: linear-gradient(180deg, var(--amber), var(--amber-dark));
+  color: #10131c;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 10px 22px;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  transition: transform 0.4s ease;
+  pointer-events: none;
+}
+.gate-banner.in { transform: translate(-50%, 0); }
+
+/* ── 주성(Main Castle) 탭(§마이티 아레나 반영계획 B) — 요일던전 오두막 타일과 같은 문법을
+ * 재사용하되, 이쪽은 건물이 실제로 뭘 여는지 아직 미정이라 자리표시자로만 쓴다 */
+.castle-town {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.castle-hut {
+  position: relative;
+  border: none;
+  border-radius: 12px;
+  background: #fff7e8ee;
+  box-shadow: 0 4px 10px rgba(40, 25, 5, 0.25);
+  cursor: pointer;
+  padding: 0 0 8px;
+  overflow: hidden;
+}
+.castle-hut .hub-roof { height: 14px; background: var(--amber); border-radius: 12px 12px 0 0; }
+.castle-hut .hub-body { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 6px 0; }
+.castle-hut .hub-label { font-size: 12.5px; font-weight: 700; color: #241a08; }
+.castle-hut .hub-flavor { font-size: 10px; color: #6b5530; text-align: center; }
+.castle-hut.locked { filter: grayscale(1); opacity: 0.55; }
+.castle-lock { position: absolute; top: 6px; right: 8px; font-size: 14px; }
+
+/* ── 소환 화면 좌상단 확률고지 / 우상단 도움말+천장 배지(§마이티 아레나 반영계획 E) ── */
+.summon-title-row h2 { flex: 1; text-align: center; }
+.summon-corner-right { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.summon-help-btn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--panel2);
+  color: var(--ink3);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  line-height: 1;
+}
+.pity-ring {
+  --pct: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: conic-gradient(var(--amber) calc(var(--pct) * 1%), rgba(255, 255, 255, 0.12) 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.pity-ring::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--panel);
+}
+.pity-ring-text {
+  position: relative;
+  font-size: 7.5px;
+  font-weight: 700;
+  color: var(--ink);
+  z-index: 1;
+}
