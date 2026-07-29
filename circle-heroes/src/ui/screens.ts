@@ -6,7 +6,7 @@ import {
   inParty, toggleParty, PARTY_SIZE,
   getStars, ascendCost, dupeCount, tryAscend, MAX_STARS,
 } from "../state/save";
-import { pull, SINGLE_COST, TEN_COST, PITY_LIMIT, BANNERS, BANNER_PITY_LIMIT, bannerPityCount } from "../systems/gacha";
+import { pull, SINGLE_COST, TEN_COST, BANNERS, bannerPityCount } from "../systems/gacha";
 import { calcFactionSynergy, partyPower } from "../systems/battle";
 import {
   DAILY_MISSIONS, ALL_CLEAR_KEY, ALL_CLEAR_BONUS,
@@ -539,7 +539,7 @@ let selectedBannerId = BANNERS[0].id;
 export function renderSummon(root: HTMLElement) {
   root.innerHTML = "";
   root.appendChild(el("h2", "", "영웅 소환"));
-  root.appendChild(el("div", "desc", "배너를 골라 소환하세요. 배너마다 픽업 영웅이 있습니다."));
+  root.appendChild(el("div", "desc", "배너를 골라 소환하세요. 픽업 배너는 해당 캐릭터 확률 UP, 그냥뽑기는 모든 SSR 동일 확률입니다."));
 
   // 배너 선택 — 배너마다 SSR 픽업 캐릭터 1명(§3)
   const bannerRow = el("div", "banner-row");
@@ -550,13 +550,20 @@ export function renderSummon(root: HTMLElement) {
   const renderBanners = () => {
     bannerRow.innerHTML = "";
     for (const b of BANNERS) {
-      const pickup = PLAYABLE_HEROES.find((h) => h.id === b.pickupHeroId)!;
+      const pickup = b.pickupHeroId ? PLAYABLE_HEROES.find((h) => h.id === b.pickupHeroId) : undefined;
       const card = el("div", "banner-card" + (b.id === selectedBannerId ? " on" : ""));
-      setGradeBorder(card, pickup.grade);
-      setCardFaction(card, pickup);
-      const face = el("div", "face");
-      setFace(face, pickup);
-      card.appendChild(face);
+      if (pickup) {
+        setGradeBorder(card, pickup.grade);
+        setCardFaction(card, pickup);
+        const face = el("div", "face");
+        setFace(face, pickup);
+        card.appendChild(face);
+      } else {
+        // 그냥뽑기 배너 — 특정 픽업이 없으니 UR 등급색 테두리 + 주사위 아이콘으로 대체
+        setGradeBorder(card, "UR");
+        card.classList.add("banner-card-standard");
+        card.appendChild(el("div", "banner-card-standard-icon", "🎲"));
+      }
       if (b.id === selectedBannerId) card.appendChild(el("div", "banner-card-check", "✓"));
       card.appendChild(el("div", "banner-card-name", b.name));
       card.onclick = () => {
@@ -571,11 +578,12 @@ export function renderSummon(root: HTMLElement) {
 
   const updateBannerInfo = () => {
     const b = BANNERS.find((x) => x.id === selectedBannerId)!;
-    const pickup = PLAYABLE_HEROES.find((h) => h.id === b.pickupHeroId)!;
+    const pickup = b.pickupHeroId ? PLAYABLE_HEROES.find((h) => h.id === b.pickupHeroId) : undefined;
     bannerInfo.innerHTML = "";
-    bannerInfo.appendChild(el("div", "banner-info-flavor", `✨ ${pickup.nameKr} 픽업 — ${b.flavor}`));
+    const flavorText = pickup ? `✨ ${pickup.nameKr} 픽업 — ${b.flavor}` : `🎲 ${b.flavor}`;
+    bannerInfo.appendChild(el("div", "banner-info-flavor", flavorText));
     const pityLine = el("div", "banner-info-pity");
-    pityLine.innerHTML = `이 배너 천장까지 <b>${BANNER_PITY_LIMIT - bannerPityCount(b.id)}</b>회`;
+    pityLine.innerHTML = `이 배너 천장까지 <b>${b.pityLimit - bannerPityCount(b.id)}</b>회`;
     bannerInfo.appendChild(pityLine);
   };
 
@@ -602,7 +610,7 @@ export function renderSummon(root: HTMLElement) {
 
   const pity = el("div", "pity");
   const updatePity = () => {
-    pity.innerHTML = `전체 천장까지 <b>${PITY_LIMIT - save.pity}</b>회 · 보유 💎${save.gems.toLocaleString()}`;
+    pity.textContent = `보유 💎${save.gems.toLocaleString()}`;
   };
   updatePity();
   box.appendChild(pity);
