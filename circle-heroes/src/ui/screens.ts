@@ -21,11 +21,41 @@ import {
   WEEKLY_MISSIONS, WEEKLY_ALL_CLEAR_BONUS, weeklyProgress, weeklyIsClaimed, weeklyClaimable, weeklyClaim,
   ACHIEVEMENTS, achievementClaimed, achievementClaimable, achievementClaim, currentAchievementTiers,
   MILESTONE_TRACK, dailyPoints, milestoneClaimed, milestoneClaimable, milestoneClaim,
+  WEEKLY_MILESTONE_TRACK, weeklyPoints, weeklyMilestoneClaimed, weeklyMilestoneClaimable, weeklyMilestoneClaim,
+  type MilestoneDef,
 } from "../systems/missions";
+import { FEATURE_GATES, isFeatureUnlocked } from "../systems/featureGates";
 import { toast, modal, closeModal } from "./shell";
 import { emit } from "../state/bus";
 import { playSfx } from "../systems/audio";
 import { isReversedFacing } from "../data/facing";
+
+/* ── 주성(Main Castle) 탭(§마이티 아레나 반영계획 B, 2026-07-29) ──
+ * 레퍼런스(마이티 아레나)의 "마을 배경 + 건물 클릭지점 → 하위메뉴 이동" 구조를 그대로 따라가되,
+ * 하위메뉴 내용은 아직 미정(사용자가 구조를 따로 정할 예정)이라 지금은 건물 자리 6개 + 스테이지
+ * 해금 조건(FEATURE_GATES)만 배치한다. 실제 이동 대상이 정해지면 각 건물의 onclick만 바꾸면 됨 */
+export function renderCastle(root: HTMLElement) {
+  root.innerHTML = "";
+  root.appendChild(el("h2", "", "주성"));
+  root.appendChild(el("div", "desc", "스테이지를 클리어하면 건물이 하나씩 열립니다. 하위 메뉴는 준비 중이에요."));
+
+  const town = el("div", "castle-town");
+  for (const gate of FEATURE_GATES) {
+    const unlocked = isFeatureUnlocked(gate.key);
+    const hut = el("button", "castle-hut" + (unlocked ? "" : " locked"));
+    hut.appendChild(el("div", "hub-roof"));
+    const body = el("div", "hub-body");
+    body.appendChild(el("div", "hub-label", unlocked ? gate.label : "???"));
+    body.appendChild(el("div", "hub-flavor", unlocked ? "추후 공개 예정" : `Lv.${gate.unlockStage} 오픈`));
+    hut.appendChild(body);
+    if (!unlocked) hut.appendChild(el("div", "castle-lock", "🔒"));
+    hut.onclick = () => {
+      toast(unlocked ? "이 건물의 메뉴는 아직 준비 중이에요" : `스테이지 ${gate.unlockStage} 클리어 시 열려요`);
+    };
+    town.appendChild(hut);
+  }
+  root.appendChild(town);
+}
 
 const FACTION_COLORS: Record<string, string> = {
   불: "#e8683a",
@@ -742,14 +772,45 @@ function openProbabilityModal() {
   modal("확률 정보", body, [close]);
 }
 
+/** 소환 도움말 팝업 — 확률 수치(openProbabilityModal)와는 별개로, 소환이 뭘 하는 화면인지
+ * 말로 풀어 설명한다. 레퍼런스의 우상단 "?" 아이콘 자리(§마이티 아레나 반영계획 E) */
+function openSummonHelpModal() {
+  const body = el("div");
+  body.appendChild(el("p", "", "소환을 누르면 무작위로 영웅을 얻습니다. 등급이 높을수록 등장 확률은 낮지만, 정해진 횟수 안에 최고 등급이 안 나오면 천장(확정 지급)이 발동해요."));
+  body.appendChild(el("p", "", "배너마다 픽업 캐릭터가 다르고, 배너를 옮겨도 UR 천장 카운트는 그대로 이어집니다."));
+  body.appendChild(el("p", "", "정확한 등급별 확률·픽업 확률은 좌상단 ❗ 확률고지에서 확인하세요."));
+  const close = el("button", "btn primary", "확인") as HTMLButtonElement;
+  close.onclick = closeModal;
+  modal("소환 도움말", body, [close]);
+}
+
 export function renderSummon(root: HTMLElement) {
   root.innerHTML = "";
+  // §마이티 아레나 반영계획 E(2026-07-29): 좌상단 확률고지 / 중앙 타이틀 / 우상단 도움말+그 아래
+  // UR 천장 진행률 원형 배지. "소환 포인트" 같은 신규 재화는 만들지 않고, 기존 UR 천장
+  // (save.pity/UR_PITY_LIMIT)을 이 자리에 그대로 시각화한다
   const titleRow = el("div", "summon-title-row");
-  titleRow.appendChild(el("h2", "", "영웅 소환"));
-  const probBtn = el("button", "btn prob-btn", "확률 정보") as HTMLButtonElement;
+  const probBtn = el("button", "btn prob-btn", "❗ 확률고지") as HTMLButtonElement;
   probBtn.onclick = openProbabilityModal;
   titleRow.appendChild(probBtn);
+  titleRow.appendChild(el("h2", "", "영웅 소환"));
+  const rightCol = el("div", "summon-corner-right");
+  const helpBtn = el("button", "btn summon-help-btn", "❓") as HTMLButtonElement;
+  helpBtn.onclick = openSummonHelpModal;
+  rightCol.appendChild(helpBtn);
+  const pityRing = el("div", "pity-ring");
+  const pityRingText = el("span", "pity-ring-text");
+  pityRing.appendChild(pityRingText);
+  rightCol.appendChild(pityRing);
+  titleRow.appendChild(rightCol);
   root.appendChild(titleRow);
+  const updatePityRing = () => {
+    const cur = urPityCount();
+    const pct = Math.min(100, Math.round((cur / UR_PITY_LIMIT) * 100));
+    pityRing.style.setProperty("--pct", String(pct));
+    pityRingText.textContent = `${cur}/${UR_PITY_LIMIT}`;
+  };
+  updatePityRing();
 
   // 배너 선택 — 그냥뽑기(왼쪽) + 이달의 SSR 픽업 3개(매달 자동 로테이션, §4)
   const bannerRow = el("div", "banner-row");
@@ -844,6 +905,7 @@ export function renderSummon(root: HTMLElement) {
     playSummonFx(pulls, () => {
       updatePity();
       updateBannerInfo();
+      updatePityRing();
       emit("roster-changed");
     }, doPull);
   };
@@ -1267,13 +1329,25 @@ function renderAchievements(root: HTMLElement) {
   }
 }
 
-/** 일일 마일스톤 포인트 트랙(BENCHMARK.md §21) — 임무 5개 완료마다 20점씩 쌓여 20/40/60/80/100
- * 구간마다 별도 상자를 수령한다. 개별 임무 보상·전체완료 보너스와 별개인 3번째 보상 레이어 —
- * 레퍼런스(두 벤치마크 게임 공통)의 "상단 마일스톤 트랙" 문법을 그대로 반영 */
-function renderMilestoneTrack(root: HTMLElement) {
-  const pts = dailyPoints();
+/** 일일/주간 공용 마일스톤 포인트 트랙(BENCHMARK.md §21, 주간은 §마이티 아레나 반영계획 F) —
+ * 임무 5개 완료마다 20점씩 쌓여 20/40/60/80/100 구간마다 별도 상자를 수령한다. 개별 임무 보상·
+ * 전체완료 보너스와 별개인 3번째 보상 레이어 — 레퍼런스(두 벤치마크 게임 공통)의 "상단 마일스톤
+ * 트랙" 문법을 그대로 반영. 일일/주간이 구조가 완전히 같아 렌더러 하나를 공유한다 */
+function renderMilestoneTrack(
+  root: HTMLElement,
+  opts: {
+    title: string;
+    points: () => number;
+    track: MilestoneDef[];
+    claimed: (points: number) => boolean;
+    claimable: (points: number) => boolean;
+    claim: (points: number) => boolean;
+    rerender: () => void;
+  }
+) {
+  const pts = opts.points();
   const box = el("div", "milestone-box");
-  box.appendChild(el("div", "milestone-title", `일일 마일스톤 · ${pts}/100`));
+  box.appendChild(el("div", "milestone-title", `${opts.title} · ${pts}/100`));
   const barWrap = el("div", "mbar milestone-bar");
   const bar = el("div", "mbar-fill");
   bar.style.width = `${Math.min(100, pts)}%`;
@@ -1281,18 +1355,18 @@ function renderMilestoneTrack(root: HTMLElement) {
   box.appendChild(barWrap);
 
   const row = el("div", "milestone-chests");
-  for (const m of MILESTONE_TRACK) {
-    const claimed = milestoneClaimed(m.points);
-    const ready = milestoneClaimable(m.points);
+  for (const m of opts.track) {
+    const claimed = opts.claimed(m.points);
+    const ready = opts.claimable(m.points);
     const chest = el("div", "milestone-chest" + (claimed ? " claimed" : ready ? " ready" : ""));
     chest.appendChild(el("div", "mc-icon", claimed ? "✅" : ready ? "🎁" : "🔒"));
     chest.appendChild(el("div", "mc-pts", `${m.points}`));
     chest.appendChild(el("div", "mc-reward", rewardText(m.reward)));
     if (ready) {
       chest.onclick = () => {
-        if (milestoneClaim(m.points)) {
+        if (opts.claim(m.points)) {
           toast(`마일스톤 보상! ${rewardText(m.reward)}`);
-          renderMissions(root);
+          opts.rerender();
         }
       };
     }
@@ -1308,6 +1382,15 @@ export function renderMissions(root: HTMLElement) {
   if (missionsSubView === "weekly") {
     root.appendChild(el("h2", "", "주간 임무"));
     root.appendChild(el("div", "desc", "매주 월요일에 리셋됩니다. 완료 후 보상을 수령하세요."));
+    renderMilestoneTrack(root, {
+      title: "주간 마일스톤",
+      points: weeklyPoints,
+      track: WEEKLY_MILESTONE_TRACK,
+      claimed: weeklyMilestoneClaimed,
+      claimable: weeklyMilestoneClaimable,
+      claim: weeklyMilestoneClaim,
+      rerender: () => renderMissions(root),
+    });
     renderMissionList(root, WEEKLY_MISSIONS, {
       progress: weeklyProgress,
       isClaimed: weeklyIsClaimed,
@@ -1326,7 +1409,15 @@ export function renderMissions(root: HTMLElement) {
 
   root.appendChild(el("h2", "", "일일 임무"));
   root.appendChild(el("div", "desc", "매일 자정에 리셋됩니다. 완료 후 보상을 수령하세요."));
-  renderMilestoneTrack(root);
+  renderMilestoneTrack(root, {
+    title: "일일 마일스톤",
+    points: dailyPoints,
+    track: MILESTONE_TRACK,
+    claimed: milestoneClaimed,
+    claimable: milestoneClaimable,
+    claim: milestoneClaim,
+    rerender: () => renderMissions(root),
+  });
   renderMissionList(root, DAILY_MISSIONS, {
     progress: missionProgress,
     isClaimed: isClaimed,
