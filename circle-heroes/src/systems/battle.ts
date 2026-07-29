@@ -1,6 +1,6 @@
 import type { Hero } from "../data/heroTypes";
 import { PLAYABLE_HEROES } from "../data/heroes";
-import { addGold, save, getLevel, getStars } from "../state/save";
+import { addGold, save, getLevel, getStars, getEquipLevel } from "../state/save";
 
 /*
  * 전투 코어 + 스킬 엔진.
@@ -156,11 +156,17 @@ function baseUnit(): Omit<Unit, "key" | "name" | "isHero" | "heroClass" | "facti
   };
 }
 
-/** 레벨당 +10%, 성급당 +30% */
+/** 레벨당 +10%, 성급당 +30%. 장비 강화(§장비 시스템 MVP)는 슬롯별로 다른 스탯을 보정한다 —
+ * 무기=공격력, 방어구=방어력·체력, 장신구=치명타·속도 (레벨업/각성과 겹쳐 곱연산) */
 export function unitFromHero(hero: Hero, level = 1, stars = 1): Unit {
   const mult = (1 + 0.1 * (level - 1)) * (1 + 0.3 * (stars - 1));
   const p = PASSIVES[hero.id] ?? {};
-  const spd = hero.baseSpd * (p.spdMult ?? 1);
+  const weaponLv = getEquipLevel(hero.id, "weapon");
+  const armorLv = getEquipLevel(hero.id, "armor");
+  const accLv = getEquipLevel(hero.id, "accessory");
+  const atkMult = mult * (1 + weaponLv * 0.03);
+  const defHpMult = mult * (1 + armorLv * 0.025);
+  const spd = hero.baseSpd * (p.spdMult ?? 1) + accLv * 0.4;
   const u: Unit = {
     ...baseUnit(),
     key: hero.id,
@@ -169,15 +175,15 @@ export function unitFromHero(hero: Hero, level = 1, stars = 1): Unit {
     isHero: true,
     heroClass: hero.heroClass,
     faction: hero.faction,
-    maxHp: Math.round(hero.baseHp * mult),
-    hp: Math.round(hero.baseHp * mult),
-    atk: Math.round(hero.baseAtk * mult),
-    def: Math.round(hero.baseDef * mult),
+    maxHp: Math.round(hero.baseHp * defHpMult),
+    hp: Math.round(hero.baseHp * defHpMult),
+    atk: Math.round(hero.baseAtk * atkMult),
+    def: Math.round(hero.baseDef * defHpMult),
     spd,
-    critRate: hero.critRate,
+    critRate: hero.critRate + accLv * 0.5,
     critDmg: hero.critDmg,
     baseSpdVal: spd,
-    baseAtkVal: Math.round(hero.baseAtk * mult),
+    baseAtkVal: Math.round(hero.baseAtk * atkMult),
     baseDmgTakenMult: p.dmgTakenMult ?? 1,
   };
   u.evade = p.evade ?? 0;

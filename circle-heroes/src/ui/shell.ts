@@ -157,15 +157,13 @@ function renderSubbar() {
     def.subs.forEach((label) => {
       const chip = h("button", "sub-chip" + (label === heroesSubLabel ? " on" : ""), label);
       chip.onclick = () => {
-        if (label === "보유·편성" || label === "승급" || label === "도감") {
-          if (label === heroesSubLabel) return;
-          heroesSubLabel = label;
-          setHeroesSubView(label === "승급" ? "ascend" : label === "도감" ? "codex" : "party");
-          renderSubbar();
-          renderHeroes(document.getElementById("screen-heroes")!);
-        } else {
-          toast(`${label} — 준비 중입니다`);
-        }
+        if (label === heroesSubLabel) return;
+        heroesSubLabel = label;
+        setHeroesSubView(
+          label === "승급" ? "ascend" : label === "도감" ? "codex" : label === "장비" ? "equip" : "party"
+        );
+        renderSubbar();
+        renderHeroes(document.getElementById("screen-heroes")!);
       };
       bar.appendChild(chip);
     });
@@ -453,7 +451,6 @@ export function buildShell() {
     b.onclick = onClick;
     return b;
   };
-  corner.appendChild(mkCorner("icon-gift.png", "이벤트", true, () => toast("이벤트 — 준비 중입니다")));
   const mailBtn = mkCorner("icon-mail.png", "우편", false, openMailModal);
   corner.appendChild(mailBtn);
   const refreshMailBadge = () => {
