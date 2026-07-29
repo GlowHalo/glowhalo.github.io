@@ -23,6 +23,7 @@ import {
   type Unit,
 } from "../systems/battle";
 import { STAGE_TIERS, stageTierFor } from "../data/stageTiers";
+import { playSfx, playBgm } from "../systems/audio";
 
 export const GAME_W = 420;
 export const GAME_H = 740;
@@ -186,6 +187,9 @@ export class BattleScene extends Phaser.Scene {
   }
 
   create() {
+    // 전투 씬은 탭 전환과 무관하게 항상 마운트돼 있어(§HUD/코너버튼 배경 백드롭 참고) 여기서
+    // 한 번만 시작하면 앱을 여는 내내 배경음악이 자연스럽게 이어진다(§사운드 백로그, 2026-07-29)
+    playBgm("battle");
     this.cameras.main.setBackgroundColor("#182236");
     this.bgTexKey = `bg-${STAGE_TIERS[0].bgKey}`;
     this.bg = this.add.image(GAME_W / 2, GAME_H / 2, this.bgTexKey);
@@ -671,6 +675,7 @@ export class BattleScene extends Phaser.Scene {
 
   /** 시전 순간 발밑에서 피어오르는 진영색 오라 링(마이티아레나식 스킬 예고) */
   private castGlow(caster: Unit) {
+    playSfx("cast");
     if (!this.textures.exists("fx-cast-aura")) return;
     const view = this.views.get(caster);
     if (!view) return;
@@ -703,6 +708,7 @@ export class BattleScene extends Phaser.Scene {
   private ultimateCutin(caster: Unit) {
     const view = this.views.get(caster);
     if (!view) return;
+    playSfx("ultimate");
     this.cutinActive = true;
     const tint = FACTION_COLORS[caster.faction] ?? 0xffd34d;
     const cx = GAME_W / 2;
@@ -843,6 +849,7 @@ export class BattleScene extends Phaser.Scene {
     const t = r.target;
 
     if (r.kind === "damage") {
+      playSfx(r.crit ? "hit-crit" : "hit");
       if (view.flashImage) {
         view.flashImage.setTintFill(0xffffff);
         this.time.delayedCall(70 / this.speedMult, () => view.flashImage?.clearTint());
@@ -864,6 +871,7 @@ export class BattleScene extends Phaser.Scene {
         ease: "Quad.easeOut",
       });
     } else if (r.kind === "heal") {
+      playSfx("heal");
       // 회복량이 클수록(치유량 비례) 더 크고 오래가는 초록빛 오라 + 캐릭터 자체에 옅은 녹색 펄스
       const healScale = Phaser.Math.Clamp(0.45 + r.amount / 400, 0.45, 0.85);
       this.spawnFx(view.root.x, view.root.y, "fx-cast-aura", { scale: healScale, tint: 0x7de8a0 });
@@ -872,6 +880,7 @@ export class BattleScene extends Phaser.Scene {
         this.time.delayedCall(160 / this.speedMult, () => view.flashImage?.clearTint());
       }
     } else if (r.kind === "shield") {
+      playSfx("shield");
       // 보호막은 발밑 오라 대신 캐릭터를 감싸는 링이 확 커졌다 상시 크기로 줄어드는 "방어막 전개" 연출
       const ring = this.add.circle(view.root.x, view.root.y, view.shieldRing.radius * 1.9);
       ring.setStrokeStyle(4, 0x7fd8ff, 0.95).setFillStyle(0x7fd8ff, 0.16).setDepth(15);
@@ -946,6 +955,7 @@ export class BattleScene extends Phaser.Scene {
         duration: 200 / this.speedMult,
       });
       if (r.kind === "damage") {
+        playSfx("kill");
         // 처형·마무리 일격 강조 — "처치!" 플래버 + 큰 임팩트 이펙트(기본 타격 연출과 구분)
         this.spawnFx(view.root.x, view.root.y, "fx-hit-crit", { scale: 1.15, tint: 0xffffff });
         const kill = this.add
@@ -1008,6 +1018,7 @@ export class BattleScene extends Phaser.Scene {
 
   private onWaveClear() {
     this.battleOver = true;
+    playSfx("victory");
 
     if (this.mode === "stage") {
       const reward = 10 * this.stage * (this.wave === WAVES_PER_STAGE ? 3 : 1);
@@ -1064,6 +1075,7 @@ export class BattleScene extends Phaser.Scene {
 
   private onDefeat() {
     this.battleOver = true;
+    playSfx("defeat");
 
     if (this.mode === "stage") {
       // 스테이지는 패배해도 내려가지 않고 같은 스테이지를 재도전한다 — 실패를 벌주는 대신
