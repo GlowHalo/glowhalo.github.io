@@ -1,7 +1,36 @@
 import { emit } from "./bus";
 
-export const EQUIP_SLOTS = ["weapon", "armor", "accessory"] as const;
+/** 장비 5슬롯 — 각각 스탯 하나에 1:1로 매칭(무기=공격력/투구=체력/갑옷=방어력/신발=속도/장신구=치명타).
+ * 레퍼런스(AFK Arena: Companions `03-hero-detail-equipment.jpg`, HoC Legends
+ * `02-hero-detail-equipment.jpg`)는 둘 다 6슬롯을 캐릭터 좌우에 배치하는데, Circle Heroes는
+ * 반지/목걸이를 장신구 하나로 합쳐 5슬롯으로 단순화했다(§장비 시스템 v2, 2026-07-29) */
+export const EQUIP_SLOTS = ["weapon", "helmet", "armor", "shoes", "accessory"] as const;
 export type EquipSlot = (typeof EQUIP_SLOTS)[number];
+
+/** 영웅 등급과 같은 문법(N~UR)을 재사용 — 유저가 별도로 등급 체계를 새로 익힐 필요 없게 */
+export const EQUIP_GRADES = ["N", "R", "SR", "SSR", "UR"] as const;
+export type EquipGrade = (typeof EQUIP_GRADES)[number];
+
+/** 장비 인스턴스 — 같은 슬롯+등급이어도 개별 보관(인벤토리에 여러 개 쌓일 수 있음) */
+export interface EquipItem {
+  id: string;
+  slot: EquipSlot;
+  grade: EquipGrade;
+}
+
+/** 슬롯별 매칭 스탯 — 무기=공격력/투구=체력/갑옷=방어력/신발=속도/장신구=치명타 (battle.ts unitFromHero 적용) */
+export const EQUIP_SLOT_STAT: Record<EquipSlot, "atk" | "hp" | "def" | "spd" | "crit"> = {
+  weapon: "atk",
+  helmet: "hp",
+  armor: "def",
+  shoes: "spd",
+  accessory: "crit",
+};
+
+/** 등급별 보너스 — 공격/체력/방어(무기·투구·갑옷)는 기본 스탯 대비 배율(%), 속도·치명타(신발·장신구)는
+ * 다른 스탯과 값의 스케일이 달라 flat 가산으로 처리한다 */
+export const EQUIP_GRADE_PCT: Record<EquipGrade, number> = { N: 0.03, R: 0.06, SR: 0.1, SSR: 0.16, UR: 0.24 };
+export const EQUIP_GRADE_FLAT: Record<EquipGrade, number> = { N: 2, R: 4, SR: 7, SSR: 12, UR: 18 };
 
 export interface MailItem {
   id: string;
@@ -62,10 +91,12 @@ export interface SaveState {
   mail: MailItem[];
   /** 누적 소환(뽑기) 횟수 — 업적 "영웅 N회 모집" 트랙에 사용, 리셋 없이 영구 누적 */
   totalSummons: number;
-  /** 강화석 — 장비 강화 전용 재화. 상점 교환 또는 전투 승리 보상으로 획득 */
-  enhanceStone: number;
-  /** heroId -> 슬롯별 장비 강화 레벨(0=미장착) */
-  equipment: Record<string, Record<EquipSlot, number>>;
+  /** 미장착 장비 인벤토리 — 전투 드랍/상점 상자로 획득, 장착하면 여기서 빠진다 */
+  equipInventory: EquipItem[];
+  /** heroId -> 슬롯별 장착된 장비(아이템 전체를 그대로 보관 — 별도 id 역참조 불필요) */
+  equipped: Record<string, Partial<Record<EquipSlot, EquipItem>>>;
+  /** 장비 id 발급용 카운터(중복 없는 인스턴스 id를 위해) */
+  equipItemSeq: number;
 }
 
 const KEY = "circle-heroes-save-v1";
@@ -93,8 +124,9 @@ const DEFAULTS: SaveState = {
   backupCode: "",
   mail: [],
   totalSummons: 0,
-  enhanceStone: 0,
-  equipment: {},
+  equipInventory: [],
+  equipped: {},
+  equipItemSeq: 0,
 };
 
 function load(): SaveState {
@@ -203,40 +235,83 @@ export function tryAscend(id: string): boolean {
   return true;
 }
 
-/* ── 장비(강화) ──
- * DESIGN.md 원래 설계대로 장비는 뽑기가 아니라 파밍(강화석)으로만 성장한다(§장비 시스템 MVP).
- * 인스턴스 아이템/드랍 대신, 승급처럼 "영웅별 슬롯 강화 레벨"로 단순화해서 육성 축을 하나 더 만든다 —
- * 무기=공격력, 방어구=방어력·체력, 장신구=치명타·속도 보정 (battle.ts unitFromHero에서 적용) */
-export const EQUIP_MAX_LEVEL = 15;
+/* ── 장비(획득+장착) ──
+ * DESIGN.md 원래 설계대로 장비는 뽑기가 아니라 파밍으로만 얻는다(§장비 시스템 v2, 2026-07-29).
+ * 등급별 장비 아이템을 전투 드랍/상점 상자로 인벤토리에 모으고, 영웅마다 슬롯에 장착해서 관리한다 —
+ * 레퍼런스(AFK Arena Companions/HoC Legends)와 같은 "획득→인벤토리→장착" 문법. 강화(레벨업)는
+ * 없음 — 등급 자체가 성능이고, 더 좋은 등급이 나오면 바꿔 끼우는 방식(교체가 곧 성장) */
+export const EQUIP_DROP_WEIGHT: Record<EquipGrade, number> = { N: 50, R: 32, SR: 13, SSR: 4, UR: 1 };
 
-export function getEquipLevel(id: string, slot: EquipSlot): number {
-  return save.equipment[id]?.[slot] ?? 0;
+function rollEquipGrade(): EquipGrade {
+  const total = EQUIP_GRADES.reduce((s, g) => s + EQUIP_DROP_WEIGHT[g], 0);
+  let r = Math.random() * total;
+  for (const g of EQUIP_GRADES) {
+    r -= EQUIP_DROP_WEIGHT[g];
+    if (r <= 0) return g;
+  }
+  return "N";
 }
 
-export function equipUpgradeCost(level: number): { gold: number; stones: number } {
-  return { gold: Math.floor(80 * Math.pow(1.22, level)), stones: level + 1 };
+function rollEquipSlot(): EquipSlot {
+  return EQUIP_SLOTS[Math.floor(Math.random() * EQUIP_SLOTS.length)];
 }
 
-export function tryUpgradeEquip(id: string, slot: EquipSlot): boolean {
-  const level = getEquipLevel(id, slot);
-  if (level >= EQUIP_MAX_LEVEL) return false;
-  const cost = equipUpgradeCost(level);
-  if (save.gold < cost.gold || save.enhanceStone < cost.stones) return false;
-  save.gold -= cost.gold;
-  save.enhanceStone -= cost.stones;
-  if (!save.equipment[id]) save.equipment[id] = { weapon: 0, armor: 0, accessory: 0 };
-  save.equipment[id][slot] = level + 1;
+/** 등급/슬롯 무작위 장비 1개를 인벤토리에 추가(전투 드랍·상점 상자 공용) */
+export function grantRandomEquip(): EquipItem {
+  const item: EquipItem = { id: `eq_${save.equipItemSeq++}`, slot: rollEquipSlot(), grade: rollEquipGrade() };
+  save.equipInventory.push(item);
   persist();
-  emit("gold-changed");
-  emit("stones-changed");
+  emit("equipment-changed");
+  return item;
+}
+
+export function equipInventoryFor(slot: EquipSlot): EquipItem[] {
+  return save.equipInventory.filter((it) => it.slot === slot);
+}
+
+export function equippedItem(heroId: string, slot: EquipSlot): EquipItem | undefined {
+  return save.equipped[heroId]?.[slot];
+}
+
+/** 인벤토리의 미장착 아이템을 영웅에게 장착. 그 슬롯에 이미 장착된 게 있으면 인벤토리로 되돌린다 */
+export function equipItem(heroId: string, itemId: string): boolean {
+  const idx = save.equipInventory.findIndex((it) => it.id === itemId);
+  if (idx < 0) return false;
+  const item = save.equipInventory[idx];
+  save.equipInventory.splice(idx, 1);
+  if (!save.equipped[heroId]) save.equipped[heroId] = {};
+  const prev = save.equipped[heroId]![item.slot];
+  if (prev) save.equipInventory.push(prev);
+  save.equipped[heroId]![item.slot] = item;
+  persist();
   emit("equipment-changed");
   return true;
 }
 
-export function addEnhanceStone(n: number) {
-  save.enhanceStone += n;
+/** 장착 해제 — 인벤토리로 되돌아온다 */
+export function unequipItem(heroId: string, slot: EquipSlot): boolean {
+  const item = save.equipped[heroId]?.[slot];
+  if (!item) return false;
+  delete save.equipped[heroId]![slot];
+  save.equipInventory.push(item);
   persist();
-  emit("stones-changed");
+  emit("equipment-changed");
+  return true;
+}
+
+/** 판매 — 미장착 아이템만 판매 가능(장착 중인 건 먼저 해제해야 함). 등급이 높을수록 비싸다 */
+export const EQUIP_SELL_GOLD: Record<EquipGrade, number> = { N: 20, R: 60, SR: 200, SSR: 700, UR: 2500 };
+
+export function sellEquipItem(itemId: string): boolean {
+  const idx = save.equipInventory.findIndex((it) => it.id === itemId);
+  if (idx < 0) return false;
+  const item = save.equipInventory[idx];
+  save.equipInventory.splice(idx, 1);
+  save.gold += EQUIP_SELL_GOLD[item.grade];
+  persist();
+  emit("gold-changed");
+  emit("equipment-changed");
+  return true;
 }
 
 /* ── 편성 ── */
