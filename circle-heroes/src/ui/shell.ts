@@ -28,22 +28,6 @@ const TABS: TabDef[] = [
   { key: "missions", label: "임무", icon: "tab-mission.png", subs: ["일일", "주간", "업적"] },
 ];
 
-// 허브타운(§14) 건물 플레이버 — 5탭 구조(Rev.C 확정)는 그대로 두고, 같은 목적지로 가는 클릭형 진입점을 추가한다
-const HUB_FLAVOR: Record<TabKey, string> = {
-  heroes: "영웅의 전당",
-  summon: "소환의 제단",
-  battle: "전투 광장",
-  shop: "상점가",
-  missions: "의뢰 게시판",
-};
-const HUB_ROOF: Record<TabKey, string> = {
-  heroes: "#5a9bd8",
-  summon: "#b060f0",
-  battle: "#f5ac3d",
-  shop: "#5fbf77",
-  missions: "#e8683a",
-};
-
 const RENDERERS: Record<TabKey, ((el: HTMLElement) => void) | null> = {
   heroes: renderHeroes,
   summon: renderSummon,
@@ -120,76 +104,12 @@ function switchTab(key: TabKey) {
   document.querySelectorAll<HTMLElement>("#tabbar .tab").forEach((el) => {
     el.classList.toggle("on", el.dataset.key === key && !el.classList.contains("center"));
   });
-  // screen-home은 tabKey가 없으므로 항상 꺼짐 — 탭 이동은 곧 허브 이탈을 의미
   document.querySelectorAll<HTMLElement>(".screen").forEach((el) => {
     el.classList.toggle("on", el.id === `screen-${key}`);
   });
   renderSubbar();
   const renderer = RENDERERS[key];
   if (renderer) renderer(document.getElementById(`screen-${key}`)!);
-}
-
-/** 허브타운(§14, 2026-07-28 결정)으로 돌아간다 — 탭바 선택 표시를 모두 해제하고 홈 화면만 노출 */
-function showHome() {
-  document.getElementById("ui")!.classList.remove("on-battle");
-  document.querySelectorAll<HTMLElement>("#tabbar .tab").forEach((el) => el.classList.remove("on"));
-  document.querySelectorAll<HTMLElement>(".screen").forEach((el) => {
-    el.classList.toggle("on", el.id === "screen-home");
-  });
-  document.getElementById("subbar")!.innerHTML = "";
-}
-
-/** 클릭 가능한 2D 허브타운 — AFK Arena/HoC 벤치마크(BENCHMARK.md §14)의 "건물별 콘텐츠 진입점" 구조를
- * 차용하되, 3D 마을이 아니라 우리 SD/치비 무드에 맞는 절차적 배경(코드 생성) 위에 배치한다.
- * 실제 건물 일러스트는 디자인리소스 세션 후속 작업 — 지금은 기존 탭 아이콘을 재활용한 1차 버전. */
-/** AFK Journey(AFK 아레나2) 벤치마킹 — 5개 목적지를 동일 크기 타일로 나열하던 이전 방식 대신,
- * "메인 진행(전투)은 하단에 크게 단독 CTA로, 나머지 기능은 상단에 작은 원형 퀵액세스 줄로"
- * 라는 비대칭 구조를 차용한다. 실제 스크린샷 대조는 못 했음(참고자료 확보 실패) — 리서치로 확인한
- * 설계 방향(탐험형 허브 + 캠페인 중심 큰 CTA)만 반영한 1차 버전, 스크린샷 받으면 정밀 조정 예정 */
-function renderHub(root: HTMLElement) {
-  root.innerHTML = "";
-  root.classList.add("hub-screen");
-
-  const sky = h("div", "hub-sky");
-  sky.appendChild(h("div", "hub-cloud c1"));
-  sky.appendChild(h("div", "hub-cloud c2"));
-  sky.appendChild(h("div", "hub-cloud c3"));
-  root.appendChild(sky);
-
-  root.appendChild(h("h2", "hub-title", "Circle Heroes 마을"));
-
-  const sideTabs = TABS.filter((t) => !t.center);
-  const mainTab = TABS.find((t) => t.center)!;
-
-  // 상단 퀵액세스 줄 — 영웅·소환·상점·임무를 작은 원형 아이콘으로, 한 번에 훑어보고 바로 진입
-  const quick = h("div", "hub-quickrow");
-  for (const t of sideTabs) {
-    const btn = h("button", "hub-quick");
-    btn.style.setProperty("--roof", HUB_ROOF[t.key]);
-    const hi = icon(t.icon);
-    hi.classList.add("hub-quick-icon");
-    btn.appendChild(hi);
-    btn.appendChild(h("span", "hub-quick-label", t.label));
-    btn.onclick = () => switchTab(t.key);
-    quick.appendChild(btn);
-  }
-  root.appendChild(quick);
-
-  root.appendChild(h("div", "hub-spacer"));
-  root.appendChild(h("div", "hub-ground"));
-
-  // 하단 대형 CTA — 핵심 진행(전투)만 단독으로 강조, 나머지와 시각 무게를 분리
-  const cta = h("button", "hub-cta");
-  cta.style.setProperty("--roof", HUB_ROOF[mainTab.key]);
-  const ctaIcon = icon(mainTab.icon);
-  ctaIcon.classList.add("hub-cta-icon");
-  cta.appendChild(ctaIcon);
-  const ctaBody = h("div", "hub-cta-body");
-  ctaBody.appendChild(h("div", "hub-cta-label", "전투 시작"));
-  ctaBody.appendChild(h("div", "hub-cta-flavor", HUB_FLAVOR[mainTab.key]));
-  cta.appendChild(ctaBody);
-  cta.onclick = () => switchTab(mainTab.key);
-  root.appendChild(cta);
 }
 
 // 전투 탭 서브메뉴 ↔ 전투 모드 연결
@@ -488,6 +408,13 @@ export function buildShell() {
   topbarBg.id = "topbar-bg";
   ui.appendChild(topbarBg);
 
+  // HUD(좌)와 코너 버튼(우)을 같은 줄에 배치하는 상단바 — 예전엔 코너가 absolute로 따로 떠 있어서
+  // 칩이 3개(전투력 추가)로 늘어난 뒤 코너 버튼과 겹치고, 코너 쪽이 더 높아서 화면 콘텐츠 상단(h2
+  // 타이틀 등)까지 가리던 버그가 있었음 — 같은 flex row로 묶어서 겹침 자체가 안 생기게 함
+  const topbar = h("div");
+  topbar.id = "topbar";
+  ui.appendChild(topbar);
+
   // HUD
   const hud = h("div");
   hud.id = "hud";
@@ -511,7 +438,7 @@ export function buildShell() {
   powerVal.id = "hud-power-val";
   power.appendChild(powerVal);
   hud.append(power, gold, gems);
-  ui.appendChild(hud);
+  topbar.appendChild(hud);
 
   // 우상단 플로팅
   const corner = h("div");
@@ -526,11 +453,6 @@ export function buildShell() {
     b.onclick = onClick;
     return b;
   };
-  const homeBtn = h("button", "corner-btn");
-  homeBtn.appendChild(h("span", "ce", "🏠"));
-  homeBtn.appendChild(h("span", "", "마을"));
-  homeBtn.onclick = showHome;
-  corner.appendChild(homeBtn);
   corner.appendChild(mkCorner("icon-gift.png", "이벤트", true, () => toast("이벤트 — 준비 중입니다")));
   const mailBtn = mkCorner("icon-mail.png", "우편", false, openMailModal);
   corner.appendChild(mailBtn);
@@ -565,21 +487,17 @@ export function buildShell() {
     fold.textContent = corner.classList.contains("folded") ? "◂" : "▸";
   };
   corner.appendChild(fold);
-  ui.appendChild(corner);
+  topbar.appendChild(corner);
 
   // 스크린들
   const screens = h("div");
   screens.id = "screens";
-  const homeScreen = h("div", "screen");
-  homeScreen.id = "screen-home";
-  screens.appendChild(homeScreen);
   for (const t of TABS) {
     const sc = h("div", "screen");
     sc.id = `screen-${t.key}`;
     screens.appendChild(sc);
   }
   ui.appendChild(screens);
-  renderHub(homeScreen);
 
   // 서브메뉴 바 + 탭바
   const subbar = h("div");
@@ -625,7 +543,7 @@ export function buildShell() {
     battleMode = m as string;
     if (currentTab === "battle") renderSubbar();
   });
-  showHome();
+  switchTab(currentTab);
 
   // 오프라인 보상
   const reward = calcOfflineReward();

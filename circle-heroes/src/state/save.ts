@@ -57,6 +57,8 @@ export interface SaveState {
   backupCode: string;
   /** 우편함 */
   mail: MailItem[];
+  /** 누적 소환(뽑기) 횟수 — 업적 "영웅 N회 모집" 트랙에 사용, 리셋 없이 영구 누적 */
+  totalSummons: number;
 }
 
 const KEY = "circle-heroes-save-v1";
@@ -83,6 +85,7 @@ const DEFAULTS: SaveState = {
   raidKills: {},
   backupCode: "",
   mail: [],
+  totalSummons: 0,
 };
 
 function load(): SaveState {
