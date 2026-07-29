@@ -6,7 +6,7 @@ import {
   inParty, toggleParty, PARTY_SIZE,
   getStars, ascendCost, dupeCount, tryAscend, MAX_STARS,
 } from "../state/save";
-import { pull, SINGLE_COST, TEN_COST, PITY_LIMIT } from "../systems/gacha";
+import { pull, SINGLE_COST, TEN_COST, PITY_LIMIT, BANNERS, BANNER_PITY_LIMIT, bannerPityCount } from "../systems/gacha";
 import { calcFactionSynergy, partyPower } from "../systems/battle";
 import {
   DAILY_MISSIONS, ALL_CLEAR_KEY, ALL_CLEAR_BONUS,
@@ -534,10 +534,53 @@ function renderAscend(root: HTMLElement) {
 }
 
 /* ── 소환 탭 ── */
+let selectedBannerId = BANNERS[0].id;
+
 export function renderSummon(root: HTMLElement) {
   root.innerHTML = "";
   root.appendChild(el("h2", "", "영웅 소환"));
-  root.appendChild(el("div", "desc", `보석으로 소환합니다. ${PITY_LIMIT}회 안에 최고 등급이 반드시 등장합니다.`));
+  root.appendChild(el("div", "desc", "배너를 골라 소환하세요. 배너마다 픽업 영웅이 있습니다."));
+
+  // 배너 선택 — 배너마다 SSR 픽업 캐릭터 1명(§3)
+  const bannerRow = el("div", "banner-row");
+  root.appendChild(bannerRow);
+  const bannerInfo = el("div", "banner-info");
+  root.appendChild(bannerInfo);
+
+  const renderBanners = () => {
+    bannerRow.innerHTML = "";
+    for (const b of BANNERS) {
+      const pickup = PLAYABLE_HEROES.find((h) => h.id === b.pickupHeroId)!;
+      const card = el("div", "banner-card" + (b.id === selectedBannerId ? " on" : ""));
+      setGradeBorder(card, pickup.grade);
+      setCardFaction(card, pickup);
+      const face = el("div", "face");
+      setFace(face, pickup);
+      card.appendChild(face);
+      if (b.id === selectedBannerId) card.appendChild(el("div", "banner-card-check", "✓"));
+      card.appendChild(el("div", "banner-card-name", b.name));
+      card.onclick = () => {
+        if (selectedBannerId === b.id) return;
+        selectedBannerId = b.id;
+        renderBanners();
+        updateBannerInfo();
+      };
+      bannerRow.appendChild(card);
+    }
+  };
+
+  const updateBannerInfo = () => {
+    const b = BANNERS.find((x) => x.id === selectedBannerId)!;
+    const pickup = PLAYABLE_HEROES.find((h) => h.id === b.pickupHeroId)!;
+    bannerInfo.innerHTML = "";
+    bannerInfo.appendChild(el("div", "banner-info-flavor", `✨ ${pickup.nameKr} 픽업 — ${b.flavor}`));
+    const pityLine = el("div", "banner-info-pity");
+    pityLine.innerHTML = `이 배너 천장까지 <b>${BANNER_PITY_LIMIT - bannerPityCount(b.id)}</b>회`;
+    bannerInfo.appendChild(pityLine);
+  };
+
+  renderBanners();
+  updateBannerInfo();
 
   const box = el("div", "summon-box");
   const orb = el("div", "orb");
@@ -559,7 +602,7 @@ export function renderSummon(root: HTMLElement) {
 
   const pity = el("div", "pity");
   const updatePity = () => {
-    pity.innerHTML = `천장까지 <b>${PITY_LIMIT - save.pity}</b>회 · 보유 💎${save.gems.toLocaleString()}`;
+    pity.innerHTML = `전체 천장까지 <b>${PITY_LIMIT - save.pity}</b>회 · 보유 💎${save.gems.toLocaleString()}`;
   };
   updatePity();
   box.appendChild(pity);
@@ -588,11 +631,12 @@ export function renderSummon(root: HTMLElement) {
       toast("보석이 부족합니다");
       return;
     }
-    const pulls = pull(count);
+    const pulls = pull(count, selectedBannerId);
     track("summon", count);
     playSummonFx(pulls, () => {
       fillInlineResults(pulls);
       updatePity();
+      updateBannerInfo();
       emit("roster-changed");
     }, doPull);
   };
