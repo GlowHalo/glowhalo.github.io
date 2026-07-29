@@ -240,13 +240,19 @@ export function resetSave() {
   location.reload();
 }
 
+/** 스테이지 기반 상시 골드 적립 속도(분당) — 오프라인 방치 보상과 온라인 자동 적립(아래 tick)이 공유하는
+ * 단일 기준. 전투 승패와 무관하게 "도달한 최고 스테이지 × 시간"으로만 계산되므로, 일부러 약한 편성으로
+ * 반복 패배해도 이 적립엔 아무 영향이 없다(어뷰징 불가) — 전투 보상(웨이브 클리어 시 골드)은 이와
+ * 별개로 그대로 유지되는 "실력에 따른 추가 수입" */
+export const STAGE_GOLD_PER_MIN = 5;
+
 /** 오프라인 적립: 분당 스테이지×5골드, 최대 240시간. 3분 미만이면 null */
 export const OFFLINE_CAP_HOURS = 240;
 export function calcOfflineReward(): { minutes: number; gold: number } | null {
   const elapsedMin = Math.floor((Date.now() - save.lastSeenMs) / 60000);
   if (elapsedMin < 3) return null;
   const capped = Math.min(elapsedMin, OFFLINE_CAP_HOURS * 60);
-  return { minutes: capped, gold: capped * save.stage * 5 };
+  return { minutes: capped, gold: capped * save.stage * STAGE_GOLD_PER_MIN };
 }
 
 /* ── 우편함 ── */
@@ -294,3 +300,9 @@ ensureWelcomeMail();
 
 // 주기적으로 lastSeen 갱신 (앱 켜둔 채 방치해도 오프라인 보상이 중복 적립되지 않도록)
 setInterval(persist, 30_000);
+
+/** 접속 중에도 오프라인 방치 보상과 동일한 기준(STAGE_GOLD_PER_MIN)으로 골드가 시간에 비례해 자동
+ * 적립된다 — 현재 스테이지를 못 뚫어 웨이브 골드를 못 벌더라도 육성 골드가 완전히 막히지 않게 하는
+ * 안전망. 전투 승패·반복 횟수와 무관하게 "시간 × 스테이지"로만 계산되므로 일부러 지는 방식으로는
+ * 더 벌 수 없다(어뷰징 불가) — 실제로 잘 싸워서 얻는 웨이브 클리어 골드가 여전히 훨씬 크다 */
+setInterval(() => addGold(Math.round((save.stage * STAGE_GOLD_PER_MIN) / 2)), 30_000);
