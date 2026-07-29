@@ -600,8 +600,33 @@ export function renderSummon(root: HTMLElement) {
   ten.onclick = () => doPull(10, TEN_COST);
 }
 
-/* ── 소환 연출: 오브 차징 → 카드 순차 뒤집기 → 고등급 예고·플래시. 탭하면 스킵 ── */
+/* ── 소환 연출: 오브 차징 → 카드 개별/전체 뒤집기 → 고등급 예고·플래시 → 신규영웅 프로필 팝업 ── */
 const HIGH_GRADES = new Set(["SR", "SSR", "UR"]);
+/** 10연 결과는 캡쳐 레퍼런스처럼 3/4/3 세 줄로 배치(§1) */
+const TEN_PULL_ROWS = [3, 4, 3];
+
+/** 신규 영웅 획득 시 확대+프로필 팝업(§2) — 확인을 눌러야 다음으로 진행 */
+function buildNewHeroPopup(hero: Hero, onConfirm: () => void): HTMLElement {
+  const popup = el("div", "sfx-new-popup");
+  popup.onclick = (e) => e.stopPropagation();
+  popup.appendChild(el("div", "sfx-new-title", "🎉 신규 영웅 획득!"));
+  const card = el("div", "sfx-new-card");
+  setGradeBorder(card, hero.grade);
+  setCardFaction(card, hero);
+  const face = el("div", "face");
+  setFace(face, hero);
+  card.appendChild(face);
+  popup.appendChild(card);
+  popup.appendChild(el("div", "sfx-new-name", hero.nameKr));
+  popup.appendChild(el("div", "sfx-new-sub", `${hero.grade} · ${hero.faction} · ${hero.heroClass}`));
+  const okBtn = el("button", "btn primary", "확인") as HTMLButtonElement;
+  okBtn.onclick = (e) => {
+    e.stopPropagation();
+    onConfirm();
+  };
+  popup.appendChild(okBtn);
+  return popup;
+}
 
 function playSummonFx(
   pulls: ReturnType<typeof pull>,
@@ -618,24 +643,32 @@ function playSummonFx(
     timers.push(window.setTimeout(fn, ms));
   };
   let finished = false;
+  let revealedCount = 0;
+  const newQueue: typeof pulls = [];
+  let showingNewPopup = false;
 
   const close = () => {
+    timers.forEach(clearTimeout);
     overlay.remove();
     document.getElementById("screen-summon")?.classList.remove("fx-active");
     document.removeEventListener("keydown", onKeydown);
     onClose();
   };
 
-  const finishReveal = () => {
+  const buildFooter = () => {
     if (finished) return;
     finished = true;
-    timers.forEach(clearTimeout);
-    overlay.querySelectorAll(".sfx-card").forEach((c) => {
-      c.classList.remove("tease");
-      c.classList.add("flipped");
-    });
-    hint.textContent = "화면을 누르면 계속";
+    flipAllBtn.remove();
+    hint.textContent = "";
+    hint.classList.add("done");
 
+    const footer = el("div", "sfx-footer");
+    const okBtn = el("button", "btn", "확인") as HTMLButtonElement;
+    okBtn.onclick = (e) => {
+      e.stopPropagation();
+      close();
+    };
+    footer.appendChild(okBtn);
     const again = el("div", "sfx-again");
     const mkAgainBtn = (label: string, count: number, cost: number) => {
       const b = el("button", "btn primary", label) as HTMLButtonElement;
@@ -650,7 +683,26 @@ function playSummonFx(
       mkAgainBtn(`1회 소환 (💎${SINGLE_COST})`, 1, SINGLE_COST),
       mkAgainBtn(`10회 소환 (💎${TEN_COST})`, 10, TEN_COST)
     );
-    overlay.insertBefore(again, hint);
+    footer.appendChild(again);
+    overlay.appendChild(footer);
+  };
+
+  const drainNewQueue = () => {
+    if (showingNewPopup || newQueue.length === 0) return;
+    showingNewPopup = true;
+    const r = newQueue.shift()!;
+    const popup = buildNewHeroPopup(r.hero, () => {
+      popup.remove();
+      showingNewPopup = false;
+      drainNewQueue();
+      maybeFinish();
+    });
+    overlay.appendChild(popup);
+  };
+
+  const maybeFinish = () => {
+    if (revealedCount < pulls.length || newQueue.length > 0 || showingNewPopup) return;
+    buildFooter();
   };
 
   // 1단계: 카드 차징 (탭하면 바로 카드로)
@@ -665,54 +717,42 @@ function playSummonFx(
   overlay.appendChild(orb);
   const hint = el("div", "sfx-hint", "화면을 누르면 건너뜁니다");
   overlay.appendChild(hint);
+  const flipAllBtn = el("button", "btn sfx-flipall", "전체 뒤집기") as HTMLButtonElement;
+  flipAllBtn.style.display = "none";
+  overlay.appendChild(flipAllBtn);
 
-  const showCards = () => {
-    if (!orb.parentElement) return;
-    orb.remove();
-    const grid = el("div", "sfx-grid" + (pulls.length > 1 ? " ten" : ""));
-    overlay.insertBefore(grid, hint);
+  const buildCard = (r: (typeof pulls)[number], i: number, cards: HTMLElement[]): HTMLElement => {
+    const isHigh = HIGH_GRADES.has(r.hero.grade);
+    const card = el("div", `sfx-card grade-${r.hero.grade}` + (isHigh ? "" : " fast"));
+    card.style.animationDelay = `${i * 0.05}s`;
+    const inner = el("div", "inner");
+    const back = el("div", "back");
+    back.appendChild(el("div", "back-ring"));
+    back.appendChild(el("div", "back-mark", "?"));
+    inner.appendChild(back);
+    const front = el("div", "front");
+    setCardFaction(front, r.hero);
+    const face = el("div", "face");
+    setFace(face, r.hero);
+    front.appendChild(face);
+    front.appendChild(el("div", "", r.hero.nameKr));
+    if (r.isNew) front.appendChild(el("div", "newtag", "NEW!"));
+    inner.appendChild(front);
+    card.appendChild(inner);
 
-    const cards: HTMLElement[] = pulls.map((r, i) => {
-      const isHigh = HIGH_GRADES.has(r.hero.grade);
-      const card = el("div", `sfx-card grade-${r.hero.grade}` + (isHigh ? "" : " fast"));
-      card.style.animationDelay = `${i * 0.05}s`;
-      const inner = el("div", "inner");
-      const back = el("div", "back");
-      back.appendChild(el("div", "back-ring"));
-      back.appendChild(el("div", "back-mark", "?"));
-      inner.appendChild(back);
-      const front = el("div", "front");
-      setCardFaction(front, r.hero);
-      const face = el("div", "face");
-      setFace(face, r.hero);
-      front.appendChild(face);
-      front.appendChild(el("div", "", r.hero.nameKr));
-      if (r.isNew) front.appendChild(el("div", "newtag", "NEW!"));
-      inner.appendChild(front);
-      card.appendChild(inner);
-      grid.appendChild(card);
-      return card;
-    });
-
-    // 순차 뒤집기 — 저가치 카드는 빠르게, 레어 이상만 금빛 예고 후 플래시
-    let t = 400;
-    pulls.forEach((r, i) => {
-      const isHigh = HIGH_GRADES.has(r.hero.grade);
-      const step = isHigh ? 330 : 110;
-      if (isHigh) {
-        later(() => cards[i].classList.add("tease"), t);
-        t += 650;
-      }
-      later(() => {
-        cards[i].classList.remove("tease");
-        cards[i].classList.add("flipped");
+    const reveal = () => {
+      if (card.classList.contains("flipped") || card.classList.contains("revealing")) return;
+      const doFlip = () => {
+        card.classList.remove("tease", "revealing");
+        card.classList.add("flipped");
+        revealedCount++;
         if (isHigh) {
           overlay.classList.remove("flash-sr");
           void overlay.offsetWidth;
           overlay.classList.add("flash-sr");
           for (let s = 0; s < 5; s++) {
             const spark = el("span", "sfx-spark", "✦");
-            const rect = cards[i].getBoundingClientRect();
+            const rect = card.getBoundingClientRect();
             const base = overlay.getBoundingClientRect();
             spark.style.left = `${rect.left - base.left + Math.random() * rect.width}px`;
             spark.style.top = `${rect.top - base.top + Math.random() * rect.height}px`;
@@ -720,10 +760,57 @@ function playSummonFx(
             later(() => spark.remove(), 1000);
           }
         }
-        if (i === pulls.length - 1) later(finishReveal, 300);
-      }, t);
-      t += step;
-    });
+        if (r.isNew) newQueue.push(r);
+        drainNewQueue();
+        maybeFinish();
+      };
+      if (isHigh) {
+        card.classList.add("tease", "revealing");
+        later(doFlip, 450);
+      } else {
+        doFlip();
+      }
+    };
+    card.onclick = (e) => {
+      e.stopPropagation();
+      reveal();
+    };
+    (card as HTMLElement & { __reveal?: () => void }).__reveal = reveal;
+    cards.push(card);
+    return card;
+  };
+
+  const showCards = () => {
+    if (!orb.parentElement) return;
+    orb.remove();
+    hint.textContent = pulls.length > 1 ? "카드를 눌러 확인하거나 전체 뒤집기를 사용하세요" : "카드를 눌러 확인하세요";
+
+    const cards: HTMLElement[] = [];
+    if (pulls.length === 10) {
+      const grid = el("div", "sfx-grid ten rows");
+      overlay.insertBefore(grid, hint);
+      let idx = 0;
+      for (const rowCount of TEN_PULL_ROWS) {
+        const row = el("div", "sfx-row");
+        for (let k = 0; k < rowCount; k++) {
+          row.appendChild(buildCard(pulls[idx], idx, cards));
+          idx++;
+        }
+        grid.appendChild(row);
+      }
+    } else {
+      const grid = el("div", "sfx-grid");
+      overlay.insertBefore(grid, hint);
+      pulls.forEach((r, i) => grid.appendChild(buildCard(r, i, cards)));
+    }
+
+    flipAllBtn.style.display = "";
+    flipAllBtn.onclick = (e) => {
+      e.stopPropagation();
+      cards.forEach((c, i) => {
+        later(() => (c as HTMLElement & { __reveal?: () => void }).__reveal?.(), i * 70);
+      });
+    };
   };
   later(showCards, 2200);
 
@@ -732,9 +819,7 @@ function playSummonFx(
       timers.forEach(clearTimeout);
       timers.length = 0;
       showCards();
-    } else if (!finished) {
-      finishReveal();
-    } else {
+    } else if (finished) {
       close();
     }
   };
