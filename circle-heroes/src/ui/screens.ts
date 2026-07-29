@@ -9,6 +9,7 @@ import {
 import {
   pull, SINGLE_COST, TEN_COST, BANNERS, bannerPityCount,
   SSR_PITY_LIMIT, UR_PITY_LIMIT, monthlyFeaturedUR, urPityCount, pickupHeroFor,
+  GRADE_WEIGHT, PICKUP_RATE_UP, gradeRosterCount,
 } from "../systems/gacha";
 import { calcFactionSynergy, partyPower } from "../systems/battle";
 import {
@@ -545,10 +546,54 @@ function renderAscend(root: HTMLElement) {
 /* ── 소환 탭 ── */
 let selectedBannerId = BANNERS[0].id;
 
+const GRADE_ORDER_DESC = ["UR", "SSR", "SR", "R", "N"];
+
+/** 확률 공개 팝업(§3, 법적 고지 요건) — 등급별 확률표 + 픽업/천장 메커니즘을 작은 버튼 뒤에 숨겨두고,
+ * 화면 자체는 레퍼런스(AFK Arena Companions/HoC Legends)처럼 설명문 없이 깔끔하게 유지한다 */
+function openProbabilityModal() {
+  const body = el("div", "prob-modal");
+  const table = el("table", "prob-table");
+  const head = el("tr");
+  head.appendChild(el("th", "", "등급"));
+  head.appendChild(el("th", "", "확률"));
+  table.appendChild(head);
+  for (const grade of GRADE_ORDER_DESC) {
+    const row = el("tr");
+    row.appendChild(el("td", `gd grade-${grade}`, grade));
+    row.appendChild(el("td", "", `${GRADE_WEIGHT[grade]}%`));
+    table.appendChild(row);
+  }
+  body.appendChild(table);
+
+  const ssrCount = gradeRosterCount("SSR");
+  const urCount = gradeRosterCount("UR");
+  const ssrPickupPct = (GRADE_WEIGHT.SSR * PICKUP_RATE_UP).toFixed(3);
+  const ssrRestPct = ((GRADE_WEIGHT.SSR * (1 - PICKUP_RATE_UP)) / (ssrCount - 1)).toFixed(4);
+  const urPickupPct = (GRADE_WEIGHT.UR * PICKUP_RATE_UP).toFixed(3);
+  const urRestPct = ((GRADE_WEIGHT.UR * (1 - PICKUP_RATE_UP)) / (urCount - 1)).toFixed(4);
+
+  body.appendChild(el("div", "prob-note-title", "픽업 배너 개별 확률"));
+  body.appendChild(el("div", "prob-note", `이달의 픽업 캐릭터 ${ssrPickupPct}% · 나머지 SSR ${ssrCount - 1}종 각 ${ssrRestPct}%`));
+  body.appendChild(el("div", "prob-note", `이달의 UR ${urPickupPct}% · 나머지 UR ${urCount - 1}종 각 ${urRestPct}%`));
+  body.appendChild(el("div", "prob-note", `그냥뽑기 배너는 픽업 레이트업 없이 SSR ${ssrCount}종·UR ${urCount}종 전부 균등 분배됩니다.`));
+
+  body.appendChild(el("div", "prob-note-title", "천장(확정 보상)"));
+  body.appendChild(el("div", "prob-note", `이 배너에서 픽업 SSR을 ${SSR_PITY_LIMIT}회 연속 못 뽑으면 다음 1회는 픽업 확정.`));
+  body.appendChild(el("div", "prob-note", `UR은 배너 무관 전체 누적 ${UR_PITY_LIMIT}회 안에 확정 지급(어느 배너에서 뽑든 함께 쌓임).`));
+
+  const close = el("button", "btn primary", "확인") as HTMLButtonElement;
+  close.onclick = closeModal;
+  modal("확률 정보", body, [close]);
+}
+
 export function renderSummon(root: HTMLElement) {
   root.innerHTML = "";
-  root.appendChild(el("h2", "", "영웅 소환"));
-  root.appendChild(el("div", "desc", "네 배너 모두 같은 확률표를 쓰는 동일한 뽑기입니다 — 픽업 배너는 그 달의 SSR 3명만 등장 확률이 오르는 것뿐, 다른 등급 확률은 전혀 안 바뀝니다."));
+  const titleRow = el("div", "summon-title-row");
+  titleRow.appendChild(el("h2", "", "영웅 소환"));
+  const probBtn = el("button", "btn prob-btn", "확률 정보") as HTMLButtonElement;
+  probBtn.onclick = openProbabilityModal;
+  titleRow.appendChild(probBtn);
+  root.appendChild(titleRow);
 
   // 배너 선택 — 그냥뽑기(왼쪽) + 이달의 SSR 픽업 3개(매달 자동 로테이션, §4)
   const bannerRow = el("div", "banner-row");
@@ -633,24 +678,6 @@ export function renderSummon(root: HTMLElement) {
   box.appendChild(pity);
   root.appendChild(box);
 
-  const results = el("div", "pull-results");
-  root.appendChild(results);
-
-  const fillInlineResults = (pulls: ReturnType<typeof pull>) => {
-    results.innerHTML = "";
-    pulls.forEach((r) => {
-      const card = el("div", "pull-card");
-      setGradeBorder(card, r.hero.grade);
-      setCardFaction(card, r.hero);
-      const face = el("div", "face");
-      setFace(face, r.hero);
-      card.appendChild(face);
-      card.appendChild(el("div", "pc-nm", r.hero.nameKr));
-      if (r.isNew) card.appendChild(el("div", "new", "NEW!"));
-      results.appendChild(card);
-    });
-  };
-
   const doPull = (count: number, cost: number) => {
     if (!spendGems(cost)) {
       toast("보석이 부족합니다");
@@ -659,7 +686,6 @@ export function renderSummon(root: HTMLElement) {
     const pulls = pull(count, selectedBannerId);
     track("summon", count);
     playSummonFx(pulls, () => {
-      fillInlineResults(pulls);
       updatePity();
       updateBannerInfo();
       emit("roster-changed");
