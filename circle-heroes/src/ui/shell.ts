@@ -9,6 +9,7 @@ import { partyPower } from "../systems/battle";
 import { isFirebaseConfigured, getBackupCode, backupNow, restoreFromCode } from "../state/backup";
 import { HEROES } from "../data/heroes";
 import { isMuted, setMuted } from "../systems/audio";
+import { RAID_DUNGEONS, WEEKDAY_LABELS, requiredFaction, isRaidWeekend } from "../systems/raid";
 
 type TabKey = "heroes" | "summon" | "battle" | "shop" | "missions";
 
@@ -123,6 +124,69 @@ const BATTLE_MODES: Record<string, string> = {
 let battleMode = "stage";
 let heroesSubLabel = "보유·편성";
 
+/** 진영별 지붕색 — BattleScene.ts/screens.ts의 FACTION_COLORS와 동일 팔레트(작은 상수라 파일마다
+ * 이렇게 각자 들고 있는 게 기존 관례) */
+const FACTION_ROOF: Record<string, string> = {
+  불: "#e8683a",
+  물: "#5a9bd8",
+  바람: "#5fbf77",
+  빛: "#f0c95c",
+  어둠: "#8a63c9",
+};
+
+/** 요일던전 5선택 화면(§2026-07-29) — "화면에 5가지 요일던전, 요일 맞춰 활성화, 그 외엔 회색
+ * 잠금" 요청. 예전에 만들었다 실사용에서 뺀 2D 허브타운(§80, 마을뷰 제거)의 "지붕색+아이콘+
+ * 라벨" 오두막(hut) 타일 문법을 그대로 재사용 — 그때는 5탭 진입점이었는데 이번엔 5요일 진입점으로
+ * 용도만 바꿔 재활용. 전용 "요일던전 선택" 참고 스크린샷은 레퍼런스 14+6장 중엔 없어서(주간
+ * 보스/로테이션 던전류 화면 없음) 새로 만든 우리 자산(허브 타일)을 그대로 벤치마킹 삼음 */
+function openRaidSelectModal() {
+  const weekend = isRaidWeekend();
+  const todayDay = new Date().getDay();
+  const required = requiredFaction();
+
+  const body = h("div", "raid-select");
+  if (weekend) {
+    body.appendChild(
+      h("div", "raid-select-banner", "🎉 주말엔 전 진영이 자유롭게 도전할 수 있는 혼돈의 마수가 열립니다 — 아무 던전이나 선택하세요")
+    );
+  } else {
+    body.appendChild(h("div", "desc", `오늘은 ${WEEKDAY_LABELS[todayDay]}요일 — 활성화된 던전만 입장할 수 있어요.`));
+  }
+
+  const grid = h("div", "raid-dungeon-grid");
+  for (const d of RAID_DUNGEONS) {
+    const unlocked = weekend || d.day === todayDay;
+    const hut = h("button", "raid-hut" + (unlocked ? "" : " locked"));
+    hut.style.setProperty("--roof", FACTION_ROOF[d.bossFaction] ?? "#888");
+    hut.appendChild(h("div", "hub-roof"));
+    const hbody = h("div", "hub-body");
+    hbody.appendChild(h("div", "hub-label", `${d.bossFaction}의 마수`));
+    hbody.appendChild(
+      h("div", "hub-flavor", unlocked ? `이기는 진영: ${weekend ? "전 진영" : required}` : `${d.dayLabel} 출현`)
+    );
+    hut.appendChild(hbody);
+    if (!unlocked) hut.appendChild(h("div", "raid-lock", "🔒"));
+    hut.onclick = () => {
+      if (!unlocked) {
+        toast(`${d.dayLabel}에만 열리는 던전이에요`);
+        return;
+      }
+      closeModal();
+      if (battleMode !== "raid") {
+        battleMode = "raid";
+        emit("battle-mode", "raid");
+        if (currentTab === "battle") renderSubbar();
+      }
+    };
+    grid.appendChild(hut);
+  }
+  body.appendChild(grid);
+
+  const close = h("button", "btn", "닫기") as HTMLButtonElement;
+  close.onclick = closeModal;
+  modal("요일던전", body, [close]);
+}
+
 const MISSIONS_SUBVIEWS: Record<string, "daily" | "weekly" | "achievements"> = {
   "일일": "daily",
   "주간": "weekly",
@@ -142,6 +206,10 @@ function renderSubbar() {
       chip.onclick = () => {
         if (!mode) {
           toast(`${label} — 준비 중입니다`);
+          return;
+        }
+        if (mode === "raid") {
+          openRaidSelectModal();
           return;
         }
         if (mode === battleMode) return;

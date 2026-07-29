@@ -7,7 +7,7 @@ import {
   setTowerFloor, applyArenaResult,
 } from "../state/save";
 import { track } from "../systems/missions";
-import { todayFaction, raidKills, applyRaidKill, raidBossName } from "../systems/raid";
+import { todayFaction, requiredFaction, raidKills, applyRaidKill, raidBossName } from "../systems/raid";
 import { toast } from "../ui/shell";
 import { on, emit } from "../state/bus";
 import {
@@ -318,16 +318,21 @@ export class BattleScene extends Phaser.Scene {
     this.spawnTeams();
   }
 
-  /** 요일던전: 오늘 진영만 출전 가능. 편성에 해당 진영이 없으면 스테이지로 복귀 */
+  /** 요일던전(§카운터 진영, 2026-07-29): 보스 진영 자체가 아니라 그 진영을 "이기는" 상성
+   * 진영만 출전 가능(예: 바람의 마수 → 불만 출전). 편성에 해당 진영이 없으면 스테이지로 복귀 */
   private startRaid() {
-    const faction = todayFaction();
+    const boss = todayFaction();
+    const required = requiredFaction();
     this.wave = 1;
     this.updateBackgroundForStage(1);
     this.heroes = this.buildTeam().filter(
-      (u) => faction === null || u.faction === faction
+      (u) => required === null || u.faction === required
     );
     if (this.heroes.length === 0) {
-      toast(`오늘은 ${faction} 진영만 출전할 수 있어요 — 편성에 ${faction} 영웅이 없습니다`);
+      const msg = required
+        ? `오늘은 ${boss}의 마수 등장 — 이를 이기는 ${required} 영웅만 출전할 수 있어요(편성에 없음)`
+        : `오늘은 ${raidBossName()} 등장 — 편성이 비어 있어요`;
+      toast(msg);
       this.mode = "stage";
       this.gen++;
       emitModeChanged("stage");
@@ -1112,8 +1117,8 @@ export class BattleScene extends Phaser.Scene {
     } else if (this.mode === "tower") {
       this.stageText.setText(`무한의 탑 · ${save.towerFloor}층`);
     } else if (this.mode === "raid") {
-      const f = todayFaction();
-      this.stageText.setText(`요일던전 · ${raidBossName()} Lv.${raidKills() + 1}${f ? ` (${f}만 출전)` : " (전 진영)"}`);
+      const req = requiredFaction();
+      this.stageText.setText(`요일던전 · ${raidBossName()} Lv.${raidKills() + 1}${req ? ` (${req}만 출전)` : " (전 진영)"}`);
     } else {
       this.stageText.setText(`아레나 · ${save.arenaRating}점`);
     }

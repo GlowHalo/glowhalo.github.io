@@ -1331,3 +1331,38 @@
 .milestone-chest .mc-icon { font-size: 16px; }
 .milestone-chest .mc-pts { font-size: 10px; color: var(--ink3); font-variant-numeric: tabular-nums; }
 .milestone-chest .mc-reward { font-size: 9px; color: var(--ink2); white-space: nowrap; }
+
+/* ── 요일던전 5선택 화면(2026-07-29) — 예전 2D 허브타운(§80, 마을뷰 제거)의 "지붕색 오두막" 타일
+ * 문법을 재사용. 그때는 5탭 진입점, 지금은 5요일 진입점으로 용도만 바꿈 */
+.raid-select-banner {
+  background: rgba(245, 172, 61, 0.15);
+  border: 1px solid var(--amber);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--ink);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+.raid-dungeon-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.raid-hut {
+  --roof: #888;
+  position: relative;
+  border: none;
+  border-radius: 12px;
+  background: #fff7e8ee;
+  box-shadow: 0 4px 10px rgba(40, 25, 5, 0.25);
+  cursor: pointer;
+  padding: 0 0 8px;
+  overflow: hidden;
+}
+.raid-hut .hub-roof { height: 14px; background: var(--roof); border-radius: 12px 12px 0 0; }
+.raid-hut .hub-body { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 6px 0; }
+.raid-hut .hub-label { font-size: 12.5px; font-weight: 700; color: #241a08; }
+.raid-hut .hub-flavor { font-size: 10px; color: #6b5530; text-align: center; }
+.raid-hut.locked { filter: grayscale(1); opacity: 0.55; cursor: default; }
+.raid-lock { position: absolute; top: 6px; right: 8px; font-size: 14px; }
