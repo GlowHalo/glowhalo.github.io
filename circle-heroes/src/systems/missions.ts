@@ -20,6 +20,21 @@ export const DAILY_MISSIONS: MissionDef[] = [
 export const ALL_CLEAR_KEY = "__all__";
 export const ALL_CLEAR_BONUS: { gold?: number; gems?: number } = { gems: 50 };
 
+/** 일일 마일스톤 포인트 트랙(BENCHMARK.md §21) — 일일 임무를 하나 수령할 때마다 20점씩 쌓여
+ * DAILY_MISSIONS 5개를 다 받으면 정확히 100점(20×5)이 된다. 임무별 개별 보상·전체완료 보너스와는
+ * 별개의 3번째 보상 레이어 — 20/40/60/80/100 구간마다 상자를 따로 수령한다(레퍼런스 공통 패턴).
+ * 별도 저장 필드 없이 `save.missions.claimed`에 "milestone_N" 키를 얹어 재사용 — 일일 리셋
+ * (ensureToday)에 자동으로 같이 초기화된다 */
+export const DAILY_MISSION_POINTS = 20;
+export interface MilestoneDef { points: number; reward: { gold?: number; gems?: number } }
+export const MILESTONE_TRACK: MilestoneDef[] = [
+  { points: 20, reward: { gold: 200 } },
+  { points: 40, reward: { gems: 15 } },
+  { points: 60, reward: { gold: 500 } },
+  { points: 80, reward: { gems: 30 } },
+  { points: 100, reward: { gold: 1000, gems: 50 } },
+];
+
 /** 주간 임무 — 카테고리 키는 일일과 동일(wave/summon/…)해서 track() 한 번으로 둘 다 갱신됨 */
 export const WEEKLY_MISSIONS: MissionDef[] = [
   { key: "wave", icon: "⚔️", label: "웨이브 30회 클리어", goal: 30, reward: { gold: 3000 } },
@@ -223,6 +238,36 @@ export function claim(key: string): boolean {
   persist();
   if (reward.gold) addGold(reward.gold);
   if (reward.gems) addGems(reward.gems);
+  emit("missions-changed");
+  return true;
+}
+
+/* ── 일일 마일스톤 포인트 트랙 ── */
+export function dailyPoints(): number {
+  ensureToday();
+  return DAILY_MISSIONS.filter((m) => isClaimed(m.key)).length * DAILY_MISSION_POINTS;
+}
+
+function milestoneKey(points: number): string {
+  return `milestone_${points}`;
+}
+
+export function milestoneClaimed(points: number): boolean {
+  ensureToday();
+  return save.missions.claimed.includes(milestoneKey(points));
+}
+
+export function milestoneClaimable(points: number): boolean {
+  return !milestoneClaimed(points) && dailyPoints() >= points;
+}
+
+export function milestoneClaim(points: number): boolean {
+  if (!milestoneClaimable(points)) return false;
+  const def = MILESTONE_TRACK.find((m) => m.points === points)!;
+  save.missions.claimed.push(milestoneKey(points));
+  persist();
+  if (def.reward.gold) addGold(def.reward.gold);
+  if (def.reward.gems) addGems(def.reward.gems);
   emit("missions-changed");
   return true;
 }

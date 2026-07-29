@@ -8,8 +8,9 @@ import { resolve, extname } from "node:path";
 
 // 코드에서 실제로 쓰는 에셋 폴더만 루트에 평평하게 서빙(dev+build 공통).
 // cards/(116MB, 원본 PNG)는 아직 코드에서 참조하지 않으므로 제외 — cards-webp(6.8MB, 압축본)는
-// 영웅 상세화면 일러스트 뷰(§11)에서 사용.
-const SERVED_ASSET_DIRS = ["characters", "monsters", "backgrounds", "icons", "effects", "cards-webp"];
+// 영웅 상세화면 일러스트 뷰(§11)에서 사용. audio/는 아직 파일이 없어도(§사운드 백로그,
+// 2026-07-29) 안전 — closeBundle이 폴더 존재 여부를 먼저 확인하고 없으면 조용히 건너뜀
+const SERVED_ASSET_DIRS = ["characters", "monsters", "backgrounds", "icons", "effects", "cards-webp", "audio"];
 
 const MIME: Record<string, string> = {
   ".png": "image/png",
@@ -17,6 +18,8 @@ const MIME: Record<string, string> = {
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
   ".svg": "image/svg+xml",
+  ".mp3": "audio/mpeg",
+  ".ogg": "audio/ogg",
 };
 
 function gameAssets() {
