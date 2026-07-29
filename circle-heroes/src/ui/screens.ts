@@ -1,10 +1,11 @@
 import type { Hero } from "../data/heroTypes";
 import { HEROES, PLAYABLE_HEROES } from "../data/heroes";
 import {
-  save, spendGems, addGems, persist,
+  save, spendGems, addGems, spendGold, addEnhanceStone, persist,
   getLevel, levelUpCost, tryLevelUp,
   inParty, toggleParty, PARTY_SIZE,
   getStars, ascendCost, dupeCount, tryAscend, MAX_STARS,
+  EQUIP_SLOTS, EQUIP_MAX_LEVEL, getEquipLevel, equipUpgradeCost, tryUpgradeEquip, type EquipSlot,
 } from "../state/save";
 import {
   pull, SINGLE_COST, TEN_COST, BANNERS, bannerPityCount,
@@ -268,7 +269,7 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
 
 let heroFilter = "전체";
 
-type HeroesSubView = "party" | "ascend" | "codex";
+type HeroesSubView = "party" | "equip" | "ascend" | "codex";
 let heroesSubView: HeroesSubView = "party";
 
 export function setHeroesSubView(v: HeroesSubView) {
@@ -327,6 +328,10 @@ export function renderHeroes(root: HTMLElement) {
   root.innerHTML = "";
   const rerender = () => renderHeroes(root);
 
+  if (heroesSubView === "equip") {
+    renderEquipment(root);
+    return;
+  }
   if (heroesSubView === "ascend") {
     renderAscend(root);
     return;
@@ -535,6 +540,87 @@ function renderAscend(root: HTMLElement) {
         selected: hero.id === ascendTargetId,
         onClick: () => {
           ascendTargetId = hero.id;
+          rerender();
+        },
+      })
+    );
+  }
+  root.appendChild(grid);
+}
+
+/* ── 장비 화면(§장비 시스템 MVP): 강화할 영웅 선택 → 슬롯 3개(무기/방어구/장신구) 강화 ──
+ * DESIGN.md 원 설계대로 장비는 뽑기가 아니라 강화석(파밍)으로만 성장한다. 인스턴스 아이템 대신
+ * "영웅별 슬롯 강화 레벨"로 단순화해 승급 화면과 나란히 놓이는 육성 축 하나를 더 만든다 */
+let equipTargetId: string | null = null;
+
+const EQUIP_SLOT_INFO: Record<EquipSlot, { label: string; icon: string; effect: string }> = {
+  weapon: { label: "무기", icon: "⚔️", effect: "공격력" },
+  armor: { label: "방어구", icon: "🛡️", effect: "방어력·체력" },
+  accessory: { label: "장신구", icon: "💍", effect: "치명타·속도" },
+};
+
+function renderEquipment(root: HTMLElement) {
+  root.innerHTML = "";
+  const rerender = () => renderEquipment(root);
+  root.appendChild(el("h2", "", "영웅 장비"));
+  root.appendChild(el("div", "desc", `강화석으로 무기·방어구·장신구를 강화하세요. 보유 강화석 🔩${save.enhanceStone.toLocaleString()}`));
+
+  const owned = PLAYABLE_HEROES.filter((h) => (save.owned[h.id] ?? 0) > 0);
+  const target = equipTargetId ? owned.find((h) => h.id === equipTargetId) ?? null : null;
+
+  const panel = el("div", "equip-panel");
+  if (target) {
+    const head = el("div", "equip-head");
+    setCardFaction(head, target);
+    const face = el("div", "face");
+    setFace(face, target);
+    head.appendChild(face);
+    head.appendChild(el("div", "as-nm", target.nameKr));
+    panel.appendChild(head);
+
+    for (const slot of EQUIP_SLOTS) {
+      const info = EQUIP_SLOT_INFO[slot];
+      const lv = getEquipLevel(target.id, slot);
+      const maxed = lv >= EQUIP_MAX_LEVEL;
+      const row = el("div", "equip-slot-row");
+      row.appendChild(el("span", "equip-slot-icon", info.icon));
+      const g = el("div", "grow");
+      g.appendChild(el("div", "t", `${info.label} +${lv} (${info.effect})`));
+      if (maxed) {
+        g.appendChild(el("div", "s", "최대 강화 달성"));
+      } else {
+        const cost = equipUpgradeCost(lv);
+        g.appendChild(el("div", "s", `강화 비용 🪙${cost.gold.toLocaleString()} · 🔩${cost.stones}`));
+      }
+      row.appendChild(g);
+      if (!maxed) {
+        const cost = equipUpgradeCost(lv);
+        const canAfford = save.gold >= cost.gold && save.enhanceStone >= cost.stones;
+        const btn = el("button", "btn" + (canAfford ? " primary" : ""), "강화") as HTMLButtonElement;
+        btn.disabled = !canAfford;
+        btn.onclick = () => {
+          if (tryUpgradeEquip(target.id, slot)) {
+            toast(`${info.label} +${getEquipLevel(target.id, slot)}!`);
+            rerender();
+          }
+        };
+        row.appendChild(btn);
+      }
+      panel.appendChild(row);
+    }
+  } else {
+    panel.appendChild(el("div", "as-label", "강화할 영웅을 아래에서 골라주세요"));
+  }
+  root.appendChild(panel);
+
+  root.appendChild(el("h2", "", "보유 영웅"));
+  const grid = el("div", "hero-grid");
+  for (const hero of owned) {
+    grid.appendChild(
+      buildHeroCard(hero, {
+        selected: hero.id === equipTargetId,
+        onClick: () => {
+          equipTargetId = hero.id;
           rerender();
         },
       })
@@ -924,10 +1010,12 @@ function playSummonFx(
 }
 
 /* ── 상점 탭 ── */
+const STONE_PACK = { gold: 300, stones: 10 };
+
 export function renderShop(root: HTMLElement) {
   root.innerHTML = "";
-  root.appendChild(el("h2", "", "골드 상점"));
-  root.appendChild(el("div", "desc", "품목 구성은 준비 중입니다. 일일 무료 상자만 먼저 열려 있어요."));
+  root.appendChild(el("h2", "", "상점"));
+  root.appendChild(el("div", "desc", `보유 골드 🪙${save.gold.toLocaleString()} · 강화석 🔩${save.enhanceStone.toLocaleString()}`));
 
   const today = new Date().toISOString().slice(0, 10);
   const card = el("div", "list-card");
@@ -953,20 +1041,37 @@ export function renderShop(root: HTMLElement) {
   card.appendChild(btn);
   root.appendChild(card);
 
-  for (const [icon, t, s] of [
-    ["🧪", "성장 재료", "요일던전 오픈과 함께"],
-    ["💎", "보석 상점", "패키지 구성 검토 중"],
-  ]) {
-    const c = el("div", "list-card");
-    c.style.opacity = "0.5";
-    c.appendChild(el("span", "", icon));
-    const g = el("div", "grow");
-    g.appendChild(el("div", "t", t));
-    g.appendChild(el("div", "s", s));
-    c.appendChild(g);
-    c.appendChild(el("span", "s", "준비 중"));
-    root.appendChild(c);
-  }
+  // 강화석 교환 — 장비 강화(§장비 시스템 MVP)의 유일한 상시 구매 경로. 횟수 제한 없는 골드 싱크
+  const stoneCard = el("div", "list-card");
+  stoneCard.appendChild(el("span", "", "🔩"));
+  const sg = el("div", "grow");
+  sg.appendChild(el("div", "t", `강화석 ${STONE_PACK.stones}개`));
+  sg.appendChild(el("div", "s", `장비 강화에 사용 · 🪙${STONE_PACK.gold.toLocaleString()}`));
+  stoneCard.appendChild(sg);
+  const stoneBtn = el("button", "btn primary", "구매") as HTMLButtonElement;
+  stoneBtn.disabled = save.gold < STONE_PACK.gold;
+  stoneBtn.onclick = () => {
+    if (!spendGold(STONE_PACK.gold)) {
+      toast("골드가 부족합니다");
+      return;
+    }
+    addEnhanceStone(STONE_PACK.stones);
+    toast(`🔩 강화석 ${STONE_PACK.stones}개 획득!`);
+    renderShop(root);
+  };
+  stoneCard.appendChild(stoneBtn);
+  root.appendChild(stoneCard);
+
+  // 실결제 보석 패키지는 결제 연동이 아직 없어 정직하게 "준비 중"으로만 표시(고스트 버튼 아님 — 클릭 대상 자체가 없음)
+  const c = el("div", "list-card");
+  c.style.opacity = "0.5";
+  c.appendChild(el("span", "", "💎"));
+  const g = el("div", "grow");
+  g.appendChild(el("div", "t", "보석 패키지"));
+  g.appendChild(el("div", "s", "결제 연동 검토 중"));
+  c.appendChild(g);
+  c.appendChild(el("span", "s", "준비 중"));
+  root.appendChild(c);
 }
 
 /* ── 임무 탭 ── */
