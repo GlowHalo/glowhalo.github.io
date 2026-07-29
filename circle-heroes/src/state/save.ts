@@ -24,8 +24,7 @@ export interface SaveState {
   /** heroId -> 성급 (기본 1성, 최대 5성) */
   stars: Record<string, number>;
   stage: number;
-  /** 천장 카운터: 최고등급 못 뽑은 연속 횟수 (구버전 필드, 배너 시스템 도입 후 더는 사용 안 함 —
-   * 예전 세이브 파싱 호환을 위해서만 유지) */
+  /** UR 천장 카운터: 배너 무관 전체 공용으로 누적되는 연속 뽑기 횟수 (UR_PITY_LIMIT 도달 시 UR 확정) */
   pity: number;
   /** 배너별 천장 카운터: bannerId -> 해당 배너에서 픽업 못 뽑은 연속 횟수 */
   bannerPity: Record<string, number>;
