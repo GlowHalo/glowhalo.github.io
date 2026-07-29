@@ -35,9 +35,9 @@ export const BANNERS: Banner[] = [
 ];
 
 // 등급별 가중치(%). N/R은 주로 각성 재료용, SR부터 실전 기용 가능.
-const GRADE_WEIGHT: Record<string, number> = { N: 50, R: 40, SR: 8.9, SSR: 1, UR: 0.1 };
+export const GRADE_WEIGHT: Record<string, number> = { N: 50, R: 40, SR: 8.9, SSR: 1, UR: 0.1 };
 /** SSR/UR이 나왔을 때 픽업(또는 이달의 UR)로 배정될 확률(업계 표준 "50/50" 방식) */
-const PICKUP_RATE_UP = 0.5;
+export const PICKUP_RATE_UP = 0.5;
 
 function pickByGrade(grade: string): Hero {
   const pool = PLAYABLE_HEROES.filter((h) => h.grade === grade);
@@ -57,6 +57,11 @@ export function monthlyFeaturedUR(): Hero {
 
 function ssrPool(): Hero[] {
   return PLAYABLE_HEROES.filter((h) => h.grade === "SSR").sort((a, b) => a.id.localeCompare(b.id));
+}
+
+/** 확률표 팝업용 — 등급 내 전체 종수(개별 확률 계산에 필요) */
+export function gradeRosterCount(grade: string): number {
+  return PLAYABLE_HEROES.filter((h) => h.grade === grade).length;
 }
 
 /** 이달의 SSR 픽업(슬롯 0~2) — 픽업 배너 3개가 매달 서로 다른 SSR 3명으로 자동 로테이션.
