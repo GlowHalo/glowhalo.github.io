@@ -666,6 +666,348 @@ Transparent background. No text, no watermark. Square 1:1.
 `hit-빛.png`, `hit-어둠.png`, `hit-crit.png`, `cast-aura.png` 파일명으로 커밋해주면
 게임 코드에서 순차 연결하겠습니다.
 
+## UI 아이콘 프롬프트 (신규 18종 + chip-bg 재작업, 2026-07-29)
+
+`ASSETS.md` "UI 아이콘/버튼" 절의 백로그를 그대로 제작할 수 있는 프롬프트로 옮김. 기존
+골드/다이아 아이콘과 같은 방식(자체완결형 프롬프트, STYLE BLOCK 안 붙여도 됨) — 그대로
+복붙해서 생성하면 됨. 전부 `assets/icons/`에 지정된 파일명으로 저장.
+
+### class-dealer.png (128×128) — 딜러 클래스 배지
+```
+Mobile game class icon representing a Dealer/DPS class, crossed twin swords
+forming an X shape, sharp blade edges with a subtle red-orange energy glow,
+thick dark outline, glossy cel-shaded metal, anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### class-tanker.png (128×128) — 탱커 클래스 배지
+```
+Mobile game class icon representing a Tanker class, a round heater shield
+with a bold rivet border and a subtle blue energy glow, thick dark outline,
+glossy metal shading, anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### class-support.png (128×128) — 서포터 클래스 배지
+```
+Mobile game class icon representing a Support class, a sparkling four-pointed
+magic star with a small wing accent, soft gold-white glow, thick dark outline,
+glossy cel shading, anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### icon-check.png (128×128) — 편성/선택 체크 배지
+```
+Mobile game UI checkmark badge icon, bold white checkmark on a glossy green
+circular badge, thick dark outline, small shine highlight, anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### icon-power.png (128×128) — 전투력 아이콘
+```
+Mobile game combat-power stat icon, a single glossy crossed sword and
+lightning bolt forming a dynamic emblem, orange-gold energy glow, thick dark
+outline, anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### icon-lock.png (128×128) — 미보유(잠김) 배지
+```
+Mobile game UI padlock icon, closed silver-gold padlock with a glossy
+metallic shine, thick dark outline, anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### star-filled.png (64×64) — 성급 채워진 별
+```
+Mobile game rating star icon, fully filled glossy golden five-pointed star
+with a bright highlight, thick dark outline, anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### star-empty.png (64×64) — 성급 빈 별
+```
+Mobile game rating star icon, outline-only five-pointed star (hollow/unfilled),
+same shape and thick dark outline as a matching filled gold star but with a
+muted dark gray-blue interior, anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### mail-item.png (128×128) — 우편함 아이템 메일
+```
+Mobile game mailbox icon representing an item reward letter, a glossy wrapped
+gift box with a gold ribbon bow, thick dark outline, anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### mail-notice.png (128×128) — 우편함 공지 메일
+```
+Mobile game mailbox icon representing an announcement, a glossy gold
+megaphone/bullhorn shape with a small motion line, thick dark outline,
+anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### mail-normal.png (128×128) — 우편함 일반 메일
+```
+Mobile game mailbox icon representing a normal letter, a glossy closed
+envelope with a wax-seal-style emblem in the center, thick dark outline,
+anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### shop-freebox.png (128×128) — 상점 일일 무료 상자
+```
+Mobile game shop icon, a glossy wooden treasure chest with gold trim,
+slightly open lid with a warm light glow inside, thick dark outline,
+anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### shop-mats.png (128×128) — 상점 성장 재료
+```
+Mobile game shop icon representing growth materials, a small stack of glossy
+ore chunks and a potion bottle together, thick dark outline, anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### shop-gems.png (128×128) — 상점 보석 패키지
+```
+Mobile game shop icon representing a gem package, a cluster of three glossy
+blue diamond gems of different sizes matching the existing gem currency
+icon's style, thick dark outline, anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### badge-new.png (256×128) — 소환 결과 신규 획득 리본
+```
+Mobile game "new item" ribbon banner shape (do not bake in any text — the
+game overlays its own text on top), a diagonal gold ribbon banner with a
+glossy highlight and small drop shadow, anime game UI style.
+Single decorative ribbon shape, centered, horizontal. Transparent background.
+No text, no letters, no watermark. Wide rectangle 2:1.
+```
+
+### icon-photo.png (128×128) — 카드 일러스트 열람 힌트
+```
+Mobile game UI icon representing a photo/gallery viewer, a glossy camera or
+picture-frame icon with a small sparkle accent, thick dark outline,
+anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### icon-key.png (128×128) — 설정 코드입력 섹션
+```
+Mobile game UI icon, a glossy golden key with an ornate bow-head, thick dark
+outline, anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### skill-attack.png (256×256) — 영웅 상세 액티브 스킬 아이콘
+```
+Mobile game skill-type icon representing an active/offensive skill, a glossy
+diagonal sword slash with a sharp energy trail, thick dark outline,
+anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### skill-defense.png (256×256) — 영웅 상세 패시브 스킬 아이콘
+```
+Mobile game skill-type icon representing a passive/defensive skill, a glossy
+round shield with a small plus-cross emblem in the center, thick dark
+outline, anime game UI style.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+### chip-bg.png 재작업 (640×192) — 서브메뉴 칩 배경
+기존 파일은 동그란 3D 렌즈 모양이라 용도(가로로 긴 캡슐)에 안 맞음. `btn-primary-bg.png`와
+같은 구도로 다시 요청:
+```
+Mobile game UI sub-menu tab/chip background, a horizontal glossy amber-gold
+capsule/pill shape filling the canvas edge to edge (same design language as
+the primary button capsule — rounded fully at both short ends, soft
+top-to-bottom gradient highlight only, no diagonal highlight), thick dark
+outline.
+No text, no watermark, no frame. Wide capsule shape filling the canvas edge to edge.
+```
+
+## 스테이지 지역 전환 아트 프롬프트 (5구간×3장 = 15장, 2026-07-29)
+
+`ASSETS.md` "스테이지 지역 전환 아트" 표(1티어 초원은 이미 완료, 아래는 2~6티어분)를 그대로
+제작할 수 있는 프롬프트로 옮김. 배경은 "전투 배경" 프롬프트, 몬스터는 "슬라임/보스슬라임"
+프롬프트와 같은 톤으로 맞춤.
+
+### 10~19 어둠숲 — battle-forest.png (1080×1920)
+```
+Vertical portrait mobile game battle background, 9:16, painterly anime style.
+A dark eerie forest clearing at dusk, twisted gnarled trees with sparse
+purple-green foliage, a flat open dirt clearing across the middle where
+characters stand, faint mist curling near the ground, distant silhouetted
+trees fading into darkness. Top quarter is simple dark canopy/sky (UI covers
+it). Slightly desaturated so characters pop.
+No characters, no text, no watermark, no UI elements.
+```
+wolf_001.png (일반 몬스터, 512×512)
+```
+A menacing dark forest wolf monster, shaggy dark purple-gray fur with faint
+glowing green eyes, bared fangs, hunched aggressive stance, simple mobile
+game monster design (not overly detailed), anime game style.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+boss_direwolf_001.png (보스, 768×768)
+```
+A giant menacing dire wolf boss monster, much larger and more muscular than
+a normal wolf, dark purple-black fur bristling with faint green spectral
+energy, glowing green eyes, massive fangs bared in a snarl, jagged bone
+spikes along its spine, ominous green mist around its paws.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+### 20~29 수정동굴 — battle-cave.png (1080×1920)
+```
+Vertical portrait mobile game battle background, 9:16, painterly anime style.
+An underground crystal cavern, glowing blue-purple crystal formations
+jutting from cave walls and ceiling, a flat open rocky cave floor across the
+middle where characters stand, soft ambient crystal glow lighting the scene,
+stalactites in the distance. Top quarter is simple dark cave ceiling (UI
+covers it). Slightly desaturated so characters pop.
+No characters, no text, no watermark, no UI elements.
+```
+bat_001.png (일반 몬스터, 512×512)
+```
+A small aggressive cave bat monster, dark purple leathery wings, glowing
+blue crystal-like eyes, sharp fangs, simple mobile game monster design (not
+overly detailed), anime game style.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+boss_golem_001.png (보스, 768×768)
+```
+A giant crystal golem boss monster, a hulking humanoid body made of jagged
+blue-purple crystal formations, glowing crystal core in its chest, cracks
+with inner light between crystal plates, heavy stone-like crystal fists.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+### 30~39 화산지대 — battle-volcano.png (1080×1920)
+```
+Vertical portrait mobile game battle background, 9:16, painterly anime style.
+A volcanic wasteland, cracked scorched ground with glowing orange lava
+veins, distant erupting volcano with smoke and ash clouds, a flat open
+blackened rock area across the middle where characters stand, warm
+orange-red ambient lighting. Top quarter is smoky ash-filled sky (UI covers
+it). Slightly desaturated so characters pop.
+No characters, no text, no watermark, no UI elements.
+```
+imp_001.png (일반 몬스터, 512×512)
+```
+A small mischievous fire imp monster, red-orange scaly skin, small curved
+horns, a barbed tail with a flame tip, glowing ember eyes, simple mobile
+game monster design (not overly detailed), anime game style.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+boss_salamander_001.png (보스, 768×768)
+```
+A giant molten salamander boss monster, thick charcoal-black scaled body
+with glowing orange-red magma cracks running along its back and tail,
+burning ember eyes, small curved horns, wisps of smoke rising from its body.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+### 40~49 빙하설원 — battle-frozen.png (1080×1920)
+```
+Vertical portrait mobile game battle background, 9:16, painterly anime style.
+A frozen tundra battlefield, snow-covered ground with jagged ice crystal
+formations, distant icy mountain peaks, a flat open snowy clearing across
+the middle where characters stand, pale blue-white cold ambient lighting,
+light snowfall. Top quarter is overcast pale sky (UI covers it). Slightly
+desaturated so characters pop.
+No characters, no text, no watermark, no UI elements.
+```
+frost_wolf_001.png (일반 몬스터, 512×512)
+```
+A fierce frost wolf monster, pale icy-blue and white fur with sharp ice
+crystal shards growing along its back, glowing cold blue eyes, bared fangs
+with a faint frosty breath, simple mobile game monster design (not overly
+detailed), anime game style.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+boss_yeti_001.png (보스, 768×768)
+```
+A giant yeti boss monster, massive white-blue furred humanoid body, sharp
+ice crystal spikes on its shoulders and forearms, glowing pale blue eyes, a
+roaring open mouth with large fangs, frost mist swirling around it.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+### 50+ 심연 — battle-abyss.png (1080×1920)
+```
+Vertical portrait mobile game battle background, 9:16, painterly anime style.
+A dark otherworldly abyss battlefield, floating obsidian rock platforms over
+a bottomless void, glowing purple-red cracks of energy in the ground, a flat
+open dark platform across the middle where characters stand, ominous violet
+ambient lighting, distant swirling void clouds. Top quarter is dark starless
+void sky (UI covers it). Slightly desaturated so characters pop.
+No characters, no text, no watermark, no UI elements.
+```
+wraith_001.png (일반 몬스터, 512×512)
+```
+A ghostly wraith monster, a tattered translucent dark violet cloak with no
+visible solid body underneath, glowing red eyes floating within a hood,
+wispy smoke-like lower body fading into nothing, simple mobile game monster
+design (not overly detailed), anime game style.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+boss_demonlord_001.png (보스, 768×768)
+```
+A giant demon lord boss monster, imposing dark violet-black armored
+humanoid body, large curved horns, glowing red eyes, tattered dark cape,
+wreathed in swirling purple-red abyssal energy, an aura of overwhelming
+menace befitting a final-area boss.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+## 영웅 공격 포즈 프롬프트 (71종 공용 템플릿, 2026-07-29)
+
+71명을 하나하나 새로 설명할 필요 없음 — **기존 배틀 스프라이트를 레퍼런스 이미지로 강하게
+걸고**(Leonardo/Gemini의 이미지 참조 기능, reference strength를 높게), 포즈만 공격 동작으로
+바꾸는 방식. 얼굴·의상·색·비율은 레퍼런스가 그대로 고정해주므로 "카드 일러스트" 절과 같은
+원리다.
+
+**사용법**: 영웅 하나마다 `assets/characters/<영웅id>.png`(기존 정지 초상화)를 이미지
+레퍼런스로 첨부 → 아래 템플릿에서 그 영웅의 클래스(딜러/탱커/서포터)에 맞는 포즈 문구를
+골라 끼워넣기 → 생성. 71명 전원 이 템플릿 하나로 처리 가능, 개별 프롬프트 작성 불필요.
+저장 파일명: `assets/characters/<영웅id>-attack.png` (기존 정지 초상화와 같은 폴더).
+순서 상관없이 하나씩 도착하는 대로 자동 적용됨(코드 배선 완료).
+
+```
+Same character as the attached reference image, matching exact face,
+costume, colors, and proportions. Change ONLY the pose to a dynamic
+mid-attack impact moment: [아래 클래스별 포즈 문구]. Same chibi-heroic 3-head
+proportions, same bold dark outlines, same glossy cel shading, same lighting
+direction as the reference.
+Full body, single character only, facing right (3/4 view), feet at bottom
+center, small margin. Transparent background (alpha PNG). No text, no
+watermark, no frame. Square 1:1. 512×512.
+```
+
+클래스별 `[포즈 문구]`:
+- **딜러**: `mid-swing weapon strike, weapon fully extended toward the viewer's right, sharp forward lean, aggressive expression`
+- **탱커**: `bracing forward with shield raised, weight low and grounded, defiant expression`
+- **서포터**: `casting a spell/skill, one arm raised with a small glow effect at the hand, focused expression`
+
+우선순위가 필요하면 등급 높은 순(UR→SSR→SR)이나 인기 영웅부터 먼저 진행해도 됨 —
+어차피 하나씩 도착하는 대로 바로 활성화된다.
+
 ## 접수 현황
 
 | 에셋 | 상태 |
