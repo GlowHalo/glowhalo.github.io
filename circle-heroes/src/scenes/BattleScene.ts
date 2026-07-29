@@ -64,6 +64,10 @@ interface UnitView {
   artScale: number;
   /** 보호막 보유 중 캐릭터를 감싸는 상시 링(보호막 값이 있는 동안만 보임) */
   shieldRing: Phaser.GameObjects.Arc;
+  /** 평상시 표시하는 텍스처 키(정지 초상화) — 공격 포즈에서 복귀할 때 되돌아갈 기준 */
+  idleTexKey?: string;
+  /** 공격 포즈 전용 일러스트가 있으면 그 텍스처 키(§공격모션 B) — 없으면 undefined(A안 그대로 유지) */
+  attackTexKey?: string;
 }
 
 /** 스테이지/무한의탑/요일던전 몬스터 → 실제 몬스터 아트 매핑 (탑·요일던전 전용 아트 반영 완료).
@@ -130,6 +134,9 @@ export class BattleScene extends Phaser.Scene {
   preload() {
     for (const h of PLAYABLE_HEROES) {
       this.load.image(`portrait-${h.id}`, `${h.id}.png`);
+      // 공격 포즈 전용 일러스트(PROMPTS.md "공격 모션 B안") — 아직 제작 전이라 전원 404가 나지만
+      // 그 히어로만 정지 초상화로 조용히 폴백하므로 안전하다. 파일이 도착하는 대로 자동 활성화
+      this.load.image(`portrait-attack-${h.id}`, `${h.id}-attack.png`);
     }
     this.load.image("monster-tower_soldier_001", "tower_soldier_001.png");
     this.load.image("monster-tower_guardian_001", "tower_guardian_001.png");
@@ -422,6 +429,9 @@ export class BattleScene extends Phaser.Scene {
     let flashImage: Phaser.GameObjects.Image | undefined;
     let flashShape: Phaser.GameObjects.Arc | undefined;
     let artScale = 1;
+    // 공격 포즈 일러스트(§공격모션 B) — 영웅 초상화가 있고, 그 영웅의 attack 전용 그림도 로드됐을 때만 사용
+    const attackKey = hasPortrait ? `portrait-attack-${unit.heroId}` : undefined;
+    const hasAttackArt = !!attackKey && this.textures.exists(attackKey);
 
     if (spriteKey) {
       const img = this.add.image(0, 0, spriteKey);
@@ -480,6 +490,8 @@ export class BattleScene extends Phaser.Scene {
     return {
       unit, root, flashImage, flashShape, flashShapeColor: fallbackColor,
       hpBg, hpBar, homeX: x, homeY: y, artScale, shieldRing,
+      idleTexKey: spriteKey,
+      attackTexKey: hasAttackArt ? attackKey : undefined,
     };
   }
 
@@ -588,6 +600,12 @@ export class BattleScene extends Phaser.Scene {
     });
     // 돌진 순간 잔상(스피드라인) — 예비동작 끝나는 시점에 맞춰 스폰
     this.delayed(d * 0.45, () => this.spawnDashTrail(view));
+    // 공격 포즈 일러스트(§공격모션 B)가 있으면 타격 순간만 잠깐 바꿔치기 — 없으면 기존 A안(정지 그림+
+    // 스쿼시&스트레치)만으로 그대로 동작(하이브리드 폴백, 영웅별로 그림 도착 순서와 무관하게 안전)
+    if (view.flashImage && view.attackTexKey) {
+      this.delayed(d * 0.45, () => view.flashImage!.setTexture(view.attackTexKey!));
+      this.delayed(d * 0.7, () => view.flashImage!.setTexture(view.idleTexKey!));
+    }
     if (view.flashImage) {
       const s = view.artScale;
       this.tweens.chain({
