@@ -1,3 +1,25 @@
+## 2026-07-29: UI 아이콘 19종 + 스테이지 지역 아트 15종 제작 완료 (검수 통과, 반영)
+
+이 문서에 미리 작성돼 있던 "UI 아이콘 프롬프트(신규 18+chip-bg 재작업)"·"스테이지 지역 전환 아트
+프롬프트(5구간×3장)" 절을 그대로 제작해 5개씩(이번엔 전체 한번에) 검수받아 전부 승인됨.
+
+- **UI 아이콘 19종**: `assets/icons/`에 커밋 (class-{dealer,tanker,support}, icon-{check,power,
+  lock,photo,key}, star-{filled,empty}, mail-{item,notice,normal}, shop-{freebox,mats,gems},
+  badge-new, skill-{attack,defense}, chip-bg 재작업)
+- **스테이지 지역 아트 15종**: `assets/backgrounds/battle-{forest,cave,volcano,frozen,abyss}.png`
+  5장 + `assets/monsters/`에 구간별 일반몬스터·보스 10종(wolf/boss_direwolf, bat/boss_golem,
+  imp/boss_salamander, frost_wolf/boss_yeti, wraith/boss_demonlord)
+
+**기술 메모(다음에도 적용할 것)**:
+- Leonardo Phoenix가 **128×128 이하 같은 작은 캔버스를 직접 요청하면 노이즈(깨진 이미지)를 뱉는
+  현상 확인** — 512×512로 생성한 뒤 Lanczos로 목표 사이즈로 축소하는 방식이 필요.
+- 배경 프롬프트에 "No characters" 라고 넣어도 인물 실루엣이 종종 섞여 나옴 — "완전히 텅 빈,
+  아무도 없는 장면"처럼 강하게 재요청하면 해결됨(기존에도 확인된 패턴, 재확인).
+- 몬스터가 왼쪽을 보고 나오는 경우가 종종 있음(요청은 오른쪽) — 재시도보다 **PIL로 좌우
+  반전(mirror)** 하는 게 토큰도 아끼고 빠름.
+- 일부 몬스터(수정동굴 박쥐/골렘)는 재시도해도 완전한 3/4 비대칭 포즈가 안 나왔음 — 사용
+  가능한 수준으로 판단해 승인됨. 급하면 나중에 다른 각도로 한 번 더 시도 가능.
+
 ## 2026-07-29: 구조적 개선 4건 — 고스트 UI 정리 + 장비 시스템 MVP + 타워 다양화 + 강화석 재화
 
 주인님이 테스트하는 동안 "디자인만 입히면 마이티아레나/AFK아레나 확장판 느낌이 날까?"를 고민해달라고
