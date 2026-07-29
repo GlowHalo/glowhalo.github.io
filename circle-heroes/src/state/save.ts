@@ -1,5 +1,8 @@
 import { emit } from "./bus";
 
+export const EQUIP_SLOTS = ["weapon", "armor", "accessory"] as const;
+export type EquipSlot = (typeof EQUIP_SLOTS)[number];
+
 export interface MailItem {
   id: string;
   kind: "item" | "notice" | "normal";
@@ -59,6 +62,10 @@ export interface SaveState {
   mail: MailItem[];
   /** 누적 소환(뽑기) 횟수 — 업적 "영웅 N회 모집" 트랙에 사용, 리셋 없이 영구 누적 */
   totalSummons: number;
+  /** 강화석 — 장비 강화 전용 재화. 상점 교환 또는 전투 승리 보상으로 획득 */
+  enhanceStone: number;
+  /** heroId -> 슬롯별 장비 강화 레벨(0=미장착) */
+  equipment: Record<string, Record<EquipSlot, number>>;
 }
 
 const KEY = "circle-heroes-save-v1";
@@ -86,6 +93,8 @@ const DEFAULTS: SaveState = {
   backupCode: "",
   mail: [],
   totalSummons: 0,
+  enhanceStone: 0,
+  equipment: {},
 };
 
 function load(): SaveState {
@@ -192,6 +201,42 @@ export function tryAscend(id: string): boolean {
   emit("stars-changed");
   emit("roster-changed");
   return true;
+}
+
+/* ── 장비(강화) ──
+ * DESIGN.md 원래 설계대로 장비는 뽑기가 아니라 파밍(강화석)으로만 성장한다(§장비 시스템 MVP).
+ * 인스턴스 아이템/드랍 대신, 승급처럼 "영웅별 슬롯 강화 레벨"로 단순화해서 육성 축을 하나 더 만든다 —
+ * 무기=공격력, 방어구=방어력·체력, 장신구=치명타·속도 보정 (battle.ts unitFromHero에서 적용) */
+export const EQUIP_MAX_LEVEL = 15;
+
+export function getEquipLevel(id: string, slot: EquipSlot): number {
+  return save.equipment[id]?.[slot] ?? 0;
+}
+
+export function equipUpgradeCost(level: number): { gold: number; stones: number } {
+  return { gold: Math.floor(80 * Math.pow(1.22, level)), stones: level + 1 };
+}
+
+export function tryUpgradeEquip(id: string, slot: EquipSlot): boolean {
+  const level = getEquipLevel(id, slot);
+  if (level >= EQUIP_MAX_LEVEL) return false;
+  const cost = equipUpgradeCost(level);
+  if (save.gold < cost.gold || save.enhanceStone < cost.stones) return false;
+  save.gold -= cost.gold;
+  save.enhanceStone -= cost.stones;
+  if (!save.equipment[id]) save.equipment[id] = { weapon: 0, armor: 0, accessory: 0 };
+  save.equipment[id][slot] = level + 1;
+  persist();
+  emit("gold-changed");
+  emit("stones-changed");
+  emit("equipment-changed");
+  return true;
+}
+
+export function addEnhanceStone(n: number) {
+  save.enhanceStone += n;
+  persist();
+  emit("stones-changed");
 }
 
 /* ── 편성 ── */
