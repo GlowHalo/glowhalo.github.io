@@ -24,8 +24,11 @@ export interface SaveState {
   /** heroId -> 성급 (기본 1성, 최대 5성) */
   stars: Record<string, number>;
   stage: number;
-  /** 천장 카운터: 최고등급 못 뽑은 연속 횟수 */
+  /** 천장 카운터: 최고등급 못 뽑은 연속 횟수 (구버전 필드, 배너 시스템 도입 후 더는 사용 안 함 —
+   * 예전 세이브 파싱 호환을 위해서만 유지) */
   pity: number;
+  /** 배너별 천장 카운터: bannerId -> 해당 배너에서 픽업 못 뽑은 연속 횟수 */
+  bannerPity: Record<string, number>;
   lastSeenMs: number;
   /** YYYY-MM-DD — 일일 무료 상자 수령일 */
   freeBoxDate: string;
@@ -69,6 +72,7 @@ const DEFAULTS: SaveState = {
   stars: {},
   stage: 1,
   pity: 0,
+  bannerPity: {},
   lastSeenMs: Date.now(),
   freeBoxDate: "",
   towerFloor: 1,
