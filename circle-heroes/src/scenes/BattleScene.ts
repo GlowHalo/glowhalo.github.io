@@ -22,6 +22,7 @@ import {
   type HitResult,
   type Unit,
 } from "../systems/battle";
+import { STAGE_TIERS, stageTierFor } from "../data/stageTiers";
 
 export const GAME_W = 420;
 export const GAME_H = 740;
@@ -65,11 +66,14 @@ interface UnitView {
   shieldRing: Phaser.GameObjects.Arc;
 }
 
-/** 스테이지/무한의탑/요일던전 몬스터 → 실제 몬스터 아트 매핑 (탑·요일던전 전용 아트 반영 완료) */
-function monsterSpriteKey(mode: BattleMode, boss: boolean): string {
+/** 스테이지/무한의탑/요일던전 몬스터 → 실제 몬스터 아트 매핑 (탑·요일던전 전용 아트 반영 완료).
+ * 일반 스테이지는 stageTiers.ts 구간에 따라 몬스터가 바뀐다(§4 지역 전환, 아트 없는 구간은
+ * makeUnitView의 텍스처 존재 체크가 알아서 플레이스홀더로 대체하므로 여기선 그냥 원하는 키를 반환) */
+function monsterSpriteKey(mode: BattleMode, boss: boolean, stage: number): string {
   if (mode === "tower") return boss ? "tower_guardian_001" : "tower_soldier_001";
   if (mode === "raid") return "raid_boss_001";
-  return boss ? "boss_slime_001" : "slime_green_001";
+  const tier = stageTierFor(stage);
+  return boss ? tier.bossKey : tier.normalKey;
 }
 
 /**
@@ -107,6 +111,8 @@ export class BattleScene extends Phaser.Scene {
   /** 턴제(탑/아레나) 진행용 행동 순서 큐 — 비면 생존 유닛을 속도순으로 다시 채운다 */
   private turnQueue: Unit[] = [];
 
+  private bg!: Phaser.GameObjects.Image;
+  private bgTexKey = "";
   private stageText!: Phaser.GameObjects.Text;
   private speedBtn!: Phaser.GameObjects.Text;
   private synergyText!: Phaser.GameObjects.Text;
@@ -125,12 +131,19 @@ export class BattleScene extends Phaser.Scene {
     for (const h of PLAYABLE_HEROES) {
       this.load.image(`portrait-${h.id}`, `${h.id}.png`);
     }
-    this.load.image("monster-slime_green_001", "slime_green_001.png");
-    this.load.image("monster-boss_slime_001", "boss_slime_001.png");
     this.load.image("monster-tower_soldier_001", "tower_soldier_001.png");
     this.load.image("monster-tower_guardian_001", "tower_guardian_001.png");
     this.load.image("monster-raid_boss_001", "raid_boss_001.png");
-    this.load.image("bg-battle", "battle-grassland.png");
+    // 스테이지 지역 전환(§4)용 티어별 배경·몬스터(1티어=초원이 기존 bg-battle 역할도 겸함) —
+    // 1티어 외엔 아직 실제 파일이 없어
+    // 개별 404가 나지만 Phaser 로더는 그 파일만 건너뛰고 계속 진행되고(다른 텍스처는 정상 로드),
+    // 사용하는 쪽(makeUnitView/updateBackgroundForStage)이 존재 여부를 확인해 초원/슬라임으로
+    // 폴백하므로 안전하다. 아트가 도착하면 파일만 추가하면 코드 변경 없이 자동 적용됨
+    for (const tier of STAGE_TIERS) {
+      this.load.image(`bg-${tier.bgKey}`, `${tier.bgKey}.png`);
+      this.load.image(`monster-${tier.normalKey}`, `${tier.normalKey}.png`);
+      this.load.image(`monster-${tier.bossKey}`, `${tier.bossKey}.png`);
+    }
 
     this.load.image("fx-cast-aura", "cast-aura.png");
     this.load.image("fx-hit-crit", "hit-crit.png");
@@ -142,9 +155,10 @@ export class BattleScene extends Phaser.Scene {
 
   create() {
     this.cameras.main.setBackgroundColor("#182236");
-    const bg = this.add.image(GAME_W / 2, GAME_H / 2, "bg-battle");
-    const bgScale = Math.max(GAME_W / bg.width, GAME_H / bg.height);
-    bg.setScale(bgScale).setDepth(-10);
+    this.bgTexKey = `bg-${STAGE_TIERS[0].bgKey}`;
+    this.bg = this.add.image(GAME_W / 2, GAME_H / 2, this.bgTexKey);
+    this.fitBg();
+    this.bg.setDepth(-10);
     this.add.rectangle(GAME_W / 2, 545, GAME_W, 2, 0x2c3a58);
 
     this.stageText = this.add
@@ -200,6 +214,23 @@ export class BattleScene extends Phaser.Scene {
     this.startStage(save.stage);
   }
 
+  private fitBg() {
+    const bgScale = Math.max(GAME_W / this.bg.width, GAME_H / this.bg.height);
+    this.bg.setScale(bgScale);
+  }
+
+  /** 스테이지 티어(§4 지역 전환)에 맞는 배경으로 교체 — 해당 티어 아트가 아직 없으면(로드 실패)
+   * 텍스처가 캐시에 없으므로 조용히 1티어(초원) 배경을 유지한다 */
+  private updateBackgroundForStage(stage: number) {
+    const tier = stageTierFor(stage);
+    const key = `bg-${tier.bgKey}`;
+    const resolved = this.textures.exists(key) ? key : `bg-${STAGE_TIERS[0].bgKey}`;
+    if (resolved === this.bgTexKey) return;
+    this.bgTexKey = resolved;
+    this.bg.setTexture(resolved);
+    this.fitBg();
+  }
+
   private setMode(m: BattleMode) {
     if (this.mode === m) return;
     this.mode = m;
@@ -231,6 +262,7 @@ export class BattleScene extends Phaser.Scene {
     this.wave = 1;
     this.heroes = this.buildTeam();
     this.rosterDirty = false;
+    this.updateBackgroundForStage(stage);
     this.spawnTeams();
   }
 
@@ -238,6 +270,7 @@ export class BattleScene extends Phaser.Scene {
     this.wave = 1;
     this.heroes = this.buildTeam();
     this.rosterDirty = false;
+    this.updateBackgroundForStage(1); // 탑/아레나/요일던전은 지역 전환 대상 아님 — 항상 기본(초원) 배경
     this.spawnTeams();
   }
 
@@ -245,6 +278,7 @@ export class BattleScene extends Phaser.Scene {
     this.wave = 1;
     this.heroes = this.buildTeam();
     this.rosterDirty = false;
+    this.updateBackgroundForStage(1);
     this.spawnTeams();
   }
 
@@ -252,6 +286,7 @@ export class BattleScene extends Phaser.Scene {
   private startRaid() {
     const faction = todayFaction();
     this.wave = 1;
+    this.updateBackgroundForStage(1);
     this.heroes = this.buildTeam().filter(
       (u) => faction === null || u.faction === faction
     );
@@ -336,7 +371,7 @@ export class BattleScene extends Phaser.Scene {
       });
     } else {
       const enemyX = GAME_W - 108;
-      const monsterKey = monsterSpriteKey(this.mode, boss);
+      const monsterKey = monsterSpriteKey(this.mode, boss, this.stage);
       this.enemies.forEach((u, i) => {
         const y = boss ? 360 : 250 + i * 74;
         this.views.set(u, this.makeUnitView(u, enemyX + (i % 2) * 30, y, boss, monsterKey));
@@ -974,7 +1009,9 @@ export class BattleScene extends Phaser.Scene {
     this.battleOver = true;
 
     if (this.mode === "stage") {
-      this.showBanner("패배… 부대를 정비해 재도전!", "#ff8f7a");
+      // 스테이지는 패배해도 내려가지 않고 같은 스테이지를 재도전한다 — 실패를 벌주는 대신
+      // "다시 도전" 쪽에 무게를 두려고 경고성 빨강 대신 중립 톤 + "패배" 표현 없이 안내
+      this.showBanner("부대를 정비하고 다시 도전합니다", "#bfdcf0");
       this.delayed(1600 / this.speedMult, () => this.startStage(this.stage));
       return;
     }
@@ -1001,7 +1038,8 @@ export class BattleScene extends Phaser.Scene {
 
   private refreshHud() {
     if (this.mode === "stage") {
-      this.stageText.setText(`STAGE ${this.stage}  ·  WAVE ${this.wave}/${WAVES_PER_STAGE}`);
+      const tierName = stageTierFor(this.stage).name;
+      this.stageText.setText(`${tierName} STAGE ${this.stage}  ·  WAVE ${this.wave}/${WAVES_PER_STAGE}`);
     } else if (this.mode === "tower") {
       this.stageText.setText(`무한의 탑 · ${save.towerFloor}층`);
     } else if (this.mode === "raid") {
