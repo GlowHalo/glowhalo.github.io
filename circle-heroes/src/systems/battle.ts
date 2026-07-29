@@ -156,9 +156,10 @@ function baseUnit(): Omit<Unit, "key" | "name" | "isHero" | "heroClass" | "facti
   };
 }
 
-/** 레벨당 +10%, 성급당 +30%. 장비(§장비 시스템 v2)는 슬롯별로 매칭된 스탯 하나씩만 보정한다 —
- * 무기=공격력, 투구=체력, 갑옷=방어력, 신발=속도, 장신구=치명타 (레벨업/각성과 겹쳐 곱연산).
- * 미장착 슬롯은 등급 없음(0)으로 취급 — 강화 레벨이 아니라 "장착된 등급"이 보너스를 결정한다 */
+/** 레벨당 +10%, 성급당 +30%. 장비(§장비 시스템 v2, 6슬롯)는 슬롯별로 매칭된 스탯 하나씩만
+ * 보정한다 — 무기=공격력, 투구=체력, 갑옷=방어력, 신발=속도, 목걸이=치명타 확률, 반지=치명타 피해
+ * (레벨업/각성과 겹쳐 곱연산). 미장착 슬롯은 등급 없음(0)으로 취급 — 강화 레벨이 아니라
+ * "장착된 등급"이 보너스를 결정한다 */
 export function unitFromHero(hero: Hero, level = 1, stars = 1): Unit {
   const mult = (1 + 0.1 * (level - 1)) * (1 + 0.3 * (stars - 1));
   const p = PASSIVES[hero.id] ?? {};
@@ -166,10 +167,12 @@ export function unitFromHero(hero: Hero, level = 1, stars = 1): Unit {
   const helmetGrade = equippedItem(hero.id, "helmet")?.grade;
   const armorGrade = equippedItem(hero.id, "armor")?.grade;
   const shoesGrade = equippedItem(hero.id, "shoes")?.grade;
-  const accGrade = equippedItem(hero.id, "accessory")?.grade;
+  const necklaceGrade = equippedItem(hero.id, "necklace")?.grade;
+  const ringGrade = equippedItem(hero.id, "ring")?.grade;
   const atkMult = mult * (1 + (weaponGrade ? EQUIP_GRADE_PCT[weaponGrade] : 0));
   const hpMult = mult * (1 + (helmetGrade ? EQUIP_GRADE_PCT[helmetGrade] : 0));
   const defMult = mult * (1 + (armorGrade ? EQUIP_GRADE_PCT[armorGrade] : 0));
+  const critDmgMult = 1 + (ringGrade ? EQUIP_GRADE_PCT[ringGrade] : 0);
   const spd = hero.baseSpd * (p.spdMult ?? 1) + (shoesGrade ? EQUIP_GRADE_FLAT[shoesGrade] : 0);
   const u: Unit = {
     ...baseUnit(),
@@ -184,8 +187,8 @@ export function unitFromHero(hero: Hero, level = 1, stars = 1): Unit {
     atk: Math.round(hero.baseAtk * atkMult),
     def: Math.round(hero.baseDef * defMult),
     spd,
-    critRate: hero.critRate + (accGrade ? EQUIP_GRADE_FLAT[accGrade] : 0),
-    critDmg: hero.critDmg,
+    critRate: hero.critRate + (necklaceGrade ? EQUIP_GRADE_FLAT[necklaceGrade] : 0),
+    critDmg: Math.round(hero.critDmg * critDmgMult),
     baseSpdVal: spd,
     baseAtkVal: Math.round(hero.baseAtk * atkMult),
     baseDmgTakenMult: p.dmgTakenMult ?? 1,
