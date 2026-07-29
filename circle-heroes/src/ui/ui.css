@@ -243,10 +243,32 @@
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
 }
+/* 실제 디자인 세션 산출물(캡슐형 9-slice, 800×256, 좌우 약 130px 캡)을 적용 — 배경은 그대로 두고
+ * 테두리(border-image)만 이미지로 대체해 어떤 버튼 너비에서도 둥근 끝은 안 뭉개지고 가운데만
+ * 늘어나게 한다. slice/width를 좌우만 지정(0 = 상하 없음)해 캡슐 세로 형태가 그대로 유지됨 */
 .btn.primary {
-  background: linear-gradient(180deg, var(--amber), var(--amber-dark));
+  background: none;
   color: #10131c;
   font-weight: 700;
+  border-style: solid;
+  border-color: transparent;
+  border-width: 0 20px;
+  border-image-source: url("btn-primary-bg.png");
+  border-image-slice: 0 130 fill;
+  border-image-width: 0 20px;
+  border-image-repeat: stretch;
+}
+.btn.danger {
+  background: none;
+  color: #fff;
+  font-weight: 700;
+  border-style: solid;
+  border-color: transparent;
+  border-width: 0 20px;
+  border-image-source: url("btn-danger-bg.png");
+  border-image-slice: 0 130 fill;
+  border-image-width: 0 20px;
+  border-image-repeat: stretch;
 }
 .btn:disabled { opacity: 0.45; cursor: default; }
 

@@ -473,7 +473,7 @@ export function buildShell() {
       body.appendChild(p);
       body.appendChild(buildCodeSection());
       body.appendChild(buildBackupSection());
-      const danger = h("button", "btn", "세이브 초기화") as HTMLButtonElement;
+      const danger = h("button", "btn danger", "세이브 초기화") as HTMLButtonElement;
       danger.onclick = () => {
         if (confirm("정말 처음부터 시작할까요? 되돌릴 수 없습니다.")) resetSave();
       };
