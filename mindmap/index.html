@@ -206,6 +206,7 @@
   <button class="btn icon" id="btn-zoom-in" title="확대">＋</button>
   <button class="btn" id="btn-fit">화면 맞춤</button>
   <button class="btn" id="btn-reset">비우기</button>
+  <button class="btn" id="btn-copy-text" title="클로드 등 AI 세션에 붙여넣기 좋은 텍스트로 복사">🤖 텍스트로 복사</button>
   <button class="btn primary" id="btn-share">🔗 공유 링크 복사</button>
 </div>
 
@@ -780,6 +781,34 @@
     done();
   }
 
+  function nodeToTextLines(node, depth, lines) {
+    var indent = '  '.repeat(depth);
+    lines.push(indent + '- ' + node.text);
+    if (node.detail) {
+      var detailIndent = '  '.repeat(depth + 1);
+      node.detail.split('\n').forEach(function (line) {
+        lines.push(detailIndent + '> ' + line);
+      });
+    }
+    node.children.forEach(function (c) { nodeToTextLines(c, depth + 1, lines); });
+  }
+
+  function treeToText() {
+    var lines = ['# 마인드맵: ' + getActiveItem().name, ''];
+    nodeToTextLines(tree, 0, lines);
+    return lines.join('\n');
+  }
+
+  function copyAsText() {
+    var text = treeToText();
+    var done = function () { showToast('클로드 등 AI 세션에 붙여넣을 수 있는 텍스트로 복사했어요.'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text, done); });
+    } else {
+      fallbackCopy(text, done);
+    }
+  }
+
   // ---------- events ----------
 
   nodesLayer.addEventListener('click', function (e) {
@@ -886,6 +915,7 @@
   document.getElementById('btn-fit').addEventListener('click', fitView);
   document.getElementById('btn-reset').addEventListener('click', clearActive);
   document.getElementById('btn-share').addEventListener('click', copyShareLink);
+  document.getElementById('btn-copy-text').addEventListener('click', copyAsText);
 
   // library panel
   document.getElementById('btn-library').addEventListener('click', function (e) {
