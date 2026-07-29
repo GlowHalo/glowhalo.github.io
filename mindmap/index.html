@@ -140,6 +140,41 @@
     display: flex; align-items: center; justify-content: center;
   }
 
+  .detail-badge {
+    position: absolute; right: 6px; bottom: 4px;
+    font-size: 11px; opacity: 0.55; cursor: pointer; line-height: 1;
+  }
+  .detail-badge:hover { opacity: 1; }
+
+  .modal-backdrop {
+    display: none; position: fixed; inset: 0; z-index: 40;
+    background: rgba(14,15,19,0.45);
+    align-items: center; justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal-card {
+    background: #fff; color: #14151A; border-radius: 14px;
+    width: min(480px, 90vw); max-height: 70vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .modal-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px; border-bottom: 1px solid #E4E4E9;
+  }
+  .modal-head-title { font-size: 13px; font-weight: 700; color: #61636C; }
+  .modal-head-title b { color: #14151A; font-weight: 900; }
+  .modal-close {
+    border: none; background: none; font-size: 15px; cursor: pointer;
+    color: #9A9CA5; padding: 4px;
+  }
+  .modal-close:hover { color: #14151A; }
+  #detail-textarea {
+    flex: 1; border: none; resize: none; outline: none;
+    padding: 14px 16px; font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px; line-height: 1.7; min-height: 160px;
+  }
+
   .hint-bubble {
     position: absolute;
     font-size: 12px; color: #61636C; line-height: 1.6;
@@ -183,6 +218,16 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="modal-backdrop" id="detail-modal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <span class="modal-head-title">상세 내용 · <b id="detail-modal-title"></b></span>
+      <button class="modal-close" id="detail-modal-close">✕</button>
+    </div>
+    <textarea id="detail-textarea" placeholder="추가로 남기고 싶은 상세 내용을 입력하세요 (선택 사항)"></textarea>
+  </div>
+</div>
+
 <script>
 (function () {
   'use strict';
@@ -213,7 +258,7 @@
   }
 
   function defaultTree() {
-    return { id: 'root', text: '중심 주제', collapsed: false, children: [] };
+    return { id: 'root', text: '중심 주제', detail: '', collapsed: false, children: [] };
   }
 
   function findNode(node, id) {
@@ -252,6 +297,7 @@
     return {
       id: node.id,
       text: node.text,
+      detail: node.detail || '',
       collapsed: !!node.collapsed,
       children: node.children.map(serialize)
     };
@@ -438,7 +484,7 @@
     var node = findNode(tree, id);
     if (!node) return;
     node.collapsed = false;
-    var child = { id: genId(), text: '새 노드', collapsed: false, children: [] };
+    var child = { id: genId(), text: '새 노드', detail: '', collapsed: false, children: [] };
     node.children.push(child);
     selectedId = child.id;
     render();
@@ -451,7 +497,7 @@
     var parent = getParentOf(id);
     if (!parent) return;
     var idx = parent.children.findIndex(function (c) { return c.id === id; });
-    var sibling = { id: genId(), text: '새 노드', collapsed: false, children: [] };
+    var sibling = { id: genId(), text: '새 노드', detail: '', collapsed: false, children: [] };
     parent.children.splice(idx + 1, 0, sibling);
     selectedId = sibling.id;
     render();
@@ -516,6 +562,36 @@
     return String(s).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
   }
 
+  // ---------- detail panel ----------
+
+  var detailPanelNodeId = null;
+  var detailModal = document.getElementById('detail-modal');
+  var detailTextarea = document.getElementById('detail-textarea');
+  var detailModalTitle = document.getElementById('detail-modal-title');
+
+  function openDetailPanel(id) {
+    var node = findNode(tree, id);
+    if (!node) return;
+    detailPanelNodeId = id;
+    detailModalTitle.textContent = node.text;
+    detailTextarea.value = node.detail || '';
+    detailModal.classList.add('open');
+    detailTextarea.focus();
+  }
+
+  function closeDetailPanel() {
+    if (detailPanelNodeId) {
+      var node = findNode(tree, detailPanelNodeId);
+      if (node) {
+        node.detail = detailTextarea.value.trim();
+        saveActive();
+        render();
+      }
+    }
+    detailPanelNodeId = null;
+    detailModal.classList.remove('open');
+  }
+
   // ---------- layout ----------
 
   function layoutAndRender() {
@@ -575,6 +651,7 @@
       var editable = node.id === editingId;
       var left = node._x + PAD, top = node._y + PAD;
       var toolbarBtns = '<button data-action="add-child" title="하위 추가">➕하위</button>';
+      toolbarBtns += '<button data-action="detail" title="상세 내용">📝상세</button>';
       if (!isRoot) {
         toolbarBtns += '<button data-action="add-sibling" title="형제 추가">➕형제</button>';
         toolbarBtns += '<button data-action="delete" title="삭제">🗑</button>';
@@ -584,10 +661,12 @@
         collapseBadge = '<div class="collapse-toggle" data-action="toggle-collapse" title="접기/펼치기">' +
           (node.collapsed ? '+' + node.children.length : '−') + '</div>';
       }
+      var detailBadge = node.detail ? '<div class="detail-badge" data-action="detail" title="상세 내용 있음 (클릭해서 보기)">📝</div>' : '';
       return '<div class="node' + rootCls + selected + '" data-id="' + node.id + '" style="left:' + left + 'px; top:' + top + 'px; border-left-color:' + (isRoot ? '#14151A' : color) + '">' +
         '<div class="node-text" contenteditable="' + (editable ? 'true' : 'false') + '" spellcheck="false">' + escapeHtml(node.text) + '</div>' +
         '<div class="node-toolbar">' + toolbarBtns + '</div>' +
         collapseBadge +
+        detailBadge +
         '</div>';
     }).join('');
 
@@ -715,6 +794,7 @@
       else if (action === 'add-sibling') addSibling(id);
       else if (action === 'delete') deleteNode(id);
       else if (action === 'toggle-collapse') toggleCollapse(id);
+      else if (action === 'detail') openDetailPanel(id);
       return;
     }
     if (e.target.classList.contains('node-text') && e.target.isContentEditable) return;
@@ -744,6 +824,10 @@
   });
 
   document.addEventListener('keydown', function (e) {
+    if (detailModal.classList.contains('open')) {
+      if (e.key === 'Escape') { e.preventDefault(); closeDetailPanel(); }
+      return;
+    }
     if (document.activeElement && document.activeElement.isContentEditable) return;
     if (!selectedId) return;
     if (e.key === 'Tab') { e.preventDefault(); addChild(selectedId); }
@@ -752,6 +836,11 @@
     else if (e.key === 'Escape') { selectedId = null; render(); }
     else if (e.key === 'F2') { e.preventDefault(); startEdit(selectedId); }
   });
+
+  detailModal.addEventListener('click', function (e) {
+    if (e.target === detailModal) closeDetailPanel();
+  });
+  document.getElementById('detail-modal-close').addEventListener('click', closeDetailPanel);
 
   // pan
   var dragging = false, dragStart = null, panStart = null;
