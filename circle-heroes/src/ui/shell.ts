@@ -536,6 +536,7 @@ export function buildShell() {
   on("stars-changed", refreshHud);
   on("party-changed", refreshHud);
   on("roster-changed", refreshHud);
+  on("equipment-changed", refreshHud);
   on("battle-mode-changed", (m) => {
     battleMode = m as string;
     if (currentTab === "battle") renderSubbar();

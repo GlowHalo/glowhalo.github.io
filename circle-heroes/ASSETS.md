@@ -136,11 +136,12 @@ assets/backgrounds/<장소/테마>.png           ← 슬롯9·10
 | 낮음 | `icon-key.png` | 128×128 | 🔑 | 설정 화면 "코드 입력" 섹션 제목 |
 | 낮음 | `skill-attack.png` | 256×256 | ⚔️ | 영웅 상세 — 액티브 스킬 아이콘 |
 | 낮음 | `skill-defense.png` | 256×256 | 🛡 | 영웅 상세 — 패시브 스킬 아이콘 |
-| 낮음 | `equip-weapon.png` | 128×128 | ⚔️ | 장비 화면(§장비 시스템 v2 2026-07-29 신설, 5슬롯) — 무기 슬롯 아이콘(공격력) |
+| 낮음 | `equip-weapon.png` | 128×128 | ⚔️ | 장비 화면(§장비 시스템 v2 2026-07-29 신설, 6슬롯) — 무기 슬롯 아이콘(공격력) |
 | 낮음 | `equip-helmet.png` | 128×128 | 🪖 | 장비 화면 — 투구 슬롯 아이콘(체력) |
 | 낮음 | `equip-armor.png` | 128×128 | 🛡️ | 장비 화면 — 갑옷 슬롯 아이콘(방어력) |
 | 낮음 | `equip-shoes.png` | 128×128 | 👟 | 장비 화면 — 신발 슬롯 아이콘(속도) |
-| 낮음 | `equip-accessory.png` | 128×128 | 💍 | 장비 화면 — 장신구 슬롯 아이콘(치명타) |
+| 낮음 | `equip-necklace.png` | 128×128 | 📿 | 장비 화면 — 목걸이 슬롯 아이콘(치명타 확률) |
+| 낮음 | `equip-ring.png` | 128×128 | 💍 | 장비 화면 — 반지 슬롯 아이콘(치명타 피해) |
 | 낮음 | `equip-item-N/R/SR/SSR/UR.png` | 128×128 | (등급 텍스트만) | 인벤토리·장착 팝업의 장비 아이템 아이콘 5종(등급별 톤 차등, 슬롯 공통 사용 가능) |
 
 모두 기존 아이콘들(`elem-*.png`, `tab-*.png`)과 같은 폴더(`assets/icons/`)에 같은 파일명 규칙으로
@@ -159,3 +160,4 @@ assets/backgrounds/<장소/테마>.png           ← 슬롯9·10
 | 2026-07-29 | UI 아이콘 전수조사 — 기존 산출물 5개 중 `btn-primary-bg.png`/`btn-danger-bg.png` 2개는 실제로 9-slice 코드 연결까지 완료(모든 CTA·위험 버튼에 적용), `chip-bg.png`는 모양이 용도(가로 캡슐)와 안 맞아 재작업 필요로 판정, `icon-close.png`/`icon-speed.png`는 파일은 정상이나 별도 코드 작업 필요해 보류. 지금 이모지로 때워둔 18개 UI 아이콘(클래스 배지·체크·전투력·자물쇠·별점·우편·상점·NEW배지 등) 신규 백로그 등록, 우선순위 표기 |
 | 2026-07-29 | 장비 시스템 MVP(§BENCHMARK.md #22) 구현으로 신규 아이콘 4종 백로그 추가 — 강화석(`icon-stone.png`, 신규 재화), 장비 슬롯 3종(`equip-weapon/armor/accessory.png`). 기존 "성장 재료(준비중)" 상점 항목은 강화석 교환으로 교체돼 `shop-mats.png` 요청 취소, `icon-stone.png`가 대체 |
 | 2026-07-29 | **장비 시스템 v2 전면 재설계**(강화 방식 → 획득+장착 방식) — 벤치마킹 결과(`reference/afk-arena-companions/03-hero-detail-equipment.jpg`, `reference/hoc-legends/02-hero-detail-equipment.jpg`) 두 레퍼런스 모두 "슬롯에 등급별 아이템을 장착"하는 문법이라 Circle Heroes도 동일하게 전환. 강화석 재화·`icon-stone.png` 백로그 취소(강화 자체가 없어짐), 슬롯이 3→5종(무기/투구/갑옷/신발/장신구)으로 늘어 `equip-helmet.png`/`equip-shoes.png` 추가, 인벤토리 아이템 아이콘(등급별 5종) 신규 추가. 지금은 전부 이모지+등급 텍스트 배지로 대체 중 |
+| 2026-07-29 | **장비 6종으로 확장**(5종 → 6종) — 레퍼런스가 공통으로 쓰는 "장신구를 목걸이+반지 2종으로 분리"하는 관례를 뒤늦게 반영. `equip-accessory.png` 백로그를 `equip-necklace.png`(치명타 확률)/`equip-ring.png`(치명타 피해) 2종으로 교체 |

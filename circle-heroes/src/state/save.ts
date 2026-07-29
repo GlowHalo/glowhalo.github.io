@@ -1,10 +1,11 @@
 import { emit } from "./bus";
 
-/** 장비 5슬롯 — 각각 스탯 하나에 1:1로 매칭(무기=공격력/투구=체력/갑옷=방어력/신발=속도/장신구=치명타).
- * 레퍼런스(AFK Arena: Companions `03-hero-detail-equipment.jpg`, HoC Legends
- * `02-hero-detail-equipment.jpg`)는 둘 다 6슬롯을 캐릭터 좌우에 배치하는데, Circle Heroes는
- * 반지/목걸이를 장신구 하나로 합쳐 5슬롯으로 단순화했다(§장비 시스템 v2, 2026-07-29) */
-export const EQUIP_SLOTS = ["weapon", "helmet", "armor", "shoes", "accessory"] as const;
+/** 장비 6슬롯 — 각각 스탯 하나에 1:1로 매칭(무기=공격력/투구=체력/갑옷=방어력/신발=속도/
+ * 목걸이=치명타 확률/반지=치명타 피해). 레퍼런스(AFK Arena: Companions
+ * `03-hero-detail-equipment.jpg`, HoC Legends `02-hero-detail-equipment.jpg`)와 동일한 6슬롯
+ * 구성 — 처음엔 반지/목걸이를 장신구 하나로 합쳐 5슬롯으로 단순화했었지만(1차), 두 레퍼런스가
+ * 공통으로 쓰는 "장신구 2종 분리" 관례를 그대로 따라가기로 하고 6슬롯으로 확장(2차, 2026-07-29) */
+export const EQUIP_SLOTS = ["weapon", "helmet", "armor", "shoes", "necklace", "ring"] as const;
 export type EquipSlot = (typeof EQUIP_SLOTS)[number];
 
 /** 영웅 등급과 같은 문법(N~UR)을 재사용 — 유저가 별도로 등급 체계를 새로 익힐 필요 없게 */
@@ -18,17 +19,19 @@ export interface EquipItem {
   grade: EquipGrade;
 }
 
-/** 슬롯별 매칭 스탯 — 무기=공격력/투구=체력/갑옷=방어력/신발=속도/장신구=치명타 (battle.ts unitFromHero 적용) */
-export const EQUIP_SLOT_STAT: Record<EquipSlot, "atk" | "hp" | "def" | "spd" | "crit"> = {
+/** 슬롯별 매칭 스탯 — 무기=공격력/투구=체력/갑옷=방어력/신발=속도/목걸이=치명타 확률/반지=치명타 피해
+ * (battle.ts unitFromHero 적용) */
+export const EQUIP_SLOT_STAT: Record<EquipSlot, "atk" | "hp" | "def" | "spd" | "crit" | "critDmg"> = {
   weapon: "atk",
   helmet: "hp",
   armor: "def",
   shoes: "spd",
-  accessory: "crit",
+  necklace: "crit",
+  ring: "critDmg",
 };
 
-/** 등급별 보너스 — 공격/체력/방어(무기·투구·갑옷)는 기본 스탯 대비 배율(%), 속도·치명타(신발·장신구)는
- * 다른 스탯과 값의 스케일이 달라 flat 가산으로 처리한다 */
+/** 등급별 보너스 — 공격/체력/방어/치명타피해(무기·투구·갑옷·반지)는 기본 스탯 대비 배율(%),
+ * 속도·치명타확률(신발·목걸이)은 다른 스탯과 값의 스케일이 달라 flat 가산으로 처리한다 */
 export const EQUIP_GRADE_PCT: Record<EquipGrade, number> = { N: 0.03, R: 0.06, SR: 0.1, SSR: 0.16, UR: 0.24 };
 export const EQUIP_GRADE_FLAT: Record<EquipGrade, number> = { N: 2, R: 4, SR: 7, SSR: 12, UR: 18 };
 
