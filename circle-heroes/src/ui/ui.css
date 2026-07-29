@@ -841,7 +841,10 @@
 .ap-arrow { color: var(--ink3); font-size: 10px; }
 .ap-next { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
 
-/* ── 장비 화면(§장비 시스템 MVP) ── */
+/* ── 장비 화면(§장비 시스템 v2 — 획득+장착, 2026-07-29) ──
+ * 레퍼런스(AFK Arena Companions `03-hero-detail-equipment.jpg`, HoC Legends
+ * `02-hero-detail-equipment.jpg`)는 캐릭터 좌우에 슬롯을 배치하지만, 420px 좁은 캔버스에서는
+ * 기존 party-slot과 같은 가로 5열 행이 더 자연스러워서 그 패턴을 재사용했다 */
 .equip-panel {
   background: var(--panel2);
   border: 1px solid var(--line);
@@ -857,19 +860,54 @@
   gap: 10px;
   padding: 8px;
   border-radius: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .equip-head .face { position: relative; z-index: 1; width: 52px; height: 52px; border-radius: 12px; border: 2px solid #10131c; flex: none; }
 .equip-head .as-nm { position: relative; z-index: 1; font-size: 15px; font-weight: 700; color: var(--ink); }
-.equip-slot-row {
+
+.equip-slot-grid {
+  display: flex;
+  gap: 8px;
+}
+.equip-slot-box {
+  flex: 1;
+  aspect-ratio: 3 / 4;
+  background: var(--panel);
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  text-align: center;
+  padding: 4px;
+}
+.equip-slot-box.filled { border-style: solid; border-width: 3px; }
+.equip-slot-box .esb-icon { font-size: 22px; }
+.equip-slot-box .esb-plus { font-size: 18px; color: var(--ink3); }
+.equip-slot-box .esb-grade { font-size: 12px; font-weight: 800; }
+.equip-slot-box .esb-label { font-size: 10px; color: var(--ink3); }
+
+/* ── 장비 슬롯 팝업(장착/해제/판매) ── */
+.equip-modal { text-align: left; }
+.equip-modal-title { font-size: 12px; font-weight: 700; color: var(--ink3); margin: 12px 0 6px; }
+.equip-modal-title:first-child { margin-top: 0; }
+.equip-modal-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 0;
-  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px 10px;
+  margin-bottom: 6px;
 }
-.equip-slot-row:first-of-type { border-top: none; }
-.equip-slot-icon { font-size: 20px; flex: none; }
+.equip-modal-grade { font-size: 13px; flex: none; min-width: 34px; white-space: nowrap; }
+.equip-modal-bonus { flex: 1 1 auto; font-size: 12.5px; color: var(--ink); white-space: nowrap; }
+.equip-modal-row .btn { flex: none; }
 
 /* ── 영웅 상세 모달 ── */
 .detail-head {
