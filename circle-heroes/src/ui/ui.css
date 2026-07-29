@@ -40,24 +40,26 @@
   position: relative;
   z-index: 5;
   display: flex;
-  gap: 8px;
-  padding: max(10px, env(safe-area-inset-top)) 12px 6px;
+  gap: 2px;
+  padding: max(10px, env(safe-area-inset-top)) 8px 6px;
   pointer-events: auto;
 }
 .hud-chip {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 2px;
   background: #141c30cc;
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 3px 12px 3px 6px;
-  font-size: 13px;
+  padding: 1px 6px 1px 3px;
+  font-size: 10px;
   color: #f5e6c8;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.hud-icon { width: 18px; height: 18px; object-fit: contain; flex: none; }
+.hud-icon { width: 12px; height: 12px; object-fit: contain; flex: none; }
+.hud-power-icon { font-size: 10px; line-height: 1; flex: none; }
+.hud-power { color: #ffd9a0; }
 
 /* ── 우상단 플로팅 ── */
 #corner {
@@ -345,6 +347,7 @@
 
 /* ── 우편함 ── */
 .mail-box { margin: 4px 0 4px; }
+.mail-bulk-btn { width: 100%; margin-bottom: 10px; }
 .mail-row {
   border: 1px solid var(--line);
   border-radius: 10px;

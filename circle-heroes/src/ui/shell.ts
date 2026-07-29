@@ -5,6 +5,7 @@ import {
   unreadMailCount, markMailRead, claimMail, type MailItem,
 } from "../state/save";
 import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView, setMissionsSubView } from "./screens";
+import { partyPower } from "../systems/battle";
 import { isFirebaseConfigured, getBackupCode, backupNow, restoreFromCode } from "../state/backup";
 import { HEROES } from "../data/heroes";
 
@@ -110,6 +111,7 @@ function icon(src: string): HTMLElement {
 function refreshHud() {
   document.getElementById("hud-gold-val")!.textContent = fmt(save.gold);
   document.getElementById("hud-gems-val")!.textContent = fmt(save.gems);
+  document.getElementById("hud-power-val")!.textContent = fmt(partyPower());
 }
 
 function switchTab(key: TabKey) {
@@ -379,14 +381,47 @@ function buildMailRow(m: MailItem): HTMLElement {
   return row;
 }
 
-function openMailModal() {
-  const box = h("div", "mail-box");
+/** 레퍼런스(BENCHMARK.md §2 "전체우편": 목록형 카드 + 일괄 수령 버튼) 반영 */
+function renderMailList(box: HTMLElement) {
+  box.innerHTML = "";
   const list = [...save.mail].sort((a, b) => b.createdAt - a.createdAt);
   if (!list.length) {
     box.appendChild(h("p", "muted", "받은 우편이 없습니다."));
-  } else {
-    list.forEach((m) => box.appendChild(buildMailRow(m)));
+    return;
   }
+  const claimableCount = list.filter((m) => !m.claimed && m.reward).length;
+  if (claimableCount > 0) {
+    const bulkBtn = h("button", "btn primary mail-bulk-btn", `전체 수령 (${claimableCount})`) as HTMLButtonElement;
+    bulkBtn.onclick = () => {
+      let gold = 0;
+      let gems = 0;
+      let count = 0;
+      for (const m of list) {
+        if (m.claimed || !m.reward) continue;
+        const g = m.reward.gold ?? 0;
+        const d = m.reward.gems ?? 0;
+        if (claimMail(m.id)) {
+          count++;
+          gold += g;
+          gems += d;
+        }
+      }
+      if (count > 0) {
+        const parts: string[] = [];
+        if (gold) parts.push(`🪙 ${gold.toLocaleString()}`);
+        if (gems) parts.push(`💎 ${gems.toLocaleString()}`);
+        toast(`우편 ${count}건 일괄 수령! ${parts.join(" ")}`);
+      }
+      renderMailList(box);
+    };
+    box.appendChild(bulkBtn);
+  }
+  list.forEach((m) => box.appendChild(buildMailRow(m)));
+}
+
+function openMailModal() {
+  const box = h("div", "mail-box");
+  renderMailList(box);
   const ok = h("button", "btn primary", "닫기") as HTMLButtonElement;
   ok.onclick = closeModal;
   modal("우편함", box, [ok]);
@@ -468,7 +503,14 @@ export function buildShell() {
   const gemsVal = h("span");
   gemsVal.id = "hud-gems-val";
   gems.appendChild(gemsVal);
-  hud.append(gold, gems);
+  // 상단 고정바에 파티 전투력 상시 노출(레퍼런스: "유저 레벨+전투력+재화" 상단바 문법, BENCHMARK.md §3)
+  const power = h("span", "hud-chip hud-power");
+  power.id = "hud-power";
+  power.appendChild(h("span", "hud-power-icon", "⚔️"));
+  const powerVal = h("span");
+  powerVal.id = "hud-power-val";
+  power.appendChild(powerVal);
+  hud.append(power, gold, gems);
   ui.appendChild(hud);
 
   // 우상단 플로팅
@@ -575,6 +617,10 @@ export function buildShell() {
   refreshHud();
   on("gold-changed", refreshHud);
   on("gems-changed", refreshHud);
+  on("levels-changed", refreshHud);
+  on("stars-changed", refreshHud);
+  on("party-changed", refreshHud);
+  on("roster-changed", refreshHud);
   on("battle-mode-changed", (m) => {
     battleMode = m as string;
     if (currentTab === "battle") renderSubbar();
