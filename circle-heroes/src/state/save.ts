@@ -1,5 +1,16 @@
 import { emit } from "./bus";
 
+export interface MailItem {
+  id: string;
+  kind: "item" | "notice" | "normal";
+  title: string;
+  body: string;
+  reward?: { gold?: number; gems?: number };
+  read: boolean;
+  claimed: boolean;
+  createdAt: number;
+}
+
 // 세이브 본체는 기기 로컬(localStorage). Firebase 백업은 추후 이 모듈에 붙는다.
 export interface SaveState {
   gold: number;
@@ -13,8 +24,10 @@ export interface SaveState {
   /** heroId -> 성급 (기본 1성, 최대 5성) */
   stars: Record<string, number>;
   stage: number;
-  /** 천장 카운터: 최고등급 못 뽑은 연속 횟수 */
+  /** UR 천장 카운터: 배너 무관 전체 공용으로 누적되는 연속 뽑기 횟수 (UR_PITY_LIMIT 도달 시 UR 확정) */
   pity: number;
+  /** 배너별 천장 카운터: bannerId -> 해당 배너에서 픽업 못 뽑은 연속 횟수 */
+  bannerPity: Record<string, number>;
   lastSeenMs: number;
   /** YYYY-MM-DD — 일일 무료 상자 수령일 */
   freeBoxDate: string;
@@ -30,10 +43,20 @@ export interface SaveState {
     progress: Record<string, number>;
     claimed: string[];
   };
+  /** 주간 임무 상태 (ISO 주차가 바뀌면 리셋) */
+  weeklyMissions: {
+    week: string;
+    progress: Record<string, number>;
+    claimed: string[];
+  };
+  /** 메인(업적) 임무 — 리셋 없이 영구 누적, 달성 시 1회만 수령 */
+  achievementsClaimed: string[];
   /** 요일던전: 진영별 보스 누적 처치 수 (잡을수록 강해짐) */
   raidKills: Record<string, number>;
   /** 클라우드 백업 복구 코드 (없으면 아직 백업 안 함) */
   backupCode: string;
+  /** 우편함 */
+  mail: MailItem[];
 }
 
 const KEY = "circle-heroes-save-v1";
@@ -48,14 +71,18 @@ const DEFAULTS: SaveState = {
   stars: {},
   stage: 1,
   pity: 0,
+  bannerPity: {},
   lastSeenMs: Date.now(),
   freeBoxDate: "",
   towerFloor: 1,
   arenaRating: 1000,
   arenaWinDate: "",
   missions: { date: "", progress: {}, claimed: [] },
+  weeklyMissions: { week: "", progress: {}, claimed: [] },
+  achievementsClaimed: [],
   raidKills: {},
   backupCode: "",
+  mail: [],
 };
 
 function load(): SaveState {
@@ -213,14 +240,69 @@ export function resetSave() {
   location.reload();
 }
 
+/** 스테이지 기반 상시 골드 적립 속도(분당) — 오프라인 방치 보상과 온라인 자동 적립(아래 tick)이 공유하는
+ * 단일 기준. 전투 승패와 무관하게 "도달한 최고 스테이지 × 시간"으로만 계산되므로, 일부러 약한 편성으로
+ * 반복 패배해도 이 적립엔 아무 영향이 없다(어뷰징 불가) — 전투 보상(웨이브 클리어 시 골드)은 이와
+ * 별개로 그대로 유지되는 "실력에 따른 추가 수입" */
+export const STAGE_GOLD_PER_MIN = 5;
+
 /** 오프라인 적립: 분당 스테이지×5골드, 최대 240시간. 3분 미만이면 null */
 export const OFFLINE_CAP_HOURS = 240;
 export function calcOfflineReward(): { minutes: number; gold: number } | null {
   const elapsedMin = Math.floor((Date.now() - save.lastSeenMs) / 60000);
   if (elapsedMin < 3) return null;
   const capped = Math.min(elapsedMin, OFFLINE_CAP_HOURS * 60);
-  return { minutes: capped, gold: capped * save.stage * 5 };
+  return { minutes: capped, gold: capped * save.stage * STAGE_GOLD_PER_MIN };
 }
+
+/* ── 우편함 ── */
+export function unreadMailCount(): number {
+  return save.mail.filter((m) => !m.read).length;
+}
+
+export function markMailRead(id: string) {
+  const m = save.mail.find((x) => x.id === id);
+  if (!m || m.read) return;
+  m.read = true;
+  persist();
+  emit("mail-changed");
+}
+
+export function claimMail(id: string): boolean {
+  const m = save.mail.find((x) => x.id === id);
+  if (!m || m.claimed || !m.reward) return false;
+  if (m.reward.gold) save.gold += m.reward.gold;
+  if (m.reward.gems) save.gems += m.reward.gems;
+  m.claimed = true;
+  persist();
+  if (m.reward.gold) emit("gold-changed");
+  if (m.reward.gems) emit("gems-changed");
+  emit("mail-changed");
+  return true;
+}
+
+/** 최초 설치 시 1회만 지급 — id 존재 여부로 idempotent하게 판단 */
+function ensureWelcomeMail() {
+  if (save.mail.some((m) => m.id === "welcome")) return;
+  save.mail.push({
+    id: "welcome",
+    kind: "item",
+    title: "환영합니다!",
+    body: "Circle Heroes에 오신 것을 진심으로 환영합니다.\n작은 선물을 드리니 즐거운 모험 되세요!",
+    reward: { gold: 10000, gems: 3000 },
+    read: false,
+    claimed: false,
+    createdAt: Date.now(),
+  });
+  persist();
+}
+ensureWelcomeMail();
 
 // 주기적으로 lastSeen 갱신 (앱 켜둔 채 방치해도 오프라인 보상이 중복 적립되지 않도록)
 setInterval(persist, 30_000);
+
+/** 접속 중에도 오프라인 방치 보상과 동일한 기준(STAGE_GOLD_PER_MIN)으로 골드가 시간에 비례해 자동
+ * 적립된다 — 현재 스테이지를 못 뚫어 웨이브 골드를 못 벌더라도 육성 골드가 완전히 막히지 않게 하는
+ * 안전망. 전투 승패·반복 횟수와 무관하게 "시간 × 스테이지"로만 계산되므로 일부러 지는 방식으로는
+ * 더 벌 수 없다(어뷰징 불가) — 실제로 잘 싸워서 얻는 웨이브 클리어 골드가 여전히 훨씬 크다 */
+setInterval(() => addGold(Math.round((save.stage * STAGE_GOLD_PER_MIN) / 2)), 30_000);
