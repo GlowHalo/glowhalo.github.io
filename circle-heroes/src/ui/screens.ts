@@ -93,10 +93,24 @@ const GRADE_BORDER: Record<string, string> = {
   UR: "#ff5a6e",
   Unknown: "#8a8f9c",
 };
+/** 등급별 테두리 두께 — 색만으로는 카드 여러 장이 한 화면에 있을 때 다 똑같이 시끄러워 보인다는
+ * 피드백(2026-07-29)으로 굵기를 함께 차등화. 참고자료(AFK Arena Companions는 등급별 전용 심볼
+ * 메달리온, HoC Legends는 아예 색 대신 별 개수)를 보면 둘 다 "색 하나"에 기대지 않는다는 공통점이
+ * 있어서, 우리는 이미 소환 연출(sfx-card)에서 쓰던 "낮은 등급은 얇고 무광, 높은 등급일수록 굵고
+ * 빛난다" 문법을 상시 카드에도 그대로 가져왔다 — 흔한 N/R은 존재감을 낮춰 화면을 조용하게 하고,
+ * 진짜 귀한 SSR/UR만 은은한 발광으로 눈에 띄게 한다 */
+const GRADE_BORDER_WIDTH: Record<string, number> = { N: 2, R: 2, SR: 3, SSR: 3, UR: 4, Unknown: 3 };
+const GRADE_GLOW: Record<string, string> = {
+  SSR: "0 0 6px rgba(255, 211, 77, 0.55)",
+  UR: "0 0 8px rgba(255, 90, 110, 0.65)",
+  Unknown: "0 0 7px rgba(138, 143, 156, 0.6)",
+};
 
-/** 카드/슬롯에 등급을 텍스트 대신 테두리 색으로 표시(상세화면 제외 규칙) */
+/** 카드/슬롯에 등급을 테두리 색+굵기(+상위 등급은 은은한 발광)로 표시(상세화면 제외 규칙) */
 function setGradeBorder(el: HTMLElement, grade: string) {
   el.style.borderColor = GRADE_BORDER[grade] ?? "#888";
+  el.style.borderWidth = `${GRADE_BORDER_WIDTH[grade] ?? 3}px`;
+  el.style.boxShadow = GRADE_GLOW[grade] ?? "";
 }
 
 /* ── 영웅 탭 ── */
