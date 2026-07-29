@@ -6,7 +6,10 @@ import {
   inParty, toggleParty, PARTY_SIZE,
   getStars, ascendCost, dupeCount, tryAscend, MAX_STARS,
 } from "../state/save";
-import { pull, SINGLE_COST, TEN_COST, BANNERS, bannerPityCount } from "../systems/gacha";
+import {
+  pull, SINGLE_COST, TEN_COST, BANNERS, bannerPityCount,
+  SSR_PITY_LIMIT, UR_PITY_LIMIT, monthlyFeaturedUR, urPityCount,
+} from "../systems/gacha";
 import { calcFactionSynergy, partyPower } from "../systems/battle";
 import {
   DAILY_MISSIONS, ALL_CLEAR_KEY, ALL_CLEAR_BONUS,
@@ -582,9 +585,15 @@ export function renderSummon(root: HTMLElement) {
     bannerInfo.innerHTML = "";
     const flavorText = pickup ? `✨ ${pickup.nameKr} 픽업 — ${b.flavor}` : `🎲 ${b.flavor}`;
     bannerInfo.appendChild(el("div", "banner-info-flavor", flavorText));
-    const pityLine = el("div", "banner-info-pity");
-    pityLine.innerHTML = `이 배너 천장까지 <b>${b.pityLimit - bannerPityCount(b.id)}</b>회`;
-    bannerInfo.appendChild(pityLine);
+    if (pickup) {
+      const pityLine = el("div", "banner-info-pity");
+      pityLine.innerHTML = `이 배너 픽업 확정까지 <b>${SSR_PITY_LIMIT - bannerPityCount(b.id)}</b>회`;
+      bannerInfo.appendChild(pityLine);
+    }
+    // UR 천장은 배너 무관 전체 공용이라 어느 배너를 보든 항상 표시한다
+    const urLine = el("div", "banner-info-pity banner-info-ur");
+    urLine.innerHTML = `이달의 UR <b>${monthlyFeaturedUR().nameKr}</b> 확정까지 <b>${UR_PITY_LIMIT - urPityCount()}</b>회 (전 배너 공용)`;
+    bannerInfo.appendChild(urLine);
   };
 
   renderBanners();
