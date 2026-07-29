@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>마인드맵</title>
+<meta name="description" content="빠르게 마인드맵을 그리고, 링크 하나로 다른 세션·기기에 그대로 보여줄 수 있는 도구." />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500;600&display=swap');
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: #F5F5F7;
+    font-family: 'Noto Sans KR', sans-serif;
+    color: #14151A;
+    overflow: hidden;
+  }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    background: #14151A; color: #F5F5F7;
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+  .topbar h1 {
+    font-size: 15px; margin: 0; font-weight: 700; white-space: nowrap;
+  }
+  .topbar h1 span { color: #4C6FFF; }
+  .hint {
+    font-size: 11px; color: #9A9CA5; margin-left: 4px; white-space: nowrap;
+    display: none;
+  }
+  @media (min-width: 860px) { .hint { display: inline; } }
+  .spacer { flex: 1; }
+  .btn {
+    border: none; cursor: pointer; font-family: 'Noto Sans KR', sans-serif;
+    font-size: 12px; font-weight: 700; border-radius: 8px; padding: 7px 12px;
+    background: #23242C; color: #F5F5F7; white-space: nowrap;
+  }
+  .btn:hover { background: #2E2F38; }
+  .btn.primary { background: #4C6FFF; color: #fff; }
+  .btn.primary:hover { background: #3D5CE8; }
+  .btn.icon { padding: 7px 10px; }
+
+  .viewport {
+    position: absolute; top: 52px; left: 0; right: 0; bottom: 0;
+    overflow: hidden;
+    background:
+      radial-gradient(circle, #E2E2E8 1px, transparent 1px);
+    background-size: 22px 22px;
+    cursor: grab;
+    touch-action: none;
+  }
+  .viewport.panning { cursor: grabbing; }
+
+  .canvas-content {
+    position: absolute; top: 0; left: 0;
+    transform-origin: 0 0;
+  }
+
+  svg.edges { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; }
+  .edge { fill: none; stroke: #C7C8D1; stroke-width: 2px; }
+
+  .node {
+    position: absolute;
+    width: 180px;
+    min-height: 44px;
+    border-radius: 10px;
+    background: #FFFFFF;
+    border: 1px solid #E4E4E9;
+    border-left: 4px solid #4C6FFF;
+    box-shadow: 0 2px 8px rgba(14,15,19,0.06);
+    padding: 8px 10px;
+    display: flex; flex-direction: column; gap: 4px;
+    user-select: none;
+    cursor: pointer;
+  }
+  .node.selected { outline: 2px solid #4C6FFF; outline-offset: 2px; }
+  .node.is-root {
+    background: #14151A; color: #F5F5F7; border-left-color: #14151A;
+    font-weight: 700;
+  }
+  .node-text {
+    font-size: 13px; line-height: 1.4;
+    overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
+    -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+    outline: none; cursor: text;
+  }
+  .node-text[contenteditable="true"] {
+    background: rgba(76,111,255,0.08);
+    border-radius: 4px; padding: 2px 4px; -webkit-line-clamp: unset;
+    cursor: text;
+  }
+  .node.is-root .node-text[contenteditable="true"] { background: rgba(255,255,255,0.12); }
+
+  .node-toolbar {
+    display: none; gap: 4px; margin-top: 2px;
+  }
+  .node.selected .node-toolbar { display: flex; }
+  .node-toolbar button {
+    border: none; background: #F0F1F4; color: #4C4E58;
+    border-radius: 6px; font-size: 11px; padding: 3px 6px; cursor: pointer; line-height: 1.3;
+  }
+  .node-toolbar button:hover { background: #E4E5EA; }
+  .node.is-root .node-toolbar button { background: rgba(255,255,255,0.14); color: #F5F5F7; }
+  .node.is-root .node-toolbar button:hover { background: rgba(255,255,255,0.22); }
+
+  .collapse-toggle {
+    position: absolute; right: -12px; top: 50%; transform: translateY(-50%);
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #4C6FFF; color: #fff; border: 2px solid #F5F5F7;
+    font-size: 10px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .hint-bubble {
+    position: absolute;
+    font-size: 12px; color: #61636C; line-height: 1.6;
+    background: #FFF6E9; border: 1px solid #F0D9A8; border-radius: 10px;
+    padding: 10px 12px; width: 220px;
+  }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px);
+    background: #14151A; color: #F5F5F7; font-size: 13px;
+    padding: 10px 16px; border-radius: 999px; opacity: 0; pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+    z-index: 50; white-space: nowrap; box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>🧠 <span>마인드맵</span></h1>
+  <span class="hint">Tab 하위추가 · Enter 형제추가 · Delete 삭제 · 더블클릭 이름변경</span>
+  <div class="spacer"></div>
+  <button class="btn icon" id="btn-zoom-out" title="축소">－</button>
+  <button class="btn icon" id="btn-zoom-in" title="확대">＋</button>
+  <button class="btn" id="btn-fit">화면 맞춤</button>
+  <button class="btn" id="btn-reset">새로 시작</button>
+  <button class="btn primary" id="btn-share">🔗 공유 링크 복사</button>
+</div>
+
+<div class="viewport" id="viewport">
+  <div class="canvas-content" id="canvas-content">
+    <svg class="edges" id="edges"></svg>
+    <div id="nodes"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORAGE_KEY = 'mindmap-autosave-v1';
+  var COL_W = 220, ROW_H = 64, NODE_W = 180, NODE_H = 44, PAD = 80;
+  var DEPTH_COLORS = ['#14151A', '#4C6FFF', '#2E8B57', '#F2994A', '#EB5757', '#9B51E0'];
+
+  var tree = null;
+  var selectedId = null;
+  var editingId = null;
+  var idCounter = 1;
+  var pan = { x: 0, y: 0 };
+  var zoom = 1;
+
+  var viewport = document.getElementById('viewport');
+  var canvasContent = document.getElementById('canvas-content');
+  var edgesSvg = document.getElementById('edges');
+  var nodesLayer = document.getElementById('nodes');
+  var toastEl = document.getElementById('toast');
+
+  function genId() {
+    return 'n' + (idCounter++) + '_' + Math.random().toString(36).slice(2, 7);
+  }
+
+  function defaultTree() {
+    return { id: 'root', text: '중심 주제', collapsed: false, children: [] };
+  }
+
+  function findNode(node, id) {
+    if (node.id === id) return node;
+    for (var i = 0; i < node.children.length; i++) {
+      var found = findNode(node.children[i], id);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  function findParent(node, id, parent) {
+    if (node.id === id) return parent;
+    for (var i = 0; i < node.children.length; i++) {
+      var found = findParent(node.children[i], id, node);
+      if (found !== undefined && found !== null) return found;
+      if (node.children[i].id === id) return node;
+    }
+    return null;
+  }
+
+  // simpler explicit parent finder
+  function getParentOf(id) {
+    function walk(node) {
+      for (var i = 0; i < node.children.length; i++) {
+        if (node.children[i].id === id) return node;
+        var r = walk(node.children[i]);
+        if (r) return r;
+      }
+      return null;
+    }
+    return walk(tree);
+  }
+
+  function serialize(node) {
+    return {
+      id: node.id,
+      text: node.text,
+      collapsed: !!node.collapsed,
+      children: node.children.map(serialize)
+    };
+  }
+
+  function encodeState() {
+    return encodeURIComponent(JSON.stringify(serialize(tree)));
+  }
+
+  function decodeState(str) {
+    return JSON.parse(decodeURIComponent(str));
+  }
+
+  function persist() {
+    var enc = encodeState();
+    try {
+      history.replaceState(null, '', '#d=' + enc);
+      localStorage.setItem(STORAGE_KEY, enc);
+    } catch (e) { /* ignore quota / privacy-mode errors */ }
+  }
+
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function () {
+      toastEl.classList.remove('show');
+    }, 2600);
+  }
+
+  // ---------- mutations ----------
+
+  function addChild(id) {
+    var node = findNode(tree, id);
+    if (!node) return;
+    node.collapsed = false;
+    var child = { id: genId(), text: '새 노드', collapsed: false, children: [] };
+    node.children.push(child);
+    selectedId = child.id;
+    render();
+    persist();
+    startEdit(child.id);
+  }
+
+  function addSibling(id) {
+    if (id === tree.id) { addChild(id); return; }
+    var parent = getParentOf(id);
+    if (!parent) return;
+    var idx = parent.children.findIndex(function (c) { return c.id === id; });
+    var sibling = { id: genId(), text: '새 노드', collapsed: false, children: [] };
+    parent.children.splice(idx + 1, 0, sibling);
+    selectedId = sibling.id;
+    render();
+    persist();
+    startEdit(sibling.id);
+  }
+
+  function deleteNode(id) {
+    if (id === tree.id) { showToast('중심 주제는 삭제할 수 없어요.'); return; }
+    var parent = getParentOf(id);
+    if (!parent) return;
+    var idx = parent.children.findIndex(function (c) { return c.id === id; });
+    var node = parent.children[idx];
+    if (node.children.length > 0) {
+      if (!confirm('하위 항목 ' + countDescendants(node) + '개도 함께 삭제됩니다. 계속할까요?')) return;
+    }
+    parent.children.splice(idx, 1);
+    selectedId = parent.id;
+    render();
+    persist();
+  }
+
+  function countDescendants(node) {
+    var n = 0;
+    node.children.forEach(function (c) { n += 1 + countDescendants(c); });
+    return n;
+  }
+
+  function toggleCollapse(id) {
+    var node = findNode(tree, id);
+    if (!node) return;
+    node.collapsed = !node.collapsed;
+    render();
+    persist();
+  }
+
+  function commitEdit(id, newText) {
+    var node = findNode(tree, id);
+    if (node) node.text = newText.trim() || '(제목 없음)';
+    editingId = null;
+    render();
+    persist();
+  }
+
+  function startEdit(id) {
+    editingId = id;
+    render();
+    requestAnimationFrame(function () {
+      var el = nodesLayer.querySelector('.node[data-id="' + cssEscape(id) + '"] .node-text');
+      if (el) {
+        el.focus();
+        var range = document.createRange();
+        range.selectNodeContents(el);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    });
+  }
+
+  function cssEscape(s) {
+    return String(s).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
+  }
+
+  // ---------- layout ----------
+
+  function layoutAndRender() {
+    var leafCounter = 0;
+    function assign(node, depth) {
+      node._x = depth * COL_W;
+      var visibleChildren = node.collapsed ? [] : node.children;
+      if (visibleChildren.length === 0) {
+        node._y = leafCounter * ROW_H;
+        leafCounter++;
+      } else {
+        visibleChildren.forEach(function (c) { assign(c, depth + 1); });
+        var ys = visibleChildren.map(function (c) { return c._y; });
+        node._y = (Math.min.apply(null, ys) + Math.max.apply(null, ys)) / 2;
+      }
+    }
+    assign(tree, 0);
+
+    var acc = { nodes: [], edges: [] };
+    function collect(node, parent, depth) {
+      acc.nodes.push({ node: node, parent: parent, depth: depth });
+      if (!node.collapsed) {
+        node.children.forEach(function (c) { acc.edges.push([node, c]); });
+        node.children.forEach(function (c) { collect(c, node, depth + 1); });
+      }
+    }
+    collect(tree, null, 0);
+
+    var maxX = 0, maxY = 0;
+    acc.nodes.forEach(function (n) {
+      maxX = Math.max(maxX, n.node._x + NODE_W);
+      maxY = Math.max(maxY, n.node._y + NODE_H);
+    });
+    var contentW = maxX + PAD * 2;
+    var contentH = maxY + PAD * 2;
+
+    canvasContent.style.width = contentW + 'px';
+    canvasContent.style.height = contentH + 'px';
+    edgesSvg.setAttribute('width', contentW);
+    edgesSvg.setAttribute('height', contentH);
+
+    var edgePaths = acc.edges.map(function (pair) {
+      var a = pair[0], b = pair[1];
+      var x1 = a._x + PAD + NODE_W, y1 = a._y + PAD + NODE_H / 2;
+      var x2 = b._x + PAD, y2 = b._y + PAD + NODE_H / 2;
+      var mx = (x1 + x2) / 2;
+      return '<path class="edge" d="M ' + x1 + ',' + y1 + ' C ' + mx + ',' + y1 + ' ' + mx + ',' + y2 + ' ' + x2 + ',' + y2 + '"></path>';
+    }).join('');
+    edgesSvg.innerHTML = edgePaths;
+
+    var html = acc.nodes.map(function (n) {
+      var node = n.node;
+      var isRoot = node.id === tree.id;
+      var color = DEPTH_COLORS[n.depth % DEPTH_COLORS.length];
+      var selected = node.id === selectedId ? ' selected' : '';
+      var rootCls = isRoot ? ' is-root' : '';
+      var editable = node.id === editingId;
+      var left = node._x + PAD, top = node._y + PAD;
+      var toolbarBtns = '<button data-action="add-child" title="하위 추가">➕하위</button>';
+      if (!isRoot) {
+        toolbarBtns += '<button data-action="add-sibling" title="형제 추가">➕형제</button>';
+        toolbarBtns += '<button data-action="delete" title="삭제">🗑</button>';
+      }
+      var collapseBadge = '';
+      if (node.children.length > 0) {
+        collapseBadge = '<div class="collapse-toggle" data-action="toggle-collapse" title="접기/펼치기">' +
+          (node.collapsed ? '+' + node.children.length : '−') + '</div>';
+      }
+      return '<div class="node' + rootCls + selected + '" data-id="' + node.id + '" style="left:' + left + 'px; top:' + top + 'px; border-left-color:' + (isRoot ? '#14151A' : color) + '">' +
+        '<div class="node-text" contenteditable="' + (editable ? 'true' : 'false') + '" spellcheck="false">' + escapeHtml(node.text) + '</div>' +
+        '<div class="node-toolbar">' + toolbarBtns + '</div>' +
+        collapseBadge +
+        '</div>';
+    }).join('');
+
+    if (tree.children.length === 0) {
+      html += '<div class="hint-bubble" style="left:' + (PAD + NODE_W + 30) + 'px; top:' + (PAD - 10) + 'px;">' +
+        '중심 노드를 더블클릭해서 이름을 바꾸고,<br>선택한 뒤 <b>➕하위</b>를 눌러 생각을 넓혀보세요.' +
+        '</div>';
+    }
+
+    nodesLayer.innerHTML = html;
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function applyTransform() {
+    canvasContent.style.transform = 'translate(' + pan.x + 'px,' + pan.y + 'px) scale(' + zoom + ')';
+  }
+
+  function render() {
+    layoutAndRender();
+    applyTransform();
+  }
+
+  // ---------- view controls ----------
+
+  function fitView() {
+    var vw = viewport.clientWidth, vh = viewport.clientHeight;
+    var cw = parseFloat(canvasContent.style.width) || vw;
+    var ch = parseFloat(canvasContent.style.height) || vh;
+    var scale = Math.min(vw / cw, vh / ch, 1);
+    scale = Math.max(scale, 0.25);
+    zoom = scale;
+    pan.x = (vw - cw * scale) / 2;
+    pan.y = (vh - ch * scale) / 2;
+    applyTransform();
+  }
+
+  function zoomBy(delta, center) {
+    var vw = viewport.clientWidth, vh = viewport.clientHeight;
+    var cx = center ? center.x : vw / 2, cy = center ? center.y : vh / 2;
+    var newZoom = Math.min(2, Math.max(0.25, zoom + delta));
+    var wx = (cx - pan.x) / zoom, wy = (cy - pan.y) / zoom;
+    pan.x = cx - wx * newZoom;
+    pan.y = cy - wy * newZoom;
+    zoom = newZoom;
+    applyTransform();
+  }
+
+  // ---------- persistence / load ----------
+
+  function loadInitial() {
+    var hash = location.hash;
+    if (hash && hash.indexOf('#d=') === 0) {
+      try {
+        tree = decodeState(hash.slice(3));
+        return;
+      } catch (e) {
+        showToast('공유 링크를 읽지 못했어요. 새 마인드맵으로 시작합니다.');
+      }
+    }
+    try {
+      var saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        tree = decodeState(saved);
+        return;
+      }
+    } catch (e) { /* ignore */ }
+    tree = defaultTree();
+  }
+
+  function resetAll() {
+    if (!confirm('정말 새로 시작할까요? 현재 내용이 사라집니다.')) return;
+    tree = defaultTree();
+    selectedId = null;
+    editingId = null;
+    try {
+      history.replaceState(null, '', location.pathname);
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) { /* ignore */ }
+    render();
+    fitView();
+  }
+
+  function copyShareLink() {
+    persist();
+    var url = location.href;
+    var done = function () { showToast('공유 링크를 복사했어요. 다른 브라우저·기기에 붙여넣으면 지금 상태 그대로 보여요.'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(done, function () { fallbackCopy(url, done); });
+    } else {
+      fallbackCopy(url, done);
+    }
+  }
+
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) { /* ignore */ }
+    document.body.removeChild(ta);
+    done();
+  }
+
+  // ---------- events ----------
+
+  nodesLayer.addEventListener('click', function (e) {
+    var actionBtn = e.target.closest('[data-action]');
+    var nodeEl = e.target.closest('.node');
+    if (!nodeEl) return;
+    var id = nodeEl.getAttribute('data-id');
+    if (actionBtn) {
+      e.stopPropagation();
+      var action = actionBtn.getAttribute('data-action');
+      if (action === 'add-child') addChild(id);
+      else if (action === 'add-sibling') addSibling(id);
+      else if (action === 'delete') deleteNode(id);
+      else if (action === 'toggle-collapse') toggleCollapse(id);
+      return;
+    }
+    if (e.target.classList.contains('node-text') && e.target.isContentEditable) return;
+    selectedId = id;
+    render();
+  });
+
+  nodesLayer.addEventListener('dblclick', function (e) {
+    var textEl = e.target.closest('.node-text');
+    if (!textEl) return;
+    var nodeEl = e.target.closest('.node');
+    selectedId = nodeEl.getAttribute('data-id');
+    startEdit(selectedId);
+  });
+
+  nodesLayer.addEventListener('focusout', function (e) {
+    if (e.target.classList.contains('node-text') && editingId) {
+      commitEdit(editingId, e.target.innerText);
+    }
+  });
+
+  nodesLayer.addEventListener('keydown', function (e) {
+    if (!e.target.classList.contains('node-text')) return;
+    if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+    else if (e.key === 'Escape') { e.preventDefault(); editingId = null; render(); }
+    e.stopPropagation();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement && document.activeElement.isContentEditable) return;
+    if (!selectedId) return;
+    if (e.key === 'Tab') { e.preventDefault(); addChild(selectedId); }
+    else if (e.key === 'Enter') { e.preventDefault(); addSibling(selectedId); }
+    else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteNode(selectedId); }
+    else if (e.key === 'Escape') { selectedId = null; render(); }
+    else if (e.key === 'F2') { e.preventDefault(); startEdit(selectedId); }
+  });
+
+  // pan
+  var dragging = false, dragStart = null, panStart = null;
+  viewport.addEventListener('pointerdown', function (e) {
+    if (e.target.closest('.node')) return;
+    dragging = true;
+    viewport.classList.add('panning');
+    dragStart = { x: e.clientX, y: e.clientY };
+    panStart = { x: pan.x, y: pan.y };
+    viewport.setPointerCapture(e.pointerId);
+  });
+  viewport.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    pan.x = panStart.x + (e.clientX - dragStart.x);
+    pan.y = panStart.y + (e.clientY - dragStart.y);
+    applyTransform();
+  });
+  viewport.addEventListener('pointerup', function () {
+    dragging = false;
+    viewport.classList.remove('panning');
+  });
+  viewport.addEventListener('pointercancel', function () {
+    dragging = false;
+    viewport.classList.remove('panning');
+  });
+  viewport.addEventListener('click', function (e) {
+    if (e.target === viewport || e.target === canvasContent) {
+      selectedId = null;
+      render();
+    }
+  });
+
+  // wheel zoom
+  viewport.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    var rect = viewport.getBoundingClientRect();
+    var center = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    zoomBy(e.deltaY < 0 ? 0.1 : -0.1, center);
+  }, { passive: false });
+
+  document.getElementById('btn-zoom-in').addEventListener('click', function () { zoomBy(0.15); });
+  document.getElementById('btn-zoom-out').addEventListener('click', function () { zoomBy(-0.15); });
+  document.getElementById('btn-fit').addEventListener('click', fitView);
+  document.getElementById('btn-reset').addEventListener('click', resetAll);
+  document.getElementById('btn-share').addEventListener('click', copyShareLink);
+
+  // ---------- init ----------
+  loadInitial();
+  render();
+  fitView();
+  persist();
+})();
+</script>
+</body>
+</html>
