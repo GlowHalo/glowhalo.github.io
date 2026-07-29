@@ -8,14 +8,14 @@ import {
 } from "../state/save";
 import {
   pull, SINGLE_COST, TEN_COST, BANNERS, bannerPityCount,
-  SSR_PITY_LIMIT, UR_PITY_LIMIT, monthlyFeaturedUR, urPityCount,
+  SSR_PITY_LIMIT, UR_PITY_LIMIT, monthlyFeaturedUR, urPityCount, pickupHeroFor,
 } from "../systems/gacha";
 import { calcFactionSynergy, partyPower } from "../systems/battle";
 import {
   DAILY_MISSIONS, ALL_CLEAR_KEY, ALL_CLEAR_BONUS,
   missionProgress, isClaimed, claimable, claim, track,
   WEEKLY_MISSIONS, WEEKLY_ALL_CLEAR_BONUS, weeklyProgress, weeklyIsClaimed, weeklyClaimable, weeklyClaim,
-  ACHIEVEMENTS, achievementClaimed, achievementClaimable, achievementClaim,
+  ACHIEVEMENTS, achievementClaimed, achievementClaimable, achievementClaim, currentAchievementTiers,
 } from "../systems/missions";
 import { toast, modal, closeModal } from "./shell";
 import { emit } from "../state/bus";
@@ -395,14 +395,6 @@ export function renderHeroes(root: HTMLElement) {
     grid.appendChild(buildHeroCard(hero, { onClick: () => openHeroDetail(hero, rerender) }));
   }
   root.appendChild(grid);
-  // 캡쳐처럼 2줄(10칸)이 온전히 보이고 3번째 줄은 위쪽만 살짝 보이도록 실측 카드 높이로 클리핑
-  requestAnimationFrame(() => {
-    const first = grid.querySelector<HTMLElement>(".hero-card");
-    if (!first) return;
-    const cardH = first.offsetHeight;
-    const gapPx = parseFloat(getComputedStyle(grid).rowGap || "8");
-    grid.style.maxHeight = `${cardH * 2 + gapPx + cardH * 0.34}px`;
-  });
   // 미보유 영웅은 여기서 표시하지 않음 — 도감 서브탭에서 확인
 }
 
@@ -542,9 +534,9 @@ let selectedBannerId = BANNERS[0].id;
 export function renderSummon(root: HTMLElement) {
   root.innerHTML = "";
   root.appendChild(el("h2", "", "영웅 소환"));
-  root.appendChild(el("div", "desc", "배너를 골라 소환하세요. 픽업 배너는 해당 캐릭터 확률 UP, 그냥뽑기는 모든 SSR 동일 확률입니다."));
+  root.appendChild(el("div", "desc", "네 배너 모두 같은 확률표를 쓰는 동일한 뽑기입니다 — 픽업 배너는 그 달의 SSR 3명만 등장 확률이 오르는 것뿐, 다른 등급 확률은 전혀 안 바뀝니다."));
 
-  // 배너 선택 — 배너마다 SSR 픽업 캐릭터 1명(§3)
+  // 배너 선택 — 그냥뽑기(왼쪽) + 이달의 SSR 픽업 3개(매달 자동 로테이션, §4)
   const bannerRow = el("div", "banner-row");
   root.appendChild(bannerRow);
   const bannerInfo = el("div", "banner-info");
@@ -553,7 +545,7 @@ export function renderSummon(root: HTMLElement) {
   const renderBanners = () => {
     bannerRow.innerHTML = "";
     for (const b of BANNERS) {
-      const pickup = b.pickupHeroId ? PLAYABLE_HEROES.find((h) => h.id === b.pickupHeroId) : undefined;
+      const pickup = pickupHeroFor(b);
       const card = el("div", "banner-card" + (b.id === selectedBannerId ? " on" : ""));
       if (pickup) {
         setGradeBorder(card, pickup.grade);
@@ -561,11 +553,11 @@ export function renderSummon(root: HTMLElement) {
         const face = el("div", "face");
         setFace(face, pickup);
         card.appendChild(face);
+        card.appendChild(el("div", "banner-card-monthly", "이달의 픽업"));
       } else {
-        // 그냥뽑기 배너 — 특정 픽업이 없으니 UR 등급색 테두리 + 주사위 아이콘으로 대체
-        setGradeBorder(card, "UR");
+        // 그냥뽑기 배너 — 특정 픽업이 없을 뿐 다른 배너와 동급의 뽑기라는 걸 같은 비주얼 무게로 표현
         card.classList.add("banner-card-standard");
-        card.appendChild(el("div", "banner-card-standard-icon", "🎲"));
+        card.appendChild(el("div", "banner-card-standard-icon", "✨"));
       }
       if (b.id === selectedBannerId) card.appendChild(el("div", "banner-card-check", "✓"));
       card.appendChild(el("div", "banner-card-name", b.name));
@@ -581,9 +573,11 @@ export function renderSummon(root: HTMLElement) {
 
   const updateBannerInfo = () => {
     const b = BANNERS.find((x) => x.id === selectedBannerId)!;
-    const pickup = b.pickupHeroId ? PLAYABLE_HEROES.find((h) => h.id === b.pickupHeroId) : undefined;
+    const pickup = pickupHeroFor(b);
     bannerInfo.innerHTML = "";
-    const flavorText = pickup ? `✨ ${pickup.nameKr} 픽업 — ${b.flavor}` : `🎲 ${b.flavor}`;
+    const flavorText = pickup
+      ? `✨ 이달의 픽업 — ${pickup.nameKr}(${pickup.faction} · ${pickup.heroClass}) 등장 확률 UP`
+      : "✨ 모든 SSR 동일 확률 — 원하는 캐릭터가 이달의 픽업이 아니라면 여기서 노려보세요";
     bannerInfo.appendChild(el("div", "banner-info-flavor", flavorText));
     if (pickup) {
       const pityLine = el("div", "banner-info-pity");
@@ -1014,28 +1008,34 @@ function renderMissionList(
   root.appendChild(allCard);
 }
 
-/** 메인 임무(업적) — 리셋 없이 영구 누적, 전체완료 보너스 없음 */
+/** 메인 임무(업적) — 리셋 없이 영구 누적, 전체완료 보너스 없음.
+ * track(예: 스테이지/탑/보유수/성급/레이팅/소환횟수)별로 난이도가 오르는 티어가 쭉 이어져 있고,
+ * 화면엔 항상 각 track의 "다음 목표" 하나만 보여준다 — 달성·수령하면 다음 단계가 자동으로
+ * 그 자리에 나타나는 방식(§업적 티어 연쇄) */
 function renderAchievements(root: HTMLElement) {
   root.appendChild(el("h2", "", "메인 임무"));
-  root.appendChild(el("div", "desc", "리셋되지 않는 영구 목표입니다. 조건을 달성하면 수령하세요."));
+  root.appendChild(el("div", "desc", "리셋되지 않는 영구 목표입니다. 달성·수령하면 더 높은 단계로 자동 연결됩니다."));
 
-  for (const a of ACHIEVEMENTS) {
+  for (const a of currentAchievementTiers()) {
+    const tier = ACHIEVEMENTS.filter((x) => x.track === a.track);
+    const tierIdx = tier.findIndex((x) => x.key === a.key);
     const cur = Math.min(a.goal, a.progress());
     const done = cur >= a.goal;
+    const allClaimed = tierIdx === tier.length - 1 && achievementClaimed(a.key);
     const card = el("div", "list-card");
     card.appendChild(el("span", "", a.icon));
     const g = el("div", "grow");
-    g.appendChild(el("div", "t", a.label));
+    g.appendChild(el("div", "t", `${a.label}${tier.length > 1 ? ` (${tierIdx + 1}/${tier.length}단계)` : ""}`));
     const barWrap = el("div", "mbar");
     const bar = el("div", "mbar-fill");
     bar.style.width = `${Math.min(100, (cur / a.goal) * 100)}%`;
     barWrap.appendChild(bar);
     g.appendChild(barWrap);
-    g.appendChild(el("div", "s", `${cur}/${a.goal} · 보상 ${rewardText(a.reward)}`));
+    g.appendChild(el("div", "s", allClaimed ? "모든 단계 달성" : `${cur}/${a.goal} · 보상 ${rewardText(a.reward)}`));
     card.appendChild(g);
 
     if (achievementClaimed(a.key)) {
-      card.appendChild(el("span", "s", "수령 완료"));
+      card.appendChild(el("span", "s", allClaimed ? "🏆" : "수령 완료"));
     } else {
       const btn = el("button", "btn" + (done ? " primary" : ""), "수령") as HTMLButtonElement;
       btn.disabled = !achievementClaimable(a.key);

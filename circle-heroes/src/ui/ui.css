@@ -35,13 +35,25 @@
 }
 #ui.on-battle #topbar-bg { background: none; }
 
-/* ── HUD ── */
-#hud {
+/* ── 상단바: HUD(좌)와 코너 버튼(우)을 한 flex row에 같이 묶어서 겹칠 수 없게 한다.
+ * (예전엔 #corner가 absolute로 따로 떠 있어서, 칩이 3개로 늘어나거나 코너 버튼 높이가 HUD보다
+ * 커지면 화면 콘텐츠 상단까지 가리는 문제가 있었음) */
+#topbar {
   position: relative;
   z-index: 5;
   display: flex;
-  gap: 2px;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
   padding: max(10px, env(safe-area-inset-top)) 8px 6px;
+}
+
+/* ── HUD ── */
+#hud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  min-width: 0;
   pointer-events: auto;
 }
 .hud-chip {
@@ -63,15 +75,12 @@
 
 /* ── 우상단 플로팅 ── */
 #corner {
-  position: absolute;
-  right: 8px;
-  top: max(10px, env(safe-area-inset-top));
   display: flex;
   flex-direction: row;
+  flex: none;
   gap: 8px;
   align-items: flex-start;
   pointer-events: auto;
-  z-index: 30;
 }
 .corner-btn {
   width: 44px;
@@ -129,101 +138,6 @@
 
 /* 전투 탭은 캔버스가 비치도록 투명 */
 #screen-battle { background: none; pointer-events: none; }
-
-/* ── 허브타운(§14, 2026-07-28 결정) ── 3D 마을 대신 우리 아트무드(SD/치비)에 맞춘 절차적 2D 배경.
- * 실제 건물 일러스트는 디자인리소스 세션 후속 작업 — 지금은 기존 탭 아이콘을 재활용한 1차(코드) 버전 */
-#screen-home.hub-screen {
-  padding: 0;
-  overflow: hidden;
-  background: linear-gradient(180deg, #6fb8e8 0%, #a9dbef 38%, #e7c98a 72%, #c99a5b 100%);
-}
-#screen-home.hub-screen.on {
-  display: flex;
-  flex-direction: column;
-}
-.hub-sky {
-  position: relative;
-  height: 30%;
-  min-height: 90px;
-  overflow: hidden;
-  flex: none;
-}
-.hub-cloud {
-  position: absolute;
-  background: #ffffff;
-  opacity: 0.75;
-  border-radius: 999px;
-  filter: blur(0.5px);
-}
-.hub-cloud.c1 { width: 70px; height: 26px; top: 18px; left: 10%; }
-.hub-cloud.c2 { width: 54px; height: 20px; top: 42px; left: 58%; }
-.hub-cloud.c3 { width: 46px; height: 18px; top: 10px; left: 74%; }
-.hub-title {
-  position: absolute;
-  top: 12px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  margin: 0;
-  font-size: 19px;
-  color: #10131c;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
-}
-
-/* 상단 퀵액세스 줄 — 영웅·소환·상점·임무. AFK Journey는 부속 기능을 작은 원형 아이콘 한 줄로
- * 몰아두고, 메인 진행(전투)만 화면 하단에 큼직한 CTA로 분리하는 비대칭 구조를 쓴다(§ 재적용) */
-.hub-quickrow {
-  flex: none;
-  display: flex;
-  justify-content: center;
-  gap: 18px;
-  padding: 8px 16px 4px;
-}
-.hub-quick {
-  --roof: #5a9bd8;
-  width: 62px;
-  border: none;
-  background: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-}
-.hub-quick-icon {
-  width: 46px;
-  height: 46px;
-  object-fit: contain;
-  padding: 10px;
-  border-radius: 50%;
-  background: #fff7e8ee;
-  border: 3px solid var(--roof);
-  box-shadow: 0 3px 8px rgba(40, 25, 5, 0.25);
-}
-.hub-quick-label { font-size: 11px; font-weight: 700; color: #241a08; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35); }
-
-.hub-spacer { flex: 1; }
-.hub-ground { flex: none; height: 4%; min-height: 12px; }
-
-/* 하단 대형 CTA — 캠페인(전투) 진입만 단독 강조 */
-.hub-cta {
-  --roof: #f5ac3d;
-  flex: none;
-  margin: 0 16px 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border: none;
-  border-radius: 16px;
-  padding: 12px 18px;
-  background: linear-gradient(180deg, var(--roof), #d88a1f);
-  box-shadow: 0 6px 18px rgba(245, 172, 61, 0.5);
-  cursor: pointer;
-}
-.hub-cta-icon { width: 42px; height: 42px; object-fit: contain; flex: none; }
-.hub-cta-body { text-align: left; }
-.hub-cta-label { font-size: 17px; font-weight: 800; color: #10131c; }
-.hub-cta-flavor { font-size: 11.5px; color: #3a2c14; opacity: 0.8; }
 
 /* ── 하단 서브메뉴 바 (P2) ── */
 #subbar {
@@ -517,9 +431,6 @@
   border-radius: 999px;
   padding: 3px 6px;
 }
-/* 편성 화면 "보유 영웅" 그리드 — 캡쳐처럼 2줄(10칸)이 온전히 보이고 다음 줄이 위쪽만 살짝
-   보이도록 렌더링 후 JS가 실측 카드 높이로 max-height를 맞춘다(screens.ts 참고) */
-.hero-grid.owned-grid { overflow-y: auto; }
 /* 도감 그리드 — 등급 구분선 사이에 촘촘하게 배치 */
 .codex-divider {
   display: flex;
@@ -568,14 +479,17 @@
   cursor: pointer;
 }
 .banner-card .face { position: absolute; inset: 3px; z-index: 1; border-radius: 7px; }
-/* 그냥뽑기 배너 — 특정 픽업 초상 대신 별빛 배경 + 주사위 아이콘 */
+/* 그냥뽑기 배너 — 특정 픽업 초상 대신 전 진영 색을 한데 모은 그라디언트(=어느 SSR이든 나올 수
+ * 있다는 의미)로, 픽업 카드와 같은 SSR 금색 테두리를 써서 "더 못한 옵션"처럼 보이지 않게 한다
+ * (동일한 뽑기, 픽업만 특정 캐릭 확률이 오를 뿐이라는 톤을 배너 비주얼에도 맞춤) */
 .banner-card-standard {
-  background: radial-gradient(circle at 50% 35%, #3a2f5c 0%, #14101f 80%);
+  background: linear-gradient(150deg, #6e2a12 0%, #123a55 28%, #1f5535 52%, #6b551a 76%, #3a1f5c 100%);
+  border-color: #ffd34d;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.banner-card-standard-icon { font-size: 34px; }
+.banner-card-standard-icon { font-size: 32px; filter: drop-shadow(0 0 6px rgba(255, 211, 77, 0.6)); }
 .banner-card-name {
   position: absolute;
   z-index: 2;
@@ -591,6 +505,19 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+/* 픽업 배너가 매달 자동으로 바뀐다는 걸 카드에서도 바로 알 수 있도록 좌상단에 작은 리본 */
+.banner-card-monthly {
+  position: absolute;
+  z-index: 2;
+  top: 4px;
+  left: 4px;
+  padding: 2px 6px;
+  font-size: 8.5px;
+  font-weight: 800;
+  color: #10131c;
+  background: #ffd34d;
+  border-radius: 999px;
 }
 /* 선택 표시는 체크 배지가 주 신호 — 테두리색은 등급색과 겹칠 수 있어 링만 은은하게 덧댐 */
 .banner-card.on { box-shadow: 0 0 0 2px #6fe8e0; }

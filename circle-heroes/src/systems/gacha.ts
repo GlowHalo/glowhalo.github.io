@@ -14,19 +14,24 @@ export const UR_PITY_LIMIT = 200;
 export interface Banner {
   id: string;
   name: string;
-  /** 픽업 캐릭터(SSR). 없으면 "그냥뽑기" 배너 — SSR 전 캐릭터 동일 확률 */
-  pickupHeroId?: string;
-  flavor: string;
+  /** 픽업 배너면 true — 실제 픽업 캐릭터는 monthlyFeaturedSSR(pickupSlot)로 매달 바뀐다.
+   * false/undefined면 "그냥뽑기" 배너(픽업 없음, SSR 전 캐릭터 동일 확률) */
+  isPickup?: boolean;
+  /** 픽업 배너 안에서의 순번(0~2) — 매달 다른 SSR을 배정하는 데 쓰는 인덱스 */
+  pickupSlot?: number;
 }
 
-// 픽업 배너 3개(진영·클래스 다양하게 선정) + 그냥뽑기 배너 1개. 픽업은 "해당 SSR 확률만 올려주는"
+// 그냥뽑기 배너를 맨 왼쪽에 — 픽업뽑기가 "더 나은 뽑기"처럼 보이지 않게, 모든 배너가 동급의
+// 선택지라는 걸 배치로도 보여준다(주인님 피드백 2026-07-29). 픽업 배너 3개는 특정 캐릭터
+// 고정이 아니라 매달 다른 SSR로 자동 로테이션(monthlyFeaturedSSR) — "이달의 픽업"만 있고
+// "이 배너 = 이 캐릭터 전용"이라는 고정 정체성은 없다. 픽업은 "해당 SSR 확률만 올려주는"
 // 레이트업이지 확률표 자체를 바꾸는 게 아니므로, 전 배너가 동일한 전체 등급표(UR 포함)를 쓴다 —
 // 그래야 "픽업이랑 상관없는 등급 확률이 배너마다 미묘하게 달라지는" 위화감이 없다.
 export const BANNERS: Banner[] = [
-  { id: "banner_flame", name: "화염의 인도자", pickupHeroId: "balrog_flame_001", flavor: "불 딜러 발록 등장 확률 UP" },
-  { id: "banner_dark", name: "칠흑의 수호기사", pickupHeroId: "death_knight_001", flavor: "어둠 탱커 데스나이트 등장 확률 UP" },
-  { id: "banner_water", name: "물의 축복", pickupHeroId: "xiao_qiao_water_001", flavor: "물 서포터 소교 등장 확률 UP" },
-  { id: "banner_standard", name: "그냥뽑기", flavor: "SSR 전 캐릭터 동일 확률로 등장" },
+  { id: "banner_standard", name: "그냥뽑기" },
+  { id: "banner_pickup_1", name: "이달의 픽업 I", isPickup: true, pickupSlot: 0 },
+  { id: "banner_pickup_2", name: "이달의 픽업 II", isPickup: true, pickupSlot: 1 },
+  { id: "banner_pickup_3", name: "이달의 픽업 III", isPickup: true, pickupSlot: 2 },
 ];
 
 // 등급별 가중치(%). N/R은 주로 각성 재료용, SR부터 실전 기용 가능.
@@ -39,10 +44,6 @@ function pickByGrade(grade: string): Hero {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-function findHero(id: string): Hero {
-  return PLAYABLE_HEROES.find((h) => h.id === id)!;
-}
-
 /** UR 로스터를 id순으로 고정 정렬해 월별로 순환 배정 — 서버 없이도 기기 날짜만으로 결정적으로 계산 */
 function urPool(): Hero[] {
   return PLAYABLE_HEROES.filter((h) => h.grade === "UR").sort((a, b) => a.id.localeCompare(b.id));
@@ -52,6 +53,24 @@ function urPool(): Hero[] {
 export function monthlyFeaturedUR(): Hero {
   const pool = urPool();
   return pool[new Date().getMonth() % pool.length];
+}
+
+function ssrPool(): Hero[] {
+  return PLAYABLE_HEROES.filter((h) => h.grade === "SSR").sort((a, b) => a.id.localeCompare(b.id));
+}
+
+/** 이달의 SSR 픽업(슬롯 0~2) — 픽업 배너 3개가 매달 서로 다른 SSR 3명으로 자동 로테이션.
+ * 월*3+슬롯 인덱스라 매달 3명씩 순서대로 밀리며(SSR 20종 기준 약 6.7개월 주기), 세 배너가
+ * 같은 달에 겹치는 캐릭터를 뽑지 않는다 */
+export function monthlyFeaturedSSR(slot: number): Hero {
+  const pool = ssrPool();
+  const idx = (new Date().getMonth() * 3 + slot) % pool.length;
+  return pool[idx];
+}
+
+/** 배너의 이달의 픽업 캐릭터(픽업 배너가 아니면 undefined) */
+export function pickupHeroFor(banner: Banner): Hero | undefined {
+  return banner.isPickup ? monthlyFeaturedSSR(banner.pickupSlot ?? 0) : undefined;
 }
 
 export function bannerPityCount(bannerId: string): number {
@@ -80,20 +99,21 @@ function rollGrade(): string {
 
 function rollOnce(bannerId: string): Hero {
   const banner = BANNERS.find((b) => b.id === bannerId)!;
+  const pickupHero = pickupHeroFor(banner);
   const bannerPityNow = bannerPityCount(bannerId);
   const urPityNow = save.pity;
 
   let hero: Hero;
   if (urPityNow + 1 >= UR_PITY_LIMIT) {
     hero = monthlyFeaturedUR();
-  } else if (banner.pickupHeroId && bannerPityNow + 1 >= SSR_PITY_LIMIT) {
-    hero = findHero(banner.pickupHeroId);
+  } else if (pickupHero && bannerPityNow + 1 >= SSR_PITY_LIMIT) {
+    hero = pickupHero;
   } else {
     const grade = rollGrade();
     if (grade === "UR") {
       hero = Math.random() < PICKUP_RATE_UP ? monthlyFeaturedUR() : pickByGrade("UR");
-    } else if (grade === "SSR" && banner.pickupHeroId && Math.random() < PICKUP_RATE_UP) {
-      hero = findHero(banner.pickupHeroId);
+    } else if (grade === "SSR" && pickupHero && Math.random() < PICKUP_RATE_UP) {
+      hero = pickupHero;
     } else {
       hero = pickByGrade(grade);
     }
@@ -102,8 +122,8 @@ function rollOnce(bannerId: string): Hero {
   // UR 천장은 배너 무관 전체 누적 — 어느 배너에서 뽑든 같이 쌓인다
   save.pity = hero.grade === "UR" ? 0 : urPityNow + 1;
   // SSR 픽업 천장은 배너별로 따로 — 그냥뽑기 배너는 픽업이 없으니 관리 안 함
-  if (banner.pickupHeroId) {
-    save.bannerPity[bannerId] = hero.id === banner.pickupHeroId ? 0 : bannerPityNow + 1;
+  if (pickupHero) {
+    save.bannerPity[bannerId] = hero.id === pickupHero.id ? 0 : bannerPityNow + 1;
   }
 
   return hero;
@@ -119,6 +139,7 @@ export function pull(count: number, bannerId: string): PullResult[] {
     addHero(hero.id);
     results.push({ hero, isNew });
   }
+  save.totalSummons += count;
   persist();
   return results;
 }
