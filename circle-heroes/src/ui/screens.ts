@@ -553,7 +553,8 @@ function renderAscend(root: HTMLElement) {
 /* ── 장비 화면(§장비 시스템 v2, 2026-07-29): 등급별 장비를 획득해 슬롯에 장착하는 방식 ──
  * DESIGN.md 원 설계대로 장비는 뽑기가 아니라 파밍(전투 드랍·상점 상자)으로만 얻는다. 강화(레벨업)
  * 없이 "더 좋은 등급이 나오면 갈아 끼운다"는 레퍼런스(AFK Arena Companions/HoC Legends) 문법을
- * 그대로 차용 — 캐릭터 아래 슬롯 5개를 두고, 슬롯을 누르면 그 슬롯에 맞는 보유 장비 목록이 뜬다 */
+ * 그대로 차용 — 캐릭터 아래 슬롯 6개(3열×2행)를 두고, 슬롯을 누르면 그 슬롯에 맞는 보유 장비
+ * 목록이 뜬다. 목걸이/반지로 장신구를 둘로 나눈 것도 두 레퍼런스 공통 관례를 따른 것(§벤치마킹) */
 let equipTargetId: string | null = null;
 
 const EQUIP_SLOT_INFO: Record<EquipSlot, { label: string; icon: string }> = {
@@ -561,15 +562,17 @@ const EQUIP_SLOT_INFO: Record<EquipSlot, { label: string; icon: string }> = {
   helmet: { label: "투구", icon: "🪖" },
   armor: { label: "갑옷", icon: "🛡️" },
   shoes: { label: "신발", icon: "👟" },
-  accessory: { label: "장신구", icon: "💍" },
+  necklace: { label: "목걸이", icon: "📿" },
+  ring: { label: "반지", icon: "💍" },
 };
 
-const EQUIP_STAT_LABEL: Record<"atk" | "hp" | "def" | "spd" | "crit", string> = {
+const EQUIP_STAT_LABEL: Record<"atk" | "hp" | "def" | "spd" | "crit" | "critDmg", string> = {
   atk: "공격력",
   hp: "체력",
   def: "방어력",
   spd: "속도",
-  crit: "치명타",
+  crit: "치명타 확률",
+  critDmg: "치명타 피해",
 };
 
 function equipBonusText(item: EquipItem): string {
@@ -656,7 +659,7 @@ function renderEquipment(root: HTMLElement) {
   const rerender = () => renderEquipment(root);
   root.appendChild(el("h2", "", "영웅 장비"));
   root.appendChild(
-    el("div", "desc", `장비를 획득해 슬롯에 장착하세요 — 무기=공격력·투구=체력·갑옷=방어력·신발=속도·장신구=치명타. 보유 장비 ${save.equipInventory.length}개`)
+    el("div", "desc", `장비를 획득해 슬롯에 장착하세요 — 무기=공격력·투구=체력·갑옷=방어력·신발=속도·목걸이=치명타 확률·반지=치명타 피해. 보유 장비 ${save.equipInventory.length}개`)
   );
 
   const owned = PLAYABLE_HEROES.filter((h) => (save.owned[h.id] ?? 0) > 0);
