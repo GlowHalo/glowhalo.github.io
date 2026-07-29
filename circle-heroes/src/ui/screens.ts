@@ -1,11 +1,13 @@
 import type { Hero } from "../data/heroTypes";
 import { HEROES, PLAYABLE_HEROES } from "../data/heroes";
 import {
-  save, spendGems, addGems, spendGold, addEnhanceStone, persist,
+  save, spendGems, addGems, spendGold, persist,
   getLevel, levelUpCost, tryLevelUp,
   inParty, toggleParty, PARTY_SIZE,
   getStars, ascendCost, dupeCount, tryAscend, MAX_STARS,
-  EQUIP_SLOTS, EQUIP_MAX_LEVEL, getEquipLevel, equipUpgradeCost, tryUpgradeEquip, type EquipSlot,
+  EQUIP_SLOTS, EQUIP_GRADES, EQUIP_SLOT_STAT, EQUIP_GRADE_PCT, EQUIP_GRADE_FLAT, EQUIP_SELL_GOLD,
+  equipInventoryFor, equippedItem, equipItem, unequipItem, sellEquipItem, grantRandomEquip,
+  type EquipSlot, type EquipItem,
 } from "../state/save";
 import {
   pull, SINGLE_COST, TEN_COST, BANNERS, bannerPityCount,
@@ -548,22 +550,114 @@ function renderAscend(root: HTMLElement) {
   root.appendChild(grid);
 }
 
-/* ── 장비 화면(§장비 시스템 MVP): 강화할 영웅 선택 → 슬롯 3개(무기/방어구/장신구) 강화 ──
- * DESIGN.md 원 설계대로 장비는 뽑기가 아니라 강화석(파밍)으로만 성장한다. 인스턴스 아이템 대신
- * "영웅별 슬롯 강화 레벨"로 단순화해 승급 화면과 나란히 놓이는 육성 축 하나를 더 만든다 */
+/* ── 장비 화면(§장비 시스템 v2, 2026-07-29): 등급별 장비를 획득해 슬롯에 장착하는 방식 ──
+ * DESIGN.md 원 설계대로 장비는 뽑기가 아니라 파밍(전투 드랍·상점 상자)으로만 얻는다. 강화(레벨업)
+ * 없이 "더 좋은 등급이 나오면 갈아 끼운다"는 레퍼런스(AFK Arena Companions/HoC Legends) 문법을
+ * 그대로 차용 — 캐릭터 아래 슬롯 5개를 두고, 슬롯을 누르면 그 슬롯에 맞는 보유 장비 목록이 뜬다 */
 let equipTargetId: string | null = null;
 
-const EQUIP_SLOT_INFO: Record<EquipSlot, { label: string; icon: string; effect: string }> = {
-  weapon: { label: "무기", icon: "⚔️", effect: "공격력" },
-  armor: { label: "방어구", icon: "🛡️", effect: "방어력·체력" },
-  accessory: { label: "장신구", icon: "💍", effect: "치명타·속도" },
+const EQUIP_SLOT_INFO: Record<EquipSlot, { label: string; icon: string }> = {
+  weapon: { label: "무기", icon: "⚔️" },
+  helmet: { label: "투구", icon: "🪖" },
+  armor: { label: "갑옷", icon: "🛡️" },
+  shoes: { label: "신발", icon: "👟" },
+  accessory: { label: "장신구", icon: "💍" },
 };
+
+const EQUIP_STAT_LABEL: Record<"atk" | "hp" | "def" | "spd" | "crit", string> = {
+  atk: "공격력",
+  hp: "체력",
+  def: "방어력",
+  spd: "속도",
+  crit: "치명타",
+};
+
+function equipBonusText(item: EquipItem): string {
+  const stat = EQUIP_SLOT_STAT[item.slot];
+  const label = EQUIP_STAT_LABEL[stat];
+  if (stat === "spd" || stat === "crit") return `${label} +${EQUIP_GRADE_FLAT[item.grade]}`;
+  return `${label} +${Math.round(EQUIP_GRADE_PCT[item.grade] * 100)}%`;
+}
+
+const EQUIP_GRADES_DESC = [...EQUIP_GRADES].reverse();
+
+/** 슬롯 하나를 누르면 뜨는 팝업 — 현재 장착 중인 장비(있으면 해제 가능) + 보유 인벤토리 목록(장착/판매) */
+function openEquipSlotModal(heroId: string, hero: Hero, slot: EquipSlot, onChange: () => void) {
+  const info = EQUIP_SLOT_INFO[slot];
+  const body = el("div", "equip-modal");
+
+  const current = equippedItem(heroId, slot);
+  if (current) {
+    body.appendChild(el("div", "equip-modal-title", "장착 중"));
+    const row = el("div", "equip-modal-row");
+    setGradeBorder(row, current.grade);
+    row.appendChild(el("span", `equip-modal-grade gd grade-${current.grade}`, current.grade));
+    row.appendChild(el("span", "equip-modal-bonus", equipBonusText(current)));
+    const unequipBtn = el("button", "btn", "해제") as HTMLButtonElement;
+    unequipBtn.onclick = () => {
+      unequipItem(heroId, slot);
+      onChange();
+      openEquipSlotModal(heroId, hero, slot, onChange);
+    };
+    row.appendChild(unequipBtn);
+    body.appendChild(row);
+  }
+
+  const inv = equipInventoryFor(slot).sort(
+    (a, b) => EQUIP_GRADES_DESC.indexOf(a.grade) - EQUIP_GRADES_DESC.indexOf(b.grade)
+  );
+  body.appendChild(el("div", "equip-modal-title", `보유 ${info.label} (${inv.length})`));
+  if (!inv.length) {
+    body.appendChild(el("div", "as-label", "보유한 장비가 없습니다. 전투 승리나 상점 장비 상자로 얻을 수 있어요."));
+  } else {
+    for (const it of inv) {
+      const row = el("div", "equip-modal-row");
+      setGradeBorder(row, it.grade);
+      row.appendChild(el("span", `equip-modal-grade gd grade-${it.grade}`, it.grade));
+      row.appendChild(el("span", "equip-modal-bonus", equipBonusText(it)));
+      const equipBtn = el("button", "btn primary", "장착") as HTMLButtonElement;
+      equipBtn.onclick = () => {
+        equipItem(heroId, it.id);
+        toast(`${hero.nameKr} ${info.label} 장착!`);
+        onChange();
+        closeModal();
+      };
+      const sellBtn = el("button", "btn", `판매 🪙${EQUIP_SELL_GOLD[it.grade]}`) as HTMLButtonElement;
+      sellBtn.onclick = () => {
+        sellEquipItem(it.id);
+        toast(`🪙${EQUIP_SELL_GOLD[it.grade]} 획득`);
+        onChange();
+        openEquipSlotModal(heroId, hero, slot, onChange);
+      };
+      row.append(equipBtn, sellBtn);
+      body.appendChild(row);
+    }
+  }
+
+  const close = el("button", "btn", "닫기") as HTMLButtonElement;
+  close.onclick = closeModal;
+  modal(`${info.icon} ${info.label}`, body, [close]);
+}
+
+function buildEquipSlotBox(hero: Hero, slot: EquipSlot, rerender: () => void): HTMLElement {
+  const info = EQUIP_SLOT_INFO[slot];
+  const item = equippedItem(hero.id, slot);
+  const box = el("div", "equip-slot-box" + (item ? " filled" : ""));
+  if (item) setGradeBorder(box, item.grade);
+  box.appendChild(el("div", "esb-icon", info.icon));
+  box.appendChild(item ? el("div", `esb-grade gd grade-${item.grade}`, item.grade) : el("div", "esb-plus", "+"));
+  box.appendChild(el("div", "esb-label", info.label));
+  box.onclick = () => openEquipSlotModal(hero.id, hero, slot, rerender);
+  return box;
+}
 
 function renderEquipment(root: HTMLElement) {
   root.innerHTML = "";
   const rerender = () => renderEquipment(root);
   root.appendChild(el("h2", "", "영웅 장비"));
-  root.appendChild(el("div", "desc", `강화석으로 무기·방어구·장신구를 강화하세요. 보유 강화석 🔩${save.enhanceStone.toLocaleString()}`));
+  root.appendChild(
+    el("div", "desc", `장비를 획득해 슬롯에 장착하세요 — 무기=공격력·투구=체력·갑옷=방어력·신발=속도·장신구=치명타. 보유 장비 ${save.equipInventory.length}개`)
+  );
 
   const owned = PLAYABLE_HEROES.filter((h) => (save.owned[h.id] ?? 0) > 0);
   const target = equipTargetId ? owned.find((h) => h.id === equipTargetId) ?? null : null;
@@ -578,38 +672,11 @@ function renderEquipment(root: HTMLElement) {
     head.appendChild(el("div", "as-nm", target.nameKr));
     panel.appendChild(head);
 
-    for (const slot of EQUIP_SLOTS) {
-      const info = EQUIP_SLOT_INFO[slot];
-      const lv = getEquipLevel(target.id, slot);
-      const maxed = lv >= EQUIP_MAX_LEVEL;
-      const row = el("div", "equip-slot-row");
-      row.appendChild(el("span", "equip-slot-icon", info.icon));
-      const g = el("div", "grow");
-      g.appendChild(el("div", "t", `${info.label} +${lv} (${info.effect})`));
-      if (maxed) {
-        g.appendChild(el("div", "s", "최대 강화 달성"));
-      } else {
-        const cost = equipUpgradeCost(lv);
-        g.appendChild(el("div", "s", `강화 비용 🪙${cost.gold.toLocaleString()} · 🔩${cost.stones}`));
-      }
-      row.appendChild(g);
-      if (!maxed) {
-        const cost = equipUpgradeCost(lv);
-        const canAfford = save.gold >= cost.gold && save.enhanceStone >= cost.stones;
-        const btn = el("button", "btn" + (canAfford ? " primary" : ""), "강화") as HTMLButtonElement;
-        btn.disabled = !canAfford;
-        btn.onclick = () => {
-          if (tryUpgradeEquip(target.id, slot)) {
-            toast(`${info.label} +${getEquipLevel(target.id, slot)}!`);
-            rerender();
-          }
-        };
-        row.appendChild(btn);
-      }
-      panel.appendChild(row);
-    }
+    const slotGrid = el("div", "equip-slot-grid");
+    for (const slot of EQUIP_SLOTS) slotGrid.appendChild(buildEquipSlotBox(target, slot, rerender));
+    panel.appendChild(slotGrid);
   } else {
-    panel.appendChild(el("div", "as-label", "강화할 영웅을 아래에서 골라주세요"));
+    panel.appendChild(el("div", "as-label", "장비를 관리할 영웅을 아래에서 골라주세요"));
   }
   root.appendChild(panel);
 
@@ -1010,12 +1077,12 @@ function playSummonFx(
 }
 
 /* ── 상점 탭 ── */
-const STONE_PACK = { gold: 300, stones: 10 };
+const EQUIP_BOX_GOLD = 500;
 
 export function renderShop(root: HTMLElement) {
   root.innerHTML = "";
   root.appendChild(el("h2", "", "상점"));
-  root.appendChild(el("div", "desc", `보유 골드 🪙${save.gold.toLocaleString()} · 강화석 🔩${save.enhanceStone.toLocaleString()}`));
+  root.appendChild(el("div", "desc", `보유 골드 🪙${save.gold.toLocaleString()} · 보유 장비 ${save.equipInventory.length}개`));
 
   const today = new Date().toISOString().slice(0, 10);
   const card = el("div", "list-card");
@@ -1041,26 +1108,26 @@ export function renderShop(root: HTMLElement) {
   card.appendChild(btn);
   root.appendChild(card);
 
-  // 강화석 교환 — 장비 강화(§장비 시스템 MVP)의 유일한 상시 구매 경로. 횟수 제한 없는 골드 싱크
-  const stoneCard = el("div", "list-card");
-  stoneCard.appendChild(el("span", "", "🔩"));
-  const sg = el("div", "grow");
-  sg.appendChild(el("div", "t", `강화석 ${STONE_PACK.stones}개`));
-  sg.appendChild(el("div", "s", `장비 강화에 사용 · 🪙${STONE_PACK.gold.toLocaleString()}`));
-  stoneCard.appendChild(sg);
-  const stoneBtn = el("button", "btn primary", "구매") as HTMLButtonElement;
-  stoneBtn.disabled = save.gold < STONE_PACK.gold;
-  stoneBtn.onclick = () => {
-    if (!spendGold(STONE_PACK.gold)) {
+  // 장비 상자 — 장비 획득(§장비 시스템 v2)의 상시 구매 경로. 등급은 전투 드랍과 같은 확률표로 무작위
+  const boxCard = el("div", "list-card");
+  boxCard.appendChild(el("span", "", "🎁"));
+  const bg = el("div", "grow");
+  bg.appendChild(el("div", "t", "장비 상자"));
+  bg.appendChild(el("div", "s", `무작위 슬롯·등급 장비 1개 · 🪙${EQUIP_BOX_GOLD.toLocaleString()}`));
+  boxCard.appendChild(bg);
+  const boxBtn = el("button", "btn primary", "구매") as HTMLButtonElement;
+  boxBtn.disabled = save.gold < EQUIP_BOX_GOLD;
+  boxBtn.onclick = () => {
+    if (!spendGold(EQUIP_BOX_GOLD)) {
       toast("골드가 부족합니다");
       return;
     }
-    addEnhanceStone(STONE_PACK.stones);
-    toast(`🔩 강화석 ${STONE_PACK.stones}개 획득!`);
+    const item = grantRandomEquip();
+    toast(`🎁 ${EQUIP_SLOT_INFO[item.slot].label}(${item.grade}) 획득!`);
     renderShop(root);
   };
-  stoneCard.appendChild(stoneBtn);
-  root.appendChild(stoneCard);
+  boxCard.appendChild(boxBtn);
+  root.appendChild(boxCard);
 
   // 실결제 보석 패키지는 결제 연동이 아직 없어 정직하게 "준비 중"으로만 표시(고스트 버튼 아님 — 클릭 대상 자체가 없음)
   const c = el("div", "list-card");
