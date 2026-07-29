@@ -7,7 +7,7 @@ import {
   getStars, ascendCost, dupeCount, tryAscend, MAX_STARS,
 } from "../state/save";
 import { pull, SINGLE_COST, TEN_COST, PITY_LIMIT } from "../systems/gacha";
-import { calcFactionSynergy, heroPower } from "../systems/battle";
+import { calcFactionSynergy, partyPower } from "../systems/battle";
 import {
   DAILY_MISSIONS, ALL_CLEAR_KEY, ALL_CLEAR_BONUS,
   missionProgress, isClaimed, claimable, claim, track,
@@ -320,11 +320,7 @@ export function renderHeroes(root: HTMLElement) {
 
   const powerRow = el("div", "power-row");
   powerRow.appendChild(el("h2", "", `편성 (${save.party.length}/${PARTY_SIZE})`));
-  const partyPower = save.party.reduce((sum, id) => {
-    const hero = PLAYABLE_HEROES.find((h) => h.id === id);
-    return hero ? sum + heroPower(hero, getLevel(hero.id), getStars(hero.id)) : sum;
-  }, 0);
-  powerRow.appendChild(el("div", "power-chip", `⚔️ 전투력 ${partyPower.toLocaleString()}`));
+  powerRow.appendChild(el("div", "power-chip", `⚔️ 전투력 ${partyPower().toLocaleString()}`));
   root.appendChild(powerRow);
   root.appendChild(el("div", "desc", "편성된 영웅만 전투에 출전합니다. 카드를 눌러 편성·레벨업하세요."));
   const partyRow = el("div", "party-row");

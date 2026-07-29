@@ -44,6 +44,9 @@ const HERO_SLOTS: Array<[number, number]> = [
   [48, 345],
   [48, 462],
 ];
+/** 슬롯 인덱스별 스프라이트 배율 — 뒷줄일수록 살짝 축소해 원근감 표현
+ * (레퍼런스 실측: "필드 위 캐릭터 스프라이트... 뒷줄일수록 살짝 축소", BENCHMARK.md §3) */
+const HERO_ROW_SCALE = [1, 1, 0.88, 0.88, 0.88];
 
 interface UnitView {
   unit: Unit;
@@ -322,12 +325,14 @@ export class BattleScene extends Phaser.Scene {
 
     this.heroes.forEach((u, i) => {
       const [x, y] = HERO_SLOTS[i] ?? HERO_SLOTS[HERO_SLOTS.length - 1];
-      this.views.set(u, this.makeUnitView(u, x, y, false));
+      const scaleMult = HERO_ROW_SCALE[i] ?? HERO_ROW_SCALE[HERO_ROW_SCALE.length - 1];
+      this.views.set(u, this.makeUnitView(u, x, y, false, undefined, scaleMult));
     });
     if (this.mode === "arena") {
       this.enemies.forEach((u, i) => {
         const [x, y] = HERO_SLOTS[i] ?? HERO_SLOTS[HERO_SLOTS.length - 1];
-        this.views.set(u, this.makeUnitView(u, GAME_W - x, y, false));
+        const scaleMult = HERO_ROW_SCALE[i] ?? HERO_ROW_SCALE[HERO_ROW_SCALE.length - 1];
+        this.views.set(u, this.makeUnitView(u, GAME_W - x, y, false, undefined, scaleMult));
       });
     } else {
       const enemyX = GAME_W - 108;
@@ -356,9 +361,9 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  private makeUnitView(unit: Unit, x: number, y: number, big: boolean, monsterKey?: string): UnitView {
+  private makeUnitView(unit: Unit, x: number, y: number, big: boolean, monsterKey?: string, scaleMult = 1): UnitView {
     const isArenaFoe = unit.key.startsWith("arena_");
-    const r = unit.isHero || isArenaFoe ? 32 : big ? 50 : 26;
+    const r = (unit.isHero || isArenaFoe ? 32 : big ? 50 : 26) * scaleMult;
     const fallbackColor = unit.isHero || isArenaFoe
       ? FACTION_COLORS[unit.faction] ?? 0x888888
       : big
