@@ -145,6 +145,9 @@ export interface SaveState {
   /** heroId -> 초월 단계(0~5, 보라색 별). 5성 각성 이후의 확장 성장 트랙(§마이티 아레나
    * 반영계획 5, 2026-07-30) — 별도 필드로 관리해 기존 stars(금별 1~5)와 안 섞이게 한다 */
   transcend: Record<string, number>;
+  /** 무료소환 — normal/premium 각각 마지막으로 무료소환을 쓴 "반나절 창"(YYYY-MM-DD-AM/PM) 키.
+   * 지금 창과 다르면 그 카테고리는 무료소환 가능(§2026-07-30, 매일 00시·12시 리셋, 누적 안 됨) */
+  freeSummonWindow: { normal: string; premium: string };
 }
 
 const KEY = "circle-heroes-save-v1";
@@ -182,6 +185,7 @@ const DEFAULTS: SaveState = {
   ticketDiscountDate: "",
   ticketDiscountBought: 0,
   transcend: {},
+  freeSummonWindow: { normal: "", premium: "" },
 };
 
 /** 예전 세이브의 장비 인스턴스엔 invested/level 필드가 없을 수 있음(§강화 시스템 신설,

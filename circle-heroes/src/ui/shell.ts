@@ -11,6 +11,7 @@ import { HEROES } from "../data/heroes";
 import { isMuted, setMuted } from "../systems/audio";
 import { RAID_DUNGEONS, WEEKDAY_LABELS, requiredFaction, isRaidWeekend } from "../systems/raid";
 import { checkNewlyUnlockedGates } from "../systems/featureGates";
+import { anyFreeSummonAvailable } from "../systems/gacha";
 
 type TabKey = "castle" | "heroes" | "summon" | "battle" | "shop" | "missions";
 
@@ -29,7 +30,7 @@ const TABS: TabDef[] = [
   { key: "castle", label: "주성", icon: "tab-castle.png", subs: [] },
   { key: "heroes", label: "영웅", icon: "tab-hero.png", subs: ["보유·편성", "장비", "승급", "도감"] },
   { key: "summon", label: "소환", icon: "tab-summon.png", subs: ["영웅 소환", "확률·천장"] },
-  { key: "battle", label: "전투", icon: "tab-battle.png", center: true, subs: ["스테이지", "무한의탑", "아레나", "요일던전"] },
+  { key: "battle", label: "전투", icon: "tab-battle.png", center: true, subs: ["스테이지", "모험"] },
   { key: "shop", label: "상점", icon: "tab-shop.png", subs: ["골드 상점", "보석 상점", "일일 무료"] },
   { key: "missions", label: "임무", icon: "tab-mission.png", subs: ["일일", "주간", "업적"] },
 ];
@@ -144,12 +145,12 @@ function switchTab(key: TabKey) {
   if (renderer) renderer(document.getElementById(`screen-${key}`)!);
 }
 
-// 전투 탭 서브메뉴 ↔ 전투 모드 연결
+// 전투 탭 서브메뉴 ↔ 전투 모드 연결. "모험"은 실제 전투모드가 아니라 허브 모달을 여는
+// 트리거(§마이티 아레나 반영계획 모험, 2026-07-30) — 배너 3개(요일던전/아레나/무한의탑) 중
+// 골라야 실제 모드가 정해진다
 const BATTLE_MODES: Record<string, string> = {
   "스테이지": "stage",
-  "무한의탑": "tower",
-  "아레나": "arena",
-  "요일던전": "raid",
+  "모험": "adventure",
 };
 let battleMode = "stage";
 let heroesSubLabel = "보유·편성";
@@ -217,6 +218,44 @@ function openRaidSelectModal() {
   modal("요일던전", body, [close]);
 }
 
+/** 모험 허브(§마이티 아레나 반영계획, 2026-07-30 승인) — "전투" 탭의 스테이지(=자동등반, 메인화면)
+ * 와 나머지 3개 모드를 분리: 요일던전/아레나/무한의탑은 이제 배너 3개짜리 허브 모달을 거쳐
+ * 들어간다. 요일던전은 기존 5선택 모달을 그대로 열고, 아레나/무한의탑은 바로 전투모드 전환 */
+const ADVENTURE_BANNERS: { mode: string; label: string; flavor: string }[] = [
+  { mode: "raid", label: "요일던전", flavor: "요일마다 다른 진영의 마수" },
+  { mode: "arena", label: "아레나", flavor: "다른 유저와 순위 경쟁" },
+  { mode: "tower", label: "무한의탑", flavor: "층을 오를수록 강해지는 도전" },
+];
+
+function openAdventureHubModal() {
+  const grid = h("div", "raid-dungeon-grid adventure-hub-grid");
+  for (const b of ADVENTURE_BANNERS) {
+    const hut = h("button", "raid-hut adventure-hut");
+    hut.style.setProperty("--roof", "#f5ac3d");
+    hut.appendChild(h("div", "hub-roof"));
+    const hbody = h("div", "hub-body");
+    hbody.appendChild(h("div", "hub-label", b.label));
+    hbody.appendChild(h("div", "hub-flavor", b.flavor));
+    hut.appendChild(hbody);
+    hut.onclick = () => {
+      closeModal();
+      if (b.mode === "raid") {
+        openRaidSelectModal();
+        return;
+      }
+      if (battleMode !== b.mode) {
+        battleMode = b.mode;
+        emit("battle-mode", b.mode);
+      }
+      if (currentTab === "battle") renderSubbar();
+    };
+    grid.appendChild(hut);
+  }
+  const close = h("button", "btn", "닫기") as HTMLButtonElement;
+  close.onclick = closeModal;
+  modal("모험", grid, [close]);
+}
+
 const MISSIONS_SUBVIEWS: Record<string, "daily" | "weekly" | "achievements"> = {
   "일일": "daily",
   "주간": "weekly",
@@ -232,14 +271,17 @@ function renderSubbar() {
   if (currentTab === "battle") {
     def.subs.forEach((label) => {
       const mode = BATTLE_MODES[label];
-      const chip = h("button", "sub-chip" + (mode === battleMode ? " on" : ""), label);
+      // "모험"은 실제 모드가 아니라 허브 트리거라, battleMode가 스테이지가 아닐 때(=모험 안의
+      // 무언가를 하는 중일 때) on으로 표시한다
+      const isOn = mode === "adventure" ? battleMode !== "stage" : mode === battleMode;
+      const chip = h("button", "sub-chip" + (isOn ? " on" : ""), label);
       chip.onclick = () => {
         if (!mode) {
           toast(`${label} — 준비 중입니다`);
           return;
         }
-        if (mode === "raid") {
-          openRaidSelectModal();
+        if (mode === "adventure") {
+          openAdventureHubModal();
           return;
         }
         if (mode === battleMode) return;
@@ -620,6 +662,7 @@ export function buildShell() {
 
   const tabbar = h("div");
   tabbar.id = "tabbar";
+  let summonTabBtn: HTMLElement | null = null;
   for (const t of TABS) {
     const b = h("button", "tab" + (t.center ? " center" : ""));
     b.dataset.key = t.key;
@@ -629,8 +672,24 @@ export function buildShell() {
     b.appendChild(h("span", "", t.label));
     b.onclick = () => switchTab(t.key);
     tabbar.appendChild(b);
+    if (t.key === "summon") summonTabBtn = b;
   }
   ui.appendChild(tabbar);
+
+  // 무료소환 배지(§2026-07-30) — 시간(00시/12시)마다 자동으로 바뀌므로 이벤트뿐 아니라
+  // 주기적으로도 다시 확인해야 한다
+  const refreshSummonBadge = () => {
+    if (!summonTabBtn) return;
+    let dot = summonTabBtn.querySelector<HTMLElement>(".badge");
+    if (anyFreeSummonAvailable()) {
+      if (!dot) summonTabBtn.appendChild(h("span", "badge"));
+    } else {
+      dot?.remove();
+    }
+  };
+  refreshSummonBadge();
+  on("free-summon-changed", refreshSummonBadge);
+  window.setInterval(refreshSummonBadge, 60_000);
 
   // 모달/토스트
   const modalRoot = h("div");
