@@ -170,6 +170,22 @@
     padding: 10px 12px; width: 220px;
   }
 
+  .modal-backdrop {
+    display: none; position: fixed; inset: 0; z-index: 60;
+    background: rgba(14,15,19,0.5);
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal-card {
+    background: #fff; color: #14151A; border-radius: 14px;
+    width: min(360px, 100%);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .modal-head { padding: 18px 18px 0; font-size: 15px; font-weight: 900; }
+  .modal-body { padding: 8px 18px 4px; font-size: 13px; line-height: 1.7; color: #4C4E58; }
+  .modal-actions { display: flex; gap: 8px; padding: 16px 18px 18px; }
+  .modal-actions .btn { flex: 1; }
+
   .toast {
     position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px);
     background: #14151A; color: #F5F5F7; font-size: 13px;
@@ -206,6 +222,17 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="modal-backdrop" id="import-modal">
+  <div class="modal-card">
+    <div class="modal-head">공유된 마인드맵 링크예요</div>
+    <div class="modal-body">가져오면 내 목록에 새 마인드맵으로 추가되고, 지금 보던 마인드맵은 그대로 남아있어요.</div>
+    <div class="modal-actions">
+      <button class="btn" id="import-decline">무시하기</button>
+      <button class="btn primary" id="import-accept">가져오기</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (function () {
@@ -704,6 +731,9 @@
 
   // ---------- persistence / load ----------
 
+  var pendingImport = null;
+  var importModal = document.getElementById('import-modal');
+
   function loadInitial() {
     loadLibrary();
     var hash = location.hash;
@@ -711,22 +741,41 @@
       var incoming = null;
       try { incoming = decodeState(hash.slice(3)); } catch (e) { /* ignore */ }
       if (incoming) {
-        var wantsImport = confirm(
-          '공유된 마인드맵 링크입니다.\n\n' +
-          '확인 → 내 목록에 새 마인드맵으로 추가해서 엽니다.\n' +
-          '취소 → 무시하고 기존에 쓰던 마인드맵을 계속 봅니다.'
-        );
-        if (wantsImport) {
-          var item = makeItem('가져온 마인드맵 (' + formatDate(nowTs()) + ')', incoming);
-          library.items.push(item);
-          library.activeId = item.id;
-          saveLibrary();
-        }
+        pendingImport = incoming;
+        importModal.classList.add('open');
+        return; // wait for the user's choice; finishInit() runs it from there
       } else {
         showToast('공유 링크를 읽지 못했어요.');
       }
     }
     loadActiveIntoTree();
+    finishInit();
+  }
+
+  function finishInit() {
+    render();
+    fitView();
+    saveActive();
+  }
+
+  function acceptImport() {
+    if (pendingImport) {
+      var item = makeItem('가져온 마인드맵 (' + formatDate(nowTs()) + ')', pendingImport);
+      library.items.push(item);
+      library.activeId = item.id;
+      saveLibrary();
+    }
+    pendingImport = null;
+    importModal.classList.remove('open');
+    loadActiveIntoTree();
+    finishInit();
+  }
+
+  function declineImport() {
+    pendingImport = null;
+    importModal.classList.remove('open');
+    loadActiveIntoTree();
+    finishInit();
   }
 
   function clearActive() {
@@ -981,11 +1030,11 @@
     if (!e.target.closest('.lib-wrap')) closeLibraryPanel();
   });
 
+  document.getElementById('import-accept').addEventListener('click', acceptImport);
+  document.getElementById('import-decline').addEventListener('click', declineImport);
+
   // ---------- init ----------
   loadInitial();
-  render();
-  fitView();
-  saveActive();
 })();
 </script>
 </body>
