@@ -427,6 +427,18 @@ export function tryTranscendStep(id: string, materialIds: string[]): boolean {
   return true;
 }
 
+/** §카드 표시방식 테스트용(2026-07-30, 시크릿 코드 "1" 전용) — 재료 소모 절차를 건너뛰고 영웅
+ * 1명을 5성 만렙+초월 3단계("8성" 상당, 골드→보라 별 전환 확인용)로 즉시 지급한다. 정상 진행
+ * 경로(tryAscend/tryTranscendStep)와 분리된 순수 테스트 지름길 — 실제 재화는 소비하지 않는다 */
+export function grantMaxTestHero(id: string): void {
+  save.owned[id] = (save.owned[id] ?? 0) + 1;
+  save.stars[id] = MAX_STARS;
+  save.transcend[id] = 3;
+  persist();
+  emit("stars-changed");
+  emit("roster-changed");
+}
+
 /* ── 장비(획득+장착) ──
  * DESIGN.md 원래 설계대로 장비는 뽑기가 아니라 파밍으로만 얻는다(§장비 시스템 v2, 2026-07-29).
  * 등급별 장비 아이템을 전투 드랍/상점 상자로 인벤토리에 모으고, 영웅마다 슬롯에 장착해서 관리한다 —
