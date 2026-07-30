@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>마인드맵</title>
+<meta name="description" content="빠르게 마인드맵을 그리고, 링크 하나로 다른 세션·기기에 그대로 보여줄 수 있는 도구." />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500;600&display=swap');
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: #F5F5F7;
+    font-family: 'Noto Sans KR', sans-serif;
+    color: #14151A;
+    overflow: hidden;
+  }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    background: #14151A; color: #F5F5F7;
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+  .topbar h1 {
+    font-size: 15px; margin: 0; font-weight: 700; white-space: nowrap;
+  }
+  .topbar h1 span { color: #4C6FFF; }
+  .hint {
+    font-size: 11px; color: #9A9CA5; margin-left: 4px; white-space: nowrap;
+    display: none;
+  }
+  @media (min-width: 860px) { .hint { display: inline; } }
+  .spacer { flex: 1; }
+  .btn {
+    border: none; cursor: pointer; font-family: 'Noto Sans KR', sans-serif;
+    font-size: 12px; font-weight: 700; border-radius: 8px; padding: 7px 12px;
+    background: #23242C; color: #F5F5F7; white-space: nowrap;
+  }
+  .btn:hover { background: #2E2F38; }
+  .btn.primary { background: #4C6FFF; color: #fff; }
+  .btn.primary:hover { background: #3D5CE8; }
+  .btn.icon { padding: 7px 10px; }
+
+  .lib-wrap { position: relative; }
+  #active-name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: bottom; white-space: nowrap; }
+  .lib-panel {
+    display: none; position: absolute; top: calc(100% + 6px); left: 0; width: 260px;
+    background: #fff; color: #14151A; border-radius: 10px; border: 1px solid #E4E4E9;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18); padding: 8px; z-index: 30;
+    max-height: 340px; overflow-y: auto;
+  }
+  .lib-panel.open { display: block; }
+  .lib-new-btn {
+    width: 100%; text-align: left; padding: 8px; border-radius: 8px;
+    border: 1px dashed #C7C8D1; background: none; cursor: pointer;
+    font-size: 12px; color: #4C6FFF; font-weight: 700; margin-bottom: 6px;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  .lib-item { display: flex; align-items: center; gap: 6px; padding: 8px; border-radius: 8px; cursor: pointer; }
+  .lib-item:hover { background: #F5F5F7; }
+  .lib-item.active { background: #EEF1FF; }
+  .lib-item-name { flex: 1; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lib-item-date { font-size: 10px; color: #9A9CA5; white-space: nowrap; }
+  .lib-item-actions { display: flex; gap: 2px; flex: none; }
+  .lib-item-actions button { border: none; background: transparent; cursor: pointer; font-size: 12px; padding: 3px; border-radius: 4px; }
+  .lib-item-actions button:hover { background: #E4E5EA; }
+
+  .viewport {
+    position: absolute; top: 52px; left: 0; right: 0; bottom: 0;
+    overflow: hidden;
+    background:
+      radial-gradient(circle, #E2E2E8 1px, transparent 1px);
+    background-size: 22px 22px;
+    cursor: grab;
+    touch-action: none;
+  }
+  .viewport.panning { cursor: grabbing; }
+
+  .canvas-content {
+    position: absolute; top: 0; left: 0;
+    transform-origin: 0 0;
+  }
+
+  svg.edges { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; }
+  .edge { fill: none; stroke: #C7C8D1; stroke-width: 2px; }
+
+  .node {
+    position: absolute;
+    width: 180px;
+    min-height: 96px;
+    border-radius: 10px;
+    background: #FFFFFF;
+    border: 1px solid #E4E4E9;
+    border-left: 4px solid #4C6FFF;
+    box-shadow: 0 2px 8px rgba(14,15,19,0.06);
+    padding: 8px 10px;
+    display: flex; flex-direction: column;
+    cursor: pointer;
+  }
+  .node.selected { outline: 2px solid #4C6FFF; outline-offset: 2px; }
+  .node.is-root {
+    background: #14151A; color: #F5F5F7; border-left-color: #14151A;
+  }
+  .node.dragging { opacity: 0.35; }
+  .node.drop-child { outline: 2px dashed #4C6FFF; outline-offset: 3px; }
+  .node.drop-before { box-shadow: 0 -4px 0 0 #4C6FFF; }
+  .node.drop-after { box-shadow: 0 4px 0 0 #4C6FFF; }
+
+  .node-drag-handle {
+    position: absolute; right: 2px; top: 2px; width: 16px; height: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: #C7C8D1; cursor: grab; border-radius: 4px;
+    touch-action: none;
+  }
+  .node-drag-handle:hover { background: #F0F1F4; color: #61636C; }
+  .node.is-root .node-drag-handle { display: none; }
+  .node.is-root .node-drag-handle:hover { background: rgba(255,255,255,0.14); }
+
+  .node-title {
+    flex: none; width: 100%; border: none; background: transparent; outline: none;
+    font-family: 'Noto Sans KR', sans-serif; font-size: 13px; font-weight: 700;
+    color: inherit; padding: 2px 18px 2px 0; cursor: text;
+  }
+  .node-title::placeholder { color: #B7B8C0; font-weight: 400; }
+  .node.is-root .node-title::placeholder { color: rgba(255,255,255,0.4); }
+
+  .node-divider { flex: none; height: 1px; background: #ECECEF; margin: 4px 0; }
+  .node.is-root .node-divider { background: rgba(255,255,255,0.15); }
+
+  .node-detail {
+    flex: 1; width: 100%; min-height: 40px; resize: none; border: none; background: transparent;
+    outline: none; font-family: 'Noto Sans KR', sans-serif; font-size: 11px; color: #8A8C97;
+    line-height: 1.5; padding: 0; cursor: text; overflow-y: auto;
+  }
+  .node-detail::placeholder { color: #C7C8D1; }
+  .node.is-root .node-detail { color: rgba(245,245,247,0.65); }
+  .node.is-root .node-detail::placeholder { color: rgba(255,255,255,0.3); }
+
+  .node-title:focus, .node-detail:focus { background: rgba(76,111,255,0.06); border-radius: 4px; }
+  .node.is-root .node-title:focus, .node.is-root .node-detail:focus { background: rgba(255,255,255,0.1); }
+
+  .node-toolbar {
+    display: none; gap: 4px; margin-top: 6px; flex: none;
+  }
+  .node.selected .node-toolbar { display: flex; }
+  .node-toolbar button {
+    border: none; background: #F0F1F4; color: #4C4E58;
+    border-radius: 6px; font-size: 11px; padding: 3px 6px; cursor: pointer; line-height: 1.3;
+  }
+  .node-toolbar button:hover { background: #E4E5EA; }
+  .node.is-root .node-toolbar button { background: rgba(255,255,255,0.14); color: #F5F5F7; }
+  .node.is-root .node-toolbar button:hover { background: rgba(255,255,255,0.22); }
+
+  .collapse-toggle {
+    position: absolute; right: -12px; top: 50%; transform: translateY(-50%);
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #4C6FFF; color: #fff; border: 2px solid #F5F5F7;
+    font-size: 10px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .hint-bubble {
+    position: absolute;
+    font-size: 12px; color: #61636C; line-height: 1.6;
+    background: #FFF6E9; border: 1px solid #F0D9A8; border-radius: 10px;
+    padding: 10px 12px; width: 220px;
+  }
+
+  .modal-backdrop {
+    display: none; position: fixed; inset: 0; z-index: 60;
+    background: rgba(14,15,19,0.5);
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal-card {
+    background: #fff; color: #14151A; border-radius: 14px;
+    width: min(360px, 100%);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .modal-head { padding: 18px 18px 0; font-size: 15px; font-weight: 900; }
+  .modal-body { padding: 8px 18px 4px; font-size: 13px; line-height: 1.7; color: #4C4E58; }
+  .modal-actions { display: flex; gap: 8px; padding: 16px 18px 18px; }
+  .modal-actions .btn { flex: 1; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px);
+    background: #14151A; color: #F5F5F7; font-size: 13px;
+    padding: 10px 16px; border-radius: 999px; opacity: 0; pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+    z-index: 50; white-space: nowrap; box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>🧠 <span>마인드맵</span></h1>
+  <span class="hint">클릭해서 바로 입력 · Tab 하위추가 · Enter 형제추가 · Delete 삭제</span>
+  <div class="spacer"></div>
+  <div class="lib-wrap">
+    <button class="btn" id="btn-library">📂 <span id="active-name">마인드맵</span></button>
+    <div class="lib-panel" id="lib-panel"></div>
+  </div>
+  <button class="btn" id="btn-save-as" title="이름을 정해서 목록에 저장">💾 저장</button>
+  <button class="btn icon" id="btn-zoom-out" title="축소">－</button>
+  <button class="btn icon" id="btn-zoom-in" title="확대">＋</button>
+  <button class="btn" id="btn-fit">화면 맞춤</button>
+  <button class="btn" id="btn-reset">비우기</button>
+  <button class="btn" id="btn-copy-text" title="클로드 등 AI 세션에 붙여넣기 좋은 텍스트로 복사">🤖 텍스트로 복사</button>
+  <button class="btn primary" id="btn-share">🔗 공유 링크 복사</button>
+</div>
+
+<div class="viewport" id="viewport">
+  <div class="canvas-content" id="canvas-content">
+    <svg class="edges" id="edges"></svg>
+    <div id="nodes"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-backdrop" id="import-modal">
+  <div class="modal-card">
+    <div class="modal-head">공유된 마인드맵 링크예요</div>
+    <div class="modal-body">가져오면 내 목록에 새 마인드맵으로 추가되고, 지금 보던 마인드맵은 그대로 남아있어요.</div>
+    <div class="modal-actions">
+      <button class="btn" id="import-decline">무시하기</button>
+      <button class="btn primary" id="import-accept">가져오기</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="name-modal">
+  <div class="modal-card">
+    <div class="modal-head">마인드맵 이름</div>
+    <div class="modal-body">
+      <input type="text" id="name-input" placeholder="이름을 입력하세요"
+        style="width:100%; box-sizing:border-box; padding:8px 10px; border:1px solid #E4E4E9; border-radius:8px; font-family:'Noto Sans KR',sans-serif; font-size:13px; outline:none;" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="name-cancel">취소</button>
+      <button class="btn primary" id="name-save">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var LIBRARY_KEY = 'mindmap-library-v1';
+  var LEGACY_KEY = 'mindmap-autosave-v1';
+  var BUILD_VERSION = '4'; // bump on every deploy so freshly-copied share links skip stale browser/in-app-webview caches
+  var COL_W = 240, ROW_H = 120, NODE_W = 180, NODE_H = 96, PAD = 80;
+  var DEPTH_COLORS = ['#14151A', '#4C6FFF', '#2E8B57', '#F2994A', '#EB5757', '#9B51E0'];
+
+  var tree = null;
+  var library = null; // { items: [{id, name, data, updatedAt}], activeId }
+  var selectedId = null;
+  var idCounter = 1;
+  var pan = { x: 0, y: 0 };
+  var zoom = 1;
+
+  var viewport = document.getElementById('viewport');
+  var canvasContent = document.getElementById('canvas-content');
+  var edgesSvg = document.getElementById('edges');
+  var nodesLayer = document.getElementById('nodes');
+  var toastEl = document.getElementById('toast');
+  var libPanel = document.getElementById('lib-panel');
+  var activeNameEl = document.getElementById('active-name');
+
+  function genId() {
+    return 'n' + (idCounter++) + '_' + Math.random().toString(36).slice(2, 7);
+  }
+
+  function defaultTree() {
+    return { id: 'root', text: '중심 주제', detail: '', collapsed: false, children: [] };
+  }
+
+  function findNode(node, id) {
+    if (node.id === id) return node;
+    for (var i = 0; i < node.children.length; i++) {
+      var found = findNode(node.children[i], id);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  function findParent(node, id, parent) {
+    if (node.id === id) return parent;
+    for (var i = 0; i < node.children.length; i++) {
+      var found = findParent(node.children[i], id, node);
+      if (found !== undefined && found !== null) return found;
+      if (node.children[i].id === id) return node;
+    }
+    return null;
+  }
+
+  // simpler explicit parent finder
+  function getParentOf(id) {
+    function walk(node) {
+      for (var i = 0; i < node.children.length; i++) {
+        if (node.children[i].id === id) return node;
+        var r = walk(node.children[i]);
+        if (r) return r;
+      }
+      return null;
+    }
+    return walk(tree);
+  }
+
+  function serialize(node) {
+    return {
+      id: node.id,
+      text: node.text,
+      detail: node.detail || '',
+      collapsed: !!node.collapsed,
+      children: node.children.map(serialize)
+    };
+  }
+
+  function encodeState() {
+    return encodeURIComponent(JSON.stringify(serialize(tree)));
+  }
+
+  function decodeState(str) {
+    return JSON.parse(decodeURIComponent(str));
+  }
+
+  function nowTs() { return Date.now(); }
+
+  function formatDate(ts) {
+    var d = new Date(ts);
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
+  function makeItem(name, data) {
+    return { id: genId(), name: name, data: data, updatedAt: nowTs() };
+  }
+
+  function loadLibrary() {
+    try {
+      var raw = localStorage.getItem(LIBRARY_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && parsed.items && parsed.items.length) {
+          library = parsed;
+          return;
+        }
+      }
+    } catch (e) { /* ignore */ }
+
+    var migratedData = null;
+    try {
+      var legacy = localStorage.getItem(LEGACY_KEY);
+      if (legacy) migratedData = decodeState(legacy);
+    } catch (e) { /* ignore */ }
+
+    var item = makeItem('마인드맵 1', migratedData || serialize(defaultTree()));
+    library = { items: [item], activeId: item.id };
+    saveLibrary();
+  }
+
+  function saveLibrary() {
+    try { localStorage.setItem(LIBRARY_KEY, JSON.stringify(library)); } catch (e) { /* ignore quota / privacy-mode errors */ }
+  }
+
+  function getActiveItem() {
+    var found = null;
+    library.items.forEach(function (it) { if (it.id === library.activeId) found = it; });
+    return found || library.items[0];
+  }
+
+  function loadActiveIntoTree() {
+    var item = getActiveItem();
+    library.activeId = item.id;
+    tree = JSON.parse(JSON.stringify(item.data));
+    selectedId = null;
+  }
+
+  function updateActiveNameLabel() {
+    activeNameEl.textContent = getActiveItem().name;
+  }
+
+  function saveActive() {
+    var item = getActiveItem();
+    if (item) {
+      item.data = serialize(tree);
+      item.updatedAt = nowTs();
+      saveLibrary();
+    }
+    try { history.replaceState(null, '', '#d=' + encodeState()); } catch (e) { /* ignore */ }
+    updateActiveNameLabel();
+  }
+
+  function nextDefaultName() {
+    var n = library.items.length + 1;
+    var name = '마인드맵 ' + n;
+    while (library.items.some(function (it) { return it.name === name; })) {
+      n++; name = '마인드맵 ' + n;
+    }
+    return name;
+  }
+
+  function createNewMindmap() {
+    var item = makeItem(nextDefaultName(), serialize(defaultTree()));
+    library.items.push(item);
+    library.activeId = item.id;
+    saveLibrary();
+    loadActiveIntoTree();
+    render();
+    fitView();
+    saveActive();
+    renderLibraryPanel();
+    closeLibraryPanel();
+    showToast('새 마인드맵을 만들었어요.');
+  }
+
+  function switchToMindmap(id) {
+    if (id === library.activeId) { closeLibraryPanel(); return; }
+    library.activeId = id;
+    saveLibrary();
+    loadActiveIntoTree();
+    render();
+    fitView();
+    saveActive();
+    closeLibraryPanel();
+  }
+
+  function renameMindmap(id) {
+    var item = library.items.filter(function (it) { return it.id === id; })[0];
+    if (!item) return;
+    askName(item.name, function (newName) {
+      if (newName === null) return;
+      item.name = newName;
+      saveLibrary();
+      updateActiveNameLabel();
+      renderLibraryPanel();
+    });
+  }
+
+  function deleteMindmap(id) {
+    var item = library.items.filter(function (it) { return it.id === id; })[0];
+    if (!item) return;
+    if (!confirm('\'' + item.name + '\' 마인드맵을 삭제할까요?')) return;
+    library.items = library.items.filter(function (it) { return it.id !== id; });
+    if (library.items.length === 0) {
+      library.items.push(makeItem('마인드맵 1', serialize(defaultTree())));
+    }
+    if (library.activeId === id) {
+      library.activeId = library.items[0].id;
+      loadActiveIntoTree();
+      render();
+      fitView();
+    }
+    saveLibrary();
+    saveActive();
+    renderLibraryPanel();
+  }
+
+  function renderLibraryPanel() {
+    var sorted = library.items.slice().sort(function (a, b) { return b.updatedAt - a.updatedAt; });
+    var html = '<button class="lib-new-btn" data-action="lib-new">+ 새 마인드맵</button>';
+    html += sorted.map(function (it) {
+      var activeCls = it.id === library.activeId ? ' active' : '';
+      return '<div class="lib-item' + activeCls + '" data-id="' + it.id + '">' +
+        '<div class="lib-item-name" title="' + escapeHtml(it.name) + '">' + escapeHtml(it.name) + '</div>' +
+        '<div class="lib-item-date">' + formatDate(it.updatedAt) + '</div>' +
+        '<div class="lib-item-actions">' +
+          '<button data-action="lib-rename" title="이름변경">✏️</button>' +
+          '<button data-action="lib-delete" title="삭제">🗑</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    libPanel.innerHTML = html;
+  }
+
+  function openLibraryPanel() {
+    renderLibraryPanel();
+    libPanel.classList.add('open');
+  }
+
+  function closeLibraryPanel() {
+    libPanel.classList.remove('open');
+  }
+
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function () {
+      toastEl.classList.remove('show');
+    }, 2600);
+  }
+
+  // ---------- name modal (custom, not native prompt() — same reason as the import modal) ----------
+
+  var nameModal = document.getElementById('name-modal');
+  var nameInput = document.getElementById('name-input');
+  var nameModalCallback = null;
+
+  function askName(currentName, callback) {
+    nameInput.value = currentName || '';
+    nameModalCallback = callback;
+    nameModal.classList.add('open');
+    requestAnimationFrame(function () { nameInput.focus(); nameInput.select(); });
+  }
+
+  function closeNameModal(result) {
+    nameModal.classList.remove('open');
+    var cb = nameModalCallback;
+    nameModalCallback = null;
+    if (cb) cb(result);
+  }
+
+  function saveAs() {
+    var item = getActiveItem();
+    askName(item.name, function (newName) {
+      if (newName === null) return;
+      item.name = newName;
+      saveLibrary();
+      updateActiveNameLabel();
+      renderLibraryPanel();
+      showToast('"' + newName + '" 이름으로 저장했어요.');
+    });
+  }
+
+  // ---------- mutations ----------
+
+  function addChild(id) {
+    var node = findNode(tree, id);
+    if (!node) return;
+    node.collapsed = false;
+    var child = { id: genId(), text: '새 노드', detail: '', collapsed: false, children: [] };
+    node.children.push(child);
+    selectedId = child.id;
+    render();
+    saveActive();
+    focusTitle(child.id);
+  }
+
+  function addSibling(id) {
+    if (id === tree.id) { addChild(id); return; }
+    var parent = getParentOf(id);
+    if (!parent) return;
+    var idx = parent.children.findIndex(function (c) { return c.id === id; });
+    var sibling = { id: genId(), text: '새 노드', detail: '', collapsed: false, children: [] };
+    parent.children.splice(idx + 1, 0, sibling);
+    selectedId = sibling.id;
+    render();
+    saveActive();
+    focusTitle(sibling.id);
+  }
+
+  function deleteNode(id) {
+    if (id === tree.id) { showToast('중심 주제는 삭제할 수 없어요.'); return; }
+    var parent = getParentOf(id);
+    if (!parent) return;
+    var idx = parent.children.findIndex(function (c) { return c.id === id; });
+    var node = parent.children[idx];
+    if (node.children.length > 0) {
+      if (!confirm('하위 항목 ' + countDescendants(node) + '개도 함께 삭제됩니다. 계속할까요?')) return;
+    }
+    parent.children.splice(idx, 1);
+    selectedId = parent.id;
+    render();
+    saveActive();
+  }
+
+  function countDescendants(node) {
+    var n = 0;
+    node.children.forEach(function (c) { n += 1 + countDescendants(c); });
+    return n;
+  }
+
+  function toggleCollapse(id) {
+    var node = findNode(tree, id);
+    if (!node) return;
+    node.collapsed = !node.collapsed;
+    render();
+    saveActive();
+  }
+
+  function isDescendant(ancestorId, id) {
+    var ancestor = findNode(tree, ancestorId);
+    if (!ancestor) return false;
+    function walk(n) {
+      for (var i = 0; i < n.children.length; i++) {
+        if (n.children[i].id === id) return true;
+        if (walk(n.children[i])) return true;
+      }
+      return false;
+    }
+    return walk(ancestor);
+  }
+
+  function reparentNode(id, targetId, mode) {
+    if (id === targetId || id === tree.id) return;
+    if (isDescendant(id, targetId)) return;
+    var oldParent = getParentOf(id);
+    if (!oldParent) return;
+    var node = findNode(tree, id);
+    var oldIdx = oldParent.children.findIndex(function (c) { return c.id === id; });
+    oldParent.children.splice(oldIdx, 1);
+
+    if (mode === 'child' || targetId === tree.id) {
+      var targetNode = findNode(tree, targetId);
+      targetNode.collapsed = false;
+      targetNode.children.push(node);
+    } else {
+      var targetParent = getParentOf(targetId);
+      var targetIdx = targetParent.children.findIndex(function (c) { return c.id === targetId; });
+      var insertIdx = mode === 'before' ? targetIdx : targetIdx + 1;
+      targetParent.children.splice(insertIdx, 0, node);
+    }
+    selectedId = id;
+    render();
+    saveActive();
+    showToast('카드를 옮겼어요.');
+  }
+
+  function commitTitle(id, newText) {
+    var node = findNode(tree, id);
+    if (!node) return null;
+    node.text = newText.trim() || '(제목 없음)';
+    saveActive();
+    return node.text;
+  }
+
+  function commitDetail(id, newText) {
+    var node = findNode(tree, id);
+    if (!node) return null;
+    node.detail = newText.trim();
+    saveActive();
+    return node.detail;
+  }
+
+  function focusTitle(id) {
+    requestAnimationFrame(function () {
+      var el = nodesLayer.querySelector('.node[data-id="' + cssEscape(id) + '"] .node-title');
+      if (el) { el.focus(); el.select(); }
+    });
+  }
+
+  function cssEscape(s) {
+    return String(s).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
+  }
+
+  // ---------- layout ----------
+
+  function layoutAndRender() {
+    var leafCounter = 0;
+    function assign(node, depth) {
+      node._x = depth * COL_W;
+      var visibleChildren = node.collapsed ? [] : node.children;
+      if (visibleChildren.length === 0) {
+        node._y = leafCounter * ROW_H;
+        leafCounter++;
+      } else {
+        visibleChildren.forEach(function (c) { assign(c, depth + 1); });
+        var ys = visibleChildren.map(function (c) { return c._y; });
+        node._y = (Math.min.apply(null, ys) + Math.max.apply(null, ys)) / 2;
+      }
+    }
+    assign(tree, 0);
+
+    var acc = { nodes: [], edges: [] };
+    function collect(node, parent, depth) {
+      acc.nodes.push({ node: node, parent: parent, depth: depth });
+      if (!node.collapsed) {
+        node.children.forEach(function (c) { acc.edges.push([node, c]); });
+        node.children.forEach(function (c) { collect(c, node, depth + 1); });
+      }
+    }
+    collect(tree, null, 0);
+
+    var maxX = 0, maxY = 0;
+    acc.nodes.forEach(function (n) {
+      maxX = Math.max(maxX, n.node._x + NODE_W);
+      maxY = Math.max(maxY, n.node._y + NODE_H);
+    });
+    var contentW = maxX + PAD * 2;
+    var contentH = maxY + PAD * 2;
+
+    canvasContent.style.width = contentW + 'px';
+    canvasContent.style.height = contentH + 'px';
+    edgesSvg.setAttribute('width', contentW);
+    edgesSvg.setAttribute('height', contentH);
+
+    var edgePaths = acc.edges.map(function (pair) {
+      var a = pair[0], b = pair[1];
+      var x1 = a._x + PAD + NODE_W, y1 = a._y + PAD + NODE_H / 2;
+      var x2 = b._x + PAD, y2 = b._y + PAD + NODE_H / 2;
+      var mx = (x1 + x2) / 2;
+      return '<path class="edge" d="M ' + x1 + ',' + y1 + ' C ' + mx + ',' + y1 + ' ' + mx + ',' + y2 + ' ' + x2 + ',' + y2 + '"></path>';
+    }).join('');
+    edgesSvg.innerHTML = edgePaths;
+
+    var html = acc.nodes.map(function (n) {
+      var node = n.node;
+      var isRoot = node.id === tree.id;
+      var color = DEPTH_COLORS[n.depth % DEPTH_COLORS.length];
+      var selected = node.id === selectedId ? ' selected' : '';
+      var rootCls = isRoot ? ' is-root' : '';
+      var left = node._x + PAD, top = node._y + PAD;
+      var toolbarBtns = '<button data-action="add-child" title="하위 추가">➕하위</button>';
+      if (!isRoot) {
+        toolbarBtns += '<button data-action="add-sibling" title="형제 추가">➕형제</button>';
+        toolbarBtns += '<button data-action="delete" title="삭제">🗑</button>';
+      }
+      var collapseBadge = '';
+      if (node.children.length > 0) {
+        collapseBadge = '<div class="collapse-toggle" data-action="toggle-collapse" title="접기/펼치기">' +
+          (node.collapsed ? '+' + node.children.length : '−') + '</div>';
+      }
+      return '<div class="node' + rootCls + selected + '" data-id="' + node.id + '" style="left:' + left + 'px; top:' + top + 'px; border-left-color:' + (isRoot ? '#14151A' : color) + '">' +
+        '<div class="node-drag-handle" title="드래그해서 다른 카드로 이동">⠿</div>' +
+        '<input class="node-title" type="text" value="' + escapeHtml(node.text) + '" placeholder="제목" spellcheck="false" />' +
+        '<div class="node-divider"></div>' +
+        '<textarea class="node-detail" placeholder="상세 내용 (선택)" spellcheck="false">' + escapeHtml(node.detail || '') + '</textarea>' +
+        '<div class="node-toolbar">' + toolbarBtns + '</div>' +
+        collapseBadge +
+        '</div>';
+    }).join('');
+
+    if (tree.children.length === 0) {
+      html += '<div class="hint-bubble" style="left:' + (PAD + NODE_W + 30) + 'px; top:' + (PAD - 10) + 'px;">' +
+        '카드를 클릭해서 제목과 상세 내용을 바로 입력하고,<br>선택한 뒤 <b>➕하위</b>를 눌러 생각을 넓혀보세요.' +
+        '</div>';
+    }
+
+    nodesLayer.innerHTML = html;
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function applyTransform() {
+    canvasContent.style.transform = 'translate(' + pan.x + 'px,' + pan.y + 'px) scale(' + zoom + ')';
+  }
+
+  function render() {
+    layoutAndRender();
+    applyTransform();
+  }
+
+  // ---------- view controls ----------
+
+  function fitView() {
+    var vw = viewport.clientWidth, vh = viewport.clientHeight;
+    var cw = parseFloat(canvasContent.style.width) || vw;
+    var ch = parseFloat(canvasContent.style.height) || vh;
+    var scale = Math.min(vw / cw, vh / ch, 1);
+    scale = Math.max(scale, 0.25);
+    zoom = scale;
+    pan.x = (vw - cw * scale) / 2;
+    pan.y = (vh - ch * scale) / 2;
+    applyTransform();
+  }
+
+  function zoomBy(delta, center) {
+    var vw = viewport.clientWidth, vh = viewport.clientHeight;
+    var cx = center ? center.x : vw / 2, cy = center ? center.y : vh / 2;
+    var newZoom = Math.min(2, Math.max(0.25, zoom + delta));
+    var wx = (cx - pan.x) / zoom, wy = (cy - pan.y) / zoom;
+    pan.x = cx - wx * newZoom;
+    pan.y = cy - wy * newZoom;
+    zoom = newZoom;
+    applyTransform();
+  }
+
+  // ---------- persistence / load ----------
+
+  var pendingImport = null;
+  var importModal = document.getElementById('import-modal');
+
+  function loadInitial() {
+    loadLibrary();
+    var hash = location.hash;
+    if (hash && hash.indexOf('#d=') === 0) {
+      var incoming = null;
+      try { incoming = decodeState(hash.slice(3)); } catch (e) { /* ignore */ }
+      if (incoming) {
+        pendingImport = incoming;
+        importModal.classList.add('open');
+        return; // wait for the user's choice; finishInit() runs it from there
+      } else {
+        showToast('공유 링크를 읽지 못했어요.');
+      }
+    }
+    loadActiveIntoTree();
+    finishInit();
+  }
+
+  function finishInit() {
+    render();
+    fitView();
+    saveActive();
+  }
+
+  function acceptImport() {
+    if (pendingImport) {
+      var item = makeItem('가져온 마인드맵 (' + formatDate(nowTs()) + ')', pendingImport);
+      library.items.push(item);
+      library.activeId = item.id;
+      saveLibrary();
+    }
+    pendingImport = null;
+    importModal.classList.remove('open');
+    loadActiveIntoTree();
+    finishInit();
+  }
+
+  function declineImport() {
+    pendingImport = null;
+    importModal.classList.remove('open');
+    loadActiveIntoTree();
+    finishInit();
+  }
+
+  function clearActive() {
+    if (!confirm('현재 마인드맵 내용을 지우고 새로 시작할까요?')) return;
+    tree = defaultTree();
+    selectedId = null;
+    render();
+    fitView();
+    saveActive();
+    renderLibraryPanel();
+  }
+
+  function copyShareLink() {
+    saveActive();
+    var url = location.origin + location.pathname + '?b=' + BUILD_VERSION + location.hash;
+    var done = function () { showToast('공유 링크를 복사했어요. 다른 브라우저·기기에 붙여넣으면 지금 상태 그대로 보여요.'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(done, function () { fallbackCopy(url, done); });
+    } else {
+      fallbackCopy(url, done);
+    }
+  }
+
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) { /* ignore */ }
+    document.body.removeChild(ta);
+    done();
+  }
+
+  function nodeToTextLines(node, depth, lines) {
+    var indent = '  '.repeat(depth);
+    lines.push(indent + '- ' + node.text);
+    if (node.detail) {
+      var detailIndent = '  '.repeat(depth + 1);
+      node.detail.split('\n').forEach(function (line) {
+        lines.push(detailIndent + '> ' + line);
+      });
+    }
+    node.children.forEach(function (c) { nodeToTextLines(c, depth + 1, lines); });
+  }
+
+  function treeToText() {
+    var lines = ['# 마인드맵: ' + getActiveItem().name, ''];
+    nodeToTextLines(tree, 0, lines);
+    return lines.join('\n');
+  }
+
+  function copyAsText() {
+    var text = treeToText();
+    var done = function () { showToast('클로드 등 AI 세션에 붙여넣을 수 있는 텍스트로 복사했어요.'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text, done); });
+    } else {
+      fallbackCopy(text, done);
+    }
+  }
+
+  // ---------- events ----------
+
+  nodesLayer.addEventListener('click', function (e) {
+    var actionBtn = e.target.closest('[data-action]');
+    var nodeEl = e.target.closest('.node');
+    if (!nodeEl) return;
+    var id = nodeEl.getAttribute('data-id');
+    if (actionBtn) {
+      e.stopPropagation();
+      var action = actionBtn.getAttribute('data-action');
+      if (action === 'add-child') addChild(id);
+      else if (action === 'add-sibling') addSibling(id);
+      else if (action === 'delete') deleteNode(id);
+      else if (action === 'toggle-collapse') toggleCollapse(id);
+      return;
+    }
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    selectedId = id;
+    render();
+  });
+
+  nodesLayer.addEventListener('focusin', function (e) {
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') return;
+    var nodeEl = e.target.closest('.node');
+    if (!nodeEl) return;
+    var id = nodeEl.getAttribute('data-id');
+    if (selectedId === id) return;
+    var prevSelected = nodesLayer.querySelector('.node.selected');
+    if (prevSelected) prevSelected.classList.remove('selected');
+    nodeEl.classList.add('selected');
+    selectedId = id;
+  });
+
+  nodesLayer.addEventListener('focusout', function (e) {
+    var nodeEl = e.target.closest('.node');
+    if (!nodeEl) return;
+    var id = nodeEl.getAttribute('data-id');
+    if (e.target.classList.contains('node-title')) {
+      var v = commitTitle(id, e.target.value);
+      if (v !== null) e.target.value = v;
+    } else if (e.target.classList.contains('node-detail')) {
+      var v2 = commitDetail(id, e.target.value);
+      if (v2 !== null) e.target.value = v2;
+    }
+  });
+
+  nodesLayer.addEventListener('keydown', function (e) {
+    var nodeEl = e.target.closest('.node');
+    if (!nodeEl) return;
+    var id = nodeEl.getAttribute('data-id');
+    if (e.target.classList.contains('node-title')) {
+      if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); addSibling(id); }
+      else if (e.key === 'Tab') { e.preventDefault(); e.target.blur(); addChild(id); }
+      else if (e.key === 'Escape') { e.target.blur(); }
+      e.stopPropagation();
+    } else if (e.target.classList.contains('node-detail')) {
+      if (e.key === 'Escape') { e.target.blur(); }
+      e.stopPropagation();
+    }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    var ae = document.activeElement;
+    if (ae && (ae.isContentEditable || ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) return;
+    if (!selectedId) return;
+    if (e.key === 'Tab') { e.preventDefault(); addChild(selectedId); }
+    else if (e.key === 'Enter') { e.preventDefault(); addSibling(selectedId); }
+    else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteNode(selectedId); }
+    else if (e.key === 'Escape') { selectedId = null; render(); }
+    else if (e.key === 'F2') { e.preventDefault(); focusTitle(selectedId); }
+  });
+
+  // node reparent drag
+  var dnd = null; // { id }
+
+  function clearDropHighlight() {
+    var els = nodesLayer.querySelectorAll('.drop-child, .drop-before, .drop-after');
+    els.forEach(function (el) { el.classList.remove('drop-child', 'drop-before', 'drop-after'); });
+  }
+
+  nodesLayer.addEventListener('pointerdown', function (e) {
+    var handle = e.target.closest('.node-drag-handle');
+    if (!handle) return;
+    var nodeEl = handle.closest('.node');
+    var id = nodeEl.getAttribute('data-id');
+    if (id === tree.id) return;
+    e.stopPropagation();
+    e.preventDefault();
+    dnd = { id: id, targetId: null, mode: null };
+    nodeEl.classList.add('dragging');
+    handle.setPointerCapture(e.pointerId);
+  });
+
+  nodesLayer.addEventListener('pointermove', function (e) {
+    if (!dnd) return;
+    clearDropHighlight();
+    var under = document.elementFromPoint(e.clientX, e.clientY);
+    var targetEl = under ? under.closest('.node') : null;
+    var targetId = targetEl ? targetEl.getAttribute('data-id') : null;
+    if (!targetId || targetId === dnd.id || isDescendant(dnd.id, targetId)) {
+      dnd.targetId = null;
+      dnd.mode = null;
+      return;
+    }
+    var rect = targetEl.getBoundingClientRect();
+    var relY = (e.clientY - rect.top) / rect.height;
+    var mode = targetId === tree.id ? 'child' : (relY < 0.25 ? 'before' : relY > 0.75 ? 'after' : 'child');
+    dnd.targetId = targetId;
+    dnd.mode = mode;
+    targetEl.classList.add(mode === 'child' ? 'drop-child' : (mode === 'before' ? 'drop-before' : 'drop-after'));
+  });
+
+  nodesLayer.addEventListener('pointerup', function () {
+    if (!dnd) return;
+    var dragged = dnd;
+    dnd = null;
+    clearDropHighlight();
+    var draggedEl = nodesLayer.querySelector('.node.dragging');
+    if (draggedEl) draggedEl.classList.remove('dragging');
+    if (dragged.targetId && dragged.mode) reparentNode(dragged.id, dragged.targetId, dragged.mode);
+  });
+
+  // pan
+  var dragging = false, dragStart = null, panStart = null;
+  viewport.addEventListener('pointerdown', function (e) {
+    if (e.target.closest('.node')) return;
+    dragging = true;
+    viewport.classList.add('panning');
+    dragStart = { x: e.clientX, y: e.clientY };
+    panStart = { x: pan.x, y: pan.y };
+    viewport.setPointerCapture(e.pointerId);
+  });
+  viewport.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    pan.x = panStart.x + (e.clientX - dragStart.x);
+    pan.y = panStart.y + (e.clientY - dragStart.y);
+    applyTransform();
+  });
+  viewport.addEventListener('pointerup', function () {
+    dragging = false;
+    viewport.classList.remove('panning');
+  });
+  viewport.addEventListener('pointercancel', function () {
+    dragging = false;
+    viewport.classList.remove('panning');
+  });
+  viewport.addEventListener('click', function (e) {
+    if (e.target === viewport || e.target === canvasContent) {
+      selectedId = null;
+      render();
+    }
+  });
+
+  // wheel zoom
+  viewport.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    var rect = viewport.getBoundingClientRect();
+    var center = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    zoomBy(e.deltaY < 0 ? 0.1 : -0.1, center);
+  }, { passive: false });
+
+  document.getElementById('btn-zoom-in').addEventListener('click', function () { zoomBy(0.15); });
+  document.getElementById('btn-zoom-out').addEventListener('click', function () { zoomBy(-0.15); });
+  document.getElementById('btn-fit').addEventListener('click', fitView);
+  document.getElementById('btn-reset').addEventListener('click', clearActive);
+  document.getElementById('btn-share').addEventListener('click', copyShareLink);
+  document.getElementById('btn-copy-text').addEventListener('click', copyAsText);
+
+  // library panel
+  document.getElementById('btn-library').addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (libPanel.classList.contains('open')) closeLibraryPanel();
+    else openLibraryPanel();
+  });
+  libPanel.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (e.target.closest('[data-action="lib-new"]')) { createNewMindmap(); return; }
+    var actionBtn = e.target.closest('[data-action="lib-rename"], [data-action="lib-delete"]');
+    var itemEl = e.target.closest('.lib-item');
+    if (actionBtn && itemEl) {
+      var id = itemEl.getAttribute('data-id');
+      if (actionBtn.getAttribute('data-action') === 'lib-rename') renameMindmap(id);
+      else deleteMindmap(id);
+      return;
+    }
+    if (itemEl) switchToMindmap(itemEl.getAttribute('data-id'));
+  });
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.lib-wrap')) closeLibraryPanel();
+  });
+
+  document.getElementById('import-accept').addEventListener('click', acceptImport);
+  document.getElementById('import-decline').addEventListener('click', declineImport);
+
+  document.getElementById('btn-save-as').addEventListener('click', saveAs);
+  document.getElementById('name-save').addEventListener('click', function () {
+    closeNameModal(nameInput.value.trim() || null);
+  });
+  document.getElementById('name-cancel').addEventListener('click', function () {
+    closeNameModal(null);
+  });
+  nameInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); closeNameModal(nameInput.value.trim() || null); }
+    else if (e.key === 'Escape') { e.preventDefault(); closeNameModal(null); }
+    e.stopPropagation();
+  });
+
+  // ---------- init ----------
+  loadInitial();
+})();
+</script>
+</body>
+</html>

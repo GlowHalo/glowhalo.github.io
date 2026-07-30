@@ -1,0 +1,67 @@
+import { defineConfig } from "vite";
+import { existsSync, mkdirSync, readdirSync, cpSync, statSync, createReadStream } from "node:fs";
+import { resolve, extname } from "node:path";
+
+// GitHub Pages는 이 폴더를 https://tossneon.github.io/circle-heroes/ 로 정적 서빙하므로
+// 빌드 산출물을 상대경로(base './')로 만들어 play/ 폴더에 커밋한다.
+// 라이브 주소: https://tossneon.github.io/circle-heroes/play/
+
+// 코드에서 실제로 쓰는 에셋 폴더만 루트에 평평하게 서빙(dev+build 공통).
+// cards/(116MB, 원본 PNG)는 아직 코드에서 참조하지 않으므로 제외 — cards-webp(6.8MB, 압축본)는
+// 영웅 상세화면 일러스트 뷰(§11)에서 사용. audio/는 아직 파일이 없어도(§사운드 백로그,
+// 2026-07-29) 안전 — closeBundle이 폴더 존재 여부를 먼저 확인하고 없으면 조용히 건너뜀
+const SERVED_ASSET_DIRS = ["characters", "monsters", "backgrounds", "icons", "effects", "cards-webp", "audio"];
+
+const MIME: Record<string, string> = {
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".svg": "image/svg+xml",
+  ".mp3": "audio/mpeg",
+  ".ogg": "audio/ogg",
+};
+
+function gameAssets() {
+  return {
+    name: "circle-heroes-game-assets",
+    configureServer(server: import("vite").ViteDevServer) {
+      server.middlewares.use((req, res, next) => {
+        // 한글 파일명(예: hit-불.png)은 브라우저가 요청 시 퍼센트 인코딩하므로 디코딩 후 조회해야 함
+        const url = decodeURIComponent(req.url?.split("?")[0] ?? "");
+        const ext = extname(url);
+        if (!MIME[ext]) return next();
+        for (const dir of SERVED_ASSET_DIRS) {
+          const filePath = resolve(__dirname, "assets", dir, url.replace(/^\//, ""));
+          if (existsSync(filePath) && statSync(filePath).isFile()) {
+            res.setHeader("Content-Type", MIME[ext]);
+            createReadStream(filePath).pipe(res);
+            return;
+          }
+        }
+        next();
+      });
+    },
+    closeBundle() {
+      const outDir = resolve(__dirname, "play");
+      mkdirSync(outDir, { recursive: true });
+      for (const dir of SERVED_ASSET_DIRS) {
+        const src = resolve(__dirname, "assets", dir);
+        if (!existsSync(src)) continue;
+        for (const file of readdirSync(src)) {
+          if (file.startsWith(".")) continue;
+          cpSync(resolve(src, file), resolve(outDir, file));
+        }
+      }
+    },
+  };
+}
+
+export default defineConfig({
+  base: "./",
+  plugins: [gameAssets()],
+  build: {
+    outDir: "play",
+    emptyOutDir: true,
+  },
+});

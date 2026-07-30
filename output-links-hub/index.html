@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>산출물 다운로드 — Ted Lee</title>
+<meta name="description" content="Ted Lee가 만든 프로그램을 바로 받거나 링크를 복사해서 전달할 수 있는 다운로드 허브." />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500;600&display=swap');
+  * { box-sizing: border-box; }
+  body { margin:0; background:#DCDCE0; font-family:'Noto Sans KR', sans-serif; display:flex; justify-content:center; }
+  .display { font-family:'Black Han Sans', sans-serif; }
+  .mono { font-family:'IBM Plex Mono', monospace; }
+  .app { width:100%; max-width:480px; background:#F5F5F7; box-shadow:0 0 60px rgba(0,0,0,0.08); min-height:100vh; }
+
+  .hero { position:relative; overflow:hidden; background:#0E0F13; }
+  .hero-bignum { position:absolute; top:-30px; right:-24px; font-size:200px; color:rgba(255,255,255,0.03); line-height:1; user-select:none; pointer-events:none; }
+  .hero-inner { position:relative; padding:52px 24px 44px; }
+  .hero-tag { font-size:11px; letter-spacing:.25em; color:#4C6FFF; margin:0; }
+  .hero h1 { font-size:42px; line-height:1.15; color:#F5F5F7; margin:16px 0 0; }
+  .mark { background-image:linear-gradient(120deg,#4C6FFF,#4C6FFF); background-repeat:no-repeat; background-size:100% 42%; background-position:0 88%; padding:0 4px; color:#F5F5F7; }
+  .hero p.desc { margin-top:20px; font-size:14px; line-height:1.7; color:#9A9CA5; max-width:340px; }
+
+  .section-label { padding:0 20px; margin-top:32px; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.15em; color:#A2A3AB; }
+
+  .items { padding:12px 20px 0; display:flex; flex-direction:column; gap:20px; }
+  .card { border-radius:16px; padding:22px 20px; background:#FFFFFF; border:1px solid #E4E4E9; box-shadow:0 4px 14px rgba(14,15,19,0.05); }
+  .card-top { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .badge { font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; padding:3px 9px; border-radius:999px; color:#fff; }
+  .card h2 { font-size:22px; margin:10px 0 0; color:#14151A; }
+  .card p.sub { font-size:12px; color:#9A9CA5; margin:3px 0 0; }
+  .card p.d { font-size:14px; line-height:1.6; color:#61636C; margin-top:10px; }
+
+  .warn { margin-top:12px; background:#FFF6E9; border:1px solid #F0D9A8; border-radius:12px; padding:10px 12px; font-size:12px; line-height:1.6; color:#7A5B1E; }
+  .warn b { color:#9A6A12; }
+
+  .links { margin-top:16px; display:flex; flex-direction:column; gap:8px; border-top:1px solid #EEEEF1; padding-top:14px; }
+  .link-row { display:flex; align-items:center; justify-content:space-between; gap:10px; background:#F7F7F9; border-radius:12px; padding:10px 12px; }
+  .link-row.primary { background:#F0F3FF; }
+  .link-text { min-width:0; }
+  .link-label { display:block; font-size:13px; font-weight:700; color:#2A2B31; }
+  .link-url { display:block; font-size:10px; color:#8C8DA0; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-decoration:none; }
+  .link-actions { flex:none; display:flex; gap:6px; }
+  .btn-go, .btn-copy { border:none; cursor:pointer; font-family:'Noto Sans KR',sans-serif; font-size:12px; font-weight:700; border-radius:8px; padding:7px 10px; display:inline-flex; align-items:center; gap:4px; text-decoration:none; white-space:nowrap; }
+  .btn-go { background:#14151A; color:#F5F5F7; }
+  .btn-copy { background:#fff; color:#4C4E58; border:1px solid #DADAE0; min-width:64px; justify-content:center; }
+  .btn-copy.copied { background:#E8F5EC; color:#2E8B57; border-color:#BFE3CB; }
+
+  .footer { margin-top:36px; padding:28px 24px; background:#0E0F13; }
+  .footer .display { font-size:18px; color:#F5F5F7; margin:0; }
+  .footer p.c { font-family:'IBM Plex Mono',monospace; font-size:10px; color:#63656F; margin-top:8px; }
+  .footer a { color:#9A9CA5; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hero">
+    <div class="hero-bignum display">⇩</div>
+    <div class="hero-inner">
+      <p class="hero-tag mono">TED LEE · OUTPUT LINKS</p>
+      <h1 class="display"><span class="mark">다운로드</span></h1>
+    </div>
+  </div>
+
+  <div class="section-label mono">다운로드</div>
+  <div class="items" id="items"></div>
+
+  <div class="footer">
+    <p class="display">Ted Lee</p>
+    <p class="c">© 2026</p>
+  </div>
+</div>
+
+<script>
+  // 새 산출물이 생기면 이 배열에 객체 하나만 추가하면 카드가 자동으로 쌓인다.
+  const OUTPUTS = [
+    {
+      title: "오토클릭 — Claude 자동 허용",
+      subtitle: "Windows · Claude Desktop 권한 팝업 매크로",
+      badgeColor: "#4C6FFF",
+      description: "Claude Desktop에 권한 팝업이 뜨면 “항상 허용”을 버튼 글자로 찾아 자동으로 눌러주는 매크로.",
+      warn: "받은 zip은 압축 풀기 전에 우클릭 → 속성 → \"차단 해제\" 체크부터 하면 실행 경고 없이 바로 쓸 수 있다.",
+      links: [
+        { label: "다운로드 (.zip)", href: "https://tossneon.github.io/claude-auto-allow/claude-auto-allow.zip", primary: true }
+      ]
+    },
+    {
+      title: "써클히어로즈",
+      subtitle: "Android · Web · SD 히어로 수집 방치형 게임",
+      badgeColor: "#B98B4E",
+      description: "가챠로 영웅을 모아 자동전투로 키우는 수집형 방치 게임. APK로 설치하거나 웹에서 바로 플레이할 수 있다.",
+      warn: "서명 없는 디버그 APK — 설치 시 \"출처를 알 수 없는 앱\" 경고가 뜨면 허용하고 계속 진행하면 된다. 이 링크는 항상 최신 빌드를 가리키는 고정 링크다.",
+      links: [
+        { label: "APK 다운로드 (안드로이드)", href: "https://github.com/tossneon/tossneon.github.io/releases/download/circle-heroes-latest/app-debug.apk", primary: true },
+        { label: "웹에서 바로 플레이", href: "https://tossneon.github.io/circle-heroes/play/" }
+      ]
+    }
+  ];
+
+  const itemsEl = document.getElementById("items");
+
+  OUTPUTS.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <div class="card-top">
+        <span class="badge" style="background:${item.badgeColor}">${item.subtitle}</span>
+      </div>
+      <h2>${item.title}</h2>
+      <p class="d">${item.description}</p>
+      ${item.warn ? `<div class="warn">⚠️ <b>참고</b> ${item.warn}</div>` : ""}
+      <div class="links"></div>
+    `;
+
+    const linksEl = card.querySelector(".links");
+    item.links.forEach(link => {
+      const row = document.createElement("div");
+      row.className = "link-row" + (link.primary ? " primary" : "");
+      row.innerHTML = `
+        <div class="link-text">
+          <span class="link-label">${link.label}</span>
+          <a class="link-url mono" href="${link.href}" target="_blank" rel="noopener">${link.href}</a>
+        </div>
+        <div class="link-actions">
+          <a class="btn-go" href="${link.href}" target="_blank" rel="noopener">${link.primary ? "⬇ 받기" : "열기"}</a>
+          <button class="btn-copy" type="button">🔗 복사</button>
+        </div>
+      `;
+      const copyBtn = row.querySelector(".btn-copy");
+      copyBtn.addEventListener("click", () => copyLink(link.href, copyBtn));
+      linksEl.appendChild(row);
+    });
+
+    itemsEl.appendChild(card);
+  });
+
+  function copyLink(text, btn) {
+    const done = () => {
+      const original = btn.textContent;
+      btn.textContent = "✓ 복사됨";
+      btn.classList.add("copied");
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove("copied");
+      }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    } else {
+      fallbackCopy(text, done);
+    }
+  }
+
+  function fallbackCopy(text, done) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(ta);
+    done();
+  }
+</script>
+</body>
+</html>

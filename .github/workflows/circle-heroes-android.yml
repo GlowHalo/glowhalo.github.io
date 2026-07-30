@@ -1,0 +1,61 @@
+name: Circle Heroes — Android APK
+
+on:
+  # APK는 자동 빌드하지 않는다 — 웹플레이(GitHub Pages)만 push마다 자동 갱신되고,
+  # APK는 필요할 때 Actions 탭에서 이 워크플로우를 수동 실행(workflow_dispatch)해서만 패키징한다.
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: circle-heroes
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install web deps
+        run: npm ci
+
+      - name: Build web app
+        run: npm run build
+
+      - name: Sync Capacitor Android assets
+        run: npx cap sync android
+
+      - name: Build debug APK
+        working-directory: circle-heroes/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: circle-heroes-debug-apk
+          path: circle-heroes/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+      # 로그인·압축해제 없이 폰에서 바로 받을 수 있도록, 매 빌드마다 같은 태그(circle-heroes-latest)에
+      # 최신 디버그 APK를 올린다. "최신 빌드 = 이 링크" 를 유지하기 위한 롤링 릴리스.
+      - name: Publish to rolling release (circle-heroes-latest)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete circle-heroes-latest --yes --cleanup-tag --repo "$GITHUB_REPOSITORY" || true
+          gh release create circle-heroes-latest \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Circle Heroes — 최신 디버그 APK" \
+            --notes "자동 빌드된 디버그 APK (서명 없음, 테스트 설치용). 커밋: $GITHUB_SHA" \
+            --prerelease \
+            android/app/build/outputs/apk/debug/app-debug.apk
