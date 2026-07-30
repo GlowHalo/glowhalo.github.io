@@ -432,11 +432,18 @@
 }
 .hero-card .face {
   position: absolute;
-  inset: 3px;
+  /* §카드 표시방식 재정리(2026-07-30, C안) — 이전 3px는 얼굴이 카드를 거의 꽉 채워서 등급색
+     배경이 보일 틈이 없었다(외곽 매트형 B안 때는 box-shadow가 카드 "바깥"에 있어 상관없었지만,
+     C안은 카드 "안" 여백으로 등급을 보여줘야 함). 여백을 넓혀 등급색 테두리가 또렷이 보이게 */
+  inset: 6px;
   z-index: 1;
   border-radius: 7px;
 }
-.hero-card .hc-badge {
+/* §2026-07-30: 원래 .hero-card 안에서만 쓰던 코너 배지를 진영 배지(addFactionBadge)가
+   party-slot/ascend-slot/equip-head/detail-head/sfx-card/sfx-new-card로도 재사용하게 되면서
+   부모 스코프(.hero-card )를 뗌 — 해당 위치는 전부 이미 position:relative(또는 absolute)라
+   배지가 코너에 정확히 붙는다 */
+.hc-badge {
   position: absolute;
   z-index: 2;
   font-size: 9px;
@@ -448,14 +455,14 @@
   color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
-.hero-card img.hc-badge {
+img.hc-badge {
   padding: 2px;
   width: 16px;
   height: 16px;
   object-fit: contain;
   background: #10131cee;
 }
-.hero-card .hc-badge-tl { top: 4px; left: 4px; }
+.hc-badge-tl { top: 4px; left: 4px; }
 .hero-card .hc-badge-tr { top: 4px; right: 4px; background: var(--amber); color: #10131c; }
 .hero-card .hc-badge-br { bottom: 4px; right: 4px; }
 .hero-card .hc-badge-bl { bottom: 4px; left: 4px; color: #ffd34d; }
@@ -488,18 +495,6 @@
 .codex-count { font-size: 11.5px; color: var(--ink3); font-variant-numeric: tabular-nums; }
 /* 2026-07-29: 도감 카드를 레퍼런스 실측 배너비율(1:2.7)로 따로 늘였던 것을 되돌림 — 주인님이
    편성화면 카드와 크기를 통일해달라고 하셔서, 이제 .hero-card 기본값(3:4)을 그대로 쓴다 */
-/* 진영 배경 위 큰 워터마크 아이콘 — 카드 배경으로 진영을 표현 */
-.card-wm {
-  position: absolute;
-  z-index: 0;
-  top: 50%;
-  right: -14%;
-  width: 78%;
-  transform: translateY(-50%) rotate(-8deg);
-  opacity: 0.16;
-  pointer-events: none;
-  filter: saturate(0.6);
-}
 /* 등급은 카드 상세화면 제외 전 화면에서 텍스트 대신 테두리 색으로만 표시 */
 .grade-N { color: #7d9ab5; }
 .grade-R { color: #6f9fe8; }
@@ -1208,27 +1203,17 @@
   text-align: center;
   padding: 6px;
 }
-.sfx-card .front > *:not(.card-wm) { position: relative; z-index: 1; }
+.sfx-card .front > * { position: relative; z-index: 1; }
 .sfx-card .front .face {
   width: 70px;
   height: 70px;
   border-radius: 13px;
   border: 2px solid #10131c;
 }
-.sfx-card .front { border: 3px solid #7d9ab5; }
-.sfx-card.grade-R .front { border: 3px solid #4a9be8; }
-.sfx-card.grade-SR .front {
-  border: 3px solid #b060f0;
-  box-shadow: 0 0 22px rgba(176, 96, 240, 0.75);
-}
-.sfx-card.grade-SSR .front {
-  border: 3px solid #ffd34d;
-  box-shadow: 0 0 26px rgba(255, 211, 77, 0.85);
-}
-.sfx-card.grade-UR .front {
-  border: 3px solid #ff5a6e;
-  box-shadow: 0 0 30px rgba(255, 90, 110, 0.9);
-}
+/* §카드 표시방식 재정리(2026-07-30) — 등급은 이제 배경(setCardGrade)으로 표시하므로 테두리는
+   등급 구분 없는 공통 프레임 하나로 통일. SR/SSR/UR의 flipped 팝 애니메이션(아래 srPop)은 색상
+   축이 아니라 모션 피드백이라 그대로 유지 */
+.sfx-card .front { border: 3px solid var(--line); }
 .sfx-card.grade-SR.flipped,
 .sfx-card.grade-SSR.flipped,
 .sfx-card.grade-UR.flipped { animation: srPop 0.4s ease-out 0.25s; }
@@ -1298,7 +1283,7 @@
   background: var(--panel2);
   animation: srPop 0.4s ease-out;
 }
-.sfx-new-card .face { position: absolute; inset: 4px; border-radius: 10px; }
+.sfx-new-card .face { position: absolute; inset: 9px; border-radius: 10px; }
 .sfx-new-name { font-size: 17px; font-weight: 700; color: var(--ink); }
 .sfx-new-sub { font-size: 12.5px; color: var(--ink3); margin-bottom: 6px; }
 .sfx-new-popup .btn { min-width: 160px; }
@@ -1598,5 +1583,19 @@
 /* ── 재료 선택(승급/초월 공용, §마이티 아레나 반영계획 5) ── */
 .mat-count { background: var(--red) !important; }
 .transcend-mats { justify-content: center; }
-.transcend-stars { color: #b060f0 !important; }
+
+/* §카드 표시방식 재정리(2026-07-30) — "황금별6이 보라별1로" 설계: 초월이 시작되면 성급 별(★, 골드)
+   자리를 초월 별(✪, 보라)이 통째로 대체한다. dh-stars/as-stars/hc-badge-bl 어디에 붙어도 동일하게
+   동작하도록 색만 덮어쓰는 유틸 클래스 + 반짝이는 발광 애니메이션 */
+.star-purple {
+  color: #c98bff !important;
+  animation: starSparkle 1.8s ease-in-out infinite;
+}
+@keyframes starSparkle {
+  0%, 100% { text-shadow: 0 0 4px rgba(176, 96, 240, 0.55); }
+  50% { text-shadow: 0 0 11px rgba(216, 140, 255, 0.95), 0 0 18px rgba(176, 96, 240, 0.75); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .star-purple { animation: none; text-shadow: 0 0 6px rgba(176, 96, 240, 0.6); }
+}
 
