@@ -3,6 +3,7 @@ import { on, emit } from "../state/bus";
 import {
   save, calcOfflineReward, addGold, addGems, addHero, resetSave,
   unreadMailCount, markMailRead, claimMail, type MailItem, OFFLINE_CAP_HOURS,
+  grantMaxTestHero,
 } from "../state/save";
 import { renderHeroes, renderSummon, renderShop, renderMissions, renderCastle, setHeroesSubView, setMissionsSubView } from "./screens";
 import { partyPower } from "../systems/battle";
@@ -343,6 +344,13 @@ const SECRET_CODES: Record<string, { message: string; grant: () => void }> = {
   "0203": {
     message: "🎉 히든 영웅 5종을 모두 획득했습니다!",
     grant: () => HIDDEN_HERO_IDS.forEach((id) => addHero(id)),
+  },
+  // §카드 표시방식 테스트(2026-07-30) — "다 하고 코드에 1 넣으면 8성 영웅 하나 줘. 받아서
+  // 테스트하려고" 요청. 마초(UR)를 5성 만렙+초월 3단계("8성" 상당)로 즉시 지급해서
+  // 골드→보라 별 전환·발광 연출과 등급색 배경(C안)을 바로 확인할 수 있게 한다
+  "1": {
+    message: "🧪 테스트용 마초(UR) 5성+초월3 지급! 영웅 화면에서 확인하세요.",
+    grant: () => grantMaxTestHero("ma_chao_wind_001"),
   },
   GOLD: {
     message: "🪙 골드 10,000 획득!",

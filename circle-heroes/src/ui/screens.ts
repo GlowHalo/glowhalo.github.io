@@ -78,8 +78,8 @@ function el(tag: string, cls?: string, text?: string): HTMLElement {
   return n;
 }
 
-/** 영웅 초상화를 .face 배경으로 채운다(얼굴 클로즈업 크롭). 프레임 배경은 진영색이 아닌 중립 검정 —
- * 진영은 카드 전체 배경(setCardFaction)으로 표시한다 */
+/** 영웅 초상화를 .face 배경으로 채운다(얼굴 클로즈업 크롭). 프레임 배경은 등급색이 아닌 중립 검정 —
+ * 등급은 카드 전체 배경(setCardGrade)으로, 진영은 좌상단 코너 배지(addFactionBadge)로 따로 표시한다 */
 function setFace(face: HTMLElement, hero: Hero) {
   face.style.background = "#0a0d16";
   face.style.backgroundImage = `url(${hero.id}.png)`;
@@ -100,25 +100,33 @@ const FACTION_ICON: Record<string, string> = {
   어둠: "elem-dark.png",
 };
 
-/** 진영별 카드 배경 그라디언트(위→아래, 진영색 → 패널 어두운톤) */
-const FACTION_CARD_BG: Record<string, string> = {
-  불: "linear-gradient(165deg, #6e2a12 0%, #3a1a12 45%, #1f2c47 100%)",
-  물: "linear-gradient(165deg, #123a55 0%, #17293e 45%, #1f2c47 100%)",
-  바람: "linear-gradient(165deg, #1f5535 0%, #1c3428 45%, #1f2c47 100%)",
-  빛: "linear-gradient(165deg, #6b551a 0%, #4a3e1f 45%, #1f2c47 100%)",
-  어둠: "linear-gradient(165deg, #3a1f5c 0%, #2a1f3e 45%, #1f2c47 100%)",
-  불명: "linear-gradient(165deg, #3a4458 0%, #262f42 45%, #1f2c47 100%)",
+/** §카드 표시방식 재정리(2026-07-30, "C안") — 카드 전체 배경을 등급색으로 채운다. 기존엔 이
+ * 자리가 진영 배경이었지만(task #37), 진영은 좌상단 코너 배지(addFactionBadge)로 옮기고
+ * 이 자리는 등급(태생등급, N~UR — 승급/초월과는 독립적인 축) 전용으로 비운다. 테두리는 등급별로
+ * 다르게 주지 않고 각 컨테이너의 기본(공통) 프레임을 그대로 둔다 — "등급=배경/성급+초월=별/
+ * 진영=코너배지"로 3채널을 딱 맞춰, 테두리에 네 번째 색상 축을 만들지 않는다 */
+const GRADE_CARD_BG: Record<string, string> = {
+  N: "linear-gradient(165deg, #3f4f61 0%, #262f42 55%, #1f2c47 100%)",
+  R: "linear-gradient(165deg, #1c5a91 0%, #17334a 55%, #1f2c47 100%)",
+  SR: "linear-gradient(165deg, #6a2f96 0%, #3c2350 55%, #1f2c47 100%)",
+  SSR: "linear-gradient(165deg, #a3781a 0%, #5c4519 55%, #1f2c47 100%)",
+  UR: "linear-gradient(165deg, #9c1830 0%, #551621 55%, #1f2c47 100%)",
+  Unknown: "linear-gradient(165deg, #3a4458 0%, #262f42 55%, #1f2c47 100%)",
 };
 
-/** 카드 전체에 진영 배경(그라디언트 + 큰 진영 워터마크 아이콘)을 입힌다. 카드는 position:relative 여야 함 */
-function setCardFaction(card: HTMLElement, hero: Hero) {
-  card.style.background = FACTION_CARD_BG[hero.faction] ?? FACTION_CARD_BG["불명"];
+/** 카드 전체에 등급색 배경을 입힌다(C안). 카드는 position:relative 여야 함 */
+function setCardGrade(card: HTMLElement, grade: string) {
+  card.style.background = GRADE_CARD_BG[grade] ?? GRADE_CARD_BG["Unknown"];
+}
+
+/** 진영을 좌상단 코너 배지(아이콘)로 표시 — 마이티 아레나 참고 배치 */
+function addFactionBadge(card: HTMLElement, hero: Hero) {
   const iconSrc = FACTION_ICON[hero.faction];
   if (!iconSrc) return;
-  const wm = el("img", "card-wm") as HTMLImageElement;
-  wm.src = iconSrc;
-  wm.alt = "";
-  card.insertBefore(wm, card.firstChild);
+  const img = el("img", "hc-badge hc-badge-tl") as HTMLImageElement;
+  img.src = iconSrc;
+  img.alt = "";
+  card.appendChild(img);
 }
 
 const GRADE_BORDER: Record<string, string> = {
@@ -137,11 +145,11 @@ const GRADE_BORDER: Record<string, string> = {
  * 진짜 귀한 SSR/UR만 은은한 발광으로 눈에 띄게 한다 */
 const GRADE_BORDER_WIDTH: Record<string, number> = { N: 2, R: 2, SR: 3, SSR: 3, UR: 4, Unknown: 3 };
 
-/** §마이티 아레나 반영계획 1(2026-07-30, "외곽 매트형" B안 채택) — "SSR급이면 테두리뿐 아니라
- * 뒷 여백도 등급색" 요청을 카드 내부 구조(진영색 카드+중립색 얼굴틀, task #37)를 안 건드리고
- * 반영하는 방법. 카드 바로 바깥에 등급색 매트(안쪽 얇은 링 + 바깥쪽 은은한 발광)를 box-shadow로
- * 둘러서, 액자의 매트지처럼 카드를 감싸는 여백 자체가 등급색으로 보이게 한다. 전 등급에 적용(예전엔
- * SSR/UR/Unknown만 발광했는데, 이제 N/R도 옅게라도 매트가 있어야 "등급마다 다른 배경"이 성립) */
+/** §마이티 아레나 반영계획 1(2026-07-30, "외곽 매트형" B안) — 카드 바깥에 등급색 매트(안쪽 얇은
+ * 링 + 바깥쪽 은은한 발광)를 box-shadow로 둘러 표시하던 방식. 이후 §카드 표시방식 재정리(2026-07-30)
+ * 에서 영웅 카드는 "배경=등급색(C안)/테두리=공통 프레임"으로 바뀌어 이 매트는 더 이상 안 쓰지만,
+ * 장비 아이템(장비 인벤토리·강화 모달)은 여전히 이 방식으로 등급을 표시한다 — 장비는 배경 전체를
+ * 등급색으로 채울 만한 큰 카드 형태가 아니라서 재정리 대상에서 제외 */
 const GRADE_GLOW: Record<string, string> = {
   N: "0 0 0 2px rgba(125, 154, 181, 0.28), 0 0 6px 1px rgba(125, 154, 181, 0.25)",
   R: "0 0 0 2px rgba(74, 155, 232, 0.32), 0 0 7px 1px rgba(74, 155, 232, 0.3)",
@@ -151,7 +159,8 @@ const GRADE_GLOW: Record<string, string> = {
   Unknown: "0 0 0 3px rgba(138, 143, 156, 0.4), 0 0 10px 2px rgba(138, 143, 156, 0.55)",
 };
 
-/** 카드/슬롯에 등급을 테두리 색+굵기+등급색 외곽 매트(box-shadow 링)로 표시(상세화면 제외 규칙) */
+/** 장비 아이템에 등급을 테두리 색+굵기+등급색 외곽 매트(box-shadow 링)로 표시(§2026-07-30, 영웅
+ * 카드는 setCardGrade/addFactionBadge로 분리됨 — 이 함수는 장비 전용으로 유지) */
 function setGradeBorder(el: HTMLElement, grade: string) {
   el.style.borderColor = GRADE_BORDER[grade] ?? "#888";
   el.style.borderWidth = `${GRADE_BORDER_WIDTH[grade] ?? 3}px`;
@@ -166,8 +175,19 @@ function statLine(label: string, value: string): HTMLElement {
   return row;
 }
 
-function starText(stars: number): string {
-  return "★".repeat(stars) + "☆".repeat(MAX_STARS - stars);
+/** §카드 표시방식 재정리(2026-07-30) — "황금별 6이 아니라 보라별 1로 표현하자"는 설계대로, 성급
+ * (골드 ★, 1~5)과 초월(보라 ✪, 1~5)을 별개 줄로 병기하지 않고 같은 5칸 별 자리 하나를 공유한다.
+ * 초월이 시작되면(getTranscend > 0) 그 순간부터는 골드 별 대신 보라 별이 그 자리를 전부 대체해서
+ * 채운 개수만큼 보여준다 — 칸을 하나 더 늘리는 게 아니라 색과 채움 기준이 통째로 바뀌는 방식 */
+function starState(id: string): { symbol: string; empty: string; filled: number; purple: boolean } {
+  const t = getTranscend(id);
+  if (t > 0) return { symbol: "✪", empty: "✩", filled: t, purple: true };
+  return { symbol: "★", empty: "☆", filled: getStars(id), purple: false };
+}
+
+function starRowText(id: string): string {
+  const s = starState(id);
+  return s.symbol.repeat(s.filled) + s.empty.repeat(MAX_STARS - s.filled);
 }
 
 /** 승급 전/후 스탯 수치 미리보기(§9) — 재화 소비 전에 얼마나 세지는지 보여준다 */
@@ -216,7 +236,8 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
   const body = el("div");
 
   const head = el("div", "detail-head");
-  setCardFaction(head, hero);
+  setCardGrade(head, hero.grade);
+  addFactionBadge(head, hero);
   const face = el("div", "face");
   setFace(face, hero);
   head.appendChild(face);
@@ -232,7 +253,8 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
   const info = el("div");
   info.appendChild(el("div", "dh-name", hero.nameKr));
   info.appendChild(el("div", `gd grade-${hero.grade}`, `${hero.grade} · ${hero.faction} · ${hero.heroClass}`));
-  info.appendChild(el("div", "dh-stars", starText(stars)));
+  const dhStarState = starState(hero.id);
+  info.appendChild(el("div", "dh-stars" + (dhStarState.purple ? " star-purple" : ""), starRowText(hero.id)));
   info.appendChild(el("div", "dh-lv", `Lv.${lv}`));
   head.appendChild(info);
   body.appendChild(head);
@@ -352,8 +374,7 @@ function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean;
       (opts.selected ? " selected" : "") +
       (opts.locked ? " locked" : "")
   );
-  setGradeBorder(card, hero.grade);
-  setCardFaction(card, hero);
+  setCardGrade(card, hero.grade);
   const face = el("div", "face");
   setFace(face, hero);
   card.appendChild(face);
@@ -363,20 +384,15 @@ function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean;
     return card;
   }
 
-  const factionIcon = FACTION_ICON[hero.faction];
-  if (factionIcon) {
-    const img = el("img", "hc-badge hc-badge-tl") as HTMLImageElement;
-    img.src = factionIcon;
-    img.alt = "";
-    card.appendChild(img);
-  }
+  addFactionBadge(card, hero);
   card.appendChild(el("div", "hc-badge hc-badge-tr", `Lv.${getLevel(hero.id)}`));
   const classIcon = CLASS_ICON[hero.heroClass];
   if (classIcon) card.appendChild(el("div", "hc-badge hc-badge-br", classIcon));
   if (inParty(hero.id)) {
     card.appendChild(el("div", "hc-badge hc-badge-bl hc-check", "✓"));
   } else {
-    card.appendChild(el("div", "hc-badge hc-badge-bl", `★${getStars(hero.id)}`));
+    const s = starState(hero.id);
+    card.appendChild(el("div", "hc-badge hc-badge-bl" + (s.purple ? " star-purple" : ""), `${s.symbol}${s.filled}`));
   }
 
   if (opts.onClick) card.onclick = opts.onClick;
@@ -411,7 +427,8 @@ export function renderHeroes(root: HTMLElement) {
     const hero = id ? PLAYABLE_HEROES.find((h) => h.id === id) : undefined;
     const slot = el("div", "party-slot" + (hero ? " filled" : ""));
     if (hero) {
-      setCardFaction(slot, hero);
+      setCardGrade(slot, hero.grade);
+      addFactionBadge(slot, hero);
       const face = el("div", "face");
       setFace(face, hero);
       slot.appendChild(face);
@@ -534,10 +551,6 @@ function selectedCountOf(id: string): number {
   return materialIds.filter((x) => x === id).length;
 }
 
-function transcendStars(n: number): string {
-  return "✪".repeat(n) + "✩".repeat(MAX_TRANSCEND - n);
-}
-
 /** 재료 후보 그리드 — 후보를 누르면 materialIds에 담긴다(최대 need장, 보유 수량까지 중복 선택
  * 가능). 이미 담긴 후보는 카드에 ×횟수 배지가 뜨고, 빼려면 위 재료 슬롯을 눌러야 한다 */
 function renderMaterialPicker(root: HTMLElement, candidates: Hero[], need: number, rerender: () => void): HTMLElement {
@@ -572,16 +585,14 @@ function renderAscend(root: HTMLElement) {
   const panel = el("div", "ascend-panel");
   const targetSlot = el("div", "ascend-slot ascend-target" + (target ? " filled" : ""));
   if (target) {
-    setGradeBorder(targetSlot, target.grade);
-    setCardFaction(targetSlot, target);
+    setCardGrade(targetSlot, target.grade);
+    addFactionBadge(targetSlot, target);
     const face = el("div", "face");
     setFace(face, target);
     targetSlot.appendChild(face);
     targetSlot.appendChild(el("div", "as-nm", target.nameKr));
-    targetSlot.appendChild(el("div", "as-stars", starText(stars)));
-    if (maxed && getTranscend(target.id) > 0) {
-      targetSlot.appendChild(el("div", "as-stars transcend-stars", transcendStars(getTranscend(target.id))));
-    }
+    const tState = starState(target.id);
+    targetSlot.appendChild(el("div", "as-stars" + (tState.purple ? " star-purple" : ""), starRowText(target.id)));
   } else {
     targetSlot.appendChild(el("div", "ps-empty", "+"));
     targetSlot.appendChild(el("div", "as-label", "승급 대상"));
@@ -932,7 +943,8 @@ function renderEquipment(root: HTMLElement) {
   const panel = el("div", "equip-panel");
   if (target) {
     const head = el("div", "equip-head");
-    setCardFaction(head, target);
+    setCardGrade(head, target.grade);
+    addFactionBadge(head, target);
     const face = el("div", "face");
     setFace(face, target);
     head.appendChild(face);
@@ -1194,8 +1206,8 @@ function buildNewHeroPopup(hero: Hero, onConfirm: () => void): HTMLElement {
   popup.onclick = (e) => e.stopPropagation();
   popup.appendChild(el("div", "sfx-new-title", "🎉 신규 영웅 획득!"));
   const card = el("div", "sfx-new-card");
-  setGradeBorder(card, hero.grade);
-  setCardFaction(card, hero);
+  setCardGrade(card, hero.grade);
+  addFactionBadge(card, hero);
   const face = el("div", "face");
   setFace(face, hero);
   card.appendChild(face);
@@ -1315,7 +1327,8 @@ function playSummonFx(
     back.appendChild(el("div", "back-mark", "?"));
     inner.appendChild(back);
     const front = el("div", "front");
-    setCardFaction(front, r.hero);
+    setCardGrade(front, r.hero.grade);
+    addFactionBadge(front, r.hero);
     const face = el("div", "face");
     setFace(face, r.hero);
     front.appendChild(face);
