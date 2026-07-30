@@ -5,7 +5,7 @@ import {
   unreadMailCount, markMailRead, claimMail, type MailItem, OFFLINE_CAP_HOURS,
   grantMaxTestHero,
 } from "../state/save";
-import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView, setMissionsSubView, setShopSubView, type ShopSubView } from "./screens";
+import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView, setMissionsSubView, setShopSubView, type ShopSubView, openPartyFormationModal } from "./screens";
 import { partyPower } from "../systems/battle";
 import { isFirebaseConfigured, getBackupCode, backupNow, restoreFromCode } from "../state/backup";
 import { HEROES } from "../data/heroes";
@@ -205,11 +205,19 @@ function openRaidSelectModal() {
         return;
       }
       closeModal();
-      if (battleMode !== "raid") {
-        battleMode = "raid";
-        emit("battle-mode", "raid");
-      }
-      showAdventureCanvas();
+      // §2026-07-30 "요일던전에 들어가면 편성화면을 띄우자, 파티편성하는 곳이 없네" — 예전엔
+      // 여기서 바로 전투를 시작해 save.party를 손볼 방법이 없었다. 편성 팝업을 먼저 띄우고,
+      // "전투 시작"을 눌러야 실제로 전환되게 순서를 바꿨다
+      const subtitle = weekend
+        ? `오늘은 혼돈의 마수 — ${d.bossFaction}의 마수를 상대할 파티를 편성하세요.`
+        : `${d.bossFaction}의 마수는 ${required} 진영이 유리합니다. 파티를 편성하고 전투를 시작하세요.`;
+      openPartyFormationModal(subtitle, () => {
+        if (battleMode !== "raid") {
+          battleMode = "raid";
+          emit("battle-mode", "raid");
+        }
+        showAdventureCanvas();
+      });
     };
     grid.appendChild(hut);
   }
@@ -225,10 +233,13 @@ function openRaidSelectModal() {
  * 열고, 아레나/무한의탑은 바로 전투모드를 전환해 캔버스를 드러낸다. 메뉴 재진입 시(item 7,
  * "메뉴를 누르면 항상 대표화면으로") 항상 이 픽커부터 다시 보여준다 — switchTab이 매번
  * renderAdventure를 새로 호출하고, 여기서 매번 adventure-live 클래스를 지워 픽커로 되돌린다 */
-const ADVENTURE_BANNERS: { mode: string; label: string; flavor: string }[] = [
-  { mode: "raid", label: "요일던전", flavor: "요일마다 다른 진영의 마수" },
-  { mode: "arena", label: "아레나", flavor: "다른 유저와 순위 경쟁" },
-  { mode: "tower", label: "무한의탑", flavor: "층을 오를수록 강해지는 도전" },
+// §2026-07-30 "가로로 한줄에 하나씩 길게 배너를 넣자" — 2열 오두막 타일에서 마이티 아레나식
+// 가로 배너 3장(세로 스택)으로 재설계. 정식 배너 일러스트는 아직 없어 모드별 그라디언트+아이콘
+// 임시 배너로 대체(ASSETS.md에 실제 아트 백로그 등록)
+const ADVENTURE_BANNERS: { mode: string; icon: string; label: string; flavor: string }[] = [
+  { mode: "raid", icon: "⚔️", label: "요일던전", flavor: "요일마다 다른 진영의 마수가 나타난다" },
+  { mode: "arena", icon: "🏆", label: "아레나", flavor: "다른 유저와 순위를 겨루는 대전" },
+  { mode: "tower", icon: "🗼", label: "무한의탑", flavor: "층을 오를수록 강해지는 끝없는 도전" },
 ];
 
 function renderAdventure(root: HTMLElement) {
@@ -236,16 +247,16 @@ function renderAdventure(root: HTMLElement) {
   root.innerHTML = "";
   root.appendChild(h("h2", "", "모험"));
   root.appendChild(h("div", "desc", "도전할 콘텐츠를 골라주세요."));
-  const grid = h("div", "raid-dungeon-grid adventure-hub-grid");
+  const list = h("div", "adventure-banner-list");
   for (const b of ADVENTURE_BANNERS) {
-    const hut = h("button", "raid-hut adventure-hut");
-    hut.style.setProperty("--roof", "#f5ac3d");
-    hut.appendChild(h("div", "hub-roof"));
-    const hbody = h("div", "hub-body");
-    hbody.appendChild(h("div", "hub-label", b.label));
-    hbody.appendChild(h("div", "hub-flavor", b.flavor));
-    hut.appendChild(hbody);
-    hut.onclick = () => {
+    const banner = h("button", `adventure-banner mode-${b.mode}`);
+    banner.appendChild(h("div", "ab-icon", b.icon));
+    const body = h("div", "ab-body");
+    body.appendChild(h("div", "ab-label", b.label));
+    body.appendChild(h("div", "ab-flavor", b.flavor));
+    banner.appendChild(body);
+    banner.appendChild(h("div", "ab-arrow", "▶"));
+    banner.onclick = () => {
       if (b.mode === "raid") {
         openRaidSelectModal();
         return;
@@ -256,9 +267,9 @@ function renderAdventure(root: HTMLElement) {
       }
       showAdventureCanvas();
     };
-    grid.appendChild(hut);
+    list.appendChild(banner);
   }
-  root.appendChild(grid);
+  root.appendChild(list);
 }
 
 const MISSIONS_SUBVIEWS: Record<string, "daily" | "weekly" | "achievements"> = {
@@ -359,13 +370,16 @@ const SECRET_CODES: Record<string, { message: string; grant: () => void }> = {
     message: "🧪 테스트용 마초(UR) 5성+초월3 지급! 영웅 화면에서 확인하세요.",
     grant: () => grantMaxTestHero("ma_chao_wind_001"),
   },
+  // §2026-07-30 "테스트하게 골드 1000000, 다이아 10000 넣어달라" — 라이브 배포된 브라우저의
+  // localStorage는 서버 쪽에서 직접 쓸 수 없어서, 기존 테스트용 코드의 지급량을 요청 수치로
+  // 올려서 본인이 직접 입력해 받도록 처리
   GOLD: {
-    message: "🪙 골드 10,000 획득!",
-    grant: () => addGold(10000),
+    message: "🪙 골드 1,000,000 획득!",
+    grant: () => addGold(1000000),
   },
   DIA: {
-    message: "💎 다이아몬드 3,000 획득!",
-    grant: () => addGems(3000),
+    message: "💎 다이아몬드 10,000 획득!",
+    grant: () => addGems(10000),
   },
 };
 
