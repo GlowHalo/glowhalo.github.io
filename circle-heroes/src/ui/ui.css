@@ -415,9 +415,11 @@
 }
 
 /* ── 영웅 목록 ── */
+/* §2026-07-30: "한 줄에 4개"로 요청받아 5열→4열로 줄임 — 카드가 넓어져 하단 별 한 줄도
+   축약 없이 들어간다 */
 .hero-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
 /* 대표 사진만 놓고 네 모서리에 배지만 표시(설명 텍스트 없음) — §1·§2 */
@@ -464,11 +466,36 @@ img.hc-badge {
 }
 .hc-badge-tl { top: 4px; left: 4px; }
 .hero-card .hc-badge-tr { top: 4px; right: 4px; background: var(--amber); color: #10131c; }
-.hero-card .hc-badge-br { bottom: 4px; right: 4px; }
-.hero-card .hc-badge-bl { bottom: 4px; left: 4px; color: #ffd34d; }
-.hero-card .hc-badge-bl.hc-check { background: #2fae5c; color: #fff; }
+/* §2026-07-30: 하단 전체 폭을 별 한 줄(.hc-star-row)이 차지하게 되면서, 원래 우하단이던 클래스
+   배지는 우상단 Lv 배지 바로 아래로 옮겨 겹침을 피한다 */
+.hero-card .hc-badge-br { top: 24px; right: 4px; }
+/* §2026-07-30: 좌하단 압축 배지("★N") 대신 카드 하단 전체 폭에 별 5개를 축약 없이 한 줄로 —
+   편성중 표시는 기존 .in-party 테두리 색으로만 충분해서 별도 체크 배지는 없앴다 */
+.hc-star-row {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #ffd34d;
+  padding: 3px 0 4px;
+  background: linear-gradient(0deg, #10131cd0 0%, #10131c00 100%);
+}
 .hero-card.in-party, .hero-card.selected { border-color: var(--amber); }
 .hero-card.locked { cursor: default; }
+/* UR 카드는 늘 은은하게 번쩍이도록(2026-07-30 요청) — 다른 등급과 달리 유일하게 유지되는
+   상시 발광. 배경 자체가 아니라 카드 바깥 box-shadow라 얼굴 이미지엔 영향 없다 */
+@keyframes urShimmer {
+  0%, 100% { box-shadow: 0 0 5px 1px rgba(255, 90, 110, 0.45); }
+  50% { box-shadow: 0 0 16px 4px rgba(255, 90, 110, 0.9); }
+}
+.grade-shimmer-ur { animation: urShimmer 1.7s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .grade-shimmer-ur { animation: none; box-shadow: 0 0 8px 2px rgba(255, 90, 110, 0.6); }
+}
 /* 흑백이지만 실루엣은 알아볼 수 있게(수집 동기 부여) — 완전히 가리지 않는다 */
 .hero-card.locked .face { filter: grayscale(1) brightness(0.75); }
 .hero-card .hc-lock {
@@ -1429,48 +1456,13 @@ img.hc-badge {
 /* ── HUD 클릭형 칩(§마이티 아레나 반영계획 A, 2026-07-29) — 골드/다이아를 누르면 상점으로 이동 */
 .hud-chip.clickable { cursor: pointer; }
 
-/* ── 스테이지 게이트 해금 배너(§마이티 아레나 반영계획 D) — 모달 대신 상단에서 내려왔다 올라간다 */
-.gate-banner {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  transform: translate(-50%, -100%);
-  z-index: 60;
-  background: linear-gradient(180deg, var(--amber), var(--amber-dark));
-  color: #10131c;
-  font-weight: 700;
-  font-size: 13px;
-  padding: 10px 22px;
-  border-radius: 0 0 12px 12px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
-  transition: transform 0.4s ease;
-  pointer-events: none;
-}
-.gate-banner.in { transform: translate(-50%, 0); }
+/* ── 모험 탭이 실제 전투를 보여주는 중일 때(§2026-07-30) — screen-battle과 똑같이 투명하게
+   비워서 Phaser 캔버스가 그대로 비치게 한다. 탭 재진입 시 renderAdventure가 이 클래스를 지워
+   다시 픽커로 되돌린다(item 7) */
+#screen-adventure.adventure-live { background: none; pointer-events: none; padding: 0; }
 
-/* ── 주성(Main Castle) 탭(§마이티 아레나 반영계획 B) — 요일던전 오두막 타일과 같은 문법을
- * 재사용하되, 이쪽은 건물이 실제로 뭘 여는지 아직 미정이라 자리표시자로만 쓴다 */
-.castle-town {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-}
-.castle-hut {
-  position: relative;
-  border: none;
-  border-radius: 12px;
-  background: #fff7e8ee;
-  box-shadow: 0 4px 10px rgba(40, 25, 5, 0.25);
-  cursor: pointer;
-  padding: 0 0 8px;
-  overflow: hidden;
-}
-.castle-hut .hub-roof { height: 14px; background: var(--amber); border-radius: 12px 12px 0 0; }
-.castle-hut .hub-body { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 6px 0; }
-.castle-hut .hub-label { font-size: 12.5px; font-weight: 700; color: #241a08; }
-.castle-hut .hub-flavor { font-size: 10px; color: #6b5530; text-align: center; }
-.castle-hut.locked { filter: grayscale(1); opacity: 0.55; }
-.castle-lock { position: absolute; top: 6px; right: 8px; font-size: 14px; }
+/* 서브메뉴가 없는 탭(전투/모험/소환)은 빈 줄 자체를 숨긴다 */
+#subbar.empty { display: none; }
 
 /* ── 소환 화면 좌상단 확률고지 / 우상단 도움말+천장 배지(§마이티 아레나 반영계획 E) ── */
 .summon-title-row h2 { flex: 1; text-align: center; }
