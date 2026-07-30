@@ -132,7 +132,8 @@ export interface SaveState {
   equipped: Record<string, Partial<Record<EquipSlot, EquipItem>>>;
   /** 장비 id 발급용 카운터(중복 없는 인스턴스 id를 위해) */
   equipItemSeq: number;
-  /** 스테이지 게이트(systems/featureGates.ts) 중 해금 배너를 이미 보여준 키 목록 — 중복 알림 방지 */
+  /** (§2026-07-30: 주성 탭 삭제로 스테이지 게이트 시스템 자체가 없어짐 — 필드는 기존 세이브
+   * 호환을 위해 남겨두되 더 이상 채워지지 않는다) */
   seenGates: string[];
   /** 강화석 — 장비 강화 전용 재화(§마이티 아레나 반영계획 3, 2026-07-30 부활) */
   enhanceStone: number;
