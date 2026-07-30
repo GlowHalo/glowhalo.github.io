@@ -91,37 +91,46 @@
   .node {
     position: absolute;
     width: 180px;
-    min-height: 44px;
+    min-height: 96px;
     border-radius: 10px;
     background: #FFFFFF;
     border: 1px solid #E4E4E9;
     border-left: 4px solid #4C6FFF;
     box-shadow: 0 2px 8px rgba(14,15,19,0.06);
     padding: 8px 10px;
-    display: flex; flex-direction: column; gap: 4px;
-    user-select: none;
+    display: flex; flex-direction: column;
     cursor: pointer;
   }
   .node.selected { outline: 2px solid #4C6FFF; outline-offset: 2px; }
   .node.is-root {
     background: #14151A; color: #F5F5F7; border-left-color: #14151A;
-    font-weight: 700;
   }
-  .node-text {
-    font-size: 13px; line-height: 1.4;
-    overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
-    -webkit-line-clamp: 3; -webkit-box-orient: vertical;
-    outline: none; cursor: text;
+
+  .node-title {
+    flex: none; width: 100%; border: none; background: transparent; outline: none;
+    font-family: 'Noto Sans KR', sans-serif; font-size: 13px; font-weight: 700;
+    color: inherit; padding: 2px 0; cursor: text;
   }
-  .node-text[contenteditable="true"] {
-    background: rgba(76,111,255,0.08);
-    border-radius: 4px; padding: 2px 4px; -webkit-line-clamp: unset;
-    cursor: text;
+  .node-title::placeholder { color: #B7B8C0; font-weight: 400; }
+  .node.is-root .node-title::placeholder { color: rgba(255,255,255,0.4); }
+
+  .node-divider { flex: none; height: 1px; background: #ECECEF; margin: 4px 0; }
+  .node.is-root .node-divider { background: rgba(255,255,255,0.15); }
+
+  .node-detail {
+    flex: 1; width: 100%; min-height: 40px; resize: none; border: none; background: transparent;
+    outline: none; font-family: 'Noto Sans KR', sans-serif; font-size: 11px; color: #8A8C97;
+    line-height: 1.5; padding: 0; cursor: text; overflow-y: auto;
   }
-  .node.is-root .node-text[contenteditable="true"] { background: rgba(255,255,255,0.12); }
+  .node-detail::placeholder { color: #C7C8D1; }
+  .node.is-root .node-detail { color: rgba(245,245,247,0.65); }
+  .node.is-root .node-detail::placeholder { color: rgba(255,255,255,0.3); }
+
+  .node-title:focus, .node-detail:focus { background: rgba(76,111,255,0.06); border-radius: 4px; }
+  .node.is-root .node-title:focus, .node.is-root .node-detail:focus { background: rgba(255,255,255,0.1); }
 
   .node-toolbar {
-    display: none; gap: 4px; margin-top: 2px;
+    display: none; gap: 4px; margin-top: 6px; flex: none;
   }
   .node.selected .node-toolbar { display: flex; }
   .node-toolbar button {
@@ -138,41 +147,6 @@
     background: #4C6FFF; color: #fff; border: 2px solid #F5F5F7;
     font-size: 10px; font-weight: 700; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-  }
-
-  .detail-badge {
-    position: absolute; right: 6px; bottom: 4px;
-    font-size: 11px; opacity: 0.55; cursor: pointer; line-height: 1;
-  }
-  .detail-badge:hover { opacity: 1; }
-
-  .modal-backdrop {
-    display: none; position: fixed; inset: 0; z-index: 40;
-    background: rgba(14,15,19,0.45);
-    align-items: center; justify-content: center;
-  }
-  .modal-backdrop.open { display: flex; }
-  .modal-card {
-    background: #fff; color: #14151A; border-radius: 14px;
-    width: min(480px, 90vw); max-height: 70vh;
-    display: flex; flex-direction: column;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  }
-  .modal-head {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 14px 16px; border-bottom: 1px solid #E4E4E9;
-  }
-  .modal-head-title { font-size: 13px; font-weight: 700; color: #61636C; }
-  .modal-head-title b { color: #14151A; font-weight: 900; }
-  .modal-close {
-    border: none; background: none; font-size: 15px; cursor: pointer;
-    color: #9A9CA5; padding: 4px;
-  }
-  .modal-close:hover { color: #14151A; }
-  #detail-textarea {
-    flex: 1; border: none; resize: none; outline: none;
-    padding: 14px 16px; font-family: 'Noto Sans KR', sans-serif;
-    font-size: 13px; line-height: 1.7; min-height: 160px;
   }
 
   .hint-bubble {
@@ -196,7 +170,7 @@
 
 <div class="topbar">
   <h1>🧠 <span>마인드맵</span></h1>
-  <span class="hint">Tab 하위추가 · Enter 형제추가 · Delete 삭제 · 더블클릭 이름변경</span>
+  <span class="hint">클릭해서 바로 입력 · Tab 하위추가 · Enter 형제추가 · Delete 삭제</span>
   <div class="spacer"></div>
   <div class="lib-wrap">
     <button class="btn" id="btn-library">📂 <span id="active-name">마인드맵</span></button>
@@ -219,29 +193,18 @@
 
 <div class="toast" id="toast"></div>
 
-<div class="modal-backdrop" id="detail-modal">
-  <div class="modal-card">
-    <div class="modal-head">
-      <span class="modal-head-title">상세 내용 · <b id="detail-modal-title"></b></span>
-      <button class="modal-close" id="detail-modal-close">✕</button>
-    </div>
-    <textarea id="detail-textarea" placeholder="추가로 남기고 싶은 상세 내용을 입력하세요 (선택 사항)"></textarea>
-  </div>
-</div>
-
 <script>
 (function () {
   'use strict';
 
   var LIBRARY_KEY = 'mindmap-library-v1';
   var LEGACY_KEY = 'mindmap-autosave-v1';
-  var COL_W = 220, ROW_H = 64, NODE_W = 180, NODE_H = 44, PAD = 80;
+  var COL_W = 240, ROW_H = 120, NODE_W = 180, NODE_H = 96, PAD = 80;
   var DEPTH_COLORS = ['#14151A', '#4C6FFF', '#2E8B57', '#F2994A', '#EB5757', '#9B51E0'];
 
   var tree = null;
   var library = null; // { items: [{id, name, data, updatedAt}], activeId }
   var selectedId = null;
-  var editingId = null;
   var idCounter = 1;
   var pan = { x: 0, y: 0 };
   var zoom = 1;
@@ -362,7 +325,6 @@
     library.activeId = item.id;
     tree = JSON.parse(JSON.stringify(item.data));
     selectedId = null;
-    editingId = null;
   }
 
   function updateActiveNameLabel() {
@@ -490,7 +452,7 @@
     selectedId = child.id;
     render();
     saveActive();
-    startEdit(child.id);
+    focusTitle(child.id);
   }
 
   function addSibling(id) {
@@ -503,7 +465,7 @@
     selectedId = sibling.id;
     render();
     saveActive();
-    startEdit(sibling.id);
+    focusTitle(sibling.id);
   }
 
   function deleteNode(id) {
@@ -535,62 +497,31 @@
     saveActive();
   }
 
-  function commitEdit(id, newText) {
+  function commitTitle(id, newText) {
     var node = findNode(tree, id);
-    if (node) node.text = newText.trim() || '(제목 없음)';
-    editingId = null;
-    render();
+    if (!node) return null;
+    node.text = newText.trim() || '(제목 없음)';
     saveActive();
+    return node.text;
   }
 
-  function startEdit(id) {
-    editingId = id;
-    render();
+  function commitDetail(id, newText) {
+    var node = findNode(tree, id);
+    if (!node) return null;
+    node.detail = newText.trim();
+    saveActive();
+    return node.detail;
+  }
+
+  function focusTitle(id) {
     requestAnimationFrame(function () {
-      var el = nodesLayer.querySelector('.node[data-id="' + cssEscape(id) + '"] .node-text');
-      if (el) {
-        el.focus();
-        var range = document.createRange();
-        range.selectNodeContents(el);
-        var sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-      }
+      var el = nodesLayer.querySelector('.node[data-id="' + cssEscape(id) + '"] .node-title');
+      if (el) { el.focus(); el.select(); }
     });
   }
 
   function cssEscape(s) {
     return String(s).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
-  }
-
-  // ---------- detail panel ----------
-
-  var detailPanelNodeId = null;
-  var detailModal = document.getElementById('detail-modal');
-  var detailTextarea = document.getElementById('detail-textarea');
-  var detailModalTitle = document.getElementById('detail-modal-title');
-
-  function openDetailPanel(id) {
-    var node = findNode(tree, id);
-    if (!node) return;
-    detailPanelNodeId = id;
-    detailModalTitle.textContent = node.text;
-    detailTextarea.value = node.detail || '';
-    detailModal.classList.add('open');
-    detailTextarea.focus();
-  }
-
-  function closeDetailPanel() {
-    if (detailPanelNodeId) {
-      var node = findNode(tree, detailPanelNodeId);
-      if (node) {
-        node.detail = detailTextarea.value.trim();
-        saveActive();
-        render();
-      }
-    }
-    detailPanelNodeId = null;
-    detailModal.classList.remove('open');
   }
 
   // ---------- layout ----------
@@ -649,10 +580,8 @@
       var color = DEPTH_COLORS[n.depth % DEPTH_COLORS.length];
       var selected = node.id === selectedId ? ' selected' : '';
       var rootCls = isRoot ? ' is-root' : '';
-      var editable = node.id === editingId;
       var left = node._x + PAD, top = node._y + PAD;
       var toolbarBtns = '<button data-action="add-child" title="하위 추가">➕하위</button>';
-      toolbarBtns += '<button data-action="detail" title="상세 내용">📝상세</button>';
       if (!isRoot) {
         toolbarBtns += '<button data-action="add-sibling" title="형제 추가">➕형제</button>';
         toolbarBtns += '<button data-action="delete" title="삭제">🗑</button>';
@@ -662,18 +591,18 @@
         collapseBadge = '<div class="collapse-toggle" data-action="toggle-collapse" title="접기/펼치기">' +
           (node.collapsed ? '+' + node.children.length : '−') + '</div>';
       }
-      var detailBadge = node.detail ? '<div class="detail-badge" data-action="detail" title="상세 내용 있음 (클릭해서 보기)">📝</div>' : '';
       return '<div class="node' + rootCls + selected + '" data-id="' + node.id + '" style="left:' + left + 'px; top:' + top + 'px; border-left-color:' + (isRoot ? '#14151A' : color) + '">' +
-        '<div class="node-text" contenteditable="' + (editable ? 'true' : 'false') + '" spellcheck="false">' + escapeHtml(node.text) + '</div>' +
+        '<input class="node-title" type="text" value="' + escapeHtml(node.text) + '" placeholder="제목" spellcheck="false" />' +
+        '<div class="node-divider"></div>' +
+        '<textarea class="node-detail" placeholder="상세 내용 (선택)" spellcheck="false">' + escapeHtml(node.detail || '') + '</textarea>' +
         '<div class="node-toolbar">' + toolbarBtns + '</div>' +
         collapseBadge +
-        detailBadge +
         '</div>';
     }).join('');
 
     if (tree.children.length === 0) {
       html += '<div class="hint-bubble" style="left:' + (PAD + NODE_W + 30) + 'px; top:' + (PAD - 10) + 'px;">' +
-        '중심 노드를 더블클릭해서 이름을 바꾸고,<br>선택한 뒤 <b>➕하위</b>를 눌러 생각을 넓혀보세요.' +
+        '카드를 클릭해서 제목과 상세 내용을 바로 입력하고,<br>선택한 뒤 <b>➕하위</b>를 눌러 생각을 넓혀보세요.' +
         '</div>';
     }
 
@@ -751,7 +680,6 @@
     if (!confirm('현재 마인드맵 내용을 지우고 새로 시작할까요?')) return;
     tree = defaultTree();
     selectedId = null;
-    editingId = null;
     render();
     fitView();
     saveActive();
@@ -823,53 +751,63 @@
       else if (action === 'add-sibling') addSibling(id);
       else if (action === 'delete') deleteNode(id);
       else if (action === 'toggle-collapse') toggleCollapse(id);
-      else if (action === 'detail') openDetailPanel(id);
       return;
     }
-    if (e.target.classList.contains('node-text') && e.target.isContentEditable) return;
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     selectedId = id;
     render();
   });
 
-  nodesLayer.addEventListener('dblclick', function (e) {
-    var textEl = e.target.closest('.node-text');
-    if (!textEl) return;
+  nodesLayer.addEventListener('focusin', function (e) {
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') return;
     var nodeEl = e.target.closest('.node');
-    selectedId = nodeEl.getAttribute('data-id');
-    startEdit(selectedId);
+    if (!nodeEl) return;
+    var id = nodeEl.getAttribute('data-id');
+    if (selectedId === id) return;
+    var prevSelected = nodesLayer.querySelector('.node.selected');
+    if (prevSelected) prevSelected.classList.remove('selected');
+    nodeEl.classList.add('selected');
+    selectedId = id;
   });
 
   nodesLayer.addEventListener('focusout', function (e) {
-    if (e.target.classList.contains('node-text') && editingId) {
-      commitEdit(editingId, e.target.innerText);
+    var nodeEl = e.target.closest('.node');
+    if (!nodeEl) return;
+    var id = nodeEl.getAttribute('data-id');
+    if (e.target.classList.contains('node-title')) {
+      var v = commitTitle(id, e.target.value);
+      if (v !== null) e.target.value = v;
+    } else if (e.target.classList.contains('node-detail')) {
+      var v2 = commitDetail(id, e.target.value);
+      if (v2 !== null) e.target.value = v2;
     }
   });
 
   nodesLayer.addEventListener('keydown', function (e) {
-    if (!e.target.classList.contains('node-text')) return;
-    if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
-    else if (e.key === 'Escape') { e.preventDefault(); editingId = null; render(); }
-    e.stopPropagation();
+    var nodeEl = e.target.closest('.node');
+    if (!nodeEl) return;
+    var id = nodeEl.getAttribute('data-id');
+    if (e.target.classList.contains('node-title')) {
+      if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); addSibling(id); }
+      else if (e.key === 'Tab') { e.preventDefault(); e.target.blur(); addChild(id); }
+      else if (e.key === 'Escape') { e.target.blur(); }
+      e.stopPropagation();
+    } else if (e.target.classList.contains('node-detail')) {
+      if (e.key === 'Escape') { e.target.blur(); }
+      e.stopPropagation();
+    }
   });
 
   document.addEventListener('keydown', function (e) {
-    if (detailModal.classList.contains('open')) {
-      if (e.key === 'Escape') { e.preventDefault(); closeDetailPanel(); }
-      return;
-    }
-    if (document.activeElement && document.activeElement.isContentEditable) return;
+    var ae = document.activeElement;
+    if (ae && (ae.isContentEditable || ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) return;
     if (!selectedId) return;
     if (e.key === 'Tab') { e.preventDefault(); addChild(selectedId); }
     else if (e.key === 'Enter') { e.preventDefault(); addSibling(selectedId); }
     else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteNode(selectedId); }
     else if (e.key === 'Escape') { selectedId = null; render(); }
-    else if (e.key === 'F2') { e.preventDefault(); startEdit(selectedId); }
+    else if (e.key === 'F2') { e.preventDefault(); focusTitle(selectedId); }
   });
-
-  detailModal.addEventListener('click', function (e) {
-    if (e.target === detailModal) closeDetailPanel();
-  });
-  document.getElementById('detail-modal-close').addEventListener('click', closeDetailPanel);
 
   // pan
   var dragging = false, dragStart = null, panStart = null;
