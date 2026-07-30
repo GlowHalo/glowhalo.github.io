@@ -616,11 +616,57 @@ function setLocationFor(id){
     }
   });
 }
+let editingId = null;
+let editBuffer = null; // { name, types, memo } — 저장 누르기 전까지의 임시 수정값
+
 function onCardClick(id){
+  if(editingId === id) return;
+  startEdit(id);
+}
+function startEdit(id){
   const p = places.find(x => x.id===id);
   if(!p) return;
-  if(hasLoc(p)){ focusPlace(id); }
-  else { setLocationFor(id); }
+  editingId = id;
+  editBuffer = { name: p.name, types: [...(p.types && p.types.length ? p.types : ["기타"])], memo: p.memo || "" };
+  renderList();
+}
+function editCancel(id){
+  if(editingId !== id) return;
+  editingId = null;
+  editBuffer = null;
+  renderList();
+}
+function editUpdateField(id, field, value){
+  if(editingId !== id || !editBuffer) return;
+  editBuffer[field] = value;
+}
+function editToggleType(id, key){
+  if(editingId !== id || !editBuffer) return;
+  if(editBuffer.types.includes(key)){
+    if(editBuffer.types.length > 1) editBuffer.types = editBuffer.types.filter(t => t !== key);
+  } else {
+    editBuffer.types = [...editBuffer.types, key];
+  }
+  renderList();
+}
+function editSave(id){
+  if(editingId !== id || !editBuffer) return;
+  const patch = {
+    name: editBuffer.name.trim() || "이름 없음",
+    types: editBuffer.types.length ? editBuffer.types : ["기타"],
+    memo: editBuffer.memo
+  };
+  editingId = null;
+  editBuffer = null;
+  if(isCloud){
+    window.cloudSync.updatePlace(id, patch).catch(cloudFail);
+    renderList();
+  } else {
+    places = places.map(x => x.id===id ? {...x, ...patch} : x);
+    renderList();
+    renderMarkers();
+    persist();
+  }
 }
 
 function renderFilters(){
@@ -667,7 +713,28 @@ function renderSortRow(){
   document.getElementById("group-toggle").addEventListener("click", () => { groupByRegion = !groupByRegion; renderSortRow(); renderList(); });
 }
 
+function editChipRowHtml(id, activeTypes){
+  return TYPES.map(t => `<div class="chip ${activeTypes.includes(t.key)?'active':''}" style="${activeTypes.includes(t.key)?`background:${t.color};`:''}" onclick="editToggleType('${id}','${t.key}')">${t.key}</div>`).join("");
+}
+function placeEditCardHtml(p, buf){
+  return `
+    <div class="draft" data-id="${p.id}">
+      <div class="draft-top">
+        <span class="draft-src">✏️ 수정 중</span>
+        <button onclick="editCancel('${p.id}')">✕</button>
+      </div>
+      <input class="name" value="${esc(buf.name)}" placeholder="장소 이름" oninput="editUpdateField('${p.id}','name', this.value)" />
+      ${p.address ? `<div class="draft-addr">${esc(p.address)}</div>` : ""}
+      <label>유형 (여러 개 선택 가능 — 놀면서 먹는 곳이면 둘 다)</label>
+      <div class="chiprow">${editChipRowHtml(p.id, buf.types)}</div>
+      <textarea rows="2" placeholder="메모 (주차 등)" oninput="editUpdateField('${p.id}','memo', this.value)">${esc(buf.memo)}</textarea>
+      <button type="button" class="locbtn ${hasLoc(p) ? 'set' : ''}" onclick="setLocationFor('${p.id}')">${hasLoc(p) ? "📍 위치 수정" : "📍 위치 설정"}</button>
+      <button class="save" onclick="editSave('${p.id}')">저장</button>
+    </div>`;
+}
+
 function placeCardHtml(p){
+  if(p.id === editingId && editBuffer) return placeEditCardHtml(p, editBuffer);
   const located = hasLoc(p);
   const sourceIcon = p.source==="search" ? "🔍" : p.source==="link" ? "🔗" : "";
   const badges = (p.types||[]).map(tk => {
