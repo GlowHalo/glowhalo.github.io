@@ -2,17 +2,21 @@ import type { Hero } from "../data/heroTypes";
 import { HEROES, PLAYABLE_HEROES } from "../data/heroes";
 import {
   save, spendGems, addGems, spendGold, persist,
-  getLevel, levelUpCost, tryLevelUp,
+  getLevel, levelUpCost, tryLevelUp, resetHeroLevel, levelResetRefund,
   inParty, toggleParty, PARTY_SIZE,
-  getStars, ascendCost, dupeCount, tryAscend, MAX_STARS,
-  EQUIP_SLOTS, EQUIP_GRADES, EQUIP_SLOT_STAT, EQUIP_GRADE_PCT, EQUIP_GRADE_FLAT, EQUIP_SELL_GOLD,
+  getStars, dupeCount, tryAscend, MAX_STARS, ASCEND_MATERIAL_COUNT,
+  getTranscend, tryTranscendStep1, tryTranscendStep, MAX_TRANSCEND, TRANSCEND_MATERIAL_COUNT,
+  EQUIP_SLOTS, EQUIP_GRADES, EQUIP_SLOT_STAT, EQUIP_SELL_GOLD, EQUIP_MAX_ENHANCE, EQUIP_LEVEL_COST,
+  equipEffectivePct, equipEffectiveFlat,
   equipInventoryFor, equippedItem, equipItem, unequipItem, sellEquipItem, grantRandomEquip,
+  tryEnhanceEquipWithStones, absorbEquipItem, addEnhanceStone,
+  addTicket, type TicketKind,
   type EquipSlot, type EquipItem,
 } from "../state/save";
 import {
-  pull, SINGLE_COST, TEN_COST, BANNERS, bannerPityCount,
-  SSR_PITY_LIMIT, UR_PITY_LIMIT, monthlyFeaturedUR, urPityCount, pickupHeroFor,
-  GRADE_WEIGHT, PICKUP_RATE_UP, gradeRosterCount,
+  pull, SINGLE_COST, TEN_COST, CATEGORIES, type SummonKind, type PullResult,
+  SSR_PITY_LIMIT, UR_PITY_LIMIT, monthlyFeaturedUR, urPityCount, pickupPityCount, pickupCandidates,
+  GRADE_WEIGHT, NORMAL_GRADE_WEIGHT, PICKUP_RATE_UP, gradeRosterCount,
 } from "../systems/gacha";
 import { calcFactionSynergy, partyPower, FACTION_STRONG_AGAINST, FACTION_WEAK_AGAINST } from "../systems/battle";
 import {
@@ -131,13 +135,22 @@ const GRADE_BORDER: Record<string, string> = {
  * 빛난다" 문법을 상시 카드에도 그대로 가져왔다 — 흔한 N/R은 존재감을 낮춰 화면을 조용하게 하고,
  * 진짜 귀한 SSR/UR만 은은한 발광으로 눈에 띄게 한다 */
 const GRADE_BORDER_WIDTH: Record<string, number> = { N: 2, R: 2, SR: 3, SSR: 3, UR: 4, Unknown: 3 };
+
+/** §마이티 아레나 반영계획 1(2026-07-30, "외곽 매트형" B안 채택) — "SSR급이면 테두리뿐 아니라
+ * 뒷 여백도 등급색" 요청을 카드 내부 구조(진영색 카드+중립색 얼굴틀, task #37)를 안 건드리고
+ * 반영하는 방법. 카드 바로 바깥에 등급색 매트(안쪽 얇은 링 + 바깥쪽 은은한 발광)를 box-shadow로
+ * 둘러서, 액자의 매트지처럼 카드를 감싸는 여백 자체가 등급색으로 보이게 한다. 전 등급에 적용(예전엔
+ * SSR/UR/Unknown만 발광했는데, 이제 N/R도 옅게라도 매트가 있어야 "등급마다 다른 배경"이 성립) */
 const GRADE_GLOW: Record<string, string> = {
-  SSR: "0 0 6px rgba(255, 211, 77, 0.55)",
-  UR: "0 0 8px rgba(255, 90, 110, 0.65)",
-  Unknown: "0 0 7px rgba(138, 143, 156, 0.6)",
+  N: "0 0 0 2px rgba(125, 154, 181, 0.28), 0 0 6px 1px rgba(125, 154, 181, 0.25)",
+  R: "0 0 0 2px rgba(74, 155, 232, 0.32), 0 0 7px 1px rgba(74, 155, 232, 0.3)",
+  SR: "0 0 0 3px rgba(176, 96, 240, 0.38), 0 0 9px 2px rgba(176, 96, 240, 0.4)",
+  SSR: "0 0 0 3px rgba(255, 211, 77, 0.45), 0 0 12px 3px rgba(255, 211, 77, 0.6)",
+  UR: "0 0 0 4px rgba(255, 90, 110, 0.5), 0 0 14px 4px rgba(255, 90, 110, 0.7)",
+  Unknown: "0 0 0 3px rgba(138, 143, 156, 0.4), 0 0 10px 2px rgba(138, 143, 156, 0.55)",
 };
 
-/** 카드/슬롯에 등급을 테두리 색+굵기(+상위 등급은 은은한 발광)로 표시(상세화면 제외 규칙) */
+/** 카드/슬롯에 등급을 테두리 색+굵기+등급색 외곽 매트(box-shadow 링)로 표시(상세화면 제외 규칙) */
 function setGradeBorder(el: HTMLElement, grade: string) {
   el.style.borderColor = GRADE_BORDER[grade] ?? "#888";
   el.style.borderWidth = `${GRADE_BORDER_WIDTH[grade] ?? 3}px`;
@@ -278,6 +291,21 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
     }
   };
 
+  // 레벨 초기화(§마이티 아레나 반영계획 2, 2026-07-30) — 환생 대신 레벨업에 쓴 골드만 전액 환급.
+  // 위치는 임시로 상세화면에 둠(정확한 배치는 추후 결정 예정)
+  const refund = levelResetRefund(hero.id);
+  const resetBtn = el("button", "btn", `레벨 초기화(🪙${refund.toLocaleString()} 환급)`) as HTMLButtonElement;
+  resetBtn.disabled = refund <= 0;
+  resetBtn.onclick = () => {
+    if (!confirm(`${hero.nameKr}을(를) Lv.1로 초기화하고 골드 ${refund.toLocaleString()}을 환급받습니다. 계속할까요?`)) return;
+    const got = resetHeroLevel(hero.id);
+    if (got > 0) {
+      toast(`레벨 초기화! 🪙+${got.toLocaleString()}`);
+      openHeroDetail(hero, rerender);
+      rerender();
+    }
+  };
+
   const inP = inParty(hero.id);
   const partyBtn = el("button", "btn" + (inP ? "" : " primary"), inP ? "편성 해제" : "편성") as HTMLButtonElement;
   partyBtn.onclick = () => {
@@ -294,7 +322,7 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
   const close = el("button", "btn", "닫기") as HTMLButtonElement;
   close.onclick = closeModal;
 
-  modal(hero.nameKr, body, [close, partyBtn, lvBtn]);
+  modal(hero.nameKr, body, [close, resetBtn, partyBtn, lvBtn]);
 }
 
 let heroFilter = "전체";
@@ -483,17 +511,63 @@ function renderCodex(root: HTMLElement) {
 
 /* ── 승급 화면(마이티아레나식): 승급할 영웅 선택 → 재료(중복분) 슬롯 확인 → 승급 ── */
 let ascendTargetId: string | null = null;
+/** 승급(재료 2장, 동일 성급)과 초월 2~5단계(재료 2장, 성급1)가 재료 선택 UI를 공유한다 —
+ * 대상이 바뀌거나 승급/초월에 성공하면 비워진다 */
+let materialIds: string[] = [];
+
+/** 후보 카드를 누르면 항상 "추가"만 한다(최대 need장, 보유 수량 한도까지 — 같은 영웅을 owned만큼
+ * 여러 번 눌러 채울 수 있다). 이미 담은 재료를 빼려면 위 재료 슬롯 자체를 눌러야 한다
+ * (removeMaterialAt) — "누르면 토글"식으로 하면 같은 영웅을 2장 채우는 게 아예 불가능해짐 */
+function addMaterial(id: string, max: number): boolean {
+  if (materialIds.length >= max) return false;
+  if (selectedCountOf(id) >= (save.owned[id] ?? 0)) return false;
+  materialIds.push(id);
+  return true;
+}
+
+function removeMaterialAt(index: number) {
+  materialIds.splice(index, 1);
+}
+
+function selectedCountOf(id: string): number {
+  return materialIds.filter((x) => x === id).length;
+}
+
+function transcendStars(n: number): string {
+  return "✪".repeat(n) + "✩".repeat(MAX_TRANSCEND - n);
+}
+
+/** 재료 후보 그리드 — 후보를 누르면 materialIds에 담긴다(최대 need장, 보유 수량까지 중복 선택
+ * 가능). 이미 담긴 후보는 카드에 ×횟수 배지가 뜨고, 빼려면 위 재료 슬롯을 눌러야 한다 */
+function renderMaterialPicker(root: HTMLElement, candidates: Hero[], need: number, rerender: () => void): HTMLElement {
+  const grid = el("div", "hero-grid");
+  for (const hero of candidates) {
+    const count = selectedCountOf(hero.id);
+    const owned = save.owned[hero.id] ?? 0;
+    const card = buildHeroCard(hero, {
+      selected: count > 0,
+      onClick: () => {
+        if (addMaterial(hero.id, need)) rerender();
+      },
+    });
+    if (count > 0) card.appendChild(el("div", "hc-badge hc-badge-tr mat-count", `${count}/${owned}`));
+    grid.appendChild(card);
+  }
+  root.appendChild(grid);
+  return grid;
+}
 
 function renderAscend(root: HTMLElement) {
   root.innerHTML = "";
   const rerender = () => renderAscend(root);
   root.appendChild(el("h2", "", "영웅 승급"));
-  root.appendChild(el("div", "desc", "승급할 영웅을 고르면 재료(중복 보유분) 슬롯이 채워집니다. 슬롯이 다 차면 승급하세요."));
+  root.appendChild(el("div", "desc", "승급할 영웅을 고르고, 동일 성급 영웅 2체를 재료로 골라주세요. 4→5성은 진영도 같아야 합니다. 재료는 소모됩니다."));
 
   const owned = PLAYABLE_HEROES.filter((h) => (save.owned[h.id] ?? 0) > 0);
   const target = ascendTargetId ? owned.find((h) => h.id === ascendTargetId) ?? null : null;
+  const stars = target ? getStars(target.id) : 0;
+  const maxed = !!target && stars >= MAX_STARS;
 
-  // 승급 대상 + 재료 슬롯 패널
   const panel = el("div", "ascend-panel");
   const targetSlot = el("div", "ascend-slot ascend-target" + (target ? " filled" : ""));
   if (target) {
@@ -503,64 +577,147 @@ function renderAscend(root: HTMLElement) {
     setFace(face, target);
     targetSlot.appendChild(face);
     targetSlot.appendChild(el("div", "as-nm", target.nameKr));
-    targetSlot.appendChild(el("div", "as-stars", starText(getStars(target.id))));
+    targetSlot.appendChild(el("div", "as-stars", starText(stars)));
+    if (maxed && getTranscend(target.id) > 0) {
+      targetSlot.appendChild(el("div", "as-stars transcend-stars", transcendStars(getTranscend(target.id))));
+    }
   } else {
     targetSlot.appendChild(el("div", "ps-empty", "+"));
     targetSlot.appendChild(el("div", "as-label", "승급 대상"));
   }
   targetSlot.onclick = () => {
     ascendTargetId = null;
+    materialIds = [];
     rerender();
   };
   panel.appendChild(targetSlot);
-
-  const arrow = el("div", "ascend-arrow", "→");
-  panel.appendChild(arrow);
+  panel.appendChild(el("div", "ascend-arrow", "→"));
 
   const matSlots = el("div", "ascend-mats");
-  if (target) {
-    const stars = getStars(target.id);
-    if (stars >= MAX_STARS) {
-      matSlots.appendChild(el("div", "as-label", "⭐ 이미 최대 성급이에요"));
-    } else {
-      const need = ascendCost(stars);
-      const have = dupeCount(target.id);
-      for (let i = 0; i < need; i++) {
-        const filled = i < have;
-        const slot = el("div", "ascend-slot ascend-mat" + (filled ? " filled" : ""));
-        if (filled) {
-          const face = el("div", "face");
-          setFace(face, target);
-          slot.appendChild(face);
-        } else {
-          slot.appendChild(el("div", "ps-empty", "+"));
-        }
-        matSlots.appendChild(slot);
-      }
-      matSlots.appendChild(el("div", "as-label", `중복 보유 ${Math.min(have, need)}/${need} — 같은 영웅을 더 뽑으면 채워져요`));
-    }
-  } else {
+  if (!target) {
     matSlots.appendChild(el("div", "as-label", "먼저 승급할 영웅을 골라주세요"));
+  } else if (!maxed) {
+    for (let i = 0; i < ASCEND_MATERIAL_COUNT; i++) {
+      const matId = materialIds[i];
+      const matHero = matId ? PLAYABLE_HEROES.find((h) => h.id === matId) : undefined;
+      const slot = el("div", "ascend-slot ascend-mat" + (matHero ? " filled" : ""));
+      if (matHero) {
+        const face = el("div", "face");
+        setFace(face, matHero);
+        slot.appendChild(face);
+        slot.title = "눌러서 빼기";
+        slot.onclick = () => {
+          removeMaterialAt(i);
+          rerender();
+        };
+      } else {
+        slot.appendChild(el("div", "ps-empty", "+"));
+      }
+      matSlots.appendChild(slot);
+    }
+    const label =
+      stars === MAX_STARS - 1
+        ? `${MAX_STARS - 1}성 · ${target.faction} 진영 영웅 2체 필요`
+        : `${stars}성 영웅 아무나 2체 필요`;
+    matSlots.appendChild(el("div", "as-label", label));
   }
   panel.appendChild(matSlots);
   root.appendChild(panel);
 
-  if (target && getStars(target.id) < MAX_STARS) {
+  if (target && !maxed) {
     root.appendChild(renderAscendPreview(target));
-  }
 
-  const ascBtn = el("button", "btn primary ascend-btn", "승급하기") as HTMLButtonElement;
-  const ready = !!target && getStars(target.id) < MAX_STARS && dupeCount(target.id) >= ascendCost(getStars(target.id));
-  ascBtn.disabled = !ready;
-  ascBtn.onclick = () => {
-    if (!target) return;
-    if (tryAscend(target.id)) {
-      playSfx("levelup");
-      toast(`${target.nameKr} ${getStars(target.id)}성 각성! 능력치 +30%`);
-      rerender();
+    const ascBtn = el("button", "btn primary ascend-btn", "승급하기") as HTMLButtonElement;
+    ascBtn.disabled = materialIds.length !== ASCEND_MATERIAL_COUNT;
+    ascBtn.onclick = () => {
+      if (tryAscend(target.id, materialIds)) {
+        playSfx("levelup");
+        toast(`${target.nameKr} ${getStars(target.id)}성 각성! 능력치 +30%`);
+        materialIds = [];
+        rerender();
+      } else {
+        toast("승급 조건을 다시 확인해주세요");
+      }
+    };
+    root.appendChild(ascBtn);
+
+    root.appendChild(el("h2", "", "재료 후보"));
+    const candidates = PLAYABLE_HEROES.filter(
+      (h) =>
+        h.id !== target.id &&
+        getStars(h.id) === stars &&
+        (save.owned[h.id] ?? 0) > 0 &&
+        (stars !== MAX_STARS - 1 || h.faction === target.faction)
+    );
+    if (!candidates.length) {
+      root.appendChild(el("div", "as-label", "조건에 맞는 재료 영웅이 아직 없습니다."));
+    } else {
+      renderMaterialPicker(root, candidates, ASCEND_MATERIAL_COUNT, rerender);
     }
-  };
-  root.appendChild(ascBtn);
+  } else if (target && maxed) {
+    // §마이티 아레나 반영계획 5(2026-07-30 신규) — 5성 이후 초월(보라색 별) 트랙
+    const tstep = getTranscend(target.id);
+    root.appendChild(el("h2", "", `초월 ${tstep}/${MAX_TRANSCEND}`));
+    if (tstep >= MAX_TRANSCEND) {
+      root.appendChild(el("div", "as-label", "✪ 초월 최대 달성"));
+    } else if (tstep === 0) {
+      const have = dupeCount(target.id);
+      root.appendChild(el("div", "desc", `초월 1단계 — 동일한 영웅(${target.nameKr}) 5성 완본 1개를 재료로 소모합니다. 보유 여분 ${have}장.`));
+      const t1Btn = el("button", "btn primary ascend-btn", "초월 1단계 진행") as HTMLButtonElement;
+      t1Btn.disabled = have < 1;
+      t1Btn.onclick = () => {
+        if (tryTranscendStep1(target.id)) {
+          playSfx("levelup");
+          toast(`${target.nameKr} 초월 1단계!`);
+          rerender();
+        }
+      };
+      root.appendChild(t1Btn);
+    } else {
+      root.appendChild(el("div", "desc", "1성 영웅 아무나 2체를 재료로 소모합니다."));
+      const tmatRow = el("div", "ascend-mats transcend-mats");
+      for (let i = 0; i < TRANSCEND_MATERIAL_COUNT; i++) {
+        const matId = materialIds[i];
+        const matHero = matId ? PLAYABLE_HEROES.find((h) => h.id === matId) : undefined;
+        const slot = el("div", "ascend-slot ascend-mat" + (matHero ? " filled" : ""));
+        if (matHero) {
+          const face = el("div", "face");
+          setFace(face, matHero);
+          slot.appendChild(face);
+          slot.title = "눌러서 빼기";
+          slot.onclick = () => {
+            removeMaterialAt(i);
+            rerender();
+          };
+        } else {
+          slot.appendChild(el("div", "ps-empty", "+"));
+        }
+        tmatRow.appendChild(slot);
+      }
+      root.appendChild(tmatRow);
+      const tBtn = el("button", "btn primary ascend-btn", `초월 ${tstep + 1}단계 진행`) as HTMLButtonElement;
+      tBtn.disabled = materialIds.length !== TRANSCEND_MATERIAL_COUNT;
+      tBtn.onclick = () => {
+        if (tryTranscendStep(target.id, materialIds)) {
+          playSfx("levelup");
+          toast(`${target.nameKr} 초월 ${getTranscend(target.id)}단계!`);
+          materialIds = [];
+          rerender();
+        } else {
+          toast("초월 조건을 다시 확인해주세요");
+        }
+      };
+      root.appendChild(tBtn);
+
+      root.appendChild(el("h2", "", "재료 후보 (1성)"));
+      const candidates = PLAYABLE_HEROES.filter((h) => h.id !== target.id && getStars(h.id) === 1 && (save.owned[h.id] ?? 0) > 0);
+      if (!candidates.length) {
+        root.appendChild(el("div", "as-label", "1성 재료 영웅이 아직 없습니다."));
+      } else {
+        renderMaterialPicker(root, candidates, TRANSCEND_MATERIAL_COUNT, rerender);
+      }
+    }
+  }
 
   // 승급 대상 선택용 보유 영웅 목록
   root.appendChild(el("h2", "", "보유 영웅"));
@@ -571,6 +728,7 @@ function renderAscend(root: HTMLElement) {
         selected: hero.id === ascendTargetId,
         onClick: () => {
           ascendTargetId = hero.id;
+          materialIds = [];
           rerender();
         },
       })
@@ -607,13 +765,84 @@ const EQUIP_STAT_LABEL: Record<"atk" | "hp" | "def" | "spd" | "crit" | "critDmg"
 function equipBonusText(item: EquipItem): string {
   const stat = EQUIP_SLOT_STAT[item.slot];
   const label = EQUIP_STAT_LABEL[stat];
-  if (stat === "spd" || stat === "crit") return `${label} +${EQUIP_GRADE_FLAT[item.grade]}`;
-  return `${label} +${Math.round(EQUIP_GRADE_PCT[item.grade] * 100)}%`;
+  const lvSuffix = item.level > 0 ? ` (+${item.level})` : "";
+  if (stat === "spd" || stat === "crit") {
+    return `${label} +${Math.round(equipEffectiveFlat(item.grade, item.level))}${lvSuffix}`;
+  }
+  return `${label} +${Math.round(equipEffectivePct(item.grade, item.level) * 100)}%${lvSuffix}`;
 }
 
 const EQUIP_GRADES_DESC = [...EQUIP_GRADES].reverse();
 
-/** 슬롯 하나를 누르면 뜨는 팝업 — 현재 장착 중인 장비(있으면 해제 가능) + 보유 인벤토리 목록(장착/판매) */
+/** 장비 강화 팝업(§마이티 아레나 반영계획 3, 2026-07-30) — 강화석 직접 투입 또는 다른 보유 장비를
+ * 흡수해서 강화. 흡수 대상이 이미 강화돼 있으면 "그만큼 더 얹혀서 이월된다"는 걸 확인받는다 */
+function openEnhanceModal(item: EquipItem, onChange: () => void) {
+  const body = el("div", "equip-modal");
+  const info = EQUIP_SLOT_INFO[item.slot];
+
+  const head = el("div", "equip-modal-row");
+  setGradeBorder(head, item.grade);
+  head.appendChild(el("span", `equip-modal-grade gd grade-${item.grade}`, `${item.grade} ${info.icon}`));
+  head.appendChild(el("span", "equip-modal-bonus", equipBonusText(item)));
+  body.appendChild(head);
+
+  if (item.level >= EQUIP_MAX_ENHANCE) {
+    body.appendChild(el("div", "as-label", `⭐ 최대 강화(+${EQUIP_MAX_ENHANCE}) 달성`));
+  } else {
+    const cost = EQUIP_LEVEL_COST[item.grade];
+    body.appendChild(
+      el("div", "as-label", `+${item.level} → +${item.level + 1} · 강화석 ${cost}개 필요(보유 ${save.enhanceStone})`)
+    );
+    const stoneBtn = el("button", "btn primary", `💠 강화석으로 강화`) as HTMLButtonElement;
+    stoneBtn.disabled = save.enhanceStone < cost;
+    stoneBtn.onclick = () => {
+      if (tryEnhanceEquipWithStones(item.id, cost)) {
+        playSfx("levelup");
+        toast(`${info.label} +${item.level} 강화 성공!`);
+        onChange();
+        openEnhanceModal(item, onChange);
+      }
+    };
+    body.appendChild(stoneBtn);
+  }
+
+  body.appendChild(el("div", "equip-modal-title", "다른 장비 흡수(같은 슬롯 아님 상관없음)"));
+  const absorbCandidates = save.equipInventory.filter((it) => it.id !== item.id);
+  if (!absorbCandidates.length) {
+    body.appendChild(el("div", "as-label", "흡수할 여분 장비가 없습니다."));
+  } else if (item.level >= EQUIP_MAX_ENHANCE) {
+    body.appendChild(el("div", "as-label", "이미 최대 강화라 흡수할 수 없습니다."));
+  } else {
+    for (const mat of absorbCandidates) {
+      const row = el("div", "equip-modal-row");
+      setGradeBorder(row, mat.grade);
+      const matInfo = EQUIP_SLOT_INFO[mat.slot];
+      row.appendChild(el("span", `equip-modal-grade gd grade-${mat.grade}`, `${matInfo.icon} ${mat.grade}${mat.level > 0 ? ` +${mat.level}` : ""}`));
+      const absorbBtn = el("button", "btn", "흡수") as HTMLButtonElement;
+      absorbBtn.onclick = () => {
+        if (mat.level > 0 || mat.invested > 0) {
+          if (!confirm(`${matInfo.label}(${mat.grade}${mat.level > 0 ? ` +${mat.level}` : ""})은 이미 강화석이 투입된 장비입니다. 흡수하면 투입된 강화석까지 전부 대상 장비로 이월됩니다. 계속할까요?`)) {
+            return;
+          }
+        }
+        if (absorbEquipItem(item.id, mat.id)) {
+          playSfx("levelup");
+          toast(`${matInfo.label} 흡수! ${info.label} +${item.level}`);
+          onChange();
+          openEnhanceModal(item, onChange);
+        }
+      };
+      row.appendChild(absorbBtn);
+      body.appendChild(row);
+    }
+  }
+
+  const close = el("button", "btn primary", "닫기") as HTMLButtonElement;
+  close.onclick = closeModal;
+  modal(`✨ ${info.label} 강화`, body, [close]);
+}
+
+/** 슬롯 하나를 누르면 뜨는 팝업 — 현재 장착 중인 장비(있으면 해제/강화 가능) + 보유 인벤토리 목록(장착/판매/강화) */
 function openEquipSlotModal(heroId: string, hero: Hero, slot: EquipSlot, onChange: () => void) {
   const info = EQUIP_SLOT_INFO[slot];
   const body = el("div", "equip-modal");
@@ -623,15 +852,17 @@ function openEquipSlotModal(heroId: string, hero: Hero, slot: EquipSlot, onChang
     body.appendChild(el("div", "equip-modal-title", "장착 중"));
     const row = el("div", "equip-modal-row");
     setGradeBorder(row, current.grade);
-    row.appendChild(el("span", `equip-modal-grade gd grade-${current.grade}`, current.grade));
+    row.appendChild(el("span", `equip-modal-grade gd grade-${current.grade}`, `${current.grade}${current.level > 0 ? ` +${current.level}` : ""}`));
     row.appendChild(el("span", "equip-modal-bonus", equipBonusText(current)));
+    const enhanceBtn = el("button", "btn", "✨강화") as HTMLButtonElement;
+    enhanceBtn.onclick = () => openEnhanceModal(current, onChange);
     const unequipBtn = el("button", "btn", "해제") as HTMLButtonElement;
     unequipBtn.onclick = () => {
       unequipItem(heroId, slot);
       onChange();
       openEquipSlotModal(heroId, hero, slot, onChange);
     };
-    row.appendChild(unequipBtn);
+    row.append(enhanceBtn, unequipBtn);
     body.appendChild(row);
   }
 
@@ -645,7 +876,7 @@ function openEquipSlotModal(heroId: string, hero: Hero, slot: EquipSlot, onChang
     for (const it of inv) {
       const row = el("div", "equip-modal-row");
       setGradeBorder(row, it.grade);
-      row.appendChild(el("span", `equip-modal-grade gd grade-${it.grade}`, it.grade));
+      row.appendChild(el("span", `equip-modal-grade gd grade-${it.grade}`, `${it.grade}${it.level > 0 ? ` +${it.level}` : ""}`));
       row.appendChild(el("span", "equip-modal-bonus", equipBonusText(it)));
       const equipBtn = el("button", "btn primary", "장착") as HTMLButtonElement;
       equipBtn.onclick = () => {
@@ -655,6 +886,8 @@ function openEquipSlotModal(heroId: string, hero: Hero, slot: EquipSlot, onChang
         onChange();
         closeModal();
       };
+      const enhanceBtn = el("button", "btn", "✨") as HTMLButtonElement;
+      enhanceBtn.onclick = () => openEnhanceModal(it, onChange);
       const sellBtn = el("button", "btn", `판매 🪙${EQUIP_SELL_GOLD[it.grade]}`) as HTMLButtonElement;
       sellBtn.onclick = () => {
         sellEquipItem(it.id);
@@ -662,7 +895,7 @@ function openEquipSlotModal(heroId: string, hero: Hero, slot: EquipSlot, onChang
         onChange();
         openEquipSlotModal(heroId, hero, slot, onChange);
       };
-      row.append(equipBtn, sellBtn);
+      row.append(equipBtn, enhanceBtn, sellBtn);
       body.appendChild(row);
     }
   }
@@ -678,7 +911,7 @@ function buildEquipSlotBox(hero: Hero, slot: EquipSlot, rerender: () => void): H
   const box = el("div", "equip-slot-box" + (item ? " filled" : ""));
   if (item) setGradeBorder(box, item.grade);
   box.appendChild(el("div", "esb-icon", info.icon));
-  box.appendChild(item ? el("div", `esb-grade gd grade-${item.grade}`, item.grade) : el("div", "esb-plus", "+"));
+  box.appendChild(item ? el("div", `esb-grade gd grade-${item.grade}`, item.level > 0 ? `${item.grade}+${item.level}` : item.grade) : el("div", "esb-plus", "+"));
   box.appendChild(el("div", "esb-label", info.label));
   box.onclick = () => openEquipSlotModal(hero.id, hero, slot, rerender);
   return box;
@@ -729,43 +962,56 @@ function renderEquipment(root: HTMLElement) {
   root.appendChild(grid);
 }
 
-/* ── 소환 탭 ── */
-let selectedBannerId = BANNERS[0].id;
+/* ── 소환 탭(§마이티 아레나 반영계획 4, 2026-07-30) — 일반/고급/픽업 3갈래 ── */
+let selectedKind: SummonKind = "normal";
+let selectedPickupId: string | null = null;
 
 const GRADE_ORDER_DESC = ["UR", "SSR", "SR", "R", "N"];
 
 /** 확률 공개 팝업(§3, 법적 고지 요건) — 등급별 확률표 + 픽업/천장 메커니즘을 작은 버튼 뒤에 숨겨두고,
- * 화면 자체는 레퍼런스(AFK Arena Companions/HoC Legends)처럼 설명문 없이 깔끔하게 유지한다 */
-function openProbabilityModal() {
+ * 화면 자체는 레퍼런스(AFK Arena Companions/HoC Legends)처럼 설명문 없이 깔끔하게 유지한다.
+ * 탭에 따라 확률표가 달라져서(일반=SSR/UR 없음, 고급/픽업=전 등급) 인자로 받는다 */
+function openProbabilityModal(kind: SummonKind) {
   const body = el("div", "prob-modal");
+  const weights = kind === "normal" ? NORMAL_GRADE_WEIGHT : GRADE_WEIGHT;
   const table = el("table", "prob-table");
   const head = el("tr");
   head.appendChild(el("th", "", "등급"));
   head.appendChild(el("th", "", "확률"));
   table.appendChild(head);
   for (const grade of GRADE_ORDER_DESC) {
+    if (!(grade in weights)) continue;
     const row = el("tr");
     row.appendChild(el("td", `gd grade-${grade}`, grade));
-    row.appendChild(el("td", "", `${GRADE_WEIGHT[grade]}%`));
+    row.appendChild(el("td", "", `${weights[grade]}%`));
     table.appendChild(row);
   }
   body.appendChild(table);
 
-  const ssrCount = gradeRosterCount("SSR");
-  const urCount = gradeRosterCount("UR");
-  const ssrPickupPct = (GRADE_WEIGHT.SSR * PICKUP_RATE_UP).toFixed(3);
-  const ssrRestPct = ((GRADE_WEIGHT.SSR * (1 - PICKUP_RATE_UP)) / (ssrCount - 1)).toFixed(4);
-  const urPickupPct = (GRADE_WEIGHT.UR * PICKUP_RATE_UP).toFixed(3);
-  const urRestPct = ((GRADE_WEIGHT.UR * (1 - PICKUP_RATE_UP)) / (urCount - 1)).toFixed(4);
+  if (kind === "normal") {
+    body.appendChild(el("div", "prob-note", "일반소환은 소모가 적은 대신 SSR·UR이 등장하지 않습니다. 높은 등급을 노리려면 고급·픽업소환을 이용하세요."));
+  } else {
+    const ssrCount = gradeRosterCount("SSR");
+    const urCount = gradeRosterCount("UR");
+    if (kind === "pickup") {
+      const ssrPickupPct = (GRADE_WEIGHT.SSR * PICKUP_RATE_UP).toFixed(3);
+      const ssrRestPct = ((GRADE_WEIGHT.SSR * (1 - PICKUP_RATE_UP)) / (ssrCount - 1)).toFixed(4);
+      body.appendChild(el("div", "prob-note-title", "픽업 개별 확률"));
+      body.appendChild(el("div", "prob-note", `고른 영웅 ${ssrPickupPct}% · 나머지 SSR ${ssrCount - 1}종 각 ${ssrRestPct}%`));
+    } else {
+      body.appendChild(el("div", "prob-note-title", "고급소환"));
+      body.appendChild(el("div", "prob-note", `픽업 레이트업 없이 SSR ${ssrCount}종·UR ${urCount}종 전부 균등 분배됩니다.`));
+    }
+    const urPickupPct = (GRADE_WEIGHT.UR * PICKUP_RATE_UP).toFixed(3);
+    const urRestPct = ((GRADE_WEIGHT.UR * (1 - PICKUP_RATE_UP)) / (urCount - 1)).toFixed(4);
+    body.appendChild(el("div", "prob-note", `이달의 UR ${urPickupPct}% · 나머지 UR ${urCount - 1}종 각 ${urRestPct}%`));
 
-  body.appendChild(el("div", "prob-note-title", "픽업 배너 개별 확률"));
-  body.appendChild(el("div", "prob-note", `이달의 픽업 캐릭터 ${ssrPickupPct}% · 나머지 SSR ${ssrCount - 1}종 각 ${ssrRestPct}%`));
-  body.appendChild(el("div", "prob-note", `이달의 UR ${urPickupPct}% · 나머지 UR ${urCount - 1}종 각 ${urRestPct}%`));
-  body.appendChild(el("div", "prob-note", `그냥뽑기 배너는 픽업 레이트업 없이 SSR ${ssrCount}종·UR ${urCount}종 전부 균등 분배됩니다.`));
-
-  body.appendChild(el("div", "prob-note-title", "천장(확정 보상)"));
-  body.appendChild(el("div", "prob-note", `이 배너에서 픽업 SSR을 ${SSR_PITY_LIMIT}회 연속 못 뽑으면 다음 1회는 픽업 확정.`));
-  body.appendChild(el("div", "prob-note", `UR은 배너 무관 전체 누적 ${UR_PITY_LIMIT}회 안에 확정 지급(어느 배너에서 뽑든 함께 쌓임).`));
+    body.appendChild(el("div", "prob-note-title", "천장(확정 보상)"));
+    if (kind === "pickup") {
+      body.appendChild(el("div", "prob-note", `고른 영웅을 ${SSR_PITY_LIMIT}회 연속 못 뽑으면 다음 1회는 확정. 영웅을 바꿔도 이전 진행도는 남아있다가 다시 고르면 이어집니다.`));
+    }
+    body.appendChild(el("div", "prob-note", `UR은 고급·픽업소환 전체 누적 ${UR_PITY_LIMIT}회 안에 확정 지급(둘 중 어디서 뽑든 함께 쌓임, 일반소환은 관여 안 함).`));
+  }
 
   const close = el("button", "btn primary", "확인") as HTMLButtonElement;
   close.onclick = closeModal;
@@ -776,8 +1022,8 @@ function openProbabilityModal() {
  * 말로 풀어 설명한다. 레퍼런스의 우상단 "?" 아이콘 자리(§마이티 아레나 반영계획 E) */
 function openSummonHelpModal() {
   const body = el("div");
-  body.appendChild(el("p", "", "소환을 누르면 무작위로 영웅을 얻습니다. 등급이 높을수록 등장 확률은 낮지만, 정해진 횟수 안에 최고 등급이 안 나오면 천장(확정 지급)이 발동해요."));
-  body.appendChild(el("p", "", "배너마다 픽업 캐릭터가 다르고, 배너를 옮겨도 UR 천장 카운트는 그대로 이어집니다."));
+  body.appendChild(el("p", "", "일반소환은 소환권 소모가 적은 대신 N~SR만 등장합니다. 고급소환은 전 등급이 균등하게, 픽업소환은 원하는 영웅 1명을 골라 그 영웅만 확률을 올려서 뽑습니다."));
+  body.appendChild(el("p", "", "등급이 높을수록 등장 확률은 낮지만, 정해진 횟수 안에 최고 등급이 안 나오면 천장(확정 지급)이 발동해요."));
   body.appendChild(el("p", "", "정확한 등급별 확률·픽업 확률은 좌상단 ❗ 확률고지에서 확인하세요."));
   const close = el("button", "btn primary", "확인") as HTMLButtonElement;
   close.onclick = closeModal;
@@ -791,7 +1037,7 @@ export function renderSummon(root: HTMLElement) {
   // (save.pity/UR_PITY_LIMIT)을 이 자리에 그대로 시각화한다
   const titleRow = el("div", "summon-title-row");
   const probBtn = el("button", "btn prob-btn", "❗ 확률고지") as HTMLButtonElement;
-  probBtn.onclick = openProbabilityModal;
+  probBtn.onclick = () => openProbabilityModal(selectedKind);
   titleRow.appendChild(probBtn);
   titleRow.appendChild(el("h2", "", "영웅 소환"));
   const rightCol = el("div", "summon-corner-right");
@@ -812,61 +1058,65 @@ export function renderSummon(root: HTMLElement) {
   };
   updatePityRing();
 
-  // 배너 선택 — 그냥뽑기(왼쪽) + 이달의 SSR 픽업 3개(매달 자동 로테이션, §4)
-  const bannerRow = el("div", "banner-row");
-  root.appendChild(bannerRow);
+  // 3갈래 카테고리 탭(레퍼런스 "기본/우정/고급 소환" 화면뷰 차용)
+  const catRow = el("div", "banner-row summon-cat-row");
+  for (const cat of CATEGORIES) {
+    const chip = el("button", "summon-cat-chip" + (cat.kind === selectedKind ? " on" : ""), cat.name);
+    chip.onclick = () => {
+      if (selectedKind === cat.kind) return;
+      selectedKind = cat.kind;
+      renderSummon(root);
+    };
+    catRow.appendChild(chip);
+  }
+  root.appendChild(catRow);
+  root.appendChild(el("div", "desc summon-cat-desc", CATEGORIES.find((c) => c.kind === selectedKind)!.desc));
+
+  // 픽업소환 — 화면 중앙에 후보 3명, 하나를 골라야 뽑기 버튼이 켜진다(레퍼런스 "확률업 소환" 문법)
+  if (selectedKind === "pickup") {
+    const candidates = pickupCandidates();
+    if (!selectedPickupId || !candidates.some((h) => h.id === selectedPickupId)) {
+      selectedPickupId = candidates[0]?.id ?? null;
+    }
+    const pickRow = el("div", "pickup-select-row");
+    for (const hero of candidates) {
+      const on = hero.id === selectedPickupId;
+      const slot = el("div", "pickup-select-slot" + (on ? " on" : ""));
+      setGradeBorder(slot, hero.grade);
+      const face = el("div", "face");
+      setFace(face, hero);
+      slot.appendChild(face);
+      if (on) slot.appendChild(el("div", "pickup-select-up", "UP!"));
+      slot.appendChild(el("div", "pickup-select-name", hero.nameKr));
+      slot.onclick = () => {
+        if (selectedPickupId === hero.id) return;
+        selectedPickupId = hero.id;
+        renderSummon(root);
+      };
+      pickRow.appendChild(slot);
+    }
+    root.appendChild(pickRow);
+  }
+
   const bannerInfo = el("div", "banner-info");
   root.appendChild(bannerInfo);
-
-  const renderBanners = () => {
-    bannerRow.innerHTML = "";
-    for (const b of BANNERS) {
-      const pickup = pickupHeroFor(b);
-      const card = el("div", "banner-card" + (b.id === selectedBannerId ? " on" : ""));
-      if (pickup) {
-        setGradeBorder(card, pickup.grade);
-        setCardFaction(card, pickup);
-        const face = el("div", "face");
-        setFace(face, pickup);
-        card.appendChild(face);
-        card.appendChild(el("div", "banner-card-monthly", "이달의 픽업"));
-      } else {
-        // 그냥뽑기 배너 — 특정 픽업이 없을 뿐 다른 배너와 동급의 뽑기라는 걸 같은 비주얼 무게로 표현
-        card.classList.add("banner-card-standard");
-        card.appendChild(el("div", "banner-card-standard-icon", "✨"));
-      }
-      if (b.id === selectedBannerId) card.appendChild(el("div", "banner-card-check", "✓"));
-      card.appendChild(el("div", "banner-card-name", b.name));
-      card.onclick = () => {
-        if (selectedBannerId === b.id) return;
-        selectedBannerId = b.id;
-        renderBanners();
-        updateBannerInfo();
-      };
-      bannerRow.appendChild(card);
-    }
-  };
-
   const updateBannerInfo = () => {
-    const b = BANNERS.find((x) => x.id === selectedBannerId)!;
-    const pickup = pickupHeroFor(b);
     bannerInfo.innerHTML = "";
-    const flavorText = pickup
-      ? `✨ 이달의 픽업 — ${pickup.nameKr}(${pickup.faction} · ${pickup.heroClass}) 등장 확률 UP`
-      : "✨ 모든 SSR 동일 확률 — 원하는 캐릭터가 이달의 픽업이 아니라면 여기서 노려보세요";
-    bannerInfo.appendChild(el("div", "banner-info-flavor", flavorText));
-    if (pickup) {
+    if (selectedKind === "pickup" && selectedPickupId) {
+      const hero = PLAYABLE_HEROES.find((h) => h.id === selectedPickupId)!;
+      bannerInfo.appendChild(el("div", "banner-info-flavor", `✨ ${hero.nameKr}(${hero.faction} · ${hero.heroClass}) 등장 확률 UP`));
       const pityLine = el("div", "banner-info-pity");
-      pityLine.innerHTML = `이 배너 픽업 확정까지 <b>${SSR_PITY_LIMIT - bannerPityCount(b.id)}</b>회`;
+      pityLine.innerHTML = `이 영웅 확정까지 <b>${SSR_PITY_LIMIT - pickupPityCount(hero.id)}</b>회`;
       bannerInfo.appendChild(pityLine);
+    } else if (selectedKind === "premium") {
+      bannerInfo.appendChild(el("div", "banner-info-flavor", "✨ 모든 SSR 동일 확률 — 특정 영웅을 노린다면 픽업소환이 더 유리해요"));
     }
-    // UR 천장은 배너 무관 전체 공용이라 어느 배너를 보든 항상 표시한다
-    const urLine = el("div", "banner-info-pity banner-info-ur");
-    urLine.innerHTML = `이달의 UR <b>${monthlyFeaturedUR().nameKr}</b> 확정까지 <b>${UR_PITY_LIMIT - urPityCount()}</b>회 (전 배너 공용)`;
-    bannerInfo.appendChild(urLine);
+    if (selectedKind !== "normal") {
+      const urLine = el("div", "banner-info-pity banner-info-ur");
+      urLine.innerHTML = `이달의 UR <b>${monthlyFeaturedUR().nameKr}</b> 확정까지 <b>${UR_PITY_LIMIT - urPityCount()}</b>회 (고급·픽업 공용)`;
+      bannerInfo.appendChild(urLine);
+    }
   };
-
-  renderBanners();
   updateBannerInfo();
 
   const box = el("div", "summon-box");
@@ -881,26 +1131,32 @@ export function renderSummon(root: HTMLElement) {
   for (let i = 0; i < 4; i++) orb.appendChild(el("span", `orb-spark s${i}`, "✦"));
   box.appendChild(orb);
 
+  const ticketIcon = CATEGORIES.find((c) => c.kind === selectedKind)!.ticket === "normal" ? "🎫" : "🎟️";
   const btnRow = el("div", "summon-btn-row");
-  const single = el("button", "btn primary", `1회 소환 (💎${SINGLE_COST})`) as HTMLButtonElement;
-  const ten = el("button", "btn primary", `10회 소환 (💎${TEN_COST})`) as HTMLButtonElement;
+  const single = el("button", "btn primary", `1회 소환 (${ticketIcon}${SINGLE_COST})`) as HTMLButtonElement;
+  const ten = el("button", "btn primary", `10회 소환 (${ticketIcon}${TEN_COST})`) as HTMLButtonElement;
   btnRow.append(single, ten);
   box.appendChild(btnRow);
 
   const pity = el("div", "pity");
   const updatePity = () => {
-    pity.textContent = `보유 💎${save.gems.toLocaleString()}`;
+    pity.textContent = `보유 🎫일반 ${save.ticketNormal} · 🎟️고급 ${save.ticketPremium}`;
   };
   updatePity();
   box.appendChild(pity);
   root.appendChild(box);
 
-  const doPull = (count: number, cost: number) => {
-    if (!spendGems(cost)) {
-      toast("보석이 부족합니다");
+  const doPull = (count: number) => {
+    if (selectedKind === "pickup" && !selectedPickupId) {
+      toast("픽업할 영웅을 먼저 골라주세요");
       return;
     }
-    const pulls = pull(count, selectedBannerId);
+    const pulls = pull(count, selectedKind, selectedPickupId ?? undefined);
+    if (!pulls) {
+      const cat = CATEGORIES.find((c) => c.kind === selectedKind)!;
+      toast(`${cat.ticket === "normal" ? "일반" : "고급"}소환권이 부족합니다`);
+      return;
+    }
     track("summon", count);
     playSummonFx(pulls, () => {
       updatePity();
@@ -909,8 +1165,8 @@ export function renderSummon(root: HTMLElement) {
       emit("roster-changed");
     }, doPull);
   };
-  single.onclick = () => doPull(1, SINGLE_COST);
-  ten.onclick = () => doPull(10, TEN_COST);
+  single.onclick = () => doPull(1);
+  ten.onclick = () => doPull(10);
 }
 
 /* ── 소환 연출: 오브 차징 → 카드 개별/전체 뒤집기 → 고등급 예고·플래시 → 신규영웅 프로필 팝업 ── */
@@ -942,9 +1198,9 @@ function buildNewHeroPopup(hero: Hero, onConfirm: () => void): HTMLElement {
 }
 
 function playSummonFx(
-  pulls: ReturnType<typeof pull>,
+  pulls: PullResult[],
   onClose: () => void,
-  onPullAgain: (count: number, cost: number) => void
+  onPullAgain: (count: number) => void
 ) {
   const overlay = el("div");
   overlay.id = "summon-fx";
@@ -983,18 +1239,19 @@ function playSummonFx(
     };
     footer.appendChild(okBtn);
     const again = el("div", "sfx-again");
-    const mkAgainBtn = (label: string, count: number, cost: number) => {
+    const ticketIcon = CATEGORIES.find((c) => c.kind === selectedKind)!.ticket === "normal" ? "🎫" : "🎟️";
+    const mkAgainBtn = (label: string, count: number) => {
       const b = el("button", "btn primary", label) as HTMLButtonElement;
       b.onclick = (e) => {
         e.stopPropagation();
         close();
-        onPullAgain(count, cost);
+        onPullAgain(count);
       };
       return b;
     };
     again.append(
-      mkAgainBtn(`1회 소환 (💎${SINGLE_COST})`, 1, SINGLE_COST),
-      mkAgainBtn(`10회 소환 (💎${TEN_COST})`, 10, TEN_COST)
+      mkAgainBtn(`1회 소환 (${ticketIcon}${SINGLE_COST})`, 1),
+      mkAgainBtn(`10회 소환 (${ticketIcon}${TEN_COST})`, 10)
     );
     footer.appendChild(again);
     overlay.appendChild(footer);
@@ -1144,11 +1401,83 @@ function playSummonFx(
 
 /* ── 상점 탭 ── */
 const EQUIP_BOX_GOLD = 500;
+const STONE_PACK_GOLD = 300;
+
+/** 소환권 상점(§마이티 아레나 반영계획 4, 2026-07-30) — 보석으로 정가 구매 + 하루 한정 수량 할인.
+ * 던전/탑 보상으로도 얻는 경로는 추후 확대 예정(주인님 결정) */
+const TICKET_GEM_PRICE: Record<TicketKind, number> = { normal: 30, premium: 100 };
+const TICKET_DISCOUNT_PCT = 0.3;
+const TICKET_DISCOUNT_DAILY_LIMIT = 5;
+
+function ticketDiscountRemaining(): number {
+  const today = new Date().toISOString().slice(0, 10);
+  const bought = save.ticketDiscountDate === today ? save.ticketDiscountBought : 0;
+  return Math.max(0, TICKET_DISCOUNT_DAILY_LIMIT - bought);
+}
+
+function buyTicket(root: HTMLElement, kind: TicketKind, discounted: boolean) {
+  const base = TICKET_GEM_PRICE[kind];
+  const price = discounted ? Math.round(base * (1 - TICKET_DISCOUNT_PCT)) : base;
+  if (discounted) {
+    const today = new Date().toISOString().slice(0, 10);
+    if (save.ticketDiscountDate !== today) {
+      save.ticketDiscountDate = today;
+      save.ticketDiscountBought = 0;
+    }
+    if (save.ticketDiscountBought >= TICKET_DISCOUNT_DAILY_LIMIT) return;
+  }
+  if (!spendGems(price)) {
+    toast("보석이 부족합니다");
+    return;
+  }
+  if (discounted) save.ticketDiscountBought += 1;
+  persist();
+  addTicket(kind, 1);
+  toast(`${kind === "normal" ? "일반" : "고급"}소환권 +1`);
+  renderShop(root);
+}
 
 export function renderShop(root: HTMLElement) {
   root.innerHTML = "";
   root.appendChild(el("h2", "", "상점"));
-  root.appendChild(el("div", "desc", `보유 골드 🪙${save.gold.toLocaleString()} · 보유 장비 ${save.equipInventory.length}개`));
+  root.appendChild(
+    el(
+      "div",
+      "desc",
+      `보유 골드 🪙${save.gold.toLocaleString()} · 보유 장비 ${save.equipInventory.length}개 · 강화석 💠${save.enhanceStone}`
+    )
+  );
+
+  const ticketRow = (kind: TicketKind, icon: string) => {
+    const label = kind === "normal" ? "일반소환권" : "고급소환권";
+    const card = el("div", "list-card");
+    card.appendChild(el("span", "", icon));
+    const grow = el("div", "grow");
+    grow.appendChild(el("div", "t", label));
+    grow.appendChild(el("div", "s", `정가 💎${TICKET_GEM_PRICE[kind]}`));
+    card.appendChild(grow);
+    const buyBtn = el("button", "btn primary", "구매") as HTMLButtonElement;
+    buyBtn.disabled = save.gems < TICKET_GEM_PRICE[kind];
+    buyBtn.onclick = () => buyTicket(root, kind, false);
+    card.appendChild(buyBtn);
+    root.appendChild(card);
+
+    const remain = ticketDiscountRemaining();
+    const discPrice = Math.round(TICKET_GEM_PRICE[kind] * (1 - TICKET_DISCOUNT_PCT));
+    const discCard = el("div", "list-card");
+    discCard.appendChild(el("span", "", "🏷️"));
+    const dgrow = el("div", "grow");
+    dgrow.appendChild(el("div", "t", `${label} 오늘의 할인`));
+    dgrow.appendChild(el("div", "s", `💎${discPrice}(${Math.round(TICKET_DISCOUNT_PCT * 100)}%↓) · 오늘 ${remain}/${TICKET_DISCOUNT_DAILY_LIMIT}개 남음`));
+    discCard.appendChild(dgrow);
+    const discBtn = el("button", "btn primary", "구매") as HTMLButtonElement;
+    discBtn.disabled = remain <= 0 || save.gems < discPrice;
+    discBtn.onclick = () => buyTicket(root, kind, true);
+    discCard.appendChild(discBtn);
+    root.appendChild(discCard);
+  };
+  ticketRow("normal", "🎫");
+  ticketRow("premium", "🎟️");
 
   const today = new Date().toISOString().slice(0, 10);
   const card = el("div", "list-card");
@@ -1194,6 +1523,27 @@ export function renderShop(root: HTMLElement) {
   };
   boxCard.appendChild(boxBtn);
   root.appendChild(boxCard);
+
+  // 강화석 — 장비 강화(§마이티 아레나 반영계획 3) 전용 재화. 전투 보상 외에 상점에서도 골드로 구매 가능
+  const stoneCard = el("div", "list-card");
+  stoneCard.appendChild(el("span", "", "💠"));
+  const sgrow = el("div", "grow");
+  sgrow.appendChild(el("div", "t", "강화석 10개"));
+  sgrow.appendChild(el("div", "s", `장비 강화 전용 재화 · 🪙${STONE_PACK_GOLD.toLocaleString()}`));
+  stoneCard.appendChild(sgrow);
+  const stoneBtn = el("button", "btn primary", "구매") as HTMLButtonElement;
+  stoneBtn.disabled = save.gold < STONE_PACK_GOLD;
+  stoneBtn.onclick = () => {
+    if (!spendGold(STONE_PACK_GOLD)) {
+      toast("골드가 부족합니다");
+      return;
+    }
+    addEnhanceStone(10);
+    toast("💠 강화석 +10");
+    renderShop(root);
+  };
+  stoneCard.appendChild(stoneBtn);
+  root.appendChild(stoneCard);
 
   // 실결제 보석 패키지는 결제 연동이 아직 없어 정직하게 "준비 중"으로만 표시(고스트 버튼 아님 — 클릭 대상 자체가 없음)
   const c = el("div", "list-card");

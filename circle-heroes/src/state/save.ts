@@ -12,11 +12,18 @@ export type EquipSlot = (typeof EQUIP_SLOTS)[number];
 export const EQUIP_GRADES = ["N", "R", "SR", "SSR", "UR"] as const;
 export type EquipGrade = (typeof EQUIP_GRADES)[number];
 
-/** 장비 인스턴스 — 같은 슬롯+등급이어도 개별 보관(인벤토리에 여러 개 쌓일 수 있음) */
+/** 장비 인스턴스 — 같은 슬롯+등급이어도 개별 보관(인벤토리에 여러 개 쌓일 수 있음).
+ * §마이티 아레나 반영계획 3(2026-07-30)부터 성급강화 대신 "장비 자체 강화"로 전환 —
+ * `invested`(누적 투입 강화석 환산치)가 유일한 소스이고 `level`은 항상 거기서 계산해서 보여주는
+ * 캐시값(직렬화 편의상 같이 저장). 강화석 직접 투입 + 다른 장비 흡수 둘 다 `invested`를 올린다 */
 export interface EquipItem {
   id: string;
   slot: EquipSlot;
   grade: EquipGrade;
+  /** 누적 투입 강화석 환산치 — 이 값에서 `level`이 계산됨(EQUIP_LEVEL_COST 참고) */
+  invested: number;
+  /** invested에서 계산된 현재 강화 레벨(0~EQUIP_MAX_ENHANCE) — 캐시, `recalcEquipLevel()`로 갱신 */
+  level: number;
 }
 
 /** 슬롯별 매칭 스탯 — 무기=공격력/투구=체력/갑옷=방어력/신발=속도/목걸이=치명타 확률/반지=치명타 피해
@@ -34,6 +41,31 @@ export const EQUIP_SLOT_STAT: Record<EquipSlot, "atk" | "hp" | "def" | "spd" | "
  * 속도·치명타확률(신발·목걸이)은 다른 스탯과 값의 스케일이 달라 flat 가산으로 처리한다 */
 export const EQUIP_GRADE_PCT: Record<EquipGrade, number> = { N: 0.03, R: 0.06, SR: 0.1, SSR: 0.16, UR: 0.24 };
 export const EQUIP_GRADE_FLAT: Record<EquipGrade, number> = { N: 2, R: 4, SR: 7, SSR: 12, UR: 18 };
+
+/** 장비 강화(§마이티 아레나 반영계획 3, 2026-07-30) — 등급별 성능(EQUIP_GRADE_PCT/FLAT)은
+ * 그대로 두고, 강화 레벨이 그 위에 추가 배율을 얹는다. 레벨당 EQUIP_ENHANCE_PCT_PER_LEVEL만큼
+ * 기본 보너스의 %를 더 얹는 가산식(레벨10 = 기본 보너스의 1.5배) — 등급 자체를 무의미하게 만들지
+ * 않으면서 "같은 등급이어도 더 키운 장비가 세다"는 손맛을 준다 */
+export const EQUIP_MAX_ENHANCE = 10;
+export const EQUIP_ENHANCE_PCT_PER_LEVEL = 0.05;
+/** 레벨 1개 올리는 데 드는 강화석 — 고등급일수록 요구량이 많다(요청사항 그대로) */
+export const EQUIP_LEVEL_COST: Record<EquipGrade, number> = { N: 5, R: 10, SR: 20, SSR: 40, UR: 80 };
+/** 다른 장비를 흡수시켰을 때(신품 기준) 얻는 강화석 환산치 — 흡수한 장비가 이미 강화돼 있었다면
+ * 여기에 그 장비의 `invested`가 그대로 더 얹힌다(흡수 시 누적 이월) */
+export const EQUIP_ABSORB_BASE_VALUE: Record<EquipGrade, number> = EQUIP_LEVEL_COST;
+
+/** invested → level 캐시 갱신(항상 이 함수를 거쳐야 level이 invested와 어긋나지 않는다) */
+export function recalcEquipLevel(item: EquipItem) {
+  item.level = Math.min(EQUIP_MAX_ENHANCE, Math.floor(item.invested / EQUIP_LEVEL_COST[item.grade]));
+}
+
+/** 강화 레벨을 반영한 실제 보너스 배율(%) — battle.ts unitFromHero에서 사용 */
+export function equipEffectivePct(grade: EquipGrade, level: number): number {
+  return EQUIP_GRADE_PCT[grade] * (1 + level * EQUIP_ENHANCE_PCT_PER_LEVEL);
+}
+export function equipEffectiveFlat(grade: EquipGrade, level: number): number {
+  return EQUIP_GRADE_FLAT[grade] * (1 + level * EQUIP_ENHANCE_PCT_PER_LEVEL);
+}
 
 export interface MailItem {
   id: string;
@@ -102,6 +134,17 @@ export interface SaveState {
   equipItemSeq: number;
   /** 스테이지 게이트(systems/featureGates.ts) 중 해금 배너를 이미 보여준 키 목록 — 중복 알림 방지 */
   seenGates: string[];
+  /** 강화석 — 장비 강화 전용 재화(§마이티 아레나 반영계획 3, 2026-07-30 부활) */
+  enhanceStone: number;
+  /** 소환권 — §마이티 아레나 반영계획 4(2026-07-30): 소환은 보석이 아니라 이 두 티켓으로 뽑는다 */
+  ticketNormal: number;
+  ticketPremium: number;
+  /** YYYY-MM-DD + 오늘 구매한 할인 티켓 수 — 상점의 "오늘의 할인 소환권" 일일 한도 추적용 */
+  ticketDiscountDate: string;
+  ticketDiscountBought: number;
+  /** heroId -> 초월 단계(0~5, 보라색 별). 5성 각성 이후의 확장 성장 트랙(§마이티 아레나
+   * 반영계획 5, 2026-07-30) — 별도 필드로 관리해 기존 stars(금별 1~5)와 안 섞이게 한다 */
+  transcend: Record<string, number>;
 }
 
 const KEY = "circle-heroes-save-v1";
@@ -133,13 +176,35 @@ const DEFAULTS: SaveState = {
   equipped: {},
   equipItemSeq: 0,
   seenGates: [],
+  enhanceStone: 0,
+  ticketNormal: 5,
+  ticketPremium: 3,
+  ticketDiscountDate: "",
+  ticketDiscountBought: 0,
+  transcend: {},
 };
+
+/** 예전 세이브의 장비 인스턴스엔 invested/level 필드가 없을 수 있음(§강화 시스템 신설,
+ * 2026-07-30) — 없으면 0으로 채워 넣어 마이그레이션 */
+function normalizeEquipItem(it: EquipItem): EquipItem {
+  return { ...it, invested: it.invested ?? 0, level: it.level ?? 0 };
+}
 
 function load(): SaveState {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return structuredClone(DEFAULTS);
-    return { ...structuredClone(DEFAULTS), ...(JSON.parse(raw) as Partial<SaveState>) };
+    const s = { ...structuredClone(DEFAULTS), ...(JSON.parse(raw) as Partial<SaveState>) };
+    s.equipInventory = s.equipInventory.map(normalizeEquipItem);
+    for (const heroId of Object.keys(s.equipped)) {
+      const slots = s.equipped[heroId];
+      if (!slots) continue;
+      for (const slot of Object.keys(slots) as EquipSlot[]) {
+        const it = slots[slot];
+        if (it) slots[slot] = normalizeEquipItem(it);
+      }
+    }
+    return s;
   } catch {
     return structuredClone(DEFAULTS);
   }
@@ -180,6 +245,32 @@ export function addGems(n: number) {
   emit("gems-changed");
 }
 
+/* ── 소환권 · 강화석(§마이티 아레나 반영계획 3/4, 2026-07-30) ── */
+export type TicketKind = "normal" | "premium";
+
+export function addTicket(kind: TicketKind, n: number) {
+  if (kind === "normal") save.ticketNormal += n;
+  else save.ticketPremium += n;
+  persist();
+  emit("tickets-changed");
+}
+
+export function spendTicket(kind: TicketKind, n: number): boolean {
+  const cur = kind === "normal" ? save.ticketNormal : save.ticketPremium;
+  if (cur < n) return false;
+  if (kind === "normal") save.ticketNormal -= n;
+  else save.ticketPremium -= n;
+  persist();
+  emit("tickets-changed");
+  return true;
+}
+
+export function addEnhanceStone(n: number) {
+  save.enhanceStone += n;
+  persist();
+  emit("stones-changed");
+}
+
 export function addHero(id: string) {
   save.owned[id] = (save.owned[id] ?? 0) + 1;
   persist();
@@ -211,30 +302,121 @@ export function tryLevelUp(id: string): boolean {
   return true;
 }
 
-/* ── 각성(성급) ── */
+/* ── 레벨 초기화(§마이티 아레나 반영계획 2, 2026-07-30) ──
+ * "환생"은 만들지 않고, 대신 레벨업에 쓴 골드를 전액 돌려받는 초기화만 제공한다. 승급(성급)은
+ * 영구 투자로 그대로 둔다 — 새 승급 규칙(아래)은 재료가 "그 영웅 자체"가 아니라 "동일 성급의
+ * 아무 영웅"이라 어떤 영웅을 넣었는지 추적하지 않고, 되돌려줄 방법이 없기 때문 */
+export function levelResetRefund(id: string): number {
+  const lv = getLevel(id);
+  let total = 0;
+  for (let l = 1; l < lv; l++) total += levelUpCost(l);
+  return total;
+}
+
+export function resetHeroLevel(id: string): number {
+  const refund = levelResetRefund(id);
+  if (refund <= 0) return 0;
+  save.levels[id] = 1;
+  save.gold += refund;
+  persist();
+  emit("levels-changed");
+  emit("gold-changed");
+  return refund;
+}
+
+/* ── 각성(성급) ──
+ * §마이티 아레나 반영계획 5(2026-07-30) 재설계 — 재료가 더 이상 "같은 영웅의 중복"이 아니라
+ * "동일 성급의 아무 영웅 2체"다(1→2, 2→3, 3→4성). 마지막 4→5성만 진영까지 일치해야 한다.
+ * 재료로 넣은 영웅은 그대로 소모(owned 1 감소, 0이 되면 로스터에서 사라짐 — 승급 화면에서
+ * "이 영웅은 소모됩니다" 경고 필요) */
 export const MAX_STARS = 5;
+export const ASCEND_MATERIAL_COUNT = 2;
 
 export function getStars(id: string): number {
   return save.stars[id] ?? 1;
 }
 
-/** 다음 성급까지 필요한 중복 수: 1→2성 1장, 2→3성 2장, 3→4성 4장, 4→5성 8장 */
-export function ascendCost(stars: number): number {
-  return Math.pow(2, stars - 1);
-}
-
-/** 사용 가능한 중복 수 (본체 1장 제외) */
+/** 사용 가능한 중복 수 (본체 1장 제외) — 재료 후보 필터링용으로 여전히 참고 정보로 남겨둔다 */
 export function dupeCount(id: string): number {
   return Math.max(0, (save.owned[id] ?? 0) - 1);
 }
 
-export function tryAscend(id: string): boolean {
+/** materialId 한 장이 targetId 승급 재료로 유효한지 — 동일 성급(4→5성이면 진영도 일치),
+ * targetId 자기 자신은 재료가 될 수 없다 */
+export function isValidAscendMaterial(
+  targetId: string,
+  materialId: string,
+  targetStars: number,
+  targetFaction: string,
+  materialFaction: string
+): boolean {
+  if (materialId === targetId) return false;
+  if ((save.owned[materialId] ?? 0) <= 0) return false;
+  if (getStars(materialId) !== targetStars) return false;
+  if (targetStars === MAX_STARS - 1 && materialFaction !== targetFaction) return false;
+  return true;
+}
+
+/** materialIds는 정확히 2장, 사전에 isValidAscendMaterial로 검증된 상태여야 한다 */
+export function tryAscend(id: string, materialIds: string[]): boolean {
   const stars = getStars(id);
   if (stars >= MAX_STARS) return false;
-  const cost = ascendCost(stars);
-  if (dupeCount(id) < cost) return false;
-  save.owned[id] -= cost;
+  if (materialIds.length !== ASCEND_MATERIAL_COUNT) return false;
+  if (materialIds.includes(id)) return false;
+  for (const m of materialIds) {
+    if ((save.owned[m] ?? 0) <= 0) return false;
+    if (getStars(m) !== stars) return false;
+  }
+  for (const m of materialIds) {
+    save.owned[m] -= 1;
+    if (save.owned[m] <= 0) delete save.owned[m];
+  }
   save.stars[id] = stars + 1;
+  persist();
+  emit("stars-changed");
+  emit("roster-changed");
+  return true;
+}
+
+/* ── 초월(§마이티 아레나 반영계획 5, 2026-07-30 신규) ──
+ * 5성(금별) 달성 후 이어지는 확장 트랙(보라색 별 0~5). 1단계는 동일한 영웅의 5성 완본 1개를
+ * 그대로 소모(즉 그 영웅을 실질적으로 "두 벌" 갖고 있어야 시작 가능), 2~5단계는 각각 아무
+ * 1성 영웅 2장씩을 소모 — 앞에서 한 번 크게 막고 뒤는 시간 투자로 푸는 구조 */
+export const MAX_TRANSCEND = 5;
+
+export function getTranscend(id: string): number {
+  return save.transcend[id] ?? 0;
+}
+
+export function tryTranscendStep1(id: string): boolean {
+  if (getStars(id) < MAX_STARS) return false;
+  if (getTranscend(id) !== 0) return false;
+  if (dupeCount(id) < 1) return false;
+  save.owned[id] -= 1;
+  save.transcend[id] = 1;
+  persist();
+  emit("stars-changed");
+  emit("roster-changed");
+  return true;
+}
+
+export const TRANSCEND_MATERIAL_COUNT = 2;
+
+/** 2~5단계 — 재료는 "성급 1인 아무 영웅" 2장(진영/개체 무관) */
+export function tryTranscendStep(id: string, materialIds: string[]): boolean {
+  const step = getTranscend(id);
+  if (getStars(id) < MAX_STARS || step < 1 || step >= MAX_TRANSCEND) return false;
+  if (materialIds.length !== TRANSCEND_MATERIAL_COUNT) return false;
+  if (materialIds.includes(id)) return false;
+  for (const m of materialIds) {
+    if ((save.owned[m] ?? 0) <= 0) return false;
+    if (getStars(m) !== 1) return false;
+  }
+  for (const m of materialIds) {
+    save.owned[m] -= 1;
+    if (save.owned[m] <= 0) delete save.owned[m];
+  }
+  save.transcend[id] = step + 1;
   persist();
   emit("stars-changed");
   emit("roster-changed");
@@ -264,11 +446,63 @@ function rollEquipSlot(): EquipSlot {
 
 /** 등급/슬롯 무작위 장비 1개를 인벤토리에 추가(전투 드랍·상점 상자 공용) */
 export function grantRandomEquip(): EquipItem {
-  const item: EquipItem = { id: `eq_${save.equipItemSeq++}`, slot: rollEquipSlot(), grade: rollEquipGrade() };
+  const item: EquipItem = {
+    id: `eq_${save.equipItemSeq++}`,
+    slot: rollEquipSlot(),
+    grade: rollEquipGrade(),
+    invested: 0,
+    level: 0,
+  };
   save.equipInventory.push(item);
   persist();
   emit("equipment-changed");
   return item;
+}
+
+/** 장비 강화(§마이티 아레나 반영계획 3, 2026-07-30) — 강화석 직접 투입. 인벤토리든 장착 중이든
+ * 슬롯 구분 없이 id 하나로 찾는다(장착 아이템도 save.equipped 안에 같은 객체 참조로 들어있음) */
+function findEquipItem(itemId: string): EquipItem | undefined {
+  const inv = save.equipInventory.find((it) => it.id === itemId);
+  if (inv) return inv;
+  for (const slots of Object.values(save.equipped)) {
+    for (const it of Object.values(slots ?? {})) {
+      if (it?.id === itemId) return it;
+    }
+  }
+  return undefined;
+}
+
+export function tryEnhanceEquipWithStones(itemId: string, stones: number): boolean {
+  const item = findEquipItem(itemId);
+  if (!item || stones <= 0) return false;
+  if (item.level >= EQUIP_MAX_ENHANCE) return false;
+  if (save.enhanceStone < stones) return false;
+  save.enhanceStone -= stones;
+  item.invested += stones;
+  recalcEquipLevel(item);
+  persist();
+  emit("equipment-changed");
+  return true;
+}
+
+/** materialId 장비를 targetId 장비에 흡수시켜 강화 — 흡수한 장비가 이미 강화돼 있었다면 그 투입치도
+ * 그대로 이월된다. materialId는 인벤토리에 있어야 하고(장착 중인 장비는 흡수 재료로 못 씀),
+ * 흡수되면 인벤토리에서 사라진다. 호출부(UI)가 "이미 강화된 장비를 흡수합니다" 경고를 미리 띄운 뒤
+ * 이 함수를 부르는 흐름을 권장 */
+export function absorbEquipItem(targetId: string, materialId: string): boolean {
+  if (targetId === materialId) return false;
+  const target = findEquipItem(targetId);
+  const matIdx = save.equipInventory.findIndex((it) => it.id === materialId);
+  if (!target || matIdx < 0) return false;
+  if (target.level >= EQUIP_MAX_ENHANCE) return false;
+  const material = save.equipInventory[matIdx];
+  const value = EQUIP_ABSORB_BASE_VALUE[material.grade] + material.invested;
+  save.equipInventory.splice(matIdx, 1);
+  target.invested += value;
+  recalcEquipLevel(target);
+  persist();
+  emit("equipment-changed");
+  return true;
 }
 
 export function equipInventoryFor(slot: EquipSlot): EquipItem[] {
