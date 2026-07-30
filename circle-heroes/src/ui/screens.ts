@@ -1008,7 +1008,7 @@ function openProbabilityModal(kind: SummonKind) {
  * 말로 풀어 설명한다. 레퍼런스의 우상단 "?" 아이콘 자리(§마이티 아레나 반영계획 E) */
 function openSummonHelpModal() {
   const body = el("div");
-  body.appendChild(el("p", "", "일반소환은 소환권 소모가 적은 대신 N~SR만 등장합니다. 고급소환은 전 등급이 균등하게, 픽업소환은 원하는 영웅 1명을 골라 그 영웅만 확률을 올려서 뽑습니다."));
+  body.appendChild(el("p", "", "일반소환은 N~SR 위주에 초저확률로 SSR도 등장합니다. 고급소환은 SR~UR만 등장(픽업 레이트업 없음), 픽업소환은 원하는 영웅 1명을 골라 SSR 등장 시 그 영웅이 100% 확정 지급됩니다."));
   body.appendChild(el("p", "", "등급이 높을수록 등장 확률은 낮지만, 정해진 횟수 안에 최고 등급이 안 나오면 천장(확정 지급)이 발동해요."));
   body.appendChild(el("p", "", "정확한 등급별 확률·픽업 확률은 좌상단 ❗ 확률고지에서 확인하세요."));
   const close = el("button", "btn primary", "확인") as HTMLButtonElement;
