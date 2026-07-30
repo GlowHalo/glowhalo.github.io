@@ -270,6 +270,15 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
     body.appendChild(rel);
   }
 
+  // 장비(§2026-07-30, 장비 탭 재구성) — 장착/해제/강화를 영웅 상세화면에서 바로 처리한다.
+  // 장비 탭은 이제 보유 장비 인벤토리 열람·강화 전용(renderEquipment)이고, "이 영웅에게 뭘
+  // 채울까"는 여기서 슬롯을 눌러 openEquipSlotModal로 처리 — 기존 로직을 그대로 재사용한다
+  body.appendChild(el("h4", "", "✨ 장비"));
+  const equipGrid = el("div", "equip-slot-grid");
+  const rerenderDetail = () => openHeroDetail(hero, rerender);
+  for (const slot of EQUIP_SLOTS) equipGrid.appendChild(buildEquipSlotBox(hero, slot, rerenderDetail));
+  body.appendChild(equipGrid);
+
   // 각성(성급)은 전용 승급 화면(영웅 탭 → 승급 서브메뉴)에서 진행
   if (stars >= MAX_STARS) {
     body.appendChild(el("p", "", "⭐ 최대 성급 달성"));
@@ -339,10 +348,12 @@ const CLASS_ICON: Record<string, string> = {
   서포터: "✨",
 };
 
-/** 보유 그리드/도감 공용 카드 — 대표 사진만 놓고 모서리에 배지, 하단에 성급/초월 별을 한 줄로
- * 표시(축약 없음, §2026-07-30). 배경=등급, 좌상단=진영, 우상단=레벨, 우하단=클래스.
- * 편성중 여부는 기존 amber 테두리(.in-party)로만 표시하고 별도 체크 배지는 생략 —
- * 하단 자리를 별 표시에 전부 내준다. locked=true(미보유)면 흑백 처리 + 자물쇠만 표시 */
+/** 보유 그리드/도감/장비 인벤토리 공용 카드(§2026-07-30 재정리) — "영웅편성화면(party-slot)
+ * 구조가 가장 마음에 든다"는 피드백에 맞춰, 얼굴이 카드를 꽉 채우던 방식에서 party-slot과 같은
+ * "작은 정사각 아이콘 + 이름 라벨" 구조로 통일했다. 이 카드 하나를 영웅(보유/도감/재료픽커)과
+ * 장비 인벤토리(buildEquipCard)가 함께 쓰므로 화면마다 카드 모양이 달라지는 일이 없다.
+ * 배경=등급, 좌상단=진영, 우상단=레벨, 우하단=클래스, 이름 아래 한 줄=성급/초월 별.
+ * locked=true(미보유)면 흑백 처리 + 자물쇠만 표시 */
 function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean; onClick?: () => void } = {}): HTMLElement {
   const card = el(
     "div",
@@ -365,8 +376,9 @@ function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean;
   card.appendChild(el("div", "hc-badge hc-badge-tr", `Lv.${getLevel(hero.id)}`));
   const classIcon = CLASS_ICON[hero.heroClass];
   if (classIcon) card.appendChild(el("div", "hc-badge hc-badge-br", classIcon));
+  card.appendChild(el("div", "hc-name", hero.nameKr));
   const s = starState(hero.id);
-  card.appendChild(el("div", "hc-star-row" + (s.purple ? " star-purple" : ""), starRowText(hero.id)));
+  card.appendChild(el("div", "hc-sub" + (s.purple ? " star-purple" : ""), starRowText(hero.id)));
 
   if (opts.onClick) card.onclick = opts.onClick;
   return card;
@@ -537,7 +549,7 @@ function renderMaterialPicker(root: HTMLElement, candidates: Hero[], need: numbe
         if (addMaterial(hero.id, need)) rerender();
       },
     });
-    if (count > 0) card.appendChild(el("div", "hc-badge hc-badge-tr mat-count", `${count}/${owned}`));
+    if (count > 0) card.appendChild(el("div", "hc-badge hc-badge-bl mat-count", `${count}/${owned}`));
     grid.appendChild(card);
   }
   root.appendChild(grid);
@@ -722,13 +734,12 @@ function renderAscend(root: HTMLElement) {
   root.appendChild(grid);
 }
 
-/* ── 장비 화면(§장비 시스템 v2, 2026-07-29): 등급별 장비를 획득해 슬롯에 장착하는 방식 ──
- * DESIGN.md 원 설계대로 장비는 뽑기가 아니라 파밍(전투 드랍·상점 상자)으로만 얻는다. 강화(레벨업)
- * 없이 "더 좋은 등급이 나오면 갈아 끼운다"는 레퍼런스(AFK Arena Companions/HoC Legends) 문법을
- * 그대로 차용 — 캐릭터 아래 슬롯 6개(3열×2행)를 두고, 슬롯을 누르면 그 슬롯에 맞는 보유 장비
- * 목록이 뜬다. 목걸이/반지로 장신구를 둘로 나눈 것도 두 레퍼런스 공통 관례를 따른 것(§벤치마킹) */
-let equipTargetId: string | null = null;
-
+/* ── 장비(§장비 시스템 v2, 2026-07-29 / §2026-07-30 인벤토리 중심 재구성): 등급별 장비를
+ * 획득해 영웅에게 장착하는 방식 ── DESIGN.md 원 설계대로 장비는 뽑기가 아니라 파밍(전투 드랍·
+ * 상점 상자)으로만 얻는다. 강화(레벨업) 없이 "더 좋은 등급이 나오면 갈아 끼운다"는 레퍼런스
+ * (AFK Arena Companions/HoC Legends) 문법을 그대로 차용. 장비 탭은 보유 인벤토리를 먼저
+ * 보여주고(renderEquipment), 영웅에게 실제로 장착/해제하는 것은 영웅 상세화면의 "장비" 섹션에서
+ * 슬롯 6개(무기/투구/갑옷/신발/목걸이/반지)를 눌러 처리한다(openEquipSlotModal) */
 const EQUIP_SLOT_INFO: Record<EquipSlot, { label: string; icon: string }> = {
   weapon: { label: "무기", icon: "⚔️" },
   helmet: { label: "투구", icon: "🪖" },
@@ -869,7 +880,12 @@ function openEquipSlotModal(heroId: string, hero: Hero, slot: EquipSlot, onChang
         playSfx("equip");
         toast(`${hero.nameKr} ${info.label} 장착!`);
         onChange();
-        closeModal();
+        // §2026-07-30: 예전엔 여기서 closeModal()만 불렀는데(장비탭 시절엔 onChange가 "화면"만
+        // 새로고침했으니 문제 없었음), 이제 onChange가 영웅 상세 "모달"을 다시 여는 hero-detail
+        // 컨텍스트에서도 이 함수가 호출된다 — onChange 직후 closeModal()을 부르면 방금 다시 연
+        // 모달을 그대로 닫아버리는 버그가 된다. 해제/판매 버튼처럼 같은 슬롯 모달을 다시 열어
+        // "장착 중" 갱신 결과를 바로 보여주는 자기갱신 패턴으로 통일
+        openEquipSlotModal(heroId, hero, slot, onChange);
       };
       const enhanceBtn = el("button", "btn", "✨") as HTMLButtonElement;
       enhanceBtn.onclick = () => openEnhanceModal(it, onChange);
@@ -902,50 +918,160 @@ function buildEquipSlotBox(hero: Hero, slot: EquipSlot, rerender: () => void): H
   return box;
 }
 
-function renderEquipment(root: HTMLElement) {
-  root.innerHTML = "";
-  const rerender = () => renderEquipment(root);
-  root.appendChild(el("h2", "", "영웅 장비"));
-  root.appendChild(
-    el("div", "desc", `장비를 획득해 슬롯에 장착하세요 — 무기=공격력·투구=체력·갑옷=방어력·신발=속도·목걸이=치명타 확률·반지=치명타 피해. 보유 장비 ${save.equipInventory.length}개`)
-  );
-
-  const owned = PLAYABLE_HEROES.filter((h) => (save.owned[h.id] ?? 0) > 0);
-  const target = equipTargetId ? owned.find((h) => h.id === equipTargetId) ?? null : null;
-
-  const panel = el("div", "equip-panel");
-  if (target) {
-    const head = el("div", "equip-head");
-    setCardGrade(head, target.grade);
-    addFactionBadge(head, target);
-    const face = el("div", "face");
-    setFace(face, target);
-    head.appendChild(face);
-    head.appendChild(el("div", "as-nm", target.nameKr));
-    panel.appendChild(head);
-
-    const slotGrid = el("div", "equip-slot-grid");
-    for (const slot of EQUIP_SLOTS) slotGrid.appendChild(buildEquipSlotBox(target, slot, rerender));
-    panel.appendChild(slotGrid);
-  } else {
-    panel.appendChild(el("div", "as-label", "장비를 관리할 영웅을 아래에서 골라주세요"));
+/** 어느 영웅이 이 장비 id를 장착 중인지 역탐색(없으면 인벤토리에 있는 것) */
+function heroWithEquippedItem(itemId: string): Hero | undefined {
+  for (const heroId of Object.keys(save.equipped)) {
+    const slots = save.equipped[heroId];
+    if (!slots) continue;
+    for (const it of Object.values(slots)) {
+      if (it?.id === itemId) return PLAYABLE_HEROES.find((h) => h.id === heroId);
+    }
   }
-  root.appendChild(panel);
+  return undefined;
+}
 
-  root.appendChild(el("h2", "", "보유 영웅"));
+function allEquipItems(): EquipItem[] {
+  const equipped = Object.values(save.equipped)
+    .flatMap((slots) => Object.values(slots ?? {}))
+    .filter((it): it is EquipItem => !!it);
+  return [...save.equipInventory, ...equipped];
+}
+
+/** §2026-07-30 카드 통일 — buildHeroCard와 같은 "아이콘+이름" 뼈대(.hero-card)를 그대로 쓰되
+ * 얼굴 대신 등급색 배경 위에 슬롯 이모지를 올린다(.equip-face) — 실제 장비 아이콘은 아직
+ * 없어서 임의 이모지로 자리만 잡아두고(ASSETS.md 백로그), 나중에 그림이 오면 setFace처럼
+ * background-image로 갈아끼우면 된다 */
+function buildEquipCard(item: EquipItem, onClick: () => void): HTMLElement {
+  const card = el("div", "hero-card");
+  setCardGrade(card, item.grade);
+  const face = el("div", "face equip-face", EQUIP_SLOT_INFO[item.slot].icon);
+  card.appendChild(face);
+  if (item.level > 0) card.appendChild(el("div", "hc-badge hc-badge-tl", `+${item.level}`));
+  card.appendChild(el("div", "hc-badge hc-badge-tr", item.grade));
+  card.appendChild(el("div", "hc-name", EQUIP_SLOT_INFO[item.slot].label));
+  const owner = heroWithEquippedItem(item.id);
+  card.appendChild(el("div", "hc-sub", owner ? `${owner.nameKr} 장착중` : equipBonusText(item)));
+  card.onclick = onClick;
+  return card;
+}
+
+/** 장비 인벤토리에서 아이템 카드를 눌렀을 때 — 장착 중이면 강화/해제, 미장착이면 강화/장착(영웅
+ * 선택)/판매. 장착은 영웅 상세화면에서도 가능(openEquipSlotModal, 슬롯 기준) — 여긴 "이 장비를
+ * 누구한테 줄까"로 반대 방향에서 접근하는 것만 다르고 실제 장착 로직(equipItem)은 동일 */
+function openEquipItemModal(item: EquipItem, rerender: () => void) {
+  const info = EQUIP_SLOT_INFO[item.slot];
+  const body = el("div", "equip-modal");
+  const head = el("div", "equip-modal-row");
+  setGradeBorder(head, item.grade);
+  head.appendChild(
+    el("span", `equip-modal-grade gd grade-${item.grade}`, `${item.grade} ${info.icon}${item.level > 0 ? ` +${item.level}` : ""}`)
+  );
+  head.appendChild(el("span", "equip-modal-bonus", equipBonusText(item)));
+  body.appendChild(head);
+
+  const owner = heroWithEquippedItem(item.id);
+  const actions: HTMLElement[] = [];
+  const enhanceBtn = el("button", "btn", "✨강화") as HTMLButtonElement;
+  enhanceBtn.onclick = () => openEnhanceModal(item, rerender);
+  actions.push(enhanceBtn);
+
+  if (owner) {
+    body.appendChild(el("div", "as-label", `${owner.nameKr}에게 장착 중 — 해제해야 판매할 수 있어요`));
+    const unequipBtn = el("button", "btn", "해제") as HTMLButtonElement;
+    unequipBtn.onclick = () => {
+      unequipItem(owner.id, item.slot);
+      toast(`${info.label} 해제`);
+      rerender();
+      closeModal();
+    };
+    actions.push(unequipBtn);
+  } else {
+    const equipBtn = el("button", "btn primary", "장착") as HTMLButtonElement;
+    equipBtn.onclick = () => {
+      closeModal();
+      openEquipHeroPickerModal(item, rerender);
+    };
+    actions.push(equipBtn);
+    const sellBtn = el("button", "btn", `판매 🪙${EQUIP_SELL_GOLD[item.grade]}`) as HTMLButtonElement;
+    sellBtn.onclick = () => {
+      sellEquipItem(item.id);
+      toast(`🪙${EQUIP_SELL_GOLD[item.grade]} 획득`);
+      rerender();
+      closeModal();
+    };
+    actions.push(sellBtn);
+  }
+  const close = el("button", "btn", "닫기") as HTMLButtonElement;
+  close.onclick = closeModal;
+  modal(`${info.icon} ${info.label}`, body, [...actions, close]);
+}
+
+function openEquipHeroPickerModal(item: EquipItem, rerender: () => void) {
+  const owned = PLAYABLE_HEROES.filter((h) => (save.owned[h.id] ?? 0) > 0);
   const grid = el("div", "hero-grid");
   for (const hero of owned) {
     grid.appendChild(
       buildHeroCard(hero, {
-        selected: hero.id === equipTargetId,
         onClick: () => {
-          equipTargetId = hero.id;
+          equipItem(hero.id, item.id);
+          playSfx("equip");
+          toast(`${hero.nameKr} ${EQUIP_SLOT_INFO[item.slot].label} 장착!`);
           rerender();
+          closeModal();
         },
       })
     );
   }
-  root.appendChild(grid);
+  const close = el("button", "btn", "닫기") as HTMLButtonElement;
+  close.onclick = closeModal;
+  modal(`${EQUIP_SLOT_INFO[item.slot].label} 장착할 영웅`, grid, [close]);
+}
+
+let equipFilterSlot: EquipSlot | "all" = "all";
+
+/** §2026-07-30 재구성 — "영웅 선택 → 슬롯 6개" 흐름을 걷어내고 보유 장비 인벤토리를 먼저
+ * 보여주는 화면으로 전환. 장착/해제는 영웅 상세화면(openHeroDetail의 "장비" 섹션)으로 옮기고,
+ * 여기는 "지금 뭘 갖고 있고 뭘 강화할까"에 집중한다 — 슬롯 필터로 좁혀보고, 카드를 누르면
+ * 강화하거나(항상 가능) 미장착 장비는 바로 장착할 영웅을 고를 수 있다 */
+function renderEquipment(root: HTMLElement) {
+  root.innerHTML = "";
+  const rerender = () => renderEquipment(root);
+  root.appendChild(el("h2", "", "장비"));
+  const totalCount = allEquipItems().length;
+  root.appendChild(
+    el(
+      "div",
+      "desc",
+      `보유 장비 ${totalCount}개 · 강화석 💠${save.enhanceStone} — 카드를 눌러 강화하거나 미장착 장비는 바로 장착할 영웅을 고르세요. 장착 해제는 영웅 상세화면에서도 가능합니다.`
+    )
+  );
+
+  const filterRow = el("div", "faction-tabs");
+  const FILTERS: { key: EquipSlot | "all"; label: string }[] = [
+    { key: "all", label: "전체" },
+    ...EQUIP_SLOTS.map((s) => ({ key: s, label: EQUIP_SLOT_INFO[s].icon })),
+  ];
+  for (const f of FILTERS) {
+    const chip = el("button", "f-chip" + (equipFilterSlot === f.key ? " on" : ""), f.label);
+    chip.onclick = () => {
+      equipFilterSlot = f.key;
+      rerender();
+    };
+    filterRow.appendChild(chip);
+  }
+  root.appendChild(filterRow);
+
+  const items = allEquipItems()
+    .filter((it) => equipFilterSlot === "all" || it.slot === equipFilterSlot)
+    .sort((a, b) => EQUIP_GRADES_DESC.indexOf(a.grade) - EQUIP_GRADES_DESC.indexOf(b.grade));
+
+  if (!items.length) {
+    root.appendChild(el("div", "as-label", "보유한 장비가 없습니다. 전투 승리나 상점 장비 상자로 얻을 수 있어요."));
+  } else {
+    const grid = el("div", "hero-grid");
+    for (const it of items) grid.appendChild(buildEquipCard(it, () => openEquipItemModal(it, rerender)));
+    root.appendChild(grid);
+  }
 }
 
 /* ── 소환 탭(§마이티 아레나 반영계획 4, 2026-07-30) — 일반/고급/픽업 3갈래 ── */
