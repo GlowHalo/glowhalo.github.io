@@ -1,0 +1,1602 @@
+:root {
+  --bg: #0e1526;
+  --panel: #141c30;
+  --panel2: #1f2c47;
+  --line: #2c3a58;
+  --ink: #f2f8ff;
+  --ink2: #bfdcf0;
+  --ink3: #7d9ab5;
+  --amber: #f5ac3d;
+  --amber-dark: #d88a1f;
+  --red: #e8384a;
+}
+
+#ui {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  color: var(--ink2);
+  user-select: none;
+  -webkit-user-select: none;
+}
+#ui * { box-sizing: border-box; }
+#ui button { font-family: inherit; }
+
+/* 전투 탭이 아닐 때 상단(HUD+코너 아이콘 영역) 뒤로 캔버스 배경이 비치지 않도록 막는 백드롭 */
+#topbar-bg {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: calc(max(10px, env(safe-area-inset-top)) + 52px);
+  background: var(--bg);
+  z-index: 4;
+}
+#ui.on-battle #topbar-bg { background: none; }
+
+/* ── 상단바: HUD(좌)와 코너 버튼(우)을 한 flex row에 같이 묶어서 겹칠 수 없게 한다.
+ * (예전엔 #corner가 absolute로 따로 떠 있어서, 칩이 3개로 늘어나거나 코너 버튼 높이가 HUD보다
+ * 커지면 화면 콘텐츠 상단까지 가리는 문제가 있었음) */
+#topbar {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  padding: max(10px, env(safe-area-inset-top)) 8px 6px;
+}
+
+/* ── HUD ── */
+#hud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  min-width: 0;
+  pointer-events: auto;
+}
+.hud-chip {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: #141c30cc;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1px 6px 1px 3px;
+  font-size: 10px;
+  color: #f5e6c8;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.hud-icon { width: 12px; height: 12px; object-fit: contain; flex: none; }
+.hud-power-icon { font-size: 10px; line-height: 1; flex: none; }
+.hud-power { color: #ffd9a0; }
+
+/* ── 우상단 플로팅 ── */
+#corner {
+  display: flex;
+  flex-direction: row;
+  flex: none;
+  gap: 8px;
+  align-items: flex-start;
+  pointer-events: auto;
+}
+.corner-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #141c30dd;
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  font-size: 9px;
+  color: var(--ink2);
+  position: relative;
+  cursor: pointer;
+}
+.corner-btn .ci { width: 22px; height: 22px; object-fit: contain; }
+.corner-btn .ce { font-size: 19px; line-height: 1; }
+.corner-btn .badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--red);
+  border: 2px solid var(--bg);
+}
+.corner-btn.fold { width: 26px; height: 44px; font-size: 12px; color: var(--ink3); }
+#corner.folded .corner-btn:not(.fold) { display: none; }
+
+/* ── 무료소환 배지(§2026-07-30) — 소환 버튼 옆 빨간 점 + 하단 탭바 소환 탭 배지 ── */
+.summon-single-btn { position: relative; display: flex; align-items: center; justify-content: center; gap: 5px; }
+.summon-free-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  flex: none;
+}
+.tab { position: relative; }
+.tab .badge {
+  position: absolute;
+  top: 2px;
+  right: 18px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  border: 2px solid var(--panel);
+}
+
+/* ── 화면(스크린) 영역 ── */
+#screens {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+.screen {
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  overflow-y: auto;
+  padding: 8px 14px 16px;
+  pointer-events: auto;
+  display: none;
+}
+.screen.on { display: block; }
+.screen h2 {
+  font-size: 17px;
+  color: var(--ink);
+  margin: 8px 0 4px;
+}
+.screen .desc { font-size: 12.5px; color: var(--ink3); margin: 0 0 14px; }
+
+/* 전투 탭은 캔버스가 비치도록 투명 */
+#screen-battle { background: none; pointer-events: none; }
+
+/* ── 하단 서브메뉴 바 (P2) ── */
+#subbar {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  background: #182136f2;
+  border-top: 1px solid var(--line);
+  justify-content: center;
+  pointer-events: auto;
+  overflow-x: auto;
+}
+.sub-chip {
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 9px;
+  background: var(--panel2);
+  color: #8fa8c4;
+  border: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sub-chip.on { background: var(--amber); color: #10131c; font-weight: 700; }
+
+/* ── 하단 탭바 ── */
+#tabbar {
+  display: flex;
+  align-items: flex-end;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  padding: 6px 6px calc(10px + env(safe-area-inset-bottom));
+  gap: 4px;
+  pointer-events: auto;
+}
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: #8fa8c4;
+  padding: 7px 0 3px;
+  border-radius: 9px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.tab .ti { width: 24px; height: 24px; object-fit: contain; }
+.tab.on { background: var(--panel2); color: var(--amber); }
+.tab.center {
+  flex: 1.25;
+  background: linear-gradient(180deg, var(--amber), var(--amber-dark));
+  color: #10131c;
+  font-weight: 700;
+  border-radius: 14px;
+  padding: 11px 0 9px;
+  margin-top: -18px;
+  box-shadow: 0 4px 12px rgba(245, 172, 61, 0.35);
+}
+.tab.center .ti { width: 28px; height: 28px; }
+
+/* ── 모달 ── */
+#modal-root {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 10, 20, 0.72);
+  pointer-events: auto;
+  z-index: 50;
+  padding: 24px;
+}
+#modal-root.on { display: flex; }
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px 22px;
+  max-width: 340px;
+  width: 100%;
+  max-height: 78vh;
+  overflow-y: auto;
+}
+.modal h3 { margin: 0 0 8px; font-size: 16px; color: var(--ink); }
+.modal p { margin: 0 0 14px; font-size: 13px; color: var(--ink2); }
+.modal .row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.modal .row .btn { flex: 1 1 auto; }
+/* 골드/보석 등 늘어날 수 있는 수치가 포함된 CTA 버튼(예: 레벨업 비용) 전용.
+   숫자 자릿수에 따라 3버튼이 한 줄에 겨우 들어갔다 안 들어갔다 하며 레이아웃이
+   널뛰지 않도록, 자릿수와 무관하게 항상 단독 줄 전체 너비로 고정한다. */
+.modal .row .btn-cta { flex: 1 1 100%; }
+.btn {
+  border: none;
+  border-radius: 9px;
+  padding: 9px 18px;
+  font-size: 13px;
+  cursor: pointer;
+  background: var(--panel2);
+  color: var(--ink2);
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+/* 실제 디자인 세션 산출물(캡슐형 9-slice, 800×256, 좌우 약 130px 캡)을 적용 — 배경은 그대로 두고
+ * 테두리(border-image)만 이미지로 대체해 어떤 버튼 너비에서도 둥근 끝은 안 뭉개지고 가운데만
+ * 늘어나게 한다. slice/width를 좌우만 지정(0 = 상하 없음)해 캡슐 세로 형태가 그대로 유지됨 */
+.btn.primary {
+  background: none;
+  color: #10131c;
+  font-weight: 700;
+  border-style: solid;
+  border-color: transparent;
+  border-width: 0 20px;
+  border-image-source: url("btn-primary-bg.png");
+  border-image-slice: 0 130 fill;
+  border-image-width: 0 20px;
+  border-image-repeat: stretch;
+}
+.btn.danger {
+  background: none;
+  color: #fff;
+  font-weight: 700;
+  border-style: solid;
+  border-color: transparent;
+  border-width: 0 20px;
+  border-image-source: url("btn-danger-bg.png");
+  border-image-slice: 0 130 fill;
+  border-image-width: 0 20px;
+  border-image-repeat: stretch;
+}
+.btn:disabled { opacity: 0.45; cursor: default; }
+
+.backup-box { margin: 4px 0 16px; }
+.backup-box h4 { margin: 0 0 6px; font-size: 13px; color: var(--ink); }
+.backup-box .btn { width: 100%; margin-bottom: 8px; }
+.backup-box .row { justify-content: stretch; }
+
+.code-box { margin: 4px 0 16px; }
+.code-box h4 { margin: 0 0 6px; font-size: 13px; color: var(--ink); }
+.code-box .row { justify-content: stretch; }
+
+/* ── 우편함 ── */
+.mail-box { margin: 4px 0 4px; }
+.mail-bulk-btn { width: 100%; margin-bottom: 10px; }
+.mail-row {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel2);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.mail-row.read { opacity: 0.55; }
+.mail-row-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.mail-kind { font-size: 16px; flex: none; }
+.mail-title { flex: 1; font-size: 13px; font-weight: 700; color: var(--ink); }
+.mail-row.read .mail-title { color: var(--ink3); font-weight: 600; }
+.mail-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); flex: none; }
+.mail-expand {
+  display: none;
+  padding: 0 12px 12px;
+  border-top: 1px solid var(--line);
+}
+.mail-row.open .mail-expand { display: block; padding-top: 10px; }
+.mail-body { margin: 0 0 10px; font-size: 12.5px; color: var(--ink2); white-space: pre-line; line-height: 1.5; }
+.mail-reward-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.mail-reward-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.mail-reward-chip img { width: 16px; height: 16px; object-fit: contain; }
+.mail-claimed { font-size: 12px; color: var(--ink3); margin-bottom: 4px; }
+.mail-expand .btn { width: 100%; }
+.mail-expand .btn.primary { margin-bottom: 8px; }
+.muted { margin: 0 0 10px; font-size: 12px; color: var(--ink2); opacity: 0.8; }
+.code-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel2);
+  color: var(--ink);
+  padding: 8px 10px;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ── 토스트 ── */
+#toast {
+  position: absolute;
+  left: 50%;
+  bottom: 132px;
+  transform: translateX(-50%);
+  background: #10131cee;
+  border: 1px solid var(--line);
+  color: var(--ink2);
+  font-size: 12.5px;
+  border-radius: 999px;
+  padding: 8px 18px;
+  opacity: 0;
+  transition: opacity 0.25s;
+  pointer-events: none;
+  z-index: 60;
+  white-space: nowrap;
+}
+#toast.on { opacity: 1; }
+
+.power-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.power-row h2 { margin: 0; }
+.power-chip {
+  flex: none;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--amber);
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 10px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.synergy-line {
+  font-size: 11.5px;
+  color: var(--amber);
+  background: #f5ac3d1a;
+  border: 1px solid #f5ac3d40;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* ── 영웅 목록 ── */
+.hero-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+/* 대표 사진만 놓고 네 모서리에 배지만 표시(설명 텍스트 없음) — §1·§2 */
+.hero-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--panel2);
+  border: 3px solid var(--line);
+  border-radius: 10px;
+  aspect-ratio: 3 / 4;
+  cursor: pointer;
+}
+.hero-card .face {
+  position: absolute;
+  inset: 3px;
+  z-index: 1;
+  border-radius: 7px;
+}
+.hero-card .hc-badge {
+  position: absolute;
+  z-index: 2;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  border-radius: 999px;
+  padding: 3px 5px;
+  background: #10131cdd;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.hero-card img.hc-badge {
+  padding: 2px;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  background: #10131cee;
+}
+.hero-card .hc-badge-tl { top: 4px; left: 4px; }
+.hero-card .hc-badge-tr { top: 4px; right: 4px; background: var(--amber); color: #10131c; }
+.hero-card .hc-badge-br { bottom: 4px; right: 4px; }
+.hero-card .hc-badge-bl { bottom: 4px; left: 4px; color: #ffd34d; }
+.hero-card .hc-badge-bl.hc-check { background: #2fae5c; color: #fff; }
+.hero-card.in-party, .hero-card.selected { border-color: var(--amber); }
+.hero-card.locked { cursor: default; }
+/* 흑백이지만 실루엣은 알아볼 수 있게(수집 동기 부여) — 완전히 가리지 않는다 */
+.hero-card.locked .face { filter: grayscale(1) brightness(0.75); }
+.hero-card .hc-lock {
+  position: absolute;
+  z-index: 2;
+  bottom: 4px;
+  left: 4px;
+  font-size: 12px;
+  background: #10131cdd;
+  border-radius: 999px;
+  padding: 3px 6px;
+}
+/* 도감 그리드 — 등급 구분선 사이에 촘촘하게 배치 */
+.codex-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+}
+.codex-divider:first-of-type { margin-top: 4px; }
+.codex-grade { font-size: 14px; font-weight: 800; }
+.codex-count { font-size: 11.5px; color: var(--ink3); font-variant-numeric: tabular-nums; }
+/* 2026-07-29: 도감 카드를 레퍼런스 실측 배너비율(1:2.7)로 따로 늘였던 것을 되돌림 — 주인님이
+   편성화면 카드와 크기를 통일해달라고 하셔서, 이제 .hero-card 기본값(3:4)을 그대로 쓴다 */
+/* 진영 배경 위 큰 워터마크 아이콘 — 카드 배경으로 진영을 표현 */
+.card-wm {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  right: -14%;
+  width: 78%;
+  transform: translateY(-50%) rotate(-8deg);
+  opacity: 0.16;
+  pointer-events: none;
+  filter: saturate(0.6);
+}
+/* 등급은 카드 상세화면 제외 전 화면에서 텍스트 대신 테두리 색으로만 표시 */
+.grade-N { color: #7d9ab5; }
+.grade-R { color: #6f9fe8; }
+.grade-SR { color: #b88ae8; }
+.grade-SSR { color: #ffd980; }
+.grade-UR { color: #ff8fa0; }
+.grade-Unknown { color: #8a8f9c; }
+
+/* ── 소환 화면: 배너 선택(§3) ── */
+.banner-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.banner-card {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--panel2);
+  border: 3px solid var(--line);
+  border-radius: 10px;
+  aspect-ratio: 3 / 4;
+  cursor: pointer;
+}
+.banner-card .face { position: absolute; inset: 3px; z-index: 1; border-radius: 7px; }
+/* 그냥뽑기 배너 — 특정 픽업 초상 대신 전 진영 색을 한데 모은 그라디언트(=어느 SSR이든 나올 수
+ * 있다는 의미)로, 픽업 카드와 같은 SSR 금색 테두리를 써서 "더 못한 옵션"처럼 보이지 않게 한다
+ * (동일한 뽑기, 픽업만 특정 캐릭 확률이 오를 뿐이라는 톤을 배너 비주얼에도 맞춤) */
+.banner-card-standard {
+  background: linear-gradient(150deg, #6e2a12 0%, #123a55 28%, #1f5535 52%, #6b551a 76%, #3a1f5c 100%);
+  border-color: #ffd34d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.banner-card-standard-icon { font-size: 32px; filter: drop-shadow(0 0 6px rgba(255, 211, 77, 0.6)); }
+.banner-card-name {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 4px 4px 5px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: center;
+  background: linear-gradient(to top, rgba(10, 13, 22, 0.92), transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* 픽업 배너가 매달 자동으로 바뀐다는 걸 카드에서도 바로 알 수 있도록 좌상단에 작은 리본 */
+.banner-card-monthly {
+  position: absolute;
+  z-index: 2;
+  top: 4px;
+  left: 4px;
+  padding: 2px 6px;
+  font-size: 8.5px;
+  font-weight: 800;
+  color: #10131c;
+  background: #ffd34d;
+  border-radius: 999px;
+}
+/* 선택 표시는 체크 배지가 주 신호 — 테두리색은 등급색과 겹칠 수 있어 링만 은은하게 덧댐 */
+.banner-card.on { box-shadow: 0 0 0 2px #6fe8e0; }
+.banner-card-check {
+  position: absolute;
+  z-index: 2;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2fae5c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.banner-info { margin-bottom: 12px; text-align: center; }
+.banner-info-flavor { font-size: 12px; color: var(--ink2); margin-bottom: 2px; }
+.banner-info-pity { font-size: 11.5px; color: var(--ink3); }
+.banner-info-pity b { color: var(--amber); }
+
+/* ── 소환 화면 ── */
+.summon-box {
+  background: radial-gradient(circle at 50% 30%, #2a2450, #141c30 75%);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 22px 16px;
+  text-align: center;
+  margin-bottom: 14px;
+}
+.summon-btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.summon-btn-row .btn { flex: 1 1 auto; min-width: 128px; }
+
+/* 소환 연출 — "카드 한 장을 뽑는다" 느낌: 뒤에 카드 몇 장이 겹쳐 있고, 맨 앞 카드가 빛나며 대기 */
+.orb {
+  position: relative;
+  width: 92px;
+  height: 128px;
+  margin: 10px auto 20px;
+}
+.orb-card {
+  position: absolute;
+  inset: 0;
+  border-radius: 11px;
+}
+.orb-card-back2 {
+  background: radial-gradient(circle at 50% 35%, #1c2440 0%, #05070f 80%);
+  border: 2px solid rgba(245, 172, 61, 0.35);
+  transform: translate(7px, 6px) rotate(7deg);
+  opacity: 0.55;
+}
+.orb-card-back1 {
+  background: radial-gradient(circle at 50% 35%, #1c2440 0%, #05070f 80%);
+  border: 2px solid rgba(245, 172, 61, 0.5);
+  transform: translate(3px, 3px) rotate(3deg);
+  opacity: 0.8;
+}
+.orb-card-main {
+  background: radial-gradient(circle at 50% 35%, #1c2440 0%, #05070f 82%);
+  border: 2px solid #f5ac3d;
+  box-shadow: 0 0 22px rgba(245, 172, 61, 0.5), inset 0 0 16px rgba(245, 172, 61, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  animation: cardFloat 2.4s ease-in-out infinite;
+}
+.orb-card-main::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(245, 172, 61, 0.32);
+  border-radius: 8px;
+  pointer-events: none;
+}
+.orb-card-ring {
+  position: absolute;
+  width: 60%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid rgba(245, 172, 61, 0.55);
+  box-shadow: 0 0 14px rgba(245, 172, 61, 0.35);
+}
+.orb-card-ring::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 1px dashed rgba(245, 172, 61, 0.3);
+}
+.orb-card-mark {
+  position: relative;
+  font-size: 34px;
+  font-weight: 800;
+  color: #f5d9a8;
+  text-shadow: 0 0 14px rgba(245, 172, 61, 0.85);
+}
+.orb-card-shine {
+  position: absolute;
+  top: 0;
+  left: -70%;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: skewX(-18deg);
+  animation: cardShine 2.6s ease-in-out infinite;
+}
+@keyframes cardFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes cardShine {
+  0% { left: -70%; }
+  55%, 100% { left: 140%; }
+}
+.orb-spark {
+  position: absolute;
+  color: #d8fffb;
+  font-size: 11px;
+  text-shadow: 0 0 6px rgba(216, 255, 251, 0.9);
+  animation: orbSparkle 1.8s ease-in-out infinite;
+}
+.orb-spark.s0 { top: -4%; left: 4%; animation-delay: 0s; }
+.orb-spark.s1 { top: 6%; right: -8%; animation-delay: 0.4s; }
+.orb-spark.s2 { bottom: 4%; left: -10%; animation-delay: 0.8s; }
+.orb-spark.s3 { bottom: -4%; right: 2%; animation-delay: 1.2s; }
+@keyframes orbSparkle {
+  0%, 100% { opacity: 0.15; transform: scale(0.7); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orb-card-main, .orb-card-shine, .orb-spark { animation: none; }
+}
+.pity {
+  font-size: 11.5px;
+  color: var(--ink3);
+  margin: 10px 0 0;
+}
+.pity b { color: var(--amber); }
+
+/* ── 소환 화면 타이틀 줄 + 확률 정보 버튼(§3) — 레퍼런스처럼 화면 자체엔 설명문을 두지 않고,
+   법적 고지 요건인 확률표는 작은 버튼 뒤 팝업에 담는다 */
+.summon-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.summon-title-row h2 { margin: 0; }
+.prob-btn {
+  padding: 5px 10px;
+  font-size: 11px;
+  background: var(--panel2);
+  color: var(--ink3);
+  border: 1px solid var(--line);
+}
+.prob-modal { text-align: left; }
+.prob-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+.prob-table th, .prob-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12.5px;
+  text-align: left;
+}
+.prob-table th { color: var(--ink3); font-weight: 600; font-size: 11px; }
+.prob-table td.gd { font-weight: 800; }
+.prob-note-title { font-size: 12px; font-weight: 700; color: var(--ink); margin: 12px 0 4px; }
+.prob-note-title:first-of-type { margin-top: 0; }
+.prob-note { font-size: 11.5px; color: var(--ink3); line-height: 1.5; margin-bottom: 3px; }
+
+/* ── 상점/임무 리스트 ── */
+.list-card {
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 13px 14px;
+  margin-bottom: 9px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+.list-card .grow { flex: 1; }
+.list-card .t { color: var(--ink); font-size: 13.5px; }
+.list-card .s { color: var(--ink3); font-size: 11.5px; margin-top: 2px; }
+
+/* ── 편성 슬롯 ── */
+.party-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.party-slot {
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  aspect-ratio: 3 / 4;
+  background: var(--panel2);
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+}
+.party-slot.filled { border-style: solid; border-color: var(--amber); }
+.party-slot .face {
+  position: relative;
+  z-index: 1;
+  width: 56px; height: 56px; border-radius: 12px;
+  border: 2px solid #10131c;
+}
+.party-slot .ps-nm { position: relative; z-index: 1; font-size: 10px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+/* 좌상단 Lv 뱃지(벤치마크: AFK Arena Companions 파티원 카드 규칙) */
+.party-slot .ps-lv-badge {
+  position: absolute;
+  z-index: 2;
+  top: 4px;
+  left: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #10131c;
+  background: var(--amber);
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-variant-numeric: tabular-nums;
+}
+.party-slot .ps-empty { font-size: 22px; color: var(--ink3); }
+
+/* ── 승급 화면 (마이티아레나식 대상+재료 슬롯) ── */
+.ascend-panel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.ascend-slot {
+  position: relative;
+  overflow: hidden;
+  flex: none;
+  width: 88px;
+  aspect-ratio: 3 / 4;
+  background: var(--panel);
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  text-align: center;
+  padding: 4px;
+}
+.ascend-target { cursor: pointer; }
+.ascend-slot.filled { border-style: solid; border-width: 3px; }
+.ascend-slot .face { position: relative; z-index: 1; width: 56px; height: 56px; border-radius: 12px; border: 2px solid #10131c; }
+.ascend-slot .as-nm, .ascend-slot .as-stars { position: relative; z-index: 1; }
+.ascend-slot .as-nm { font-size: 10px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.ascend-slot .as-stars { font-size: 9px; color: #ffd34d; }
+.ascend-arrow { flex: none; font-size: 20px; color: var(--ink3); }
+.ascend-mats {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.ascend-mat {
+  width: 46px;
+  aspect-ratio: 1;
+  cursor: default;
+}
+.ascend-mat .face { width: 30px; height: 30px; }
+.as-label { font-size: 11px; color: var(--ink3); width: 100%; }
+.ascend-btn { width: 100%; margin-bottom: 16px; }
+
+/* ── 승급 전/후 스탯 프리뷰(§9) ── */
+.ascend-preview {
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+.ap-title { font-size: 12.5px; color: #ffd34d; font-weight: 700; margin-bottom: 6px; }
+.ap-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.ap-stat { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; font-size: 11px; }
+.ap-lbl { color: var(--ink3); }
+.ap-vals { display: flex; align-items: center; gap: 4px; }
+.ap-now { color: var(--ink3); text-decoration: line-through; font-variant-numeric: tabular-nums; }
+.ap-arrow { color: var(--ink3); font-size: 10px; }
+.ap-next { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* ── 장비 화면(§장비 시스템 v2 — 획득+장착, 2026-07-29) ──
+ * 레퍼런스(AFK Arena Companions `03-hero-detail-equipment.jpg`, HoC Legends
+ * `02-hero-detail-equipment.jpg`)는 캐릭터 좌우에 슬롯을 배치하지만, 420px 좁은 캔버스에서는
+ * 기존 party-slot과 같은 가로 5열 행이 더 자연스러워서 그 패턴을 재사용했다 */
+.equip-panel {
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+.equip-head {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+.equip-head .face { position: relative; z-index: 1; width: 52px; height: 52px; border-radius: 12px; border: 2px solid #10131c; flex: none; }
+.equip-head .as-nm { position: relative; z-index: 1; font-size: 15px; font-weight: 700; color: var(--ink); }
+
+/* 6슬롯 = 3열×2행 그리드 — 5슬롯 때는 flex 한 줄로 충분했지만 6개는 420px 폭에서 한 줄에 넣으면
+ * 아이콘·등급 글자가 너무 좁아져서(§장비 6종 확장, 2026-07-29) 레퍼런스의 "좌3+우3" 그룹핑을
+ * 위아래 3+3으로 바꿔 재현했다 */
+.equip-slot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.equip-slot-box {
+  aspect-ratio: 3 / 4;
+  background: var(--panel);
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  text-align: center;
+  padding: 4px;
+}
+.equip-slot-box.filled { border-style: solid; border-width: 3px; }
+.equip-slot-box .esb-icon { font-size: 22px; }
+.equip-slot-box .esb-plus { font-size: 18px; color: var(--ink3); }
+.equip-slot-box .esb-grade { font-size: 12px; font-weight: 800; }
+.equip-slot-box .esb-label { font-size: 10px; color: var(--ink3); }
+
+/* ── 장비 슬롯 팝업(장착/해제/판매) ── */
+.equip-modal { text-align: left; }
+.equip-modal-title { font-size: 12px; font-weight: 700; color: var(--ink3); margin: 12px 0 6px; }
+.equip-modal-title:first-child { margin-top: 0; }
+.equip-modal-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px 10px;
+  margin-bottom: 6px;
+}
+.equip-modal-grade { font-size: 13px; flex: none; min-width: 34px; white-space: nowrap; }
+.equip-modal-bonus { flex: 1 1 auto; font-size: 12.5px; color: var(--ink); white-space: nowrap; }
+.equip-modal-row .btn { flex: none; }
+
+/* ── 영웅 상세 모달 ── */
+.detail-head {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 10px;
+  border-radius: 12px;
+}
+.detail-head .face {
+  position: relative;
+  z-index: 1;
+  width: 76px; height: 76px; border-radius: 14px;
+  border: 2px solid #10131c; flex: none;
+}
+.detail-head .dh-name, .detail-head .gd, .detail-head .dh-stars, .detail-head .dh-lv {
+  position: relative;
+  z-index: 1;
+}
+.dh-name { font-size: 16px; color: var(--ink); font-weight: 700; }
+.dh-lv { font-size: 12px; color: var(--amber); margin-top: 2px; }
+/* 카드 일러스트가 있는 영웅만(§11) 얼굴 썸네일에 힌트 배지 표시 */
+.detail-head .face.has-illustration { cursor: pointer; }
+.detail-head .face.has-illustration::after {
+  content: "🖼";
+  position: absolute;
+  z-index: 2;
+  bottom: 2px;
+  right: 2px;
+  font-size: 10px;
+  background: #10131cdd;
+  border-radius: 999px;
+  padding: 2px 4px;
+}
+.illust-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(5, 7, 14, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.illust-img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+.stat-box {
+  background: #141c30;
+  border-radius: 9px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  padding: 2.5px 0;
+}
+.stat-row .sl { color: var(--ink3); white-space: nowrap; flex-shrink: 0; }
+.stat-row .sv { color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; flex-shrink: 0; margin-left: 8px; }
+.skill-box { margin-bottom: 10px; }
+.skill-box .sk { font-size: 11.5px; color: var(--ink2); padding: 3px 0; }
+
+/* ── 상성 관계 안내(§10) ── */
+.matchup-box {
+  display: flex;
+  gap: 14px;
+  background: #141c30;
+  border-radius: 9px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+}
+.mu-row { display: flex; align-items: center; gap: 5px; font-size: 12px; }
+.mu-arrow { font-size: 10px; }
+.mu-strong .mu-arrow { color: #6fd98a; }
+.mu-weak .mu-arrow { color: #e8683a; }
+.mu-icon { width: 16px; height: 16px; }
+.mu-txt { color: var(--ink2); }
+
+/* ── 진영 탭 · 성급 · 수집 카운트 ── */
+.faction-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.f-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  padding: 5px 13px 5px 8px;
+  border-radius: 999px;
+  background: var(--panel2);
+  color: var(--ink2);
+  border: 1.5px solid var(--line);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.fc-icon { width: 15px; height: 15px; object-fit: contain; }
+.f-chip.on { background: var(--amber); color: #10131c; font-weight: 700; border-color: var(--amber); }
+.dh-stars { font-size: 12px; color: #ffd34d; letter-spacing: 2px; margin-top: 2px; }
+.asc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: #141c30;
+  border-radius: 9px;
+  padding: 9px 12px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--ink2);
+}
+
+/* ── 소환 연출 오버레이 ── */
+#summon-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  background: radial-gradient(ellipse at 50% 40%, #241f45 0%, #0a0e1e 75%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  overflow: hidden;
+}
+#summon-fx.flash-sr::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(200,140,255,0.55), transparent 70%);
+  animation: srFlash 0.5s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes srFlash { from { opacity: 1; } to { opacity: 0; } }
+
+.sfx-orb {
+  position: relative;
+  width: 110px;
+  height: 154px;
+  animation: orbBurst 0.35s ease-in 1.8s forwards;
+}
+.sfx-orb .orb-card-main.sfx-orb-main {
+  animation: cardCharge 0.9s ease-in-out 2;
+}
+@keyframes cardCharge {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 22px rgba(111, 232, 224, 0.55), inset 0 0 16px rgba(111, 232, 224, 0.12); }
+  50% { transform: scale(1.1); box-shadow: 0 0 46px rgba(111, 232, 224, 0.9), inset 0 0 18px rgba(111, 232, 224, 0.25); }
+}
+@keyframes orbBurst {
+  to { transform: scale(2.6); opacity: 0; }
+}
+
+.sfx-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 10px;
+}
+.sfx-grid.ten { gap: 8px; }
+/* 10연 결과는 3/4/3 세 줄 배치(레퍼런스 캡쳐 §1) — grid 대신 행 단위 flex로 쌓는다 */
+.sfx-grid.rows { display: flex; flex-direction: column; gap: 8px; padding: 10px; }
+.sfx-row { display: flex; justify-content: center; gap: 8px; }
+
+.sfx-card {
+  width: 120px;
+  height: 156px;
+  perspective: 700px;
+  animation: cardIn 0.3s ease-out backwards;
+}
+.sfx-grid.ten .sfx-card { width: 92px; height: 108px; }
+.sfx-grid.ten .sfx-card .front { font-size: 10.5px; gap: 3px; }
+.sfx-grid.ten .sfx-card .front .face { width: 52px; height: 52px; border-radius: 11px; }
+.sfx-grid.ten .sfx-card .back { font-size: 24px; }
+@keyframes cardIn { from { transform: translateY(24px); opacity: 0; } }
+
+.sfx-card .inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.45s cubic-bezier(0.3, 1.2, 0.4, 1);
+}
+.sfx-card.fast .inner { transition-duration: 0.22s; }
+.sfx-card.flipped .inner { transform: rotateY(180deg); }
+.sfx-card .back,
+.sfx-card .front {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.sfx-card .back {
+  background: radial-gradient(circle at 50% 38%, #1c2440 0%, #05070f 78%);
+  border: 3px solid #f5ac3d;
+  box-shadow: 0 0 18px rgba(245, 172, 61, 0.4), inset 0 0 20px rgba(245, 172, 61, 0.12);
+  color: #f5d9a8;
+  position: relative;
+  overflow: hidden;
+}
+.sfx-card .back::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(245, 172, 61, 0.05) 0,
+    rgba(245, 172, 61, 0.05) 2px,
+    transparent 2px,
+    transparent 13px
+  );
+}
+.sfx-card .back::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(245, 172, 61, 0.4);
+  border-radius: 9px;
+  pointer-events: none;
+}
+.back-ring {
+  position: relative;
+  width: 70%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid rgba(245, 172, 61, 0.6);
+  box-shadow: 0 0 18px rgba(245, 172, 61, 0.4);
+}
+.back-ring::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 1px dashed rgba(245, 172, 61, 0.35);
+}
+.back-mark {
+  position: relative;
+  font-size: 30px;
+  font-weight: 700;
+  color: #f5d9a8;
+  text-shadow: 0 0 12px rgba(245, 172, 61, 0.85);
+}
+.sfx-grid.ten .sfx-card .back-mark { font-size: 22px; }
+.sfx-grid.ten .sfx-card .back-ring { width: 62%; }
+.sfx-card.tease .back {
+  border-color: #ffd34d;
+  animation: teasePulse 0.55s ease-in-out infinite;
+}
+@keyframes teasePulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(255, 211, 77, 0.4); }
+  50% { box-shadow: 0 0 26px rgba(255, 211, 77, 0.95); }
+}
+.sfx-card .front {
+  transform: rotateY(180deg);
+  background: var(--panel2);
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--ink);
+  text-align: center;
+  padding: 6px;
+}
+.sfx-card .front > *:not(.card-wm) { position: relative; z-index: 1; }
+.sfx-card .front .face {
+  width: 70px;
+  height: 70px;
+  border-radius: 13px;
+  border: 2px solid #10131c;
+}
+.sfx-card .front { border: 3px solid #7d9ab5; }
+.sfx-card.grade-R .front { border: 3px solid #4a9be8; }
+.sfx-card.grade-SR .front {
+  border: 3px solid #b060f0;
+  box-shadow: 0 0 22px rgba(176, 96, 240, 0.75);
+}
+.sfx-card.grade-SSR .front {
+  border: 3px solid #ffd34d;
+  box-shadow: 0 0 26px rgba(255, 211, 77, 0.85);
+}
+.sfx-card.grade-UR .front {
+  border: 3px solid #ff5a6e;
+  box-shadow: 0 0 30px rgba(255, 90, 110, 0.9);
+}
+.sfx-card.grade-SR.flipped,
+.sfx-card.grade-SSR.flipped,
+.sfx-card.grade-UR.flipped { animation: srPop 0.4s ease-out 0.25s; }
+@keyframes srPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+.sfx-card .front .newtag {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--amber);
+  color: #10131c;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.sfx-hint {
+  margin-top: 16px;
+  font-size: 11.5px;
+  color: var(--ink3);
+  min-height: 1em;
+}
+.sfx-hint.done { display: none; }
+.sfx-flipall { margin-top: 14px; min-width: 160px; }
+.sfx-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+.sfx-again {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.sfx-again .btn { min-width: 140px; }
+/* 신규 영웅 획득 확대+프로필 팝업(§2) — 확인해야 다음으로 진행 */
+.sfx-new-popup {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: rgba(5, 7, 14, 0.93);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+}
+.sfx-new-title { font-size: 18px; font-weight: 800; color: #ffd34d; }
+.sfx-new-card {
+  position: relative;
+  overflow: hidden;
+  width: 150px;
+  aspect-ratio: 3 / 4;
+  border-radius: 14px;
+  border: 4px solid var(--line);
+  background: var(--panel2);
+  animation: srPop 0.4s ease-out;
+}
+.sfx-new-card .face { position: absolute; inset: 4px; border-radius: 10px; }
+.sfx-new-name { font-size: 17px; font-weight: 700; color: var(--ink); }
+.sfx-new-sub { font-size: 12.5px; color: var(--ink3); margin-bottom: 6px; }
+.sfx-new-popup .btn { min-width: 160px; }
+/* 소환 연출 오버레이가 떠 있는 동안 뒤에 깔린 소환 화면(구체·버튼·천장 게이지)이 비치지 않도록 */
+#screen-summon.fx-active > * { visibility: hidden; }
+@media (prefers-reduced-motion: reduce) {
+  .sfx-orb, .sfx-orb-ring, .sfx-orb-core, .sfx-card, .sfx-card .inner, .sfx-card.tease .back { animation: none !important; transition: none !important; }
+}
+
+/* ── 임무 진행바 ── */
+.mbar {
+  height: 5px;
+  background: #10131c;
+  border-radius: 3px;
+  margin: 5px 0 3px;
+  overflow: hidden;
+}
+.mbar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--amber), #ffd34d);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+.list-card.all-bonus { border-color: var(--amber); }
+
+/* ── 일일 마일스톤 포인트 트랙(BENCHMARK.md §21) ── */
+.milestone-box {
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.milestone-title { font-size: 12.5px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+.milestone-bar { margin: 6px 0 10px; }
+.milestone-chests { display: flex; gap: 6px; }
+.milestone-chest {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 2px;
+  border-radius: 8px;
+  border: 1px dashed var(--line);
+  background: var(--panel);
+  cursor: default;
+}
+.milestone-chest.ready { border-style: solid; border-color: var(--amber); cursor: pointer; background: rgba(245, 172, 61, 0.12); }
+.milestone-chest.claimed { border-style: solid; opacity: 0.55; }
+.milestone-chest .mc-icon { font-size: 16px; }
+.milestone-chest .mc-pts { font-size: 10px; color: var(--ink3); font-variant-numeric: tabular-nums; }
+.milestone-chest .mc-reward { font-size: 9px; color: var(--ink2); white-space: nowrap; }
+
+/* ── 요일던전 5선택 화면(2026-07-29) — 예전 2D 허브타운(§80, 마을뷰 제거)의 "지붕색 오두막" 타일
+ * 문법을 재사용. 그때는 5탭 진입점, 지금은 5요일 진입점으로 용도만 바꿈 */
+.raid-select-banner {
+  background: rgba(245, 172, 61, 0.15);
+  border: 1px solid var(--amber);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--ink);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+.raid-dungeon-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.raid-hut {
+  --roof: #888;
+  position: relative;
+  border: none;
+  border-radius: 12px;
+  background: #fff7e8ee;
+  box-shadow: 0 4px 10px rgba(40, 25, 5, 0.25);
+  cursor: pointer;
+  padding: 0 0 8px;
+  overflow: hidden;
+}
+.raid-hut .hub-roof { height: 14px; background: var(--roof); border-radius: 12px 12px 0 0; }
+.raid-hut .hub-body { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 6px 0; }
+.raid-hut .hub-label { font-size: 12.5px; font-weight: 700; color: #241a08; }
+.raid-hut .hub-flavor { font-size: 10px; color: #6b5530; text-align: center; }
+.raid-hut.locked { filter: grayscale(1); opacity: 0.55; cursor: default; }
+.raid-lock { position: absolute; top: 6px; right: 8px; font-size: 14px; }
+
+/* ── 오프닝화면(§메뉴 구조, 2026-07-30) — 최초/재접속 시 뜨는 브랜딩 화면. 화려한 배경 이미지는
+ * 아직 없어서 navy/gold 그라디언트로 대체(ASSETS.md 백로그) */
+#splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background:
+    radial-gradient(circle at 50% 32%, #2a2450 0%, #0e1526 65%, #05070f 100%);
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+}
+#splash-title {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  background: linear-gradient(180deg, #fff3d6, var(--amber) 55%, var(--amber-dark));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 24px rgba(245, 172, 61, 0.35);
+}
+#splash-sub {
+  font-size: 13px;
+  color: var(--ink2);
+  letter-spacing: 0.04em;
+  margin-bottom: 40px;
+}
+#splash-tap {
+  position: absolute;
+  bottom: max(40px, env(safe-area-inset-bottom));
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink2);
+  letter-spacing: 0.06em;
+  animation: splashBlink 1.4s ease-in-out infinite;
+}
+@keyframes splashBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.15; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #splash-tap { animation: none; }
+}
+
+/* ── 모험 허브(§메뉴 구조, 2026-07-30) — 요일던전 5선택과 같은 오두막 타일 재사용 ── */
+.adventure-hub-grid { grid-template-columns: repeat(2, 1fr); }
+.adventure-hut { --roof: #f5ac3d; }
+
+/* ── HUD 클릭형 칩(§마이티 아레나 반영계획 A, 2026-07-29) — 골드/다이아를 누르면 상점으로 이동 */
+.hud-chip.clickable { cursor: pointer; }
+
+/* ── 스테이지 게이트 해금 배너(§마이티 아레나 반영계획 D) — 모달 대신 상단에서 내려왔다 올라간다 */
+.gate-banner {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -100%);
+  z-index: 60;
+  background: linear-gradient(180deg, var(--amber), var(--amber-dark));
+  color: #10131c;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 10px 22px;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  transition: transform 0.4s ease;
+  pointer-events: none;
+}
+.gate-banner.in { transform: translate(-50%, 0); }
+
+/* ── 주성(Main Castle) 탭(§마이티 아레나 반영계획 B) — 요일던전 오두막 타일과 같은 문법을
+ * 재사용하되, 이쪽은 건물이 실제로 뭘 여는지 아직 미정이라 자리표시자로만 쓴다 */
+.castle-town {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.castle-hut {
+  position: relative;
+  border: none;
+  border-radius: 12px;
+  background: #fff7e8ee;
+  box-shadow: 0 4px 10px rgba(40, 25, 5, 0.25);
+  cursor: pointer;
+  padding: 0 0 8px;
+  overflow: hidden;
+}
+.castle-hut .hub-roof { height: 14px; background: var(--amber); border-radius: 12px 12px 0 0; }
+.castle-hut .hub-body { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 6px 0; }
+.castle-hut .hub-label { font-size: 12.5px; font-weight: 700; color: #241a08; }
+.castle-hut .hub-flavor { font-size: 10px; color: #6b5530; text-align: center; }
+.castle-hut.locked { filter: grayscale(1); opacity: 0.55; }
+.castle-lock { position: absolute; top: 6px; right: 8px; font-size: 14px; }
+
+/* ── 소환 화면 좌상단 확률고지 / 우상단 도움말+천장 배지(§마이티 아레나 반영계획 E) ── */
+.summon-title-row h2 { flex: 1; text-align: center; }
+.summon-corner-right { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.summon-help-btn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--panel2);
+  color: var(--ink3);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  line-height: 1;
+}
+.pity-ring {
+  --pct: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: conic-gradient(var(--amber) calc(var(--pct) * 1%), rgba(255, 255, 255, 0.12) 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.pity-ring::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--panel);
+}
+.pity-ring-text {
+  position: relative;
+  font-size: 7.5px;
+  font-weight: 700;
+  color: var(--ink);
+  z-index: 1;
+}
+
+/* ── 소환 3갈래 탭(§마이티 아레나 반영계획 4) — 일반/고급/픽업 ── */
+.summon-cat-row { gap: 6px; margin-bottom: 6px; }
+.summon-cat-chip {
+  flex: 1;
+  padding: 9px 4px;
+  border-radius: 10px;
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  color: var(--ink3);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.summon-cat-chip.on { background: var(--amber); color: #10131c; border-color: var(--amber); }
+.summon-cat-desc { text-align: center; margin-bottom: 10px; }
+
+/* ── 픽업소환 영웅 선택(§마이티 아레나 반영계획 4) — 후보 3명 중 1명 고르면 그 영웅만 확률 UP ── */
+.pickup-select-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 12px; }
+.pickup-select-slot {
+  position: relative;
+  width: 84px;
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  border: 2px solid var(--line);
+  background: var(--panel2);
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  opacity: 0.6;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.pickup-select-slot .face { position: absolute; inset: 0; }
+.pickup-select-slot.on {
+  opacity: 1;
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 2px var(--amber), 0 0 12px 2px rgba(245, 172, 61, 0.6);
+}
+.pickup-select-up {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--amber);
+  color: #10131c;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 999px;
+  z-index: 1;
+}
+.pickup-select-name {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 3px 2px;
+  background: rgba(10, 13, 22, 0.7);
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── 재료 선택(승급/초월 공용, §마이티 아레나 반영계획 5) ── */
+.mat-count { background: var(--red) !important; }
+.transcend-mats { justify-content: center; }
+.transcend-stars { color: #b060f0 !important; }
+
