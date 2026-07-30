@@ -3,7 +3,7 @@ import { PLAYABLE_HEROES } from "../data/heroes";
 import type { Hero } from "../data/heroTypes";
 import { REVERSED_FACING_KEYS } from "../data/facing";
 import {
-  save, addGold, addGems, grantRandomEquip, setStage, getLevel, getStars,
+  save, addGold, addGems, grantRandomEquip, addEnhanceStone, setStage, getLevel, getStars,
   setTowerFloor, applyArenaResult,
 } from "../state/save";
 import { track } from "../systems/missions";
@@ -1038,6 +1038,10 @@ export class BattleScene extends Phaser.Scene {
         // 시스템 v2)의 상시 파밍 경로. 매 웨이브마다 주면 너무 흔해져서 보스 클리어로 한정
         const rewards = [`🪙 +${reward}`];
         if (Math.random() < 0.4) rewards.push(`🎁 ${grantRandomEquip().grade} 장비 획득!`);
+        // 강화석(§장비 강화, 2026-07-30) — 장비 드랍과 별개로 매 보스 웨이브 소량 지급
+        const stones = 3 + Math.floor(this.stage / 10);
+        addEnhanceStone(stones);
+        rewards.push(`💠 +${stones}`);
         this.showVictoryBanner(`STAGE ${this.stage} 클리어`, rewards);
         const next = this.stage + 1;
         setStage(next);
