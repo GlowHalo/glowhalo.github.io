@@ -29,38 +29,10 @@ import {
   WEEKLY_MILESTONE_TRACK, weeklyPoints, weeklyMilestoneClaimed, weeklyMilestoneClaimable, weeklyMilestoneClaim,
   type MilestoneDef,
 } from "../systems/missions";
-import { FEATURE_GATES, isFeatureUnlocked } from "../systems/featureGates";
 import { toast, modal, closeModal } from "./shell";
 import { emit } from "../state/bus";
 import { playSfx } from "../systems/audio";
 import { isReversedFacing } from "../data/facing";
-
-/* ── 주성(Main Castle) 탭(§마이티 아레나 반영계획 B, 2026-07-29) ──
- * 레퍼런스(마이티 아레나)의 "마을 배경 + 건물 클릭지점 → 하위메뉴 이동" 구조를 그대로 따라가되,
- * 하위메뉴 내용은 아직 미정(사용자가 구조를 따로 정할 예정)이라 지금은 건물 자리 6개 + 스테이지
- * 해금 조건(FEATURE_GATES)만 배치한다. 실제 이동 대상이 정해지면 각 건물의 onclick만 바꾸면 됨 */
-export function renderCastle(root: HTMLElement) {
-  root.innerHTML = "";
-  root.appendChild(el("h2", "", "주성"));
-  root.appendChild(el("div", "desc", "스테이지를 클리어하면 건물이 하나씩 열립니다. 하위 메뉴는 준비 중이에요."));
-
-  const town = el("div", "castle-town");
-  for (const gate of FEATURE_GATES) {
-    const unlocked = isFeatureUnlocked(gate.key);
-    const hut = el("button", "castle-hut" + (unlocked ? "" : " locked"));
-    hut.appendChild(el("div", "hub-roof"));
-    const body = el("div", "hub-body");
-    body.appendChild(el("div", "hub-label", unlocked ? gate.label : "???"));
-    body.appendChild(el("div", "hub-flavor", unlocked ? "추후 공개 예정" : `Lv.${gate.unlockStage} 오픈`));
-    hut.appendChild(body);
-    if (!unlocked) hut.appendChild(el("div", "castle-lock", "🔒"));
-    hut.onclick = () => {
-      toast(unlocked ? "이 건물의 메뉴는 아직 준비 중이에요" : `스테이지 ${gate.unlockStage} 클리어 시 열려요`);
-    };
-    town.appendChild(hut);
-  }
-  root.appendChild(town);
-}
 
 const FACTION_COLORS: Record<string, string> = {
   불: "#e8683a",
@@ -78,10 +50,12 @@ function el(tag: string, cls?: string, text?: string): HTMLElement {
   return n;
 }
 
-/** 영웅 초상화를 .face 배경으로 채운다(얼굴 클로즈업 크롭). 프레임 배경은 등급색이 아닌 중립 검정 —
- * 등급은 카드 전체 배경(setCardGrade)으로, 진영은 좌상단 코너 배지(addFactionBadge)로 따로 표시한다 */
+/** 영웅 초상화를 .face 배경으로 채운다(얼굴 클로즈업 크롭). §2026-07-30: 프레임 자체 배경은
+ * 투명 — 누끼(배경 제거) PNG의 빈 여백으로 부모 카드의 등급색 그라디언트(setCardGrade)가 그대로
+ * 비쳐서 캐릭터와 카드 배경이 하나로 스며들게 한다. 등급은 카드 전체 배경으로, 진영은 좌상단
+ * 코너 배지(addFactionBadge)로 따로 표시 */
 function setFace(face: HTMLElement, hero: Hero) {
-  face.style.background = "#0a0d16";
+  face.style.background = "transparent";
   face.style.backgroundImage = `url(${hero.id}.png)`;
   // SD 전신 일러스트 상단 ~45%가 얼굴 — 확대해서 얼굴만 보이도록 크롭(전투화면은 전신 그대로 별도 처리)
   face.style.backgroundSize = "230% 230%";
@@ -114,9 +88,11 @@ const GRADE_CARD_BG: Record<string, string> = {
   Unknown: "linear-gradient(165deg, #3a4458 0%, #262f42 55%, #1f2c47 100%)",
 };
 
-/** 카드 전체에 등급색 배경을 입힌다(C안). 카드는 position:relative 여야 함 */
+/** 카드 전체에 등급색 배경을 입힌다(C안). 카드는 position:relative 여야 함. UR은 "항상
+ * 번쩍이게"(2026-07-30 요청)로 펄스 발광 클래스를 추가로 붙인다 */
 function setCardGrade(card: HTMLElement, grade: string) {
   card.style.background = GRADE_CARD_BG[grade] ?? GRADE_CARD_BG["Unknown"];
+  card.classList.toggle("grade-shimmer-ur", grade === "UR");
 }
 
 /** 진영을 좌상단 코너 배지(아이콘)로 표시 — 마이티 아레나 참고 배치 */
@@ -363,9 +339,10 @@ const CLASS_ICON: Record<string, string> = {
   서포터: "✨",
 };
 
-/** 보유 그리드/도감 공용 카드 — 대표 사진만 놓고 네 모서리에 배지만 표시(설명 텍스트 없음).
- * 테두리=등급, 좌상단=진영, 우상단=레벨, 우하단=클래스, 좌하단=편성중 체크 또는 성급.
- * locked=true(미보유)면 흑백 처리 + 자물쇠만 표시하고 다른 배지는 생략 */
+/** 보유 그리드/도감 공용 카드 — 대표 사진만 놓고 모서리에 배지, 하단에 성급/초월 별을 한 줄로
+ * 표시(축약 없음, §2026-07-30). 배경=등급, 좌상단=진영, 우상단=레벨, 우하단=클래스.
+ * 편성중 여부는 기존 amber 테두리(.in-party)로만 표시하고 별도 체크 배지는 생략 —
+ * 하단 자리를 별 표시에 전부 내준다. locked=true(미보유)면 흑백 처리 + 자물쇠만 표시 */
 function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean; onClick?: () => void } = {}): HTMLElement {
   const card = el(
     "div",
@@ -388,12 +365,8 @@ function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean;
   card.appendChild(el("div", "hc-badge hc-badge-tr", `Lv.${getLevel(hero.id)}`));
   const classIcon = CLASS_ICON[hero.heroClass];
   if (classIcon) card.appendChild(el("div", "hc-badge hc-badge-br", classIcon));
-  if (inParty(hero.id)) {
-    card.appendChild(el("div", "hc-badge hc-badge-bl hc-check", "✓"));
-  } else {
-    const s = starState(hero.id);
-    card.appendChild(el("div", "hc-badge hc-badge-bl" + (s.purple ? " star-purple" : ""), `${s.symbol}${s.filled}`));
-  }
+  const s = starState(hero.id);
+  card.appendChild(el("div", "hc-star-row" + (s.purple ? " star-purple" : ""), starRowText(hero.id)));
 
   if (opts.onClick) card.onclick = opts.onClick;
   return card;

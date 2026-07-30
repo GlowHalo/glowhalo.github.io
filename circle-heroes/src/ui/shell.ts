@@ -5,16 +5,15 @@ import {
   unreadMailCount, markMailRead, claimMail, type MailItem, OFFLINE_CAP_HOURS,
   grantMaxTestHero,
 } from "../state/save";
-import { renderHeroes, renderSummon, renderShop, renderMissions, renderCastle, setHeroesSubView, setMissionsSubView } from "./screens";
+import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView, setMissionsSubView } from "./screens";
 import { partyPower } from "../systems/battle";
 import { isFirebaseConfigured, getBackupCode, backupNow, restoreFromCode } from "../state/backup";
 import { HEROES } from "../data/heroes";
 import { isMuted, setMuted } from "../systems/audio";
 import { RAID_DUNGEONS, WEEKDAY_LABELS, requiredFaction, isRaidWeekend } from "../systems/raid";
-import { checkNewlyUnlockedGates } from "../systems/featureGates";
 import { anyFreeSummonAvailable } from "../systems/gacha";
 
-type TabKey = "castle" | "heroes" | "summon" | "battle" | "shop" | "missions";
+type TabKey = "heroes" | "summon" | "battle" | "adventure" | "shop" | "missions";
 
 interface TabDef {
   key: TabKey;
@@ -24,23 +23,25 @@ interface TabDef {
   subs: string[];
 }
 
-// DESIGN.md Rev.C — 탭 순서: 영웅 · 소환 · 전투(중앙) · 상점 · 임무
-// §마이티 아레나 반영계획 B(2026-07-29) — 맨 왼쪽에 "주성" 탭 추가. 하위 내용은 아직 미정이라
-// 서브메뉴 없이(subs: []) 건물 클릭지점 인프라만 넣는다(renderCastle 참고)
+// DESIGN.md Rev.C — 탭 순서: 영웅 · 소환 · 전투(중앙) · 모험 · 상점 · 임무
+// §2026-07-30: 껍데기뿐이던 "주성" 탭(§마이티 아레나 반영계획 B, 하위메뉴 미구현 상태로 남아있던
+// 건물 자리표시자 6개)을 완전히 삭제하고, 전투 탭 서브메뉴였던 "모험"(요일던전/아레나/무한의탑
+// 허브)을 독립 메인 탭으로 승격 — 전투 탭 바로 오른쪽에 배치. 아이콘은 전용 자산이 아직 없어
+// 주성 탭이 쓰던 tab-castle.png를 임시로 재사용(ASSETS.md 백로그 등록)
 const TABS: TabDef[] = [
-  { key: "castle", label: "주성", icon: "tab-castle.png", subs: [] },
   { key: "heroes", label: "영웅", icon: "tab-hero.png", subs: ["보유·편성", "장비", "승급", "도감"] },
-  { key: "summon", label: "소환", icon: "tab-summon.png", subs: ["영웅 소환", "확률·천장"] },
-  { key: "battle", label: "전투", icon: "tab-battle.png", center: true, subs: ["스테이지", "모험"] },
+  { key: "summon", label: "소환", icon: "tab-summon.png", subs: [] },
+  { key: "battle", label: "전투", icon: "tab-battle.png", center: true, subs: [] },
+  { key: "adventure", label: "모험", icon: "tab-castle.png", subs: [] },
   { key: "shop", label: "상점", icon: "tab-shop.png", subs: ["골드 상점", "보석 상점", "일일 무료"] },
   { key: "missions", label: "임무", icon: "tab-mission.png", subs: ["일일", "주간", "업적"] },
 ];
 
 const RENDERERS: Record<TabKey, ((el: HTMLElement) => void) | null> = {
-  castle: renderCastle,
   heroes: renderHeroes,
   summon: renderSummon,
   battle: null,
+  adventure: renderAdventure,
   shop: renderShop,
   missions: renderMissions,
 };
@@ -88,31 +89,6 @@ export function closeModal() {
   document.getElementById("modal-root")!.classList.remove("on");
 }
 
-/** 스테이지 게이트 해금 알림(§마이티 아레나 반영계획 D, 2026-07-29) — 모달 대신 상단에서
- * 내려왔다 올라가는 배너. 한 번에 여러 개 해금되면 순서대로 하나씩 보여준다 */
-let gateBannerQueue: string[] = [];
-let gateBannerShowing = false;
-function drainGateBannerQueue() {
-  if (gateBannerShowing || gateBannerQueue.length === 0) return;
-  gateBannerShowing = true;
-  const label = gateBannerQueue.shift()!;
-  const banner = h("div", "gate-banner", `🔓 ${label} 해금!`);
-  document.getElementById("ui")!.appendChild(banner);
-  requestAnimationFrame(() => banner.classList.add("in"));
-  window.setTimeout(() => {
-    banner.classList.remove("in");
-    window.setTimeout(() => {
-      banner.remove();
-      gateBannerShowing = false;
-      drainGateBannerQueue();
-    }, 400);
-  }, 2200);
-}
-export function showFeatureUnlockBanner(labels: string[]) {
-  gateBannerQueue.push(...labels);
-  drainGateBannerQueue();
-}
-
 function fmt(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
   if (n >= 10_000) return (n / 1000).toFixed(1) + "K";
@@ -134,7 +110,23 @@ function refreshHud() {
 
 function switchTab(key: TabKey) {
   currentTab = key;
-  document.getElementById("ui")!.classList.toggle("on-battle", key === "battle");
+  // §2026-07-30: "메뉴를 누르면 항상 그 메뉴의 대표(기본) 화면으로" — 마지막으로 보던 서브뷰를
+  // 기억하지 않고 매번 기본값으로 되돌린다. 영웅/임무는 저장해둔 서브뷰 상태를 초기화, 전투는
+  // 스테이지(캠페인)로 강제 전환(요일던전/아레나/무한의탑은 이제 모험 탭 소관이라 전투 탭에
+  // 남아있으면 안 됨). 모험 탭 자체의 리셋(픽커로 복귀)은 renderAdventure 안에서 처리된다
+  if (key === "heroes") {
+    heroesSubLabel = "보유·편성";
+    setHeroesSubView("party");
+  }
+  if (key === "missions") {
+    missionsSubLabel = "일일";
+    setMissionsSubView("daily");
+  }
+  if (key === "battle" && battleMode !== "stage") {
+    battleMode = "stage";
+    emit("battle-mode", "stage");
+  }
+  document.getElementById("ui")!.classList.toggle("on-battle", key === "battle" || key === "adventure");
   document.querySelectorAll<HTMLElement>("#tabbar .tab").forEach((el) => {
     el.classList.toggle("on", el.dataset.key === key && !el.classList.contains("center"));
   });
@@ -146,15 +138,20 @@ function switchTab(key: TabKey) {
   if (renderer) renderer(document.getElementById(`screen-${key}`)!);
 }
 
-// 전투 탭 서브메뉴 ↔ 전투 모드 연결. "모험"은 실제 전투모드가 아니라 허브 모달을 여는
-// 트리거(§마이티 아레나 반영계획 모험, 2026-07-30) — 배너 3개(요일던전/아레나/무한의탑) 중
-// 골라야 실제 모드가 정해진다
-const BATTLE_MODES: Record<string, string> = {
-  "스테이지": "stage",
-  "모험": "adventure",
-};
 let battleMode = "stage";
 let heroesSubLabel = "보유·편성";
+
+/** 모험 탭이 실제 전투 화면(캔버스)을 보여주는 중인지 — 배너를 고르기 전엔 허브 픽커가
+ * 화면을 덮고, 고른 뒤엔 스테이지 탭과 똑같이 투명해져 Phaser 캔버스가 비친다(§2026-07-30).
+ * 컨테이너를 투명하게 만드는 것만으로는 부족하다 — 픽커 자체(제목/설명/오두막 그리드)가 여전히
+ * 불투명한 자식 엘리먼트로 남아있으면 캔버스 위에 그대로 겹쳐 보인다. innerHTML을 비워야 진짜로
+ * 캔버스만 남는다 */
+function showAdventureCanvas() {
+  const el = document.getElementById("screen-adventure");
+  if (!el) return;
+  el.classList.add("adventure-live");
+  el.innerHTML = "";
+}
 
 /** 진영별 지붕색 — BattleScene.ts/screens.ts의 FACTION_COLORS와 동일 팔레트(작은 상수라 파일마다
  * 이렇게 각자 들고 있는 게 기존 관례) */
@@ -207,8 +204,8 @@ function openRaidSelectModal() {
       if (battleMode !== "raid") {
         battleMode = "raid";
         emit("battle-mode", "raid");
-        if (currentTab === "battle") renderSubbar();
       }
+      showAdventureCanvas();
     };
     grid.appendChild(hut);
   }
@@ -219,16 +216,22 @@ function openRaidSelectModal() {
   modal("요일던전", body, [close]);
 }
 
-/** 모험 허브(§마이티 아레나 반영계획, 2026-07-30 승인) — "전투" 탭의 스테이지(=자동등반, 메인화면)
- * 와 나머지 3개 모드를 분리: 요일던전/아레나/무한의탑은 이제 배너 3개짜리 허브 모달을 거쳐
- * 들어간다. 요일던전은 기존 5선택 모달을 그대로 열고, 아레나/무한의탑은 바로 전투모드 전환 */
+/** 모험 탭(§2026-07-30, 전투 탭 서브메뉴에서 독립 메인 탭으로 승격) — 요일던전/아레나/무한의탑
+ * 배너 3개짜리 허브를 화면 자체로 렌더링(예전엔 모달이었음). 요일던전은 기존 5선택 모달을 그대로
+ * 열고, 아레나/무한의탑은 바로 전투모드를 전환해 캔버스를 드러낸다. 메뉴 재진입 시(item 7,
+ * "메뉴를 누르면 항상 대표화면으로") 항상 이 픽커부터 다시 보여준다 — switchTab이 매번
+ * renderAdventure를 새로 호출하고, 여기서 매번 adventure-live 클래스를 지워 픽커로 되돌린다 */
 const ADVENTURE_BANNERS: { mode: string; label: string; flavor: string }[] = [
   { mode: "raid", label: "요일던전", flavor: "요일마다 다른 진영의 마수" },
   { mode: "arena", label: "아레나", flavor: "다른 유저와 순위 경쟁" },
   { mode: "tower", label: "무한의탑", flavor: "층을 오를수록 강해지는 도전" },
 ];
 
-function openAdventureHubModal() {
+function renderAdventure(root: HTMLElement) {
+  root.classList.remove("adventure-live");
+  root.innerHTML = "";
+  root.appendChild(h("h2", "", "모험"));
+  root.appendChild(h("div", "desc", "도전할 콘텐츠를 골라주세요."));
   const grid = h("div", "raid-dungeon-grid adventure-hub-grid");
   for (const b of ADVENTURE_BANNERS) {
     const hut = h("button", "raid-hut adventure-hut");
@@ -239,7 +242,6 @@ function openAdventureHubModal() {
     hbody.appendChild(h("div", "hub-flavor", b.flavor));
     hut.appendChild(hbody);
     hut.onclick = () => {
-      closeModal();
       if (b.mode === "raid") {
         openRaidSelectModal();
         return;
@@ -248,13 +250,11 @@ function openAdventureHubModal() {
         battleMode = b.mode;
         emit("battle-mode", b.mode);
       }
-      if (currentTab === "battle") renderSubbar();
+      showAdventureCanvas();
     };
     grid.appendChild(hut);
   }
-  const close = h("button", "btn", "닫기") as HTMLButtonElement;
-  close.onclick = closeModal;
-  modal("모험", grid, [close]);
+  root.appendChild(grid);
 }
 
 const MISSIONS_SUBVIEWS: Record<string, "daily" | "weekly" | "achievements"> = {
@@ -268,32 +268,10 @@ function renderSubbar() {
   const bar = document.getElementById("subbar")!;
   bar.innerHTML = "";
   const def = TABS.find((t) => t.key === currentTab)!;
-
-  if (currentTab === "battle") {
-    def.subs.forEach((label) => {
-      const mode = BATTLE_MODES[label];
-      // "모험"은 실제 모드가 아니라 허브 트리거라, battleMode가 스테이지가 아닐 때(=모험 안의
-      // 무언가를 하는 중일 때) on으로 표시한다
-      const isOn = mode === "adventure" ? battleMode !== "stage" : mode === battleMode;
-      const chip = h("button", "sub-chip" + (isOn ? " on" : ""), label);
-      chip.onclick = () => {
-        if (!mode) {
-          toast(`${label} — 준비 중입니다`);
-          return;
-        }
-        if (mode === "adventure") {
-          openAdventureHubModal();
-          return;
-        }
-        if (mode === battleMode) return;
-        battleMode = mode;
-        emit("battle-mode", mode);
-        renderSubbar();
-      };
-      bar.appendChild(chip);
-    });
-    return;
-  }
+  // §2026-07-30: 전투/소환/모험 탭은 서브메뉴가 없어졌으므로(모험은 독립 탭으로 승격, 소환은
+  // "확률·천장" 가짜 탭 제거) 빈 줄을 그냥 숨긴다
+  bar.classList.toggle("empty", def.subs.length === 0);
+  if (def.subs.length === 0) return;
 
   if (currentTab === "heroes") {
     def.subs.forEach((label) => {
@@ -726,15 +704,6 @@ export function buildShell() {
     if (currentTab === "battle") renderSubbar();
   });
   switchTab(currentTab);
-
-  // 스테이지 게이트(§마이티 아레나 반영계획 D) — 처음 로드 시 이미 지나친 게이트는 조용히
-  // seen 처리만 하고(배너 몰아뜨기 방지), 그 이후 스테이지가 오를 때만 실제로 배너를 띄운다
-  checkNewlyUnlockedGates();
-  on("stage-changed", () => {
-    const newly = checkNewlyUnlockedGates();
-    if (newly.length) showFeatureUnlockBanner(newly.map((g) => g.label));
-    if (currentTab === "castle") renderCastle(document.getElementById("screen-castle")!);
-  });
 
   // 오프라인 보상
   const reward = calcOfflineReward();
