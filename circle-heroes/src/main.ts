@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { BattleScene, GAME_W, GAME_H } from "./scenes/BattleScene";
 import { buildShell } from "./ui/shell";
+import { renderSplash } from "./ui/splash";
 
 new Phaser.Game({
   type: Phaser.AUTO,
@@ -15,4 +16,4 @@ new Phaser.Game({
   scene: [BattleScene],
 });
 
-buildShell();
+renderSplash(buildShell);

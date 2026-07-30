@@ -15,9 +15,9 @@ export interface Category {
 }
 
 export const CATEGORIES: Category[] = [
-  { kind: "normal", name: "일반소환", ticket: "normal", desc: "N~SR만 등장 (SSR·UR 없음)" },
-  { kind: "premium", name: "고급소환", ticket: "premium", desc: "전 등급 균등 확률(픽업 레이트업 없음)" },
-  { kind: "pickup", name: "픽업소환", ticket: "premium", desc: "원하는 영웅 1명을 골라 그 영웅만 확률 UP" },
+  { kind: "normal", name: "일반소환", ticket: "normal", desc: "N~SR 위주, 초저확률로 SSR도 등장" },
+  { kind: "premium", name: "고급소환", ticket: "premium", desc: "SR~UR만 등장(픽업 레이트업 없음)" },
+  { kind: "pickup", name: "픽업소환", ticket: "premium", desc: "원하는 영웅 1명을 골라 SSR 등장 시 100% 확정" },
 ];
 
 export const SINGLE_COST = 1;
@@ -29,12 +29,15 @@ export const SSR_PITY_LIMIT = 50;
  * 상점/경기장 보상 등 별도 채널로 파는 데는 지장 없는 수준으로 잡음. */
 export const UR_PITY_LIMIT = 200;
 
-// 등급별 가중치(%). N/R은 주로 각성 재료용, SR부터 실전 기용 가능. (고급/픽업소환 공용 전체 등급표)
-export const GRADE_WEIGHT: Record<string, number> = { N: 50, R: 40, SR: 8.9, SSR: 1, UR: 0.1 };
-/** 일반소환 전용 등급표 — SSR/UR 없이 N/R/SR만. 저비용 일반소환권으로 계속 뽑아도 UR 천장을
- * 우회하지 못하게 완전히 분리된 확률표를 쓴다(고급/픽업으로만 SSR 이상 도달 가능) */
-export const NORMAL_GRADE_WEIGHT: Record<string, number> = { N: 60, R: 35, SR: 5 };
-/** SSR/UR이 나왔을 때 픽업(또는 이달의 UR)로 배정될 확률(업계 표준 "50/50" 방식) */
+/** 고급/픽업소환 공용 등급표(§2026-07-30 조정) — "SR~UR만 등장"으로 좁혀서 N/R 제외.
+ * 예전 전체표(N50/R40/SR8.9/SSR1/UR0.1)에서 SR:SSR:UR 상대비율(89:10:1)은 그대로 유지한 채
+ * 세 등급끼리만 100%로 재분배 */
+export const GRADE_WEIGHT: Record<string, number> = { SR: 89, SSR: 10, UR: 1 };
+/** 일반소환 전용 등급표(§2026-07-30 조정) — "고급소환의 UR확률(0.1%)만큼 낮은 확률로 SSR도
+ * 등장"으로 완전 배제에서 초저확률 포함으로 변경. N/R/SR은 기존 60/35/5 비율 유지, SSR 0.1% 추가 */
+export const NORMAL_GRADE_WEIGHT: Record<string, number> = { N: 59.9, R: 35, SR: 5, SSR: 0.1 };
+/** UR이 나왔을 때 "이달의 UR"로 배정될 확률(업계 표준 "50/50" 방식) — 픽업소환의 SSR 확정
+ * 지급(§2026-07-30, 아래 rollPremiumOrPickup)과는 별개로 UR에만 적용된다 */
 export const PICKUP_RATE_UP = 0.5;
 
 function pickByGrade(grade: string): Hero {
@@ -116,7 +119,8 @@ function rollPremiumOrPickup(pickupHero: Hero | undefined): Hero {
     const grade = rollGrade(GRADE_WEIGHT);
     if (grade === "UR") {
       hero = Math.random() < PICKUP_RATE_UP ? monthlyFeaturedUR() : pickByGrade("UR");
-    } else if (grade === "SSR" && pickupHero && Math.random() < PICKUP_RATE_UP) {
+    } else if (grade === "SSR" && pickupHero) {
+      // §2026-07-30: 픽업소환에서 SSR이 뜨면 고른 영웅이 100% 확정(레이트업 아님, 확정 지급)
       hero = pickupHero;
     } else {
       hero = pickByGrade(grade);
@@ -134,12 +138,41 @@ function rollPremiumOrPickup(pickupHero: Hero | undefined): Hero {
 
 export interface PullResult { hero: Hero; isNew: boolean; }
 
+/** 무료소환(§2026-07-30) — 매일 00:00·12:00에 리셋되는 반나절 단위 "창"마다 일반·고급소환
+ * 각각 1회씩 무료. 소환권을 지급하는 방식이 아니라 "1회 소환" 버튼 자체가 무료소환 버튼으로
+ * 바뀌는 방식이라, 안 쓰고 창이 넘어가면 그냥 사라진다(누적 안 됨). 픽업소환은 대상에서 제외 */
+export type FreeSummonKind = "normal" | "premium";
+
+function freeWindowKey(): string {
+  const now = new Date();
+  const half = now.getHours() < 12 ? "AM" : "PM";
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}-${half}`;
+}
+
+export function freeSummonAvailable(kind: FreeSummonKind): boolean {
+  return save.freeSummonWindow[kind] !== freeWindowKey();
+}
+
+export function anyFreeSummonAvailable(): boolean {
+  return freeSummonAvailable("normal") || freeSummonAvailable("premium");
+}
+
 /** kind별 소환권을 소모하고 count회 뽑는다. pickupHeroId는 kind==="pickup"일 때만 사용.
- * 소환권이 부족하면 null(호출부가 안내 토스트를 띄운다) */
-export function pull(count: number, kind: SummonKind, pickupHeroId?: string): PullResult[] | null {
+ * useFree=true면 소환권 대신 그 시간대의 무료소환권(1회 한정)을 사용한다 — normal/premium만
+ * 가능, count는 반드시 1. 소환권/무료소환이 부족하면 null(호출부가 안내 토스트를 띄운다) */
+export function pull(count: number, kind: SummonKind, pickupHeroId?: string, useFree = false): PullResult[] | null {
   const cat = CATEGORIES.find((c) => c.kind === kind)!;
-  const ticketCost = count === 1 ? SINGLE_COST : TEN_COST;
-  if (!spendTicket(cat.ticket, ticketCost)) return null;
+  if (useFree) {
+    if (kind === "pickup" || count !== 1 || !freeSummonAvailable(kind)) return null;
+    save.freeSummonWindow[kind] = freeWindowKey();
+    persist();
+  } else {
+    const ticketCost = count === 1 ? SINGLE_COST : TEN_COST;
+    if (!spendTicket(cat.ticket, ticketCost)) return null;
+  }
 
   const pickupHero = kind === "pickup" ? PLAYABLE_HEROES.find((h) => h.id === pickupHeroId) : undefined;
   const results: PullResult[] = [];
