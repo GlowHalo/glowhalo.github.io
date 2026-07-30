@@ -422,7 +422,11 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
-/* 대표 사진만 놓고 네 모서리에 배지만 표시(설명 텍스트 없음) — §1·§2 */
+/* §2026-07-30 카드 통일 재정리 — "영웅편성화면(party-slot)의 작은 아이콘+이름 라벨 구조가
+   가장 마음에 든다. 어느 화면이나 동일한 형태로 통일해 일관성+소스복잡도를 줄이고 싶다"는
+   피드백에 맞춰, 얼굴이 카드를 거의 다 채우던 방식(구 C안)에서 party-slot과 같은 "작은 정사각
+   아이콘(62%) + 이름 + 별" 세로 스택 구조로 바꿨다. 이 카드 하나를 영웅(보유/도감/재료픽커)과
+   장비 인벤토리(buildEquipCard, .equip-face)가 함께 쓴다 */
 .hero-card {
   position: relative;
   overflow: hidden;
@@ -431,15 +435,47 @@
   border-radius: 10px;
   aspect-ratio: 3 / 4;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 4px 5px;
+  text-align: center;
 }
 .hero-card .face {
-  position: absolute;
-  /* §카드 표시방식 재정리(2026-07-30, C안) — 이전 3px는 얼굴이 카드를 거의 꽉 채워서 등급색
-     배경이 보일 틈이 없었다(외곽 매트형 B안 때는 box-shadow가 카드 "바깥"에 있어 상관없었지만,
-     C안은 카드 "안" 여백으로 등급을 보여줘야 함). 여백을 넓혀 등급색 테두리가 또렷이 보이게 */
-  inset: 6px;
+  position: relative;
   z-index: 1;
-  border-radius: 7px;
+  width: 62%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  border: 2px solid #10131c;
+  flex: none;
+}
+.hero-card .face.equip-face {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  background: rgba(0, 0, 0, 0.25);
+}
+.hero-card .hc-name {
+  position: relative;
+  z-index: 1;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.hero-card .hc-sub {
+  position: relative;
+  z-index: 1;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #ffd34d;
 }
 /* §2026-07-30: 원래 .hero-card 안에서만 쓰던 코너 배지를 진영 배지(addFactionBadge)가
    party-slot/ascend-slot/equip-head/detail-head/sfx-card/sfx-new-card로도 재사용하게 되면서
@@ -466,24 +502,8 @@ img.hc-badge {
 }
 .hc-badge-tl { top: 4px; left: 4px; }
 .hero-card .hc-badge-tr { top: 4px; right: 4px; background: var(--amber); color: #10131c; }
-/* §2026-07-30: 하단 전체 폭을 별 한 줄(.hc-star-row)이 차지하게 되면서, 원래 우하단이던 클래스
-   배지는 우상단 Lv 배지 바로 아래로 옮겨 겹침을 피한다 */
-.hero-card .hc-badge-br { top: 24px; right: 4px; }
-/* §2026-07-30: 좌하단 압축 배지("★N") 대신 카드 하단 전체 폭에 별 5개를 축약 없이 한 줄로 —
-   편성중 표시는 기존 .in-party 테두리 색으로만 충분해서 별도 체크 배지는 없앴다 */
-.hc-star-row {
-  position: absolute;
-  z-index: 2;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  text-align: center;
-  font-size: 11px;
-  letter-spacing: 1px;
-  color: #ffd34d;
-  padding: 3px 0 4px;
-  background: linear-gradient(0deg, #10131cd0 0%, #10131c00 100%);
-}
+.hero-card .hc-badge-br { bottom: 4px; right: 4px; }
+.hero-card .hc-badge-bl { bottom: 4px; left: 4px; }
 .hero-card.in-party, .hero-card.selected { border-color: var(--amber); }
 .hero-card.locked { cursor: default; }
 /* UR 카드는 늘 은은하게 번쩍이도록(2026-07-30 요청) — 다른 등급과 달리 유일하게 유지되는
@@ -884,30 +904,11 @@ img.hc-badge {
 .ap-arrow { color: var(--ink3); font-size: 10px; }
 .ap-next { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
 
-/* ── 장비 화면(§장비 시스템 v2 — 획득+장착, 2026-07-29) ──
+/* ── 장비: 영웅 상세화면 "장비" 섹션(§2026-07-30 재구성 — 예전엔 장비 탭 안에서 영웅을 먼저
+ * 고르는 화면이었지만, 이제 장착/해제는 영웅 상세화면으로 옮겼다) ──
  * 레퍼런스(AFK Arena Companions `03-hero-detail-equipment.jpg`, HoC Legends
  * `02-hero-detail-equipment.jpg`)는 캐릭터 좌우에 슬롯을 배치하지만, 420px 좁은 캔버스에서는
  * 기존 party-slot과 같은 가로 5열 행이 더 자연스러워서 그 패턴을 재사용했다 */
-.equip-panel {
-  background: var(--panel2);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 16px;
-}
-.equip-head {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px;
-  border-radius: 10px;
-  margin-bottom: 12px;
-}
-.equip-head .face { position: relative; z-index: 1; width: 52px; height: 52px; border-radius: 12px; border: 2px solid #10131c; flex: none; }
-.equip-head .as-nm { position: relative; z-index: 1; font-size: 15px; font-weight: 700; color: var(--ink); }
-
 /* 6슬롯 = 3열×2행 그리드 — 5슬롯 때는 flex 한 줄로 충분했지만 6개는 420px 폭에서 한 줄에 넣으면
  * 아이콘·등급 글자가 너무 좁아져서(§장비 6종 확장, 2026-07-29) 레퍼런스의 "좌3+우3" 그룹핑을
  * 위아래 3+3으로 바꿔 재현했다 */
