@@ -802,6 +802,18 @@ img.hc-badge {
 }
 .list-card .grow { flex: 1; }
 .list-card .li-icon { width: 28px; height: 28px; object-fit: contain; flex: none; }
+
+/* ── 아레나 대상 선택(§2026-07-30) — 기본공격 차례에 "리스트에서 대상을 골라 공격" ── */
+.arena-target-list { display: flex; flex-direction: column; gap: 6px; }
+.arena-target-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+}
+.arena-target-row .atr-name { font-weight: 700; color: var(--ink); }
+.arena-target-row .atr-hp { color: var(--ink3); font-variant-numeric: tabular-nums; }
 .list-card .t { color: var(--ink); font-size: 13.5px; }
 .list-card .s { color: var(--ink3); font-size: 11.5px; margin-top: 2px; }
 
@@ -1070,22 +1082,23 @@ img.hc-badge {
   display: flex;
   gap: 6px;
   margin-bottom: 12px;
-  flex-wrap: wrap;
 }
+/* §2026-07-30 "진영은 아이콘으로만 표시해서 한 줄로" — 텍스트 라벨을 없애고 정사각 아이콘
+   칩으로 압축해 전체+진영 5종+불명(총 7개)이 줄바꿈 없이 한 줄에 들어가게 함 */
 .f-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 11.5px;
-  padding: 5px 13px 5px 8px;
-  border-radius: 999px;
+  justify-content: center;
+  flex: 1 1 0;
+  padding: 6px 0;
+  border-radius: 10px;
   background: var(--panel2);
   color: var(--ink2);
   border: 1.5px solid var(--line);
   cursor: pointer;
-  white-space: nowrap;
 }
-.fc-icon { width: 15px; height: 15px; object-fit: contain; }
+.fc-icon { width: 18px; height: 18px; object-fit: contain; }
+.fc-icon.fc-icon-emoji { font-size: 15px; line-height: 1; }
 .f-chip.on { background: var(--amber); color: #10131c; font-weight: 700; border-color: var(--amber); }
 .dh-stars { font-size: 12px; color: #ffd34d; letter-spacing: 2px; margin-top: 2px; }
 .asc-row {
@@ -1383,9 +1396,12 @@ img.hc-badge {
   border: 1px dashed var(--line);
   background: var(--panel);
   cursor: default;
+  font: inherit;
+  color: inherit;
 }
 .milestone-chest.ready { border-style: solid; border-color: var(--amber); cursor: pointer; background: rgba(245, 172, 61, 0.12); }
 .milestone-chest.claimed { border-style: solid; opacity: 0.55; }
+.milestone-chest:disabled { cursor: default; }
 .milestone-chest .mc-icon { font-size: 16px; }
 .milestone-chest .mc-pts { font-size: 10px; color: var(--ink3); font-variant-numeric: tabular-nums; }
 .milestone-chest .mc-reward { font-size: 9px; color: var(--ink2); white-space: nowrap; }
@@ -1474,9 +1490,53 @@ img.hc-badge {
   #splash-tap { animation: none; }
 }
 
-/* ── 모험 허브(§메뉴 구조, 2026-07-30) — 요일던전 5선택과 같은 오두막 타일 재사용 ── */
-.adventure-hub-grid { grid-template-columns: repeat(2, 1fr); }
-.adventure-hut { --roof: #f5ac3d; }
+/* ── 모험 허브 배너(§2026-07-30 재설계) — "가로로 한줄에 하나씩 길게" 요청으로 오두막 타일
+ * 대신 마이티 아레나식 가로 배너 3장으로 교체. 정식 일러스트(ASSETS.md 백로그)가 들어오기
+ * 전까지는 모드별 그라디언트+대각선 장식 패턴으로 임시 배너를 만든다 */
+.adventure-banner-list { display: flex; flex-direction: column; gap: 10px; }
+.adventure-banner {
+  position: relative;
+  overflow: hidden;
+  border: none;
+  border-radius: 14px;
+  height: 92px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+.adventure-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.09) 0 10px, transparent 10px 26px),
+    var(--ab-grad);
+}
+.adventure-banner .ab-icon {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: rgba(10, 13, 22, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+.adventure-banner .ab-body { position: relative; z-index: 1; flex: 1; min-width: 0; }
+.adventure-banner .ab-label { font-size: 16px; font-weight: 800; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
+.adventure-banner .ab-flavor { font-size: 11.5px; color: rgba(255, 255, 255, 0.85); margin-top: 2px; }
+.adventure-banner .ab-arrow { position: relative; z-index: 1; flex: none; font-size: 18px; color: rgba(255, 255, 255, 0.8); }
+.adventure-banner.mode-raid { --ab-grad: linear-gradient(120deg, #7a2d1f, #b8471f); }
+.adventure-banner.mode-arena { --ab-grad: linear-gradient(120deg, #3a2166, #7238b0); }
+.adventure-banner.mode-tower { --ab-grad: linear-gradient(120deg, #124a55, #1e8a8f); }
 
 /* ── HUD 클릭형 칩(§마이티 아레나 반영계획 A, 2026-07-29) — 골드/다이아를 누르면 상점으로 이동 */
 .hud-chip.clickable { cursor: pointer; }

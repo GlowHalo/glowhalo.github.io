@@ -73,6 +73,9 @@ const FACTION_ICON: Record<string, string> = {
   빛: "elem-light.png",
   어둠: "elem-dark.png",
 };
+// §2026-07-30 "불명도 아이콘 하나 넣어" — 히든 5종 전용 진영이라 정식 elem-*.png 아이콘이 아직
+// 없어서, 다른 진영과 톤은 다르지만 우선 이모지로 표시(ASSETS.md에 elem-unknown.png 백로그 등록)
+const UNKNOWN_FACTION_ICON = "❓";
 
 /** §카드 표시방식 재정리(2026-07-30, "C안") — 카드 전체 배경을 등급색으로 채운다. 기존엔 이
  * 자리가 진영 배경이었지만(task #37), 진영은 좌상단 코너 배지(addFactionBadge)로 옮기고
@@ -453,6 +456,75 @@ function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean;
   return card;
 }
 
+/** §2026-07-30 "요일던전에 들어가면 편성화면을 띄우자, 파티편성하는 곳이 없네" — 지금까지
+ * 요일던전은 save.party를 그대로 들고 바로 전투를 시작해서 편성을 바꿀 방법이 없었다. 보유·편성
+ * 탭의 5슬롯+보유 영웅 그리드를 그대로 재사용한 팝업으로, 슬롯이나 카드를 누르면 바로 편성이
+ * 토글된다(영웅 상세로 안 들어가고 즉시 반영 — 재료픽커와 같은 "누르면 추가/제거" 패턴) */
+export function openPartyFormationModal(subtitle: string, onConfirm: () => void) {
+  const body = el("div");
+  body.appendChild(el("div", "desc", subtitle));
+
+  const partyRow = el("div", "party-row");
+  const grid = el("div", "hero-grid");
+  const startBtn = el("button", "btn primary btn-cta", "전투 시작") as HTMLButtonElement;
+
+  const refresh = () => {
+    partyRow.innerHTML = "";
+    for (let i = 0; i < PARTY_SIZE; i++) {
+      const id = save.party[i];
+      const hero = id ? PLAYABLE_HEROES.find((h) => h.id === id) : undefined;
+      const slot = el("div", "party-slot" + (hero ? " filled" : ""));
+      if (hero) {
+        setCardGrade(slot, hero.grade);
+        addFactionBadge(slot, hero);
+        const face = el("div", "face");
+        setFace(face, hero);
+        slot.appendChild(face);
+        slot.appendChild(el("div", "ps-lv-badge", `Lv.${getLevel(hero.id)}`));
+        slot.appendChild(el("div", "ps-nm", hero.nameKr.split(" ").pop() ?? ""));
+        slot.onclick = () => {
+          toggleParty(hero.id);
+          refresh();
+        };
+      } else {
+        slot.appendChild(el("div", "ps-empty", "+"));
+      }
+      partyRow.appendChild(slot);
+    }
+
+    grid.innerHTML = "";
+    for (const hero of PLAYABLE_HEROES.filter((h) => (save.owned[h.id] ?? 0) > 0)) {
+      grid.appendChild(
+        buildHeroCard(hero, {
+          selected: inParty(hero.id),
+          onClick: () => {
+            const r = toggleParty(hero.id);
+            if (r === "full") {
+              toast(`편성은 최대 ${PARTY_SIZE}명입니다`);
+              return;
+            }
+            refresh();
+          },
+        })
+      );
+    }
+    startBtn.disabled = save.party.length === 0;
+  };
+  refresh();
+
+  body.appendChild(partyRow);
+  body.appendChild(el("h4", "", "보유 영웅"));
+  body.appendChild(grid);
+
+  const closeBtn = el("button", "btn", "닫기") as HTMLButtonElement;
+  closeBtn.onclick = closeModal;
+  startBtn.onclick = () => {
+    closeModal();
+    onConfirm();
+  };
+  modal("파티 편성", body, [closeBtn, startBtn]);
+}
+
 export function renderHeroes(root: HTMLElement) {
   root.innerHTML = "";
   const rerender = () => renderHeroes(root);
@@ -500,10 +572,14 @@ export function renderHeroes(root: HTMLElement) {
   }
   root.appendChild(partyRow);
 
-  // 진영 시너지 표시
+  // 진영 시너지 표시 — §2026-07-30 버그 수정: 전투(BattleScene.buildTeam)는 실제로 보유 중인
+  // (owned>0) 영웅만 팀에 넣는데, 여기는 그 필터가 빠져있었다. 승급/초월 재료로 마지막 1장이
+  // 소모돼도 save.party 슬롯엔 id가 그대로 남아있을 수 있어서, 화면 표시용 진영 집계가 실제
+  // 전투에 나가는 인원보다 많게(유령 인원 포함) 잡혀 화면과 전투의 시너지 판정이 어긋날 수 있었다
   const partyFactions = save.party
-    .map((id) => PLAYABLE_HEROES.find((h) => h.id === id)?.faction)
-    .filter((f): f is string => !!f);
+    .map((id) => PLAYABLE_HEROES.find((h) => h.id === id))
+    .filter((h): h is Hero => !!h && (save.owned[h.id] ?? 0) > 0)
+    .map((h) => h.faction);
   const synergy = calcFactionSynergy(partyFactions);
   root.appendChild(
     el(
@@ -517,20 +593,24 @@ export function renderHeroes(root: HTMLElement) {
 
   root.appendChild(el("h2", "", "보유 영웅"));
 
-  // 진영 탭 (마이티식)
+  // 진영 탭(마이티식) — §2026-07-30 "아이콘으로만 표시해서 한 줄로 만들자" 요청으로 텍스트
+  // 라벨을 떼고 아이콘 하나만 남겨 한 줄에 다 들어가게 압축. 접근성을 위해 title(호버 텍스트)은
+  // 이름 그대로 남긴다
   const factions = ["전체", ...new Set(PLAYABLE_HEROES.map((h) => h.faction))];
   const ftabs = el("div", "faction-tabs");
   for (const f of factions) {
     const chip = el("button", "f-chip" + (heroFilter === f ? " on" : ""));
+    chip.title = f;
     if (f !== "전체") chip.style.borderColor = FACTION_COLORS[f] ?? "#888";
     const icon = FACTION_ICON[f];
     if (icon) {
       const img = el("img", "fc-icon") as HTMLImageElement;
       img.src = icon;
-      img.alt = "";
+      img.alt = f;
       chip.appendChild(img);
+    } else {
+      chip.appendChild(el("span", "fc-icon fc-icon-emoji", UNKNOWN_FACTION_ICON));
     }
-    chip.appendChild(el("span", "", f));
     chip.onclick = () => {
       heroFilter = f;
       rerender();
@@ -1338,8 +1418,11 @@ export function renderSummon(root: HTMLElement) {
   box.appendChild(orb);
 
   const ticketIcon = CATEGORIES.find((c) => c.kind === selectedKind)!.ticket === "normal" ? "🎫" : "🎟️";
-  // §2026-07-30 무료소환 — 픽업소환은 대상 제외, 일반/고급만 반나절 창마다 1회
-  const freeAvailable = selectedKind !== "pickup" && freeSummonAvailable(selectedKind as FreeSummonKind);
+  // §2026-07-30 무료소환 — 픽업소환은 대상 제외, 일반/고급만 반나절 창마다 1회. 버그 수정: 예전엔
+  // const라 렌더 시점에 한 번만 계산되고, 무료소환을 실제로 쓴 뒤에도 값이 안 바뀌어 "무료 소환"
+  // 라벨+빨간 점이 계속 남아있었다("무료소환을 하고 났는데 빨간점이 안 없어져" 신고) — let으로 바꿔
+  // 소환 성공 콜백에서 재계산+재렌더하도록 수정
+  let freeAvailable = selectedKind !== "pickup" && freeSummonAvailable(selectedKind as FreeSummonKind);
   const btnRow = el("div", "summon-btn-row");
   const single = el("button", "btn primary summon-single-btn") as HTMLButtonElement;
   const ten = el("button", "btn primary", `10회 소환 (${ticketIcon}${TEN_COST})`) as HTMLButtonElement;
@@ -1381,6 +1464,8 @@ export function renderSummon(root: HTMLElement) {
       updatePity();
       updateBannerInfo();
       updatePityRing();
+      freeAvailable = selectedKind !== "pickup" && freeSummonAvailable(selectedKind as FreeSummonKind);
+      renderSingleLabel();
       emit("roster-changed");
     }, (n) => doPull(n));
   };
@@ -1629,9 +1714,13 @@ const TICKET_GEM_PRICE: Record<TicketKind, number> = { normal: 30, premium: 100 
 const TICKET_DISCOUNT_PCT = 0.3;
 const TICKET_DISCOUNT_DAILY_LIMIT = 5;
 
-function ticketDiscountRemaining(): number {
+// §2026-07-30 버그 수정 — "일반소환권과 고급소환권이 수량을 공유하네" 신고 확인 결과, 실제
+// 보유 수량(ticketNormal/ticketPremium)은 애초부터 독립적이었고, 문제는 "오늘의 할인" 구매
+// 일일 한도가 종류 구분 없는 단일 카운터였던 것 — 한쪽을 5번 사면 다른 쪽도 "0/5 남음"으로
+// 막혔다. save.ts에서 종류별 필드로 분리해서 여기서도 kind를 받아 구분한다
+function ticketDiscountRemaining(kind: TicketKind): number {
   const today = new Date().toISOString().slice(0, 10);
-  const bought = save.ticketDiscountDate === today ? save.ticketDiscountBought : 0;
+  const bought = save.ticketDiscountDate[kind] === today ? save.ticketDiscountBought[kind] : 0;
   return Math.max(0, TICKET_DISCOUNT_DAILY_LIMIT - bought);
 }
 
@@ -1640,17 +1729,17 @@ function buyTicket(root: HTMLElement, kind: TicketKind, discounted: boolean) {
   const price = discounted ? Math.round(base * (1 - TICKET_DISCOUNT_PCT)) : base;
   if (discounted) {
     const today = new Date().toISOString().slice(0, 10);
-    if (save.ticketDiscountDate !== today) {
-      save.ticketDiscountDate = today;
-      save.ticketDiscountBought = 0;
+    if (save.ticketDiscountDate[kind] !== today) {
+      save.ticketDiscountDate[kind] = today;
+      save.ticketDiscountBought[kind] = 0;
     }
-    if (save.ticketDiscountBought >= TICKET_DISCOUNT_DAILY_LIMIT) return;
+    if (save.ticketDiscountBought[kind] >= TICKET_DISCOUNT_DAILY_LIMIT) return;
   }
   if (!spendGems(price)) {
     toast("보석이 부족합니다");
     return;
   }
-  if (discounted) save.ticketDiscountBought += 1;
+  if (discounted) save.ticketDiscountBought[kind] += 1;
   persist();
   addTicket(kind, 1);
   toast(`${kind === "normal" ? "일반" : "고급"}소환권 +1`);
@@ -1693,7 +1782,7 @@ export function renderShop(root: HTMLElement) {
     card.appendChild(buyBtn);
     root.appendChild(card);
 
-    const remain = ticketDiscountRemaining();
+    const remain = ticketDiscountRemaining(kind);
     const discPrice = Math.round(TICKET_GEM_PRICE[kind] * (1 - TICKET_DISCOUNT_PCT));
     const discCard = el("div", "list-card");
     discCard.appendChild(el("span", "", "🏷️"));
@@ -1945,7 +2034,10 @@ function renderMilestoneTrack(
   for (const m of opts.track) {
     const claimed = opts.claimed(m.points);
     const ready = opts.claimable(m.points);
-    const chest = el("div", "milestone-chest" + (claimed ? " claimed" : ready ? " ready" : ""));
+    // §2026-07-30 "버튼이 없는 곳이 많다" 신고 — 이 상자는 onclick만 있는 <div>라 클릭 가능
+    // 여부가 눈에 안 보였다. <button>으로 바꿔 disabled 상태로 명확한 클릭 가능/불가 신호를 준다
+    const chest = el("button", "milestone-chest" + (claimed ? " claimed" : ready ? " ready" : "")) as HTMLButtonElement;
+    chest.disabled = !ready;
     chest.appendChild(el("div", "mc-icon", claimed ? "✅" : ready ? "🎁" : "🔒"));
     chest.appendChild(el("div", "mc-pts", `${m.points}`));
     chest.appendChild(el("div", "mc-reward", rewardText(m.reward)));
