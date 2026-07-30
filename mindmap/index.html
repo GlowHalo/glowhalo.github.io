@@ -206,6 +206,7 @@
     <button class="btn" id="btn-library">📂 <span id="active-name">마인드맵</span></button>
     <div class="lib-panel" id="lib-panel"></div>
   </div>
+  <button class="btn" id="btn-save-as" title="이름을 정해서 목록에 저장">💾 저장</button>
   <button class="btn icon" id="btn-zoom-out" title="축소">－</button>
   <button class="btn icon" id="btn-zoom-in" title="확대">＋</button>
   <button class="btn" id="btn-fit">화면 맞춤</button>
@@ -234,12 +235,27 @@
   </div>
 </div>
 
+<div class="modal-backdrop" id="name-modal">
+  <div class="modal-card">
+    <div class="modal-head">마인드맵 이름</div>
+    <div class="modal-body">
+      <input type="text" id="name-input" placeholder="이름을 입력하세요"
+        style="width:100%; box-sizing:border-box; padding:8px 10px; border:1px solid #E4E4E9; border-radius:8px; font-family:'Noto Sans KR',sans-serif; font-size:13px; outline:none;" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="name-cancel">취소</button>
+      <button class="btn primary" id="name-save">저장</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function () {
   'use strict';
 
   var LIBRARY_KEY = 'mindmap-library-v1';
   var LEGACY_KEY = 'mindmap-autosave-v1';
+  var BUILD_VERSION = '4'; // bump on every deploy so freshly-copied share links skip stale browser/in-app-webview caches
   var COL_W = 240, ROW_H = 120, NODE_W = 180, NODE_H = 96, PAD = 80;
   var DEPTH_COLORS = ['#14151A', '#4C6FFF', '#2E8B57', '#F2994A', '#EB5757', '#9B51E0'];
 
@@ -420,12 +436,13 @@
   function renameMindmap(id) {
     var item = library.items.filter(function (it) { return it.id === id; })[0];
     if (!item) return;
-    var name = prompt('이름을 입력하세요', item.name);
-    if (name === null) return;
-    item.name = name.trim() || item.name;
-    saveLibrary();
-    updateActiveNameLabel();
-    renderLibraryPanel();
+    askName(item.name, function (newName) {
+      if (newName === null) return;
+      item.name = newName;
+      saveLibrary();
+      updateActiveNameLabel();
+      renderLibraryPanel();
+    });
   }
 
   function deleteMindmap(id) {
@@ -480,6 +497,38 @@
     showToast._t = setTimeout(function () {
       toastEl.classList.remove('show');
     }, 2600);
+  }
+
+  // ---------- name modal (custom, not native prompt() — same reason as the import modal) ----------
+
+  var nameModal = document.getElementById('name-modal');
+  var nameInput = document.getElementById('name-input');
+  var nameModalCallback = null;
+
+  function askName(currentName, callback) {
+    nameInput.value = currentName || '';
+    nameModalCallback = callback;
+    nameModal.classList.add('open');
+    requestAnimationFrame(function () { nameInput.focus(); nameInput.select(); });
+  }
+
+  function closeNameModal(result) {
+    nameModal.classList.remove('open');
+    var cb = nameModalCallback;
+    nameModalCallback = null;
+    if (cb) cb(result);
+  }
+
+  function saveAs() {
+    var item = getActiveItem();
+    askName(item.name, function (newName) {
+      if (newName === null) return;
+      item.name = newName;
+      saveLibrary();
+      updateActiveNameLabel();
+      renderLibraryPanel();
+      showToast('"' + newName + '" 이름으로 저장했어요.');
+    });
   }
 
   // ---------- mutations ----------
@@ -790,7 +839,7 @@
 
   function copyShareLink() {
     saveActive();
-    var url = location.href;
+    var url = location.origin + location.pathname + '?b=' + BUILD_VERSION + location.hash;
     var done = function () { showToast('공유 링크를 복사했어요. 다른 브라우저·기기에 붙여넣으면 지금 상태 그대로 보여요.'); };
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(url).then(done, function () { fallbackCopy(url, done); });
@@ -1032,6 +1081,19 @@
 
   document.getElementById('import-accept').addEventListener('click', acceptImport);
   document.getElementById('import-decline').addEventListener('click', declineImport);
+
+  document.getElementById('btn-save-as').addEventListener('click', saveAs);
+  document.getElementById('name-save').addEventListener('click', function () {
+    closeNameModal(nameInput.value.trim() || null);
+  });
+  document.getElementById('name-cancel').addEventListener('click', function () {
+    closeNameModal(null);
+  });
+  nameInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); closeNameModal(nameInput.value.trim() || null); }
+    else if (e.key === 'Escape') { e.preventDefault(); closeNameModal(null); }
+    e.stopPropagation();
+  });
 
   // ---------- init ----------
   loadInitial();
