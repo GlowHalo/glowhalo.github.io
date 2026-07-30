@@ -8,10 +8,11 @@ import {
 } from "../state/save";
 import { track } from "../systems/missions";
 import { todayFaction, requiredFaction, raidKills, applyRaidKill, raidBossName } from "../systems/raid";
-import { toast } from "../ui/shell";
+import { toast, modal, closeModal } from "../ui/shell";
 import { on, emit } from "../state/bus";
 import {
   act,
+  aliveOf,
   applyAuras,
   attackIntervalMs,
   calcFactionSynergy,
@@ -132,7 +133,15 @@ export class BattleScene extends Phaser.Scene {
   private views = new Map<Unit, UnitView>();
   private stage = 1;
   private wave = 1;
-  private speedMult = 2;
+  // §2026-07-30 "마이티아레나 2배속이 우리 1배속쯤 되는 것 같다, 전략을 보려면 전투화면을
+  // 유심히 보고 싶을 것" — 버튼에 보이는 배속 표기(x1/x2/x3)는 그대로 두되, 실제 물리 배속만
+  // 절반으로 낮춰서 체감 속도를 전반적으로 늦춘다(기존 x1 pacing이 새 x2에서 재현됨). 이렇게
+  // 하면 아래 수십 곳의 `/ this.speedMult`·`delta * this.speedMult` 계산을 하나도 안 건드리고
+  // speedTier→speedMult 변환 지점 하나만 고치면 된다
+  private speedTier = 2;
+  private get speedMult(): number {
+    return this.speedTier * 0.5;
+  }
   private battleOver = false;
   /** UR 필살기 컷인 재생 중엔 true — 그동안 실시간 모드의 다른 유닛 행동을 멈춰서 컷인이 다른
    * 유닛 움직임과 뒤섞여 어수선해 보이지 않게 한다(§공격모션 버그 수정) */
@@ -149,6 +158,13 @@ export class BattleScene extends Phaser.Scene {
 
   /** 필살기 컷인(§11) 대상 판별용 — UR 등급만 풀스크린 연출 특권을 가진다 */
   private urHeroIds = new Set(PLAYABLE_HEROES.filter((h) => h.grade === "UR").map((h) => h.id));
+  // §2026-07-30 "스킬쓸때 영웅 모션이바뀌어야하는데 마초 기준 중앙에 크게 확대되어버림" — UR
+  // 등급이면 매 3번째 행동(=매 스킬 시전)마다 화면 전체를 덮는 필살기 컷인이 반복 재생되던
+  // 버그. 원래 이 컷인은 §11 "킬러 콘텐츠"로 설계된 특별 연출인데, 등급만으로 판정하다 보니
+  // 평범한 주기 스킬 시전(예: 마초의 "기마 돌격")까지 전부 풀스크린 줌으로 처리되고 있었다.
+  // 웨이브당 1회로 제한해 "이 영웅의 필살기 등장" 순간으로 되돌리고, 그 외 스킬 시전은 다른
+  // 등급과 동일하게 castGlow+lunge(시전 이펙트+돌진 모션)만 재생한다
+  private ultimateCutinPlayedThisWave = new Set<string>();
   private isUrHero(heroId?: string): boolean {
     return !!heroId && this.urHeroIds.has(heroId);
   }
@@ -231,8 +247,8 @@ export class BattleScene extends Phaser.Scene {
       .setOrigin(0, 1)
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
-        this.speedMult = this.speedMult === 3 ? 1 : this.speedMult + 1;
-        this.speedBtn.setText(`▶ x${this.speedMult}`);
+        this.speedTier = this.speedTier === 3 ? 1 : this.speedTier + 1;
+        this.speedBtn.setText(`▶ x${this.speedTier}`);
       });
 
     // 편성·레벨이 바뀌면 다음 웨이브부터 반영 (뽑기만으로는 합류하지 않음)
@@ -371,6 +387,7 @@ export class BattleScene extends Phaser.Scene {
     this.views.clear();
     this.battleOver = false;
     this.cutinActive = false; // 안전장치: 모드 전환/웨이브 재시작 시 이전 컷인 플래그가 남아있지 않게
+    this.ultimateCutinPlayedThisWave.clear();
 
     // 소환으로 영웅이 늘었으면 다음 웨이브부터 합류
     if (this.rosterDirty) {
@@ -553,16 +570,18 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  /** 한 유닛의 행동 1회를 실행(액티브/기본공격 → 모션·이펙트 → 결과 표시). 전투가 끝났으면 true 반환 */
-  private resolveUnitAction(unit: Unit, now: number): boolean {
+  /** 한 유닛의 행동 1회를 실행(액티브/기본공격 → 모션·이펙트 → 결과 표시). 전투가 끝났으면 true 반환.
+   * forceTargetKey(§2026-07-30 아레나 대상 선택)는 그대로 act()에 전달 — 기본공격에만 적용됨 */
+  private resolveUnitAction(unit: Unit, now: number, forceTargetKey?: string): boolean {
     const allies = unit.isHero ? this.heroes : this.enemies;
     const foes = unit.isHero ? this.enemies : this.heroes;
     // 스킬 사용 여부를 act() 호출 전에 미리 예측(actionCount는 act() 내부에서 증가) — 시전 이펙트용
     const isSkillCast = !!unit.heroId && (unit.actionCount + 1) % SKILL_EVERY_N_ACTIONS === 0;
-    const isUrCast = isSkillCast && this.isUrHero(unit.heroId);
-    const results = act(unit, allies, foes, now);
+    const isUrCast = isSkillCast && this.isUrHero(unit.heroId) && !this.ultimateCutinPlayedThisWave.has(unit.heroId!);
+    const results = act(unit, allies, foes, now, forceTargetKey);
     if (results.length > 0) {
       if (isUrCast) {
+        this.ultimateCutinPlayedThisWave.add(unit.heroId!);
         this.ultimateCutin(unit);
         this.delayed(70 / this.speedMult, () => this.lunge(unit, results[0].kind));
       } else if (isSkillCast) {
@@ -605,17 +624,64 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
 
-    const now = this.time.now * this.speedMult;
     const isSkillCast = !!unit.heroId && (unit.actionCount + 1) % SKILL_EVERY_N_ACTIONS === 0;
-    const isUrCast = isSkillCast && this.isUrHero(unit.heroId);
-    const battleEnded = this.resolveUnitAction(unit, now);
-    if (battleEnded) return;
+    const isUrCast = isSkillCast && this.isUrHero(unit.heroId) && !this.ultimateCutinPlayedThisWave.has(unit.heroId!);
 
-    // 다음 턴은 이번 행동의 모션(시전 예고+돌진 애니메이션)이 다 끝난 뒤 시작 — 턴이 겹쳐 보이지 않도록
-    // UR 필살기 컷인은 연출이 훨씬 길어서(§11) 별도 여유를 더 준다
-    const animMs = isUrCast ? 70 + 620 : isSkillCast ? 70 + 240 : 240;
-    const gap = Math.max(animMs + 140, 300);
-    this.delayed(gap / this.speedMult, () => this.stepTurn());
+    const proceed = (forceTargetKey?: string) => {
+      // now는 실제로 행동을 처리하는 시점에 다시 계산 — 대상 선택 대기 중 흐른 시간이
+      // 도발/기절 등 시간 비교 로직에 반영되도록
+      const now = this.time.now * this.speedMult;
+      const battleEnded = this.resolveUnitAction(unit, now, forceTargetKey);
+      if (battleEnded) return;
+
+      // 다음 턴은 이번 행동의 모션(시전 예고+돌진 애니메이션)이 다 끝난 뒤 시작 — 턴이 겹쳐 보이지 않도록
+      // UR 필살기 컷인은 연출이 훨씬 길어서(§11) 별도 여유를 더 준다
+      const animMs = isUrCast ? 70 + 620 : isSkillCast ? 70 + 240 : 240;
+      const gap = Math.max(animMs + 140, 300);
+      this.delayed(gap / this.speedMult, () => this.stepTurn());
+    };
+
+    // §2026-07-30 "아레나에서 리스트로 대상을 선택해 공격" — 아레나 모드의 영웅 기본공격
+    // 차례에서만 대상을 직접 고르게 한다(스킬 차례는 영웅별 고유 타게팅이라 제외)
+    if (this.mode === "arena" && unit.isHero && !isSkillCast) {
+      this.promptArenaTarget(unit, proceed);
+      return;
+    }
+    proceed();
+  }
+
+  /** 아레나 기본공격 차례에 "공격할 대상을 고르세요" 목록을 띄우고, 고른 유닛의 key를 넘겨
+   * onPicked를 호출한다. 살아있는 적이 하나뿐이면 굳이 물어보지 않고 바로 진행 */
+  private promptArenaTarget(attacker: Unit, onPicked: (targetKey?: string) => void) {
+    const foes = aliveOf(this.enemies);
+    if (foes.length <= 1) {
+      onPicked(foes[0]?.key);
+      return;
+    }
+    const body = document.createElement("div");
+    body.className = "arena-target-list";
+    let picked = false;
+    const pick = (key: string) => {
+      if (picked) return;
+      picked = true;
+      closeModal();
+      onPicked(key);
+    };
+    for (const foe of foes) {
+      const row = document.createElement("button");
+      row.className = "btn arena-target-row";
+      const pct = Math.max(0, Math.round((foe.hp / foe.maxHp) * 100));
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "atr-name";
+      nameSpan.textContent = foe.name;
+      const hpSpan = document.createElement("span");
+      hpSpan.className = "atr-hp";
+      hpSpan.textContent = `HP ${pct}%`;
+      row.append(nameSpan, hpSpan);
+      row.onclick = () => pick(foe.key);
+      body.appendChild(row);
+    }
+    modal(`${attacker.name} — 공격할 대상을 선택하세요`, body);
   }
 
   /** 예비동작(살짝 뒤로) → 돌진 → 탄성있게 복귀하는 3단 트윈 + 스쿼시&스트레치로 타격감 강화 */

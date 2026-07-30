@@ -29,6 +29,11 @@ export const REVERSED_FACING_KEYS = new Set([
   "slime_green_001",
   "boss_slime_001",
   "tower_guardian_001",
+  // §2026-07-30 추가 — 위 전수 확인표 이후 실전에서 발견된 예외 2건. 서큐버스는 원화가 창을
+  // 왼쪽으로 겨눈 자세라 확인 즉시 판정 가능했고(적일 때 우측을 보던 버그 재현), 임프는 정면에
+  // 가까운 포즈라 확언하기 어려웠지만 "무한의 탑에서 오른쪽을 보고 있다"는 직접 보고를 그대로 반영
+  "succubus_dark_001",
+  "imp_001",
 ]);
 
 export function isReversedFacing(id: string): boolean {

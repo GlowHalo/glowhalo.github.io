@@ -140,9 +140,12 @@ export interface SaveState {
   /** 소환권 — §마이티 아레나 반영계획 4(2026-07-30): 소환은 보석이 아니라 이 두 티켓으로 뽑는다 */
   ticketNormal: number;
   ticketPremium: number;
-  /** YYYY-MM-DD + 오늘 구매한 할인 티켓 수 — 상점의 "오늘의 할인 소환권" 일일 한도 추적용 */
-  ticketDiscountDate: string;
-  ticketDiscountBought: number;
+  /** YYYY-MM-DD + 오늘 구매한 할인 티켓 수 — 상점의 "오늘의 할인 소환권" 일일 한도 추적용.
+   * §2026-07-30 버그 수정 — 예전엔 단일 필드라 일반/고급 소환권이 할인 구매 한도를 공유했다
+   * (한쪽을 5번 사면 다른 쪽도 "0/5 남음"으로 막힘). freeSummonWindow와 같은 패턴으로 종류별로
+   * 분리 */
+  ticketDiscountDate: { normal: string; premium: string };
+  ticketDiscountBought: { normal: number; premium: number };
   /** heroId -> 초월 단계(0~5, 보라색 별). 5성 각성 이후의 확장 성장 트랙(§마이티 아레나
    * 반영계획 5, 2026-07-30) — 별도 필드로 관리해 기존 stars(금별 1~5)와 안 섞이게 한다 */
   transcend: Record<string, number>;
@@ -183,8 +186,8 @@ const DEFAULTS: SaveState = {
   enhanceStone: 0,
   ticketNormal: 5,
   ticketPremium: 3,
-  ticketDiscountDate: "",
-  ticketDiscountBought: 0,
+  ticketDiscountDate: { normal: "", premium: "" },
+  ticketDiscountBought: { normal: 0, premium: 0 },
   transcend: {},
   freeSummonWindow: { normal: "", premium: "" },
 };
@@ -199,7 +202,20 @@ function load(): SaveState {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return structuredClone(DEFAULTS);
-    const s = { ...structuredClone(DEFAULTS), ...(JSON.parse(raw) as Partial<SaveState>) };
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    // §2026-07-30 마이그레이션 — ticketDiscountDate/Bought가 예전엔 일반/고급 공유 단일값이었다가
+    // 종류별 분리(버그 수정)됐다. 예전 세이브는 문자열/숫자 그대로 남아있으므로 두 종류에 같은
+    // 값을 복제해 넣어준다(그날 이미 한도를 다 썼다면 새 구조에서도 그대로 소진된 채 시작 — 다음
+    // 리셋 때 자연히 맞춰짐)
+    if (typeof parsed.ticketDiscountDate === "string") {
+      const v = parsed.ticketDiscountDate;
+      parsed.ticketDiscountDate = { normal: v, premium: v };
+    }
+    if (typeof parsed.ticketDiscountBought === "number") {
+      const v = parsed.ticketDiscountBought;
+      parsed.ticketDiscountBought = { normal: v, premium: v };
+    }
+    const s = { ...structuredClone(DEFAULTS), ...(parsed as Partial<SaveState>) };
     s.equipInventory = s.equipInventory.map(normalizeEquipItem);
     for (const heroId of Object.keys(s.equipped)) {
       const slots = s.equipped[heroId];
