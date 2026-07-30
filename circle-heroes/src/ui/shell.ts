@@ -702,6 +702,11 @@ export function buildShell() {
   on("battle-mode-changed", (m) => {
     battleMode = m as string;
     if (currentTab === "battle") renderSubbar();
+    // §2026-07-30: BattleScene이 자체적으로 스테이지로 되돌아가는 경우가 있다(예: 요일던전인데
+    // 편성에 상성 진영 영웅이 없으면 startRaid()가 조용히 stage로 폴백) — 그때 사용자는 여전히
+    // "모험" 탭에 있는데 화면 내용은 스테이지(전투 탭 소관)로 바뀌어버리는 불일치가 생긴다.
+    // 탭바 표시를 실제 콘텐츠에 맞춰 전투 탭으로 같이 옮겨준다
+    if (m === "stage" && currentTab === "adventure") switchTab("battle");
   });
   switchTab(currentTab);
 
