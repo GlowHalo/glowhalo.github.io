@@ -70,7 +70,6 @@
   white-space: nowrap;
 }
 .hud-icon { width: 12px; height: 12px; object-fit: contain; flex: none; }
-.hud-power-icon { font-size: 10px; line-height: 1; flex: none; }
 .hud-power { color: #ffd9a0; }
 
 /* ── 우상단 플로팅 ── */
@@ -145,7 +144,7 @@
   inset: 0;
   background: var(--bg);
   overflow-y: auto;
-  padding: 8px 14px 16px;
+  padding: 8px 14px 10px;
   pointer-events: auto;
   display: none;
 }
@@ -153,9 +152,9 @@
 .screen h2 {
   font-size: 17px;
   color: var(--ink);
-  margin: 8px 0 4px;
+  margin: 6px 0 3px;
 }
-.screen .desc { font-size: 12.5px; color: var(--ink3); margin: 0 0 14px; }
+.screen .desc { font-size: 12.5px; color: var(--ink3); margin: 0 0 8px; }
 
 /* 전투 탭은 캔버스가 비치도록 투명 */
 #screen-battle { background: none; pointer-events: none; }
@@ -231,20 +230,27 @@
   background: rgba(6, 10, 20, 0.72);
   pointer-events: auto;
   z-index: 50;
-  padding: 24px;
+  /* §2026-07-30 "스크롤 없이 한 화면에" 대응으로 .modal max-height를 90vh까지 늘렸더니, 내용이
+     꽉 찬 모달(영웅 상세 등)의 둥근 아래 모서리가 하단 탭바 위에 살짝 걸치는 경우가 생겼다
+     (탭바 자체 높이만큼 아래 여백을 더 줘서 모달이 탭바 영역을 절대 침범하지 않게 함) */
+  padding: 24px 24px calc(24px + 62px + env(safe-area-inset-bottom)) 24px;
 }
 #modal-root.on { display: flex; }
 .modal {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 14px;
-  padding: 20px 22px;
+  padding: 14px 16px;
   max-width: 340px;
   width: 100%;
-  max-height: 78vh;
+  /* §2026-07-30 "스크롤 없이 한 화면에" — 78vh는 영웅 상세처럼 내용이 많은 모달에서 스크롤을
+     강제했다. 모달 바깥 여백(#modal-root padding:24px)을 고려해도 실질적으로 쓸 수 있는
+     세로 공간이라 90vh로 늘려 대부분의 실기기 뷰포트에서 스크롤 없이 들어가게 함 */
+  max-height: 90vh;
   overflow-y: auto;
 }
 .modal h3 { margin: 0 0 8px; font-size: 16px; color: var(--ink); }
+.modal h4 { margin: 8px 0 6px; font-size: 12.5px; color: var(--ink3); }
 .modal p { margin: 0 0 14px; font-size: 13px; color: var(--ink2); }
 .modal .row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
 .modal .row .btn { flex: 1 1 auto; }
@@ -320,7 +326,7 @@
   padding: 10px 12px;
   cursor: pointer;
 }
-.mail-kind { font-size: 16px; flex: none; }
+.mail-kind { width: 20px; height: 20px; object-fit: contain; flex: none; }
 .mail-title { flex: 1; font-size: 13px; font-weight: 700; color: var(--ink); }
 .mail-row.read .mail-title { color: var(--ink3); font-weight: 600; }
 .mail-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); flex: none; }
@@ -392,6 +398,9 @@
 .power-row h2 { margin: 0; }
 .power-chip {
   flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   font-size: 12.5px;
   font-weight: 700;
   color: var(--amber);
@@ -402,6 +411,7 @@
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+.power-chip img { width: 13px; height: 13px; object-fit: contain; flex: none; }
 
 .synergy-line {
   font-size: 11.5px;
@@ -528,6 +538,7 @@ img.hc-badge {
   border-radius: 999px;
   padding: 3px 6px;
 }
+.hero-card .hc-lock img { width: 12px; height: 12px; display: block; object-fit: contain; }
 /* 도감 그리드 — 등급 구분선 사이에 촘촘하게 배치 */
 .codex-divider {
   display: flex;
@@ -621,7 +632,7 @@ img.hc-badge {
   align-items: center;
   justify-content: center;
 }
-.banner-info { margin-bottom: 12px; text-align: center; }
+.banner-info { margin-bottom: 8px; text-align: center; }
 .banner-info-flavor { font-size: 12px; color: var(--ink2); margin-bottom: 2px; }
 .banner-info-pity { font-size: 11.5px; color: var(--ink3); }
 .banner-info-pity b { color: var(--amber); }
@@ -631,19 +642,22 @@ img.hc-badge {
   background: radial-gradient(circle at 50% 30%, #2a2450, #141c30 75%);
   border: 1px solid var(--line);
   border-radius: 14px;
-  padding: 22px 16px;
+  padding: 14px 16px;
   text-align: center;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 .summon-btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 .summon-btn-row .btn { flex: 1 1 auto; min-width: 128px; }
 
-/* 소환 연출 — "카드 한 장을 뽑는다" 느낌: 뒤에 카드 몇 장이 겹쳐 있고, 맨 앞 카드가 빛나며 대기 */
+/* 소환 연출 — "카드 한 장을 뽑는다" 느낌: 뒤에 카드 몇 장이 겹쳐 있고, 맨 앞 카드가 빛나며 대기.
+   §2026-07-30 "스크롤 없이 한 화면에" — 픽업소환 카테고리는 후보 3명 줄이 추가로 붙어 다른
+   카테고리보다 세로로 더 길어지므로, 모든 카테고리 공통인 오브 크기 자체를 살짝 줄여 여유를
+   만든다(92×128 → 80×112) */
 .orb {
   position: relative;
-  width: 92px;
-  height: 128px;
-  margin: 10px auto 20px;
+  width: 80px;
+  height: 112px;
+  margin: 8px auto 12px;
 }
 .orb-card {
   position: absolute;
@@ -779,14 +793,15 @@ img.hc-badge {
   background: var(--panel2);
   border: 1px solid var(--line);
   border-radius: 10px;
-  padding: 13px 14px;
-  margin-bottom: 9px;
+  padding: 7px 12px;
+  margin-bottom: 4px;
   display: flex;
   align-items: center;
   gap: 12px;
   font-size: 13px;
 }
 .list-card .grow { flex: 1; }
+.list-card .li-icon { width: 28px; height: 28px; object-fit: contain; flex: none; }
 .list-card .t { color: var(--ink); font-size: 13.5px; }
 .list-card .s { color: var(--ink3); font-size: 11.5px; margin-top: 2px; }
 
@@ -915,10 +930,12 @@ img.hc-badge {
 .equip-slot-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 6px;
 }
+/* §2026-07-30 "상세화면 한 화면에" — 카드형 3:4 비율은 이 6칸짜리 유틸리티 그리드에선 세로를
+   과하게 잡아먹어서(영웅 상세 모달 오버플로의 최대 원인) 정사각(1:1)으로 압축 */
 .equip-slot-box {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 1 / 1;
   background: var(--panel);
   border: 1px dashed var(--line);
   border-radius: 10px;
@@ -926,7 +943,7 @@ img.hc-badge {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2px;
   cursor: pointer;
   text-align: center;
   padding: 4px;
@@ -963,8 +980,8 @@ img.hc-badge {
   display: flex;
   gap: 12px;
   align-items: center;
-  margin-bottom: 12px;
-  padding: 10px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
   border-radius: 12px;
 }
 .detail-head .face {
@@ -1008,11 +1025,16 @@ img.hc-badge {
   border-radius: 14px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
 }
+/* §2026-07-30 "상세화면 한 화면에" — 5개 스탯을 세로 5줄 대신 2열 그리드로(치명타만 넓어서
+   전체폭 한 줄) 압축, 영웅 상세 모달의 세로 길이를 크게 줄인다 */
 .stat-box {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 14px;
   background: #141c30;
   border-radius: 9px;
-  padding: 10px 12px;
-  margin-bottom: 10px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
 }
 .stat-row {
   display: flex;
@@ -1020,10 +1042,12 @@ img.hc-badge {
   font-size: 12.5px;
   padding: 2.5px 0;
 }
+.stat-row.stat-row-wide { grid-column: 1 / -1; }
 .stat-row .sl { color: var(--ink3); white-space: nowrap; flex-shrink: 0; }
 .stat-row .sv { color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; flex-shrink: 0; margin-left: 8px; }
-.skill-box { margin-bottom: 10px; }
-.skill-box .sk { font-size: 11.5px; color: var(--ink2); padding: 3px 0; }
+.skill-box { margin-bottom: 8px; }
+.skill-box .sk { display: flex; align-items: flex-start; gap: 5px; font-size: 11.5px; color: var(--ink2); padding: 2px 0; line-height: 1.3; }
+.skill-box .sk img { width: 14px; height: 14px; object-fit: contain; flex: none; margin-top: 1px; }
 
 /* ── 상성 관계 안내(§10) ── */
 .matchup-box {
@@ -1031,8 +1055,8 @@ img.hc-badge {
   gap: 14px;
   background: #141c30;
   border-radius: 9px;
-  padding: 8px 12px;
-  margin-bottom: 10px;
+  padding: 6px 12px;
+  margin-bottom: 8px;
 }
 .mu-row { display: flex; align-items: center; gap: 5px; font-size: 12px; }
 .mu-arrow { font-size: 10px; }
@@ -1326,7 +1350,7 @@ img.hc-badge {
   height: 5px;
   background: #10131c;
   border-radius: 3px;
-  margin: 5px 0 3px;
+  margin: 3px 0 2px;
   overflow: hidden;
 }
 .mbar-fill {
@@ -1342,11 +1366,11 @@ img.hc-badge {
   background: var(--panel2);
   border: 1px solid var(--line);
   border-radius: 10px;
-  padding: 12px 14px;
-  margin-bottom: 12px;
+  padding: 6px 12px;
+  margin-bottom: 6px;
 }
 .milestone-title { font-size: 12.5px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
-.milestone-bar { margin: 6px 0 10px; }
+.milestone-bar { margin: 4px 0 6px; }
 .milestone-chests { display: flex; gap: 6px; }
 .milestone-chest {
   flex: 1;
@@ -1354,7 +1378,7 @@ img.hc-badge {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 6px 2px;
+  padding: 4px 2px;
   border-radius: 8px;
   border: 1px dashed var(--line);
   background: var(--panel);
@@ -1522,10 +1546,10 @@ img.hc-badge {
 .summon-cat-desc { text-align: center; margin-bottom: 10px; }
 
 /* ── 픽업소환 영웅 선택(§마이티 아레나 반영계획 4) — 후보 3명 중 1명 고르면 그 영웅만 확률 UP ── */
-.pickup-select-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 12px; }
+.pickup-select-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 8px; }
 .pickup-select-slot {
   position: relative;
-  width: 84px;
+  width: 72px;
   aspect-ratio: 3 / 4;
   border-radius: 12px;
   border: 2px solid var(--line);
