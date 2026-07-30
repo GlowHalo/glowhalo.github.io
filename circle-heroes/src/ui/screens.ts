@@ -19,7 +19,7 @@ import {
   GRADE_WEIGHT, NORMAL_GRADE_WEIGHT, PICKUP_RATE_UP, gradeRosterCount,
   freeSummonAvailable, type FreeSummonKind,
 } from "../systems/gacha";
-import { calcFactionSynergy, partyPower, FACTION_STRONG_AGAINST, FACTION_WEAK_AGAINST } from "../systems/battle";
+import { calcFactionSynergy, partyPower, FACTION_STRONG_AGAINST, FACTION_WEAK_AGAINST, REAL_FACTIONS } from "../systems/battle";
 import {
   DAILY_MISSIONS, ALL_CLEAR_KEY, ALL_CLEAR_BONUS,
   missionProgress, isClaimed, claimable, claim, track,
@@ -93,6 +93,14 @@ const GRADE_CARD_BG: Record<string, string> = {
 function setCardGrade(card: HTMLElement, grade: string) {
   card.style.background = GRADE_CARD_BG[grade] ?? GRADE_CARD_BG["Unknown"];
   card.classList.toggle("grade-shimmer-ur", grade === "UR");
+}
+
+/** 상점/우편함 등 리스트 카드 맨 앞 아이콘(§2026-07-30 이미지 반영) 공용 헬퍼 */
+function liIcon(src: string): HTMLElement {
+  const img = el("img", "li-icon") as HTMLImageElement;
+  img.src = src;
+  img.alt = "";
+  return img;
 }
 
 /** 진영을 좌상단 코너 배지(아이콘)로 표시 — 마이티 아레나 참고 배치 */
@@ -194,6 +202,23 @@ function renderAscendPreview(hero: Hero): HTMLElement {
   return box;
 }
 
+/** 레벨업 "누르고 있으면 연속 진행"(§2026-07-30) — 버튼 자체가 재생성돼도(레벨업마다
+ * openHeroDetail을 다시 그린다) 타이머는 이 모듈 스코프 변수에 남아있어 끊기지 않는다.
+ * 정지 리스너는 window에 한 번만 붙여 모달을 열 때마다 중첩 등록되지 않게 한다 */
+let levelHoldTimer: number | null = null;
+let levelHoldInterval: number | null = null;
+function stopLevelHold() {
+  if (levelHoldTimer !== null) { window.clearTimeout(levelHoldTimer); levelHoldTimer = null; }
+  if (levelHoldInterval !== null) { window.clearInterval(levelHoldInterval); levelHoldInterval = null; }
+}
+let levelHoldListenersReady = false;
+function ensureLevelHoldListeners() {
+  if (levelHoldListenersReady) return;
+  levelHoldListenersReady = true;
+  window.addEventListener("pointerup", stopLevelHold);
+  window.addEventListener("pointercancel", stopLevelHold);
+}
+
 /** 영웅 카드 일러스트 전체화면 뷰(§11) */
 function openIllustration(hero: Hero) {
   const overlay = el("div", "illust-overlay");
@@ -235,17 +260,27 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
   head.appendChild(info);
   body.appendChild(head);
 
+  // §2026-07-30 "상세화면을 스크롤 없이 한 화면에" 요청으로 5줄 세로 목록 대신 2열 그리드로
+  // 압축(HP/공격/방어/속도는 2×2, 치명타만 폭이 넓어 아래 한 줄 전체를 차지)
   const stats = el("div", "stat-box");
   stats.appendChild(statLine("체력", `${Math.round(hero.baseHp * mult).toLocaleString()}`));
   stats.appendChild(statLine("공격", `${Math.round(hero.baseAtk * mult).toLocaleString()}`));
   stats.appendChild(statLine("방어", `${Math.round(hero.baseDef * mult).toLocaleString()}`));
   stats.appendChild(statLine("속도", `${hero.baseSpd}`));
-  stats.appendChild(statLine("치명타", `${hero.critRate}% (피해 ${hero.critDmg}%)`));
+  const critRow = statLine("치명타", `${hero.critRate}% (피해 ${hero.critDmg}%)`);
+  critRow.classList.add("stat-row-wide");
+  stats.appendChild(critRow);
   body.appendChild(stats);
 
   const skills = el("div", "skill-box");
-  skills.appendChild(el("div", "sk", `⚔️ ${hero.skill1Name} — ${hero.skill1Desc}`));
-  skills.appendChild(el("div", "sk", `🛡 ${hero.skill2Name} — ${hero.skill2Desc}`));
+  const sk1 = el("div", "sk");
+  sk1.appendChild(liIcon("skill-attack.png"));
+  sk1.appendChild(el("span", "", `${hero.skill1Name} — ${hero.skill1Desc}`));
+  skills.appendChild(sk1);
+  const sk2 = el("div", "sk");
+  sk2.appendChild(liIcon("skill-defense.png"));
+  sk2.appendChild(el("span", "", `${hero.skill2Name} — ${hero.skill2Desc}`));
+  skills.appendChild(sk2);
   body.appendChild(skills);
 
   const strong = FACTION_STRONG_AGAINST[hero.faction];
@@ -284,25 +319,46 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
     body.appendChild(el("p", "", "⭐ 최대 성급 달성"));
   }
 
+  // §2026-07-30 "누르고 있으면 연속 레벨업" — pointerdown에서 즉시 1회 실행하고(기존 탭 동작과
+  // 동일), 420ms 이상 눌린 채로 있으면 130ms 간격으로 자동 반복한다. 매 레벨업마다 모달을
+  // 통째로 다시 그리므로(버튼도 새로 생성됨) 타이머 자체는 함수 바깥의 모듈 스코프 변수에 둬야
+  // 재생성을 넘나들며 끊기지 않는다(stopLevelHold/levelHoldTimer 등, 위쪽 참고). 여기서
+  // stopLevelHold()를 방어적으로 부르면 절대 안 된다 — hold 중 반복 tick마다 이 함수(openHeroDetail)가
+  // 다시 호출되는데, 그 재호출이 자기 자신을 도는 인터벌을 즉시 꺼버려서 딱 1틱만 반복되고
+  // 멈추는 버그로 이어졌었다(실기기 없이 Playwright로 길게 눌러보다 재현·발견). 정지는 오직
+  // window pointerup/pointercancel(ensureLevelHoldListeners)과 골드 부족 시 자체 종료로만 처리
+  ensureLevelHoldListeners();
   const cost = levelUpCost(lv);
   const lvBtn = el("button", "btn primary btn-cta", `레벨업 🪙${cost.toLocaleString()}`) as HTMLButtonElement;
   lvBtn.disabled = save.gold < cost;
-  lvBtn.onclick = () => {
-    if (tryLevelUp(hero.id)) {
-      track("levelup");
-      playSfx("levelup");
-      toast(`${hero.nameKr} Lv.${getLevel(hero.id)}!`);
-      openHeroDetail(hero, rerender);
-      rerender();
-    } else {
-      toast("골드가 부족합니다");
+  const doLevelUp = (quiet: boolean): boolean => {
+    if (!tryLevelUp(hero.id)) {
+      if (!quiet) toast("골드가 부족합니다");
+      return false;
     }
+    track("levelup");
+    playSfx("levelup");
+    if (!quiet) toast(`${hero.nameKr} Lv.${getLevel(hero.id)}!`);
+    openHeroDetail(hero, rerender);
+    rerender();
+    return true;
+  };
+  lvBtn.onpointerdown = (e) => {
+    e.preventDefault();
+    doLevelUp(false);
+    levelHoldTimer = window.setTimeout(() => {
+      levelHoldInterval = window.setInterval(() => {
+        if (!doLevelUp(true)) stopLevelHold();
+      }, 130);
+    }, 420);
   };
 
   // 레벨 초기화(§마이티 아레나 반영계획 2, 2026-07-30) — 환생 대신 레벨업에 쓴 골드만 전액 환급.
-  // 위치는 임시로 상세화면에 둠(정확한 배치는 추후 결정 예정)
+  // 위치는 임시로 상세화면에 둠(정확한 배치는 추후 결정 예정). 환급액은 버튼 라벨이 아니라
+  // 클릭 시 확인창(confirm)에서 보여주는 걸로 옮겨(§2026-07-30, 화면 압축) 닫기·편성과 한 줄에
+  // 들어가는 짧은 라벨을 유지한다
   const refund = levelResetRefund(hero.id);
-  const resetBtn = el("button", "btn", `레벨 초기화(🪙${refund.toLocaleString()} 환급)`) as HTMLButtonElement;
+  const resetBtn = el("button", "btn", "레벨 초기화") as HTMLButtonElement;
   resetBtn.disabled = refund <= 0;
   resetBtn.onclick = () => {
     if (!confirm(`${hero.nameKr}을(를) Lv.1로 초기화하고 골드 ${refund.toLocaleString()}을 환급받습니다. 계속할까요?`)) return;
@@ -342,10 +398,13 @@ export function setHeroesSubView(v: HeroesSubView) {
   heroesSubView = v;
 }
 
+// §2026-07-30 "이미지 들어온 거 있으면 반영" — 디자인 세션이 만든 class-*.png 3종을
+// 확인해서(테두리 선명한 플랫 SD 아이콘 톤, 기존 진영 배지와 잘 어울림) 이모지 대신 실제
+// 이미지로 교체. ASSETS.md 백로그에서 제거
 const CLASS_ICON: Record<string, string> = {
-  딜러: "⚔️",
-  탱커: "🛡️",
-  서포터: "✨",
+  딜러: "class-dealer.png",
+  탱커: "class-tanker.png",
+  서포터: "class-support.png",
 };
 
 /** 보유 그리드/도감/장비 인벤토리 공용 카드(§2026-07-30 재정리) — "영웅편성화면(party-slot)
@@ -368,14 +427,24 @@ function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean;
   card.appendChild(face);
 
   if (opts.locked) {
-    card.appendChild(el("div", "hc-lock", "🔒"));
+    const lock = el("div", "hc-lock");
+    const lockImg = el("img") as HTMLImageElement;
+    lockImg.src = "icon-lock.png";
+    lockImg.alt = "";
+    lock.appendChild(lockImg);
+    card.appendChild(lock);
     return card;
   }
 
   addFactionBadge(card, hero);
   card.appendChild(el("div", "hc-badge hc-badge-tr", `Lv.${getLevel(hero.id)}`));
   const classIcon = CLASS_ICON[hero.heroClass];
-  if (classIcon) card.appendChild(el("div", "hc-badge hc-badge-br", classIcon));
+  if (classIcon) {
+    const img = el("img", "hc-badge hc-badge-br") as HTMLImageElement;
+    img.src = classIcon;
+    img.alt = "";
+    card.appendChild(img);
+  }
   card.appendChild(el("div", "hc-name", hero.nameKr));
   const s = starState(hero.id);
   card.appendChild(el("div", "hc-sub" + (s.purple ? " star-purple" : ""), starRowText(hero.id)));
@@ -403,7 +472,10 @@ export function renderHeroes(root: HTMLElement) {
 
   const powerRow = el("div", "power-row");
   powerRow.appendChild(el("h2", "", `편성 (${save.party.length}/${PARTY_SIZE})`));
-  powerRow.appendChild(el("div", "power-chip", `⚔️ 전투력 ${partyPower().toLocaleString()}`));
+  const powerChip = el("div", "power-chip");
+  powerChip.appendChild(liIcon("icon-power.png"));
+  powerChip.appendChild(el("span", "", `전투력 ${partyPower().toLocaleString()}`));
+  powerRow.appendChild(powerChip);
   root.appendChild(powerRow);
   root.appendChild(el("div", "desc", "편성된 영웅만 전투에 출전합니다. 카드를 눌러 편성·레벨업하세요."));
   const partyRow = el("div", "party-row");
@@ -471,8 +543,25 @@ export function renderHeroes(root: HTMLElement) {
     (h) => heroFilter === "전체" || h.faction === heroFilter
   );
 
+  // §2026-07-30 "영웅은 성급>등급>진영 순 정렬" 요청 — 가장 공들여 키운(성급 높은) 영웅이 먼저
+  // 보이고, 그다음 타고난 희귀도(등급), 마지막으로 진영 순으로 묶인다. REAL_FACTIONS에 없는
+  // 진영(히든 5종의 "불명")은 알려진 진영들 뒤로 보낸다
+  const factionRank = (f: string) => {
+    const i = REAL_FACTIONS.indexOf(f);
+    return i === -1 ? REAL_FACTIONS.length : i;
+  };
+  const owned = visible
+    .filter((h) => (save.owned[h.id] ?? 0) > 0)
+    .sort((a, b) => {
+      const starDiff = getStars(b.id) - getStars(a.id);
+      if (starDiff) return starDiff;
+      const gradeDiff = GRADE_ORDER.indexOf(a.grade) - GRADE_ORDER.indexOf(b.grade);
+      if (gradeDiff) return gradeDiff;
+      return factionRank(a.faction) - factionRank(b.faction);
+    });
+
   const grid = el("div", "hero-grid owned-grid");
-  for (const hero of visible.filter((h) => (save.owned[h.id] ?? 0) > 0)) {
+  for (const hero of owned) {
     grid.appendChild(buildHeroCard(hero, { onClick: () => openHeroDetail(hero, rerender) }));
   }
   root.appendChild(grid);
@@ -716,22 +805,27 @@ function renderAscend(root: HTMLElement) {
     }
   }
 
-  // 승급 대상 선택용 보유 영웅 목록
-  root.appendChild(el("h2", "", "보유 영웅"));
-  const grid = el("div", "hero-grid");
-  for (const hero of owned) {
-    grid.appendChild(
-      buildHeroCard(hero, {
-        selected: hero.id === ascendTargetId,
-        onClick: () => {
-          ascendTargetId = hero.id;
-          materialIds = [];
-          rerender();
-        },
-      })
-    );
+  // 승급 대상 선택용 보유 영웅 목록 — §2026-07-30 "스크롤 없이 한 화면에" 대응으로, 대상을 이미
+  // 고른 뒤에는 숨긴다. 대상 슬롯을 다시 누르면 선택이 풀리며 이 목록이 돌아오므로(위 targetSlot
+  // onclick) 다른 영웅으로 바꾸는 길은 그대로 남아있고, 화면 하단에 통째로 다시 그려지던 중복만
+  // 없앤다(재료 후보 카드와 겹쳐 보이는 화면일수록 스크롤이 컸다)
+  if (!target) {
+    root.appendChild(el("h2", "", "보유 영웅"));
+    const grid = el("div", "hero-grid");
+    for (const hero of owned) {
+      grid.appendChild(
+        buildHeroCard(hero, {
+          selected: hero.id === ascendTargetId,
+          onClick: () => {
+            ascendTargetId = hero.id;
+            materialIds = [];
+            rerender();
+          },
+        })
+      );
+    }
+    root.appendChild(grid);
   }
-  root.appendChild(grid);
 }
 
 /* ── 장비(§장비 시스템 v2, 2026-07-29 / §2026-07-30 인벤토리 중심 재구성): 등급별 장비를
@@ -1563,6 +1657,17 @@ function buyTicket(root: HTMLElement, kind: TicketKind, discounted: boolean) {
   renderShop(root);
 }
 
+/** §2026-07-30 "스크롤 없이 한 화면에" 조사 중 발견한 버그 — 상점 하단 서브탭("골드 상점/보석
+ * 상점/일일 무료")이 실제로는 아무 화면도 안 바꾸는 죽은 UI였다(shell.ts가 heroes/missions만
+ * 분기 처리하고 shop은 빠져 있어서 클릭하면 "준비 중" 토스트만 뜸). 8개 항목을 전부 한 화면에
+ * 욱여넣은 게 오버플로의 원인이기도 해서, 서브탭을 실제로 동작하게 고치면서 항목도 이름 그대로
+ * 나눴다 — 골드 상점(골드로 사는 것)/보석 상점(보석으로 사는 것+보석 패키지)/일일 무료(무료 상자) */
+export type ShopSubView = "gold" | "gems" | "free";
+let shopSubView: ShopSubView = "gold";
+export function setShopSubView(v: ShopSubView) {
+  shopSubView = v;
+}
+
 export function renderShop(root: HTMLElement) {
   root.innerHTML = "";
   root.appendChild(el("h2", "", "상점"));
@@ -1602,85 +1707,91 @@ export function renderShop(root: HTMLElement) {
     discCard.appendChild(discBtn);
     root.appendChild(discCard);
   };
-  ticketRow("normal", "🎫");
-  ticketRow("premium", "🎟️");
+  if (shopSubView === "gems") {
+    ticketRow("normal", "🎫");
+    ticketRow("premium", "🎟️");
 
-  const today = new Date().toISOString().slice(0, 10);
-  const card = el("div", "list-card");
-  card.appendChild(el("span", "", "🎁"));
-  const grow = el("div", "grow");
-  grow.appendChild(el("div", "t", "일일 무료 상자"));
-  grow.appendChild(el("div", "s", "매일 1회 · 보석 100개"));
-  card.appendChild(grow);
-  const btn = el("button", "btn primary", "열기") as HTMLButtonElement;
-  if (save.freeBoxDate === today) {
-    btn.textContent = "내일 다시";
-    btn.disabled = true;
+    // 실결제 보석 패키지는 결제 연동이 아직 없어 정직하게 "준비 중"으로만 표시(고스트 버튼 아님 — 클릭 대상 자체가 없음)
+    const c = el("div", "list-card");
+    c.style.opacity = "0.5";
+    c.appendChild(liIcon("shop-gems.png"));
+    const g = el("div", "grow");
+    g.appendChild(el("div", "t", "보석 패키지"));
+    g.appendChild(el("div", "s", "결제 연동 검토 중"));
+    c.appendChild(g);
+    c.appendChild(el("span", "s", "준비 중"));
+    root.appendChild(c);
   }
-  btn.onclick = () => {
-    if (save.freeBoxDate === today) return;
-    save.freeBoxDate = today;
-    addGems(100);
-    persist();
-    toast("💎 100 획득!");
-    btn.textContent = "내일 다시";
-    btn.disabled = true;
-  };
-  card.appendChild(btn);
-  root.appendChild(card);
 
-  // 장비 상자 — 장비 획득(§장비 시스템 v2)의 상시 구매 경로. 등급은 전투 드랍과 같은 확률표로 무작위
-  const boxCard = el("div", "list-card");
-  boxCard.appendChild(el("span", "", "🎁"));
-  const bg = el("div", "grow");
-  bg.appendChild(el("div", "t", "장비 상자"));
-  bg.appendChild(el("div", "s", `무작위 슬롯·등급 장비 1개 · 🪙${EQUIP_BOX_GOLD.toLocaleString()}`));
-  boxCard.appendChild(bg);
-  const boxBtn = el("button", "btn primary", "구매") as HTMLButtonElement;
-  boxBtn.disabled = save.gold < EQUIP_BOX_GOLD;
-  boxBtn.onclick = () => {
-    if (!spendGold(EQUIP_BOX_GOLD)) {
-      toast("골드가 부족합니다");
-      return;
+  if (shopSubView === "free") {
+    const today = new Date().toISOString().slice(0, 10);
+    const card = el("div", "list-card");
+    card.appendChild(liIcon("shop-freebox.png"));
+    const grow = el("div", "grow");
+    grow.appendChild(el("div", "t", "일일 무료 상자"));
+    grow.appendChild(el("div", "s", "매일 1회 · 보석 100개"));
+    card.appendChild(grow);
+    const btn = el("button", "btn primary", "열기") as HTMLButtonElement;
+    if (save.freeBoxDate === today) {
+      btn.textContent = "내일 다시";
+      btn.disabled = true;
     }
-    const item = grantRandomEquip();
-    toast(`🎁 ${EQUIP_SLOT_INFO[item.slot].label}(${item.grade}) 획득!`);
-    renderShop(root);
-  };
-  boxCard.appendChild(boxBtn);
-  root.appendChild(boxCard);
+    btn.onclick = () => {
+      if (save.freeBoxDate === today) return;
+      save.freeBoxDate = today;
+      addGems(100);
+      persist();
+      toast("💎 100 획득!");
+      btn.textContent = "내일 다시";
+      btn.disabled = true;
+    };
+    card.appendChild(btn);
+    root.appendChild(card);
+  }
 
-  // 강화석 — 장비 강화(§마이티 아레나 반영계획 3) 전용 재화. 전투 보상 외에 상점에서도 골드로 구매 가능
-  const stoneCard = el("div", "list-card");
-  stoneCard.appendChild(el("span", "", "💠"));
-  const sgrow = el("div", "grow");
-  sgrow.appendChild(el("div", "t", "강화석 10개"));
-  sgrow.appendChild(el("div", "s", `장비 강화 전용 재화 · 🪙${STONE_PACK_GOLD.toLocaleString()}`));
-  stoneCard.appendChild(sgrow);
-  const stoneBtn = el("button", "btn primary", "구매") as HTMLButtonElement;
-  stoneBtn.disabled = save.gold < STONE_PACK_GOLD;
-  stoneBtn.onclick = () => {
-    if (!spendGold(STONE_PACK_GOLD)) {
-      toast("골드가 부족합니다");
-      return;
-    }
-    addEnhanceStone(10);
-    toast("💠 강화석 +10");
-    renderShop(root);
-  };
-  stoneCard.appendChild(stoneBtn);
-  root.appendChild(stoneCard);
+  if (shopSubView === "gold") {
+    // 장비 상자 — 장비 획득(§장비 시스템 v2)의 상시 구매 경로. 등급은 전투 드랍과 같은 확률표로 무작위
+    const boxCard = el("div", "list-card");
+    boxCard.appendChild(el("span", "", "🎁"));
+    const bg = el("div", "grow");
+    bg.appendChild(el("div", "t", "장비 상자"));
+    bg.appendChild(el("div", "s", `무작위 슬롯·등급 장비 1개 · 🪙${EQUIP_BOX_GOLD.toLocaleString()}`));
+    boxCard.appendChild(bg);
+    const boxBtn = el("button", "btn primary", "구매") as HTMLButtonElement;
+    boxBtn.disabled = save.gold < EQUIP_BOX_GOLD;
+    boxBtn.onclick = () => {
+      if (!spendGold(EQUIP_BOX_GOLD)) {
+        toast("골드가 부족합니다");
+        return;
+      }
+      const item = grantRandomEquip();
+      toast(`🎁 ${EQUIP_SLOT_INFO[item.slot].label}(${item.grade}) 획득!`);
+      renderShop(root);
+    };
+    boxCard.appendChild(boxBtn);
+    root.appendChild(boxCard);
 
-  // 실결제 보석 패키지는 결제 연동이 아직 없어 정직하게 "준비 중"으로만 표시(고스트 버튼 아님 — 클릭 대상 자체가 없음)
-  const c = el("div", "list-card");
-  c.style.opacity = "0.5";
-  c.appendChild(el("span", "", "💎"));
-  const g = el("div", "grow");
-  g.appendChild(el("div", "t", "보석 패키지"));
-  g.appendChild(el("div", "s", "결제 연동 검토 중"));
-  c.appendChild(g);
-  c.appendChild(el("span", "s", "준비 중"));
-  root.appendChild(c);
+    // 강화석 — 장비 강화(§마이티 아레나 반영계획 3) 전용 재화. 전투 보상 외에 상점에서도 골드로 구매 가능
+    const stoneCard = el("div", "list-card");
+    stoneCard.appendChild(el("span", "", "💠"));
+    const sgrow = el("div", "grow");
+    sgrow.appendChild(el("div", "t", "강화석 10개"));
+    sgrow.appendChild(el("div", "s", `장비 강화 전용 재화 · 🪙${STONE_PACK_GOLD.toLocaleString()}`));
+    stoneCard.appendChild(sgrow);
+    const stoneBtn = el("button", "btn primary", "구매") as HTMLButtonElement;
+    stoneBtn.disabled = save.gold < STONE_PACK_GOLD;
+    stoneBtn.onclick = () => {
+      if (!spendGold(STONE_PACK_GOLD)) {
+        toast("골드가 부족합니다");
+        return;
+      }
+      addEnhanceStone(10);
+      toast("💠 강화석 +10");
+      renderShop(root);
+    };
+    stoneCard.appendChild(stoneBtn);
+    root.appendChild(stoneCard);
+  }
 }
 
 /* ── 임무 탭 ── */
