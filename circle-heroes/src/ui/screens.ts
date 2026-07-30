@@ -17,6 +17,7 @@ import {
   pull, SINGLE_COST, TEN_COST, CATEGORIES, type SummonKind, type PullResult,
   SSR_PITY_LIMIT, UR_PITY_LIMIT, monthlyFeaturedUR, urPityCount, pickupPityCount, pickupCandidates,
   GRADE_WEIGHT, NORMAL_GRADE_WEIGHT, PICKUP_RATE_UP, gradeRosterCount,
+  freeSummonAvailable, type FreeSummonKind,
 } from "../systems/gacha";
 import { calcFactionSynergy, partyPower, FACTION_STRONG_AGAINST, FACTION_WEAK_AGAINST } from "../systems/battle";
 import {
@@ -1132,9 +1133,21 @@ export function renderSummon(root: HTMLElement) {
   box.appendChild(orb);
 
   const ticketIcon = CATEGORIES.find((c) => c.kind === selectedKind)!.ticket === "normal" ? "🎫" : "🎟️";
+  // §2026-07-30 무료소환 — 픽업소환은 대상 제외, 일반/고급만 반나절 창마다 1회
+  const freeAvailable = selectedKind !== "pickup" && freeSummonAvailable(selectedKind as FreeSummonKind);
   const btnRow = el("div", "summon-btn-row");
-  const single = el("button", "btn primary", `1회 소환 (${ticketIcon}${SINGLE_COST})`) as HTMLButtonElement;
+  const single = el("button", "btn primary summon-single-btn") as HTMLButtonElement;
   const ten = el("button", "btn primary", `10회 소환 (${ticketIcon}${TEN_COST})`) as HTMLButtonElement;
+  const renderSingleLabel = () => {
+    single.innerHTML = "";
+    if (freeAvailable) {
+      single.appendChild(el("span", "", "무료 소환"));
+      single.appendChild(el("span", "badge summon-free-dot"));
+    } else {
+      single.textContent = `1회 소환 (${ticketIcon}${SINGLE_COST})`;
+    }
+  };
+  renderSingleLabel();
   btnRow.append(single, ten);
   box.appendChild(btnRow);
 
@@ -1146,26 +1159,27 @@ export function renderSummon(root: HTMLElement) {
   box.appendChild(pity);
   root.appendChild(box);
 
-  const doPull = (count: number) => {
+  const doPull = (count: number, useFree = false) => {
     if (selectedKind === "pickup" && !selectedPickupId) {
       toast("픽업할 영웅을 먼저 골라주세요");
       return;
     }
-    const pulls = pull(count, selectedKind, selectedPickupId ?? undefined);
+    const pulls = pull(count, selectedKind, selectedPickupId ?? undefined, useFree);
     if (!pulls) {
       const cat = CATEGORIES.find((c) => c.kind === selectedKind)!;
-      toast(`${cat.ticket === "normal" ? "일반" : "고급"}소환권이 부족합니다`);
+      toast(useFree ? "무료소환을 이미 사용했습니다" : `${cat.ticket === "normal" ? "일반" : "고급"}소환권이 부족합니다`);
       return;
     }
     track("summon", count);
+    emit("free-summon-changed");
     playSummonFx(pulls, () => {
       updatePity();
       updateBannerInfo();
       updatePityRing();
       emit("roster-changed");
-    }, doPull);
+    }, (n) => doPull(n));
   };
-  single.onclick = () => doPull(1);
+  single.onclick = () => doPull(1, freeAvailable);
   ten.onclick = () => doPull(10);
 }
 
