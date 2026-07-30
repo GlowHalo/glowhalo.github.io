@@ -5,7 +5,7 @@ import {
   unreadMailCount, markMailRead, claimMail, type MailItem, OFFLINE_CAP_HOURS,
   grantMaxTestHero,
 } from "../state/save";
-import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView, setMissionsSubView } from "./screens";
+import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView, setMissionsSubView, setShopSubView, type ShopSubView } from "./screens";
 import { partyPower } from "../systems/battle";
 import { isFirebaseConfigured, getBackupCode, backupNow, restoreFromCode } from "../state/backup";
 import { HEROES } from "../data/heroes";
@@ -121,6 +121,10 @@ function switchTab(key: TabKey) {
   if (key === "missions") {
     missionsSubLabel = "일일";
     setMissionsSubView("daily");
+  }
+  if (key === "shop") {
+    shopSubLabel = "골드 상점";
+    setShopSubView("gold");
   }
   if (key === "battle" && battleMode !== "stage") {
     battleMode = "stage";
@@ -264,6 +268,16 @@ const MISSIONS_SUBVIEWS: Record<string, "daily" | "weekly" | "achievements"> = {
 };
 let missionsSubLabel = "일일";
 
+// §2026-07-30 "스크롤 없이 한 화면에" 조사 중 발견 — 상점 서브탭이 heroes/missions처럼 분기
+// 처리가 안 돼 있어서 실제로는 클릭해도 아무 화면도 안 바뀌던(그냥 "준비 중" 토스트만 뜨던)
+// 죽은 UI였다. 8개 항목이 한 화면에 다 몰려 오버플로도 컸던 참이라, 이름 그대로 나눠 고쳤다
+const SHOP_SUBVIEWS: Record<string, ShopSubView> = {
+  "골드 상점": "gold",
+  "보석 상점": "gems",
+  "일일 무료": "free",
+};
+let shopSubLabel = "골드 상점";
+
 function renderSubbar() {
   const bar = document.getElementById("subbar")!;
   bar.innerHTML = "";
@@ -299,6 +313,21 @@ function renderSubbar() {
         setMissionsSubView(MISSIONS_SUBVIEWS[label] ?? "daily");
         renderSubbar();
         renderMissions(document.getElementById("screen-missions")!);
+      };
+      bar.appendChild(chip);
+    });
+    return;
+  }
+
+  if (currentTab === "shop") {
+    def.subs.forEach((label) => {
+      const chip = h("button", "sub-chip" + (label === shopSubLabel ? " on" : ""), label);
+      chip.onclick = () => {
+        if (label === shopSubLabel) return;
+        shopSubLabel = label;
+        setShopSubView(SHOP_SUBVIEWS[label] ?? "gold");
+        renderSubbar();
+        renderShop(document.getElementById("screen-shop")!);
       };
       bar.appendChild(chip);
     });
@@ -383,12 +412,16 @@ function buildCodeSection(): HTMLElement {
   return box;
 }
 
-const MAIL_KIND_ICON: Record<string, string> = { item: "🎁", notice: "📢", normal: "✉️" };
+// §2026-07-30 "이미지 들어온 거 있으면 반영" — mail-item/notice/normal.png 3종 확인 후 이모지 교체
+const MAIL_KIND_ICON: Record<string, string> = { item: "mail-item.png", notice: "mail-notice.png", normal: "mail-normal.png" };
 
 function buildMailRow(m: MailItem): HTMLElement {
   const row = h("div", "mail-row" + (m.read ? " read" : " unread"));
   const head = h("div", "mail-row-head");
-  head.appendChild(h("span", "mail-kind", MAIL_KIND_ICON[m.kind] ?? "✉️"));
+  const kindImg = h("img", "mail-kind") as HTMLImageElement;
+  kindImg.src = MAIL_KIND_ICON[m.kind] ?? "mail-normal.png";
+  kindImg.alt = "";
+  head.appendChild(kindImg);
   head.appendChild(h("span", "mail-title", m.title));
   const dot = h("span", "mail-dot");
   if (!m.read) head.appendChild(dot);
@@ -575,7 +608,7 @@ export function buildShell() {
   // 상단 고정바에 파티 전투력 상시 노출(레퍼런스: "유저 레벨+전투력+재화" 상단바 문법, BENCHMARK.md §3)
   const power = h("span", "hud-chip hud-power");
   power.id = "hud-power";
-  power.appendChild(h("span", "hud-power-icon", "⚔️"));
+  power.appendChild(icon("icon-power.png"));
   const powerVal = h("span");
   powerVal.id = "hud-power-val";
   power.appendChild(powerVal);
