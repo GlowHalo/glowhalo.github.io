@@ -105,11 +105,25 @@
   .node.is-root {
     background: #14151A; color: #F5F5F7; border-left-color: #14151A;
   }
+  .node.dragging { opacity: 0.35; }
+  .node.drop-child { outline: 2px dashed #4C6FFF; outline-offset: 3px; }
+  .node.drop-before { box-shadow: 0 -4px 0 0 #4C6FFF; }
+  .node.drop-after { box-shadow: 0 4px 0 0 #4C6FFF; }
+
+  .node-drag-handle {
+    position: absolute; right: 2px; top: 2px; width: 16px; height: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: #C7C8D1; cursor: grab; border-radius: 4px;
+    touch-action: none;
+  }
+  .node-drag-handle:hover { background: #F0F1F4; color: #61636C; }
+  .node.is-root .node-drag-handle { display: none; }
+  .node.is-root .node-drag-handle:hover { background: rgba(255,255,255,0.14); }
 
   .node-title {
     flex: none; width: 100%; border: none; background: transparent; outline: none;
     font-family: 'Noto Sans KR', sans-serif; font-size: 13px; font-weight: 700;
-    color: inherit; padding: 2px 0; cursor: text;
+    color: inherit; padding: 2px 18px 2px 0; cursor: text;
   }
   .node-title::placeholder { color: #B7B8C0; font-weight: 400; }
   .node.is-root .node-title::placeholder { color: rgba(255,255,255,0.4); }
@@ -497,6 +511,44 @@
     saveActive();
   }
 
+  function isDescendant(ancestorId, id) {
+    var ancestor = findNode(tree, ancestorId);
+    if (!ancestor) return false;
+    function walk(n) {
+      for (var i = 0; i < n.children.length; i++) {
+        if (n.children[i].id === id) return true;
+        if (walk(n.children[i])) return true;
+      }
+      return false;
+    }
+    return walk(ancestor);
+  }
+
+  function reparentNode(id, targetId, mode) {
+    if (id === targetId || id === tree.id) return;
+    if (isDescendant(id, targetId)) return;
+    var oldParent = getParentOf(id);
+    if (!oldParent) return;
+    var node = findNode(tree, id);
+    var oldIdx = oldParent.children.findIndex(function (c) { return c.id === id; });
+    oldParent.children.splice(oldIdx, 1);
+
+    if (mode === 'child' || targetId === tree.id) {
+      var targetNode = findNode(tree, targetId);
+      targetNode.collapsed = false;
+      targetNode.children.push(node);
+    } else {
+      var targetParent = getParentOf(targetId);
+      var targetIdx = targetParent.children.findIndex(function (c) { return c.id === targetId; });
+      var insertIdx = mode === 'before' ? targetIdx : targetIdx + 1;
+      targetParent.children.splice(insertIdx, 0, node);
+    }
+    selectedId = id;
+    render();
+    saveActive();
+    showToast('카드를 옮겼어요.');
+  }
+
   function commitTitle(id, newText) {
     var node = findNode(tree, id);
     if (!node) return null;
@@ -592,6 +644,7 @@
           (node.collapsed ? '+' + node.children.length : '−') + '</div>';
       }
       return '<div class="node' + rootCls + selected + '" data-id="' + node.id + '" style="left:' + left + 'px; top:' + top + 'px; border-left-color:' + (isRoot ? '#14151A' : color) + '">' +
+        '<div class="node-drag-handle" title="드래그해서 다른 카드로 이동">⠿</div>' +
         '<input class="node-title" type="text" value="' + escapeHtml(node.text) + '" placeholder="제목" spellcheck="false" />' +
         '<div class="node-divider"></div>' +
         '<textarea class="node-detail" placeholder="상세 내용 (선택)" spellcheck="false">' + escapeHtml(node.detail || '') + '</textarea>' +
@@ -807,6 +860,56 @@
     else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteNode(selectedId); }
     else if (e.key === 'Escape') { selectedId = null; render(); }
     else if (e.key === 'F2') { e.preventDefault(); focusTitle(selectedId); }
+  });
+
+  // node reparent drag
+  var dnd = null; // { id }
+
+  function clearDropHighlight() {
+    var els = nodesLayer.querySelectorAll('.drop-child, .drop-before, .drop-after');
+    els.forEach(function (el) { el.classList.remove('drop-child', 'drop-before', 'drop-after'); });
+  }
+
+  nodesLayer.addEventListener('pointerdown', function (e) {
+    var handle = e.target.closest('.node-drag-handle');
+    if (!handle) return;
+    var nodeEl = handle.closest('.node');
+    var id = nodeEl.getAttribute('data-id');
+    if (id === tree.id) return;
+    e.stopPropagation();
+    e.preventDefault();
+    dnd = { id: id, targetId: null, mode: null };
+    nodeEl.classList.add('dragging');
+    handle.setPointerCapture(e.pointerId);
+  });
+
+  nodesLayer.addEventListener('pointermove', function (e) {
+    if (!dnd) return;
+    clearDropHighlight();
+    var under = document.elementFromPoint(e.clientX, e.clientY);
+    var targetEl = under ? under.closest('.node') : null;
+    var targetId = targetEl ? targetEl.getAttribute('data-id') : null;
+    if (!targetId || targetId === dnd.id || isDescendant(dnd.id, targetId)) {
+      dnd.targetId = null;
+      dnd.mode = null;
+      return;
+    }
+    var rect = targetEl.getBoundingClientRect();
+    var relY = (e.clientY - rect.top) / rect.height;
+    var mode = targetId === tree.id ? 'child' : (relY < 0.25 ? 'before' : relY > 0.75 ? 'after' : 'child');
+    dnd.targetId = targetId;
+    dnd.mode = mode;
+    targetEl.classList.add(mode === 'child' ? 'drop-child' : (mode === 'before' ? 'drop-before' : 'drop-after'));
+  });
+
+  nodesLayer.addEventListener('pointerup', function () {
+    if (!dnd) return;
+    var dragged = dnd;
+    dnd = null;
+    clearDropHighlight();
+    var draggedEl = nodesLayer.querySelector('.node.dragging');
+    if (draggedEl) draggedEl.classList.remove('dragging');
+    if (dragged.targetId && dragged.mode) reparentNode(dragged.id, dragged.targetId, dragged.mode);
   });
 
   // pan
