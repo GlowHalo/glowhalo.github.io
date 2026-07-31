@@ -19,8 +19,18 @@ const SERVED_ASSET_DIRS = ["characters", "monsters", "backgrounds", "icons", "ef
 // play/assets/index-*.css에 놓이는데 실제 PNG는 위 SERVED_ASSET_DIRS 루프로 play/ 바로 밑에만
 // 복사돼 있어서 play/assets/btn-primary-bg.png가 없어 조용히 로드 실패 — border-image가
 // 깨지면서 소환/레벨업 등 주요 버튼이 전부 "테두리 없는 텍스트만" 보이던 버그의 원인이었다.
-// CSS가 참조하는 두 파일만 play/assets/에도 나란히 복사해서 상대경로가 그대로 맞게 한다
-const CSS_URL_REFERENCED_ASSETS = ["btn-primary-bg.png", "btn-danger-bg.png"];
+// CSS가 참조하는 파일들만 play/assets/에도 나란히 복사해서 상대경로가 그대로 맞게 한다.
+// §2026-07-31 splash.png(assets/backgrounds/)·banner-*.png(assets/icons/)가 추가되며 소스
+// 폴더가 icons 하나로 고정이 아니게 돼, 아래 closeBundle에서 SERVED_ASSET_DIRS 전체를 뒤져
+// 찾도록 일반화했다
+const CSS_URL_REFERENCED_ASSETS = [
+  "btn-primary-bg.png",
+  "btn-danger-bg.png",
+  "splash.png",
+  "banner-raid.png",
+  "banner-arena.png",
+  "banner-tower.png",
+];
 
 const MIME: Record<string, string> = {
   ".png": "image/png",
@@ -66,8 +76,13 @@ function gameAssets() {
       const assetsOutDir = resolve(outDir, "assets");
       mkdirSync(assetsOutDir, { recursive: true });
       for (const file of CSS_URL_REFERENCED_ASSETS) {
-        const src = resolve(__dirname, "assets", "icons", file);
-        if (existsSync(src)) cpSync(src, resolve(assetsOutDir, file));
+        for (const dir of SERVED_ASSET_DIRS) {
+          const src = resolve(__dirname, "assets", dir, file);
+          if (existsSync(src)) {
+            cpSync(src, resolve(assetsOutDir, file));
+            break;
+          }
+        }
       }
     },
   };
