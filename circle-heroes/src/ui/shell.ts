@@ -449,7 +449,14 @@ function buildSoundSection(): HTMLElement {
 
 function buildCodeSection(): HTMLElement {
   const box = h("div", "code-box");
-  box.appendChild(h("h4", "", "🔑 코드 입력"));
+  // §2026-07-31 "이미지 들어온 거 있으면 반영" — icon-key.png 도착 확인, 이모지(🔑) 대신 실제 이미지로
+  const title = h("h4", "code-title");
+  const keyIcon = h("img", "code-title-icon") as HTMLImageElement;
+  keyIcon.src = "icon-key.png";
+  keyIcon.alt = "";
+  title.appendChild(keyIcon);
+  title.appendChild(document.createTextNode("코드 입력"));
+  box.appendChild(title);
   box.appendChild(h("p", "muted", "공개된 코드를 입력하면 보상을 받을 수 있어요."));
   const row = h("div", "row");
   const input = h("input", "code-input") as HTMLInputElement;

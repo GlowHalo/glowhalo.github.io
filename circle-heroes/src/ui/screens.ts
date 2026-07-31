@@ -256,6 +256,11 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
     face.classList.add("has-illustration");
     face.title = "일러스트 보기";
     face.onclick = () => openIllustration(hero);
+    // §2026-07-31 "이미지 들어온 거 있으면 반영" — icon-photo.png 도착 확인, 이모지(🖼) 대신 실제 이미지로
+    const hint = el("img", "illust-hint") as HTMLImageElement;
+    hint.src = "icon-photo.png";
+    hint.alt = "";
+    face.appendChild(hint);
   };
   illustProbe.src = `${hero.id}.webp`;
   const info = el("div");
@@ -470,6 +475,15 @@ function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean;
   return card;
 }
 
+/** §2026-07-31 "영웅카드는 어디서나 동일하기를 원함(편성 포함)" — 편성 슬롯의 빈 자리도
+ * hero-card와 같은 박스(크기·비율·모서리)를 그대로 쓰고 안쪽만 "+" placeholder로 비워둔다 */
+function buildEmptyHeroCard(onClick?: () => void): HTMLElement {
+  const card = el("div", "hero-card hero-card-empty");
+  card.appendChild(el("div", "hc-empty-plus", "+"));
+  if (onClick) card.onclick = onClick;
+  return card;
+}
+
 /** §2026-07-30 "요일던전에 들어가면 편성화면을 띄우자, 파티편성하는 곳이 없네" — 지금까지
  * 요일던전은 save.party를 그대로 들고 바로 전투를 시작해서 편성을 바꿀 방법이 없었다. 보유·편성
  * 탭의 5슬롯+보유 영웅 그리드를 그대로 재사용한 팝업으로, 슬롯이나 카드를 누르면 바로 편성이
@@ -487,22 +501,14 @@ export function openPartyFormationModal(subtitle: string, onConfirm: () => void)
     for (let i = 0; i < PARTY_SIZE; i++) {
       const id = save.party[i];
       const hero = id ? PLAYABLE_HEROES.find((h) => h.id === id) : undefined;
-      const slot = el("div", "party-slot" + (hero ? " filled" : ""));
-      if (hero) {
-        setCardGrade(slot, hero.grade);
-        addFactionBadge(slot, hero);
-        const face = el("div", "face");
-        setFace(face, hero);
-        slot.appendChild(face);
-        slot.appendChild(el("div", "ps-lv-badge", `Lv.${getLevel(hero.id)}`));
-        slot.appendChild(el("div", "ps-nm", hero.nameKr.split(" ").pop() ?? ""));
-        slot.onclick = () => {
-          toggleParty(hero.id);
-          refresh();
-        };
-      } else {
-        slot.appendChild(el("div", "ps-empty", "+"));
-      }
+      const slot = hero
+        ? buildHeroCard(hero, {
+            onClick: () => {
+              toggleParty(hero.id);
+              refresh();
+            },
+          })
+        : buildEmptyHeroCard();
       partyRow.appendChild(slot);
     }
 
@@ -564,24 +570,13 @@ export function renderHeroes(root: HTMLElement) {
   powerRow.appendChild(powerChip);
   root.appendChild(powerRow);
   root.appendChild(el("div", "desc", "편성된 영웅만 전투에 출전합니다. 카드를 눌러 편성·레벨업하세요."));
+  // §2026-07-31 "영웅카드는 어디서나 동일하기를 원함(편성 포함)" — 편성 슬롯도 보유 그리드와
+  // 완전히 같은 buildHeroCard/buildEmptyHeroCard를 그대로 써서 배지 위치·별표기까지 전부 통일
   const partyRow = el("div", "party-row");
   for (let i = 0; i < PARTY_SIZE; i++) {
     const id = save.party[i];
     const hero = id ? PLAYABLE_HEROES.find((h) => h.id === id) : undefined;
-    const slot = el("div", "party-slot" + (hero ? " filled" : ""));
-    if (hero) {
-      setCardGrade(slot, hero.grade);
-      addFactionBadge(slot, hero);
-      const face = el("div", "face");
-      setFace(face, hero);
-      slot.appendChild(face);
-      // 좌상단 Lv뱃지(벤치마크 리포트의 "파티원 카드 좌상단 Lv뱃지" 규칙 적용)
-      slot.appendChild(el("div", "ps-lv-badge", `Lv.${getLevel(hero.id)}`));
-      slot.appendChild(el("div", "ps-nm", hero.nameKr.split(" ").pop() ?? ""));
-      slot.onclick = () => openHeroDetail(hero, rerender);
-    } else {
-      slot.appendChild(el("div", "ps-empty", "+"));
-    }
+    const slot = hero ? buildHeroCard(hero, { onClick: () => openHeroDetail(hero, rerender) }) : buildEmptyHeroCard();
     partyRow.appendChild(slot);
   }
   root.appendChild(partyRow);
@@ -610,7 +605,10 @@ export function renderHeroes(root: HTMLElement) {
   // 진영 탭(마이티식) — §2026-07-30 "아이콘으로만 표시해서 한 줄로 만들자" 요청으로 텍스트
   // 라벨을 떼고 아이콘 하나만 남겨 한 줄에 다 들어가게 압축. 접근성을 위해 title(호버 텍스트)은
   // 이름 그대로 남긴다
-  const factions = ["전체", ...new Set(PLAYABLE_HEROES.map((h) => h.faction))];
+  // §2026-07-31 "히든(?)은 진영필터에서 빼고 전체에서만 나오게" — 개별 진영 칩에는 실제
+  // 5진영만 남기고, 히든(불명) 영웅은 "전체" 칩을 골랐을 때만 섞여서 보이도록 한다(아래
+  // `visible` 필터는 그대로 유지 — heroFilter가 "불명"이 되는 경로 자체를 없앤 것)
+  const factions = ["전체", ...REAL_FACTIONS];
   const ftabs = el("div", "faction-tabs");
   for (const f of factions) {
     const chip = el("button", "f-chip" + (heroFilter === f ? " on" : ""));
