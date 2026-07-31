@@ -975,7 +975,11 @@ function openEnhanceModal(item: EquipItem, onChange: () => void) {
     body.appendChild(
       el("div", "as-label", `+${item.level} → +${item.level + 1} · 강화석 ${cost}개 필요(보유 ${save.enhanceStone})`)
     );
-    const stoneBtn = el("button", "btn primary", `💠 강화석으로 강화`) as HTMLButtonElement;
+    const stoneBtn = el("button", "btn primary") as HTMLButtonElement;
+    const stoneBtnIcon = el("img", "ticket-icon") as HTMLImageElement;
+    stoneBtnIcon.src = "icon-stone.png";
+    stoneBtnIcon.alt = "";
+    stoneBtn.append(stoneBtnIcon, " 강화석으로 강화");
     stoneBtn.disabled = save.enhanceStone < cost;
     stoneBtn.onclick = () => {
       if (tryEnhanceEquipWithStones(item.id, cost)) {
@@ -1264,6 +1268,17 @@ function renderEquipment(root: HTMLElement) {
 let selectedKind: SummonKind = "normal";
 let selectedPickupId: string | null = null;
 
+// §2026-07-31 "이미지 들어온 거 있으면 반영" — ticket-normal.png/ticket-premium.png 도착 확인,
+// 소환권 표기(🎫/🎟️ 이모지)를 전부 실제 이미지로 교체. 버튼 라벨이 문자열 하나로 만들어지던
+// 자리들을 텍스트 노드+이미지 조합으로 바꿔야 해서 공용 헬퍼로 뺀다
+const TICKET_ICON_FILE: Record<TicketKind, string> = { normal: "ticket-normal.png", premium: "ticket-premium.png" };
+function ticketIconEl(kind: TicketKind): HTMLImageElement {
+  const img = el("img", "ticket-icon") as HTMLImageElement;
+  img.src = TICKET_ICON_FILE[kind];
+  img.alt = "";
+  return img;
+}
+
 const GRADE_ORDER_DESC = ["UR", "SSR", "SR", "R", "N"];
 
 /** 확률 공개 팝업(§3, 법적 고지 요건) — 등급별 확률표 + 픽업/천장 메커니즘을 작은 버튼 뒤에 숨겨두고,
@@ -1429,7 +1444,7 @@ export function renderSummon(root: HTMLElement) {
   for (let i = 0; i < 4; i++) orb.appendChild(el("span", `orb-spark s${i}`, "✦"));
   box.appendChild(orb);
 
-  const ticketIcon = CATEGORIES.find((c) => c.kind === selectedKind)!.ticket === "normal" ? "🎫" : "🎟️";
+  const ticketKind = CATEGORIES.find((c) => c.kind === selectedKind)!.ticket;
   // §2026-07-30 무료소환 — 픽업소환은 대상 제외, 일반/고급만 반나절 창마다 1회. 버그 수정: 예전엔
   // const라 렌더 시점에 한 번만 계산되고, 무료소환을 실제로 쓴 뒤에도 값이 안 바뀌어 "무료 소환"
   // 라벨+빨간 점이 계속 남아있었다("무료소환을 하고 났는데 빨간점이 안 없어져" 신고) — let으로 바꿔
@@ -1437,14 +1452,15 @@ export function renderSummon(root: HTMLElement) {
   let freeAvailable = selectedKind !== "pickup" && freeSummonAvailable(selectedKind as FreeSummonKind);
   const btnRow = el("div", "summon-btn-row");
   const single = el("button", "btn primary summon-single-btn") as HTMLButtonElement;
-  const ten = el("button", "btn primary", `10회 소환 (${ticketIcon}${TEN_COST})`) as HTMLButtonElement;
+  const ten = el("button", "btn primary") as HTMLButtonElement;
+  ten.append("10회 소환 (", ticketIconEl(ticketKind), `${TEN_COST})`);
   const renderSingleLabel = () => {
     single.innerHTML = "";
     if (freeAvailable) {
       single.appendChild(el("span", "", "무료 소환"));
       single.appendChild(el("span", "badge summon-free-dot"));
     } else {
-      single.textContent = `1회 소환 (${ticketIcon}${SINGLE_COST})`;
+      single.append("1회 소환 (", ticketIconEl(ticketKind), `${SINGLE_COST})`);
     }
   };
   renderSingleLabel();
@@ -1453,7 +1469,11 @@ export function renderSummon(root: HTMLElement) {
 
   const pity = el("div", "pity");
   const updatePity = () => {
-    pity.textContent = `보유 🎫일반 ${save.ticketNormal} · 🎟️고급 ${save.ticketPremium}`;
+    pity.innerHTML = "";
+    pity.append(
+      "보유 ", ticketIconEl("normal"), `일반 ${save.ticketNormal} · `,
+      ticketIconEl("premium"), `고급 ${save.ticketPremium}`
+    );
   };
   updatePity();
   box.appendChild(pity);
@@ -1576,19 +1596,20 @@ function playSummonFx(
     };
     footer.appendChild(okBtn);
     const again = el("div", "sfx-again");
-    const ticketIcon = CATEGORIES.find((c) => c.kind === selectedKind)!.ticket === "normal" ? "🎫" : "🎟️";
-    const mkAgainBtn = (label: string, count: number) => {
-      const b = el("button", "btn primary", label) as HTMLButtonElement;
+    const ticketKind = CATEGORIES.find((c) => c.kind === selectedKind)!.ticket;
+    const mkAgainBtn = (label: string, pullCount: number, ticketCost: number) => {
+      const b = el("button", "btn primary") as HTMLButtonElement;
+      b.append(`${label} (`, ticketIconEl(ticketKind), `${ticketCost})`);
       b.onclick = (e) => {
         e.stopPropagation();
         close();
-        onPullAgain(count);
+        onPullAgain(pullCount);
       };
       return b;
     };
     again.append(
-      mkAgainBtn(`1회 소환 (${ticketIcon}${SINGLE_COST})`, 1),
-      mkAgainBtn(`10회 소환 (${ticketIcon}${TEN_COST})`, 10)
+      mkAgainBtn("1회 소환", 1, SINGLE_COST),
+      mkAgainBtn("10회 소환", 10, TEN_COST)
     );
     footer.appendChild(again);
     overlay.appendChild(footer);
@@ -1644,7 +1665,12 @@ function playSummonFx(
     setFace(face, r.hero);
     front.appendChild(face);
     front.appendChild(el("div", "", r.hero.nameKr));
-    if (r.isNew) front.appendChild(el("div", "newtag", "NEW!"));
+    if (r.isNew) {
+      const newtag = el("img", "newtag") as HTMLImageElement;
+      newtag.src = "badge-new.png";
+      newtag.alt = "NEW";
+      front.appendChild(newtag);
+    }
     inner.appendChild(front);
     card.appendChild(inner);
 
@@ -1822,11 +1848,12 @@ export function renderShop(root: HTMLElement) {
   root.appendChild(freeCard);
 
   // §2026-07-31 "소환권 이미지는 할인여부 관계없이 획득상품 이미지로 통일" — 할인 카드가
-  // 항상 🏷️(태그) 아이콘만 쓰던 걸 고쳐, 정가 카드와 동일하게 그 소환권 고유 아이콘을 쓴다
-  const ticketRow = (kind: TicketKind, icon: string) => {
+  // 항상 🏷️(태그) 아이콘만 쓰던 걸 고쳐, 정가 카드와 동일하게 그 소환권 고유 아이콘을 쓴다.
+  // ticket-normal.png/ticket-premium.png 도착으로 이모지 파라미터도 이미지로 교체
+  const ticketRow = (kind: TicketKind) => {
     const label = kind === "normal" ? "일반소환권" : "고급소환권";
     const card = el("div", "list-card");
-    card.appendChild(el("span", "", icon));
+    card.appendChild(liIcon(TICKET_ICON_FILE[kind]));
     const grow = el("div", "grow");
     grow.appendChild(el("div", "t", label));
     grow.appendChild(el("div", "s", `정가 💎${TICKET_GEM_PRICE[kind]}`));
@@ -1840,7 +1867,7 @@ export function renderShop(root: HTMLElement) {
     const remain = ticketDiscountRemaining(kind);
     const discPrice = Math.round(TICKET_GEM_PRICE[kind] * (1 - TICKET_DISCOUNT_PCT));
     const discCard = el("div", "list-card");
-    discCard.appendChild(el("span", "", icon));
+    discCard.appendChild(liIcon(TICKET_ICON_FILE[kind]));
     const dgrow = el("div", "grow");
     dgrow.appendChild(el("div", "t", `${label} 오늘의 할인`));
     dgrow.appendChild(el("div", "s", `💎${discPrice}(${Math.round(TICKET_DISCOUNT_PCT * 100)}%↓) · 오늘 ${remain}/${TICKET_DISCOUNT_DAILY_LIMIT}개 남음`));
@@ -1851,8 +1878,8 @@ export function renderShop(root: HTMLElement) {
     discCard.appendChild(discBtn);
     root.appendChild(discCard);
   };
-  ticketRow("normal", "🎫");
-  ticketRow("premium", "🎟️");
+  ticketRow("normal");
+  ticketRow("premium");
 
   // 실결제 보석 패키지는 결제 연동이 아직 없어 정직하게 "준비 중"으로만 표시(고스트 버튼 아님 — 클릭 대상 자체가 없음)
   const gemsCard = el("div", "list-card");
@@ -1888,7 +1915,7 @@ export function renderShop(root: HTMLElement) {
 
   // 강화석 — 장비 강화(§마이티 아레나 반영계획 3) 전용 재화. 전투 보상 외에 상점에서도 골드로 구매 가능
   const stoneCard = el("div", "list-card");
-  stoneCard.appendChild(el("span", "", "💠"));
+  stoneCard.appendChild(liIcon("icon-stone.png"));
   const sgrow = el("div", "grow");
   sgrow.appendChild(el("div", "t", "강화석 10개"));
   sgrow.appendChild(el("div", "s", `장비 강화 전용 재화 · 🪙${STONE_PACK_GOLD.toLocaleString()}`));

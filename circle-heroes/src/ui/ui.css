@@ -818,6 +818,8 @@ img.hc-badge {
 }
 .list-card .grow { flex: 1; }
 .list-card .li-icon { width: 28px; height: 28px; object-fit: contain; flex: none; }
+/* §2026-07-31 소환권 아이콘(ticket-normal/premium.png) — 버튼/보유 표기 텍스트 사이에 인라인으로 낀다 */
+.ticket-icon { width: 14px; height: 14px; object-fit: contain; vertical-align: -2px; margin: 0 1px; }
 
 /* ── 아레나 상대 목록(§2026-07-31) ── */
 .arena-opp-list { margin: 8px 0; }
@@ -1288,18 +1290,17 @@ img.hc-badge {
   40% { transform: scale(1.12); }
   100% { transform: scale(1); }
 }
+/* §2026-07-31 badge-new.png 도착("NEW" 글자가 리본에 직접 합성됨) — 기존 금색 알약 텍스트
+ * 배지 대신 실제 리본 이미지로 교체(256×128, 2:1 비율 유지) */
 .sfx-card .front .newtag {
   position: absolute;
-  top: 6px;
+  top: -4px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--amber);
-  color: #10131c;
-  font-size: 9px;
-  font-weight: 700;
-  padding: 1px 8px;
-  border-radius: 999px;
-  white-space: nowrap;
+  width: 40px;
+  height: 20px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
 }
 .sfx-hint {
   margin-top: 16px;
@@ -1445,6 +1446,9 @@ img.hc-badge {
 /* ── 오프닝화면(§메뉴 구조, 2026-07-30) — 최초/재접속 시 뜨는 브랜딩 화면. 화려한 배경 이미지는
  * 아직 없어서 beige/gold 그라디언트로 대체(ASSETS.md 백로그). §2026-07-31 재배색으로 navy/purple에서
  * 전환 */
+/* §2026-07-31 오프닝 배경 아트 도착(assets/backgrounds/splash.png) — CSS 그라디언트 대신 실제
+ * 이미지를 쓰되, 텍스트가 앉는 중앙 띠에 은은한 암전 오버레이를 겹쳐 어떤 위치에서도 제목/탭
+ * 문구가 읽히도록 보정 */
 #splash {
   position: fixed;
   inset: 0;
@@ -1455,7 +1459,8 @@ img.hc-badge {
   justify-content: center;
   gap: 10px;
   background:
-    radial-gradient(circle at 50% 32%, #fbe8c0 0%, #f5ead6 65%, #ecdab3 100%);
+    linear-gradient(180deg, rgba(10, 8, 4, 0.1) 0%, rgba(10, 8, 4, 0.32) 55%, rgba(10, 8, 4, 0.12) 100%),
+    url("splash.png") center/cover no-repeat;
   cursor: pointer;
   font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
 }
@@ -1514,35 +1519,22 @@ img.hc-badge {
   text-align: left;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
+/* §2026-07-31 banner-raid/arena/tower.png 도착 — 왼쪽에 모티프가 이미 그려져 있고 오른쪽은
+ * 텍스트 오버레이용 여백(어두운 톤)이라, 기존 그라디언트+이모지 아이콘 박스를 통째로 이미지로
+ * 교체. object-fit:cover로 92px 배너 높이에 꽉 채운다 */
 .adventure-banner::before {
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.09) 0 10px, transparent 10px 26px),
-    var(--ab-grad);
-}
-.adventure-banner .ab-icon {
-  position: relative;
-  z-index: 1;
-  flex: none;
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
-  background: rgba(10, 13, 22, 0.35);
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
+  background: var(--ab-img) center/cover no-repeat;
 }
 .adventure-banner .ab-body { position: relative; z-index: 1; flex: 1; min-width: 0; }
 .adventure-banner .ab-label { font-size: 16px; font-weight: 800; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
 .adventure-banner .ab-flavor { font-size: 11.5px; color: rgba(255, 255, 255, 0.85); margin-top: 2px; }
 .adventure-banner .ab-arrow { position: relative; z-index: 1; flex: none; font-size: 18px; color: rgba(255, 255, 255, 0.8); }
-.adventure-banner.mode-raid { --ab-grad: linear-gradient(120deg, #7a2d1f, #b8471f); }
-.adventure-banner.mode-arena { --ab-grad: linear-gradient(120deg, #7238b0, #a679dd); }
-.adventure-banner.mode-tower { --ab-grad: linear-gradient(120deg, #124a55, #1e8a8f); }
+.adventure-banner.mode-raid { --ab-img: url("banner-raid.png"); }
+.adventure-banner.mode-arena { --ab-img: url("banner-arena.png"); }
+.adventure-banner.mode-tower { --ab-img: url("banner-tower.png"); }
 
 /* ── HUD 클릭형 칩(§마이티 아레나 반영계획 A, 2026-07-29) — 골드/다이아를 누르면 상점으로 이동 */
 .hud-chip.clickable { cursor: pointer; }
