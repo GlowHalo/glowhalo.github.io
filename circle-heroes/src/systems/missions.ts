@@ -96,10 +96,14 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { key: "ach_star4", track: "star", icon: "⭐", label: "영웅 4성 이상 달성", goal: 4, progress: () => Math.max(1, ...Object.values(save.stars)), reward: { gold: 12000 } },
   { key: "ach_star5", track: "star", icon: "⭐", label: "영웅 5성 달성", goal: 5, progress: () => Math.max(1, ...Object.values(save.stars)), reward: { gold: 25000, gems: 150 } },
 
-  { key: "ach_arena1200", track: "arena", icon: "🏟", label: "아레나 레이팅 1200 달성", goal: 1200, progress: () => save.arenaRating, reward: { gems: 120 } },
-  { key: "ach_arena1400", track: "arena", icon: "🏟", label: "아레나 레이팅 1400 달성", goal: 1400, progress: () => save.arenaRating, reward: { gems: 250 } },
-  { key: "ach_arena1600", track: "arena", icon: "🏟", label: "아레나 레이팅 1600 달성", goal: 1600, progress: () => save.arenaRating, reward: { gems: 450 } },
-  { key: "ach_arena1800", track: "arena", icon: "🏟", label: "아레나 레이팅 1800 달성", goal: 1800, progress: () => save.arenaRating, reward: { gems: 700 } },
+  // §2026-07-31 랭킹 사다리 재설계 — 업적 시스템은 "높을수록 진행"만 가정하고 있어(achievementClaimable
+  // 등이 progress()>=goal 비교), 낮을수록 좋은 순위(1위가 최상위)를 그대로 progress로 쓰면 방향이
+  // 반대가 된다. 새 비교 로직을 만드는 대신 "2000-순위" 파생 점수로 기존 higher-is-better 구조를
+  // 그대로 재사용(순위가 좋아질수록 파생 점수도 커짐)
+  { key: "ach_arank800", track: "arena", icon: "🏟", label: "아레나 800위 이내 진입", goal: 1200, progress: () => 2000 - save.arenaRank, reward: { gems: 120 } },
+  { key: "ach_arank500", track: "arena", icon: "🏟", label: "아레나 500위 이내 진입", goal: 1500, progress: () => 2000 - save.arenaRank, reward: { gems: 250 } },
+  { key: "ach_arank200", track: "arena", icon: "🏟", label: "아레나 200위 이내 진입", goal: 1800, progress: () => 2000 - save.arenaRank, reward: { gems: 450 } },
+  { key: "ach_arank50", track: "arena", icon: "🏟", label: "아레나 50위 이내 진입", goal: 1950, progress: () => 2000 - save.arenaRank, reward: { gems: 700 } },
 
   { key: "ach_summon10", track: "summon", icon: "✨", label: "영웅 10회 모집", goal: 10, progress: () => save.totalSummons, reward: { gems: 50 } },
   { key: "ach_summon30", track: "summon", icon: "✨", label: "영웅 30회 모집", goal: 30, progress: () => save.totalSummons, reward: { gems: 120 } },
@@ -123,8 +127,9 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-/** ISO 8601 주차(예: "2026-W31") — UTC 기준, 목요일이 속한 주로 연도를 판정 */
-function isoWeek(): string {
+/** ISO 8601 주차(예: "2026-W31") — UTC 기준, 목요일이 속한 주로 연도를 판정.
+ * 아레나 주간 보상(§2026-07-31)도 같은 주차 리셋 기준을 써서 export */
+export function isoWeek(): string {
   const d = new Date();
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
   const dayNum = date.getUTCDay() || 7;
