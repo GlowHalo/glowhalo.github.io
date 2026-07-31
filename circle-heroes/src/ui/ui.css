@@ -457,20 +457,21 @@
   align-items: center;
   justify-content: center;
   gap: 1px;
-  padding: 4px 3px 3px;
+  padding: 2px 0;
   text-align: center;
 }
-/* §2026-07-31 "영웅카드는 어디서나 동일 → 5열 배치" — hero-grid가 4열→5열이 되며 카드 자체가
-   60×80px(@360 뷰포트)로 좁아져서, 4열 기준으로 잡았던 56px 얼굴은 카드 안에 다 안 들어가고
-   테두리에 걸려 잘렸다. 새 카드 폭에 맞춰 얼굴·이름·별줄 전부 축소.
-   §2026-07-31(2차): 이름을 두 줄까지 보이게 하면서 카드 높이(80px) 예산을 맞추려고 얼굴을
-   40→36px로 한 번 더 줄임 — face/hc-name/hc-sub 전부 flex:none으로 고정해, flex 기본
-   shrink(flex-shrink:1 + min-height:auto)가 줄바꿈된 이름을 다시 짓눌러 자르는 걸 막는다 */
+/* §2026-07-31(3차) "초상화가 테두리에 닿도록 정배율로 키우고, 별은 초상화 내부 하단에" —
+   좌우 패딩을 0으로 비워 얼굴이 카드 안쪽 폭(54px)에 거의 맞닿게 키움(36→52px, 정사각형
+   유지라 setFace의 background-size 크롭 비율은 그대로 정상 동작). 별줄(.hc-sub)은 더 이상
+   이름 아래 flex 흐름에 있지 않고 face 내부에 절대위치로 오버레이(아래 규칙) — 그 공간이
+   빠지니 얼굴을 이만큼 키워도 이름 2줄 예산(15px)이 그대로 맞는다. face/hc-name 전부
+   flex:none으로 고정해, flex 기본 shrink(flex-shrink:1 + min-height:auto)가 줄바꿈된 이름을
+   다시 짓눌러 자르는 걸 막는다 */
 .hero-card .face {
   position: relative;
   z-index: 1;
-  width: 36px;
-  height: 36px;
+  width: 52px;
+  height: 52px;
   border-radius: 8px;
   border: 2px solid #10131c;
   flex: none;
@@ -479,7 +480,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 26px;
   background: rgba(0, 0, 0, 0.25);
 }
 /* §2026-07-31: 이름이 4~5자만 넘어도("미노타우로스" 등) 한 줄 말줄임에 잘려 거의 안 보였다 —
@@ -503,7 +504,17 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+  padding: 0 2px;
 }
+/* §2026-07-31(3차) "중복 보유 수는 이름 뒤에 x4처럼, 흰색으로" — hc-name 텍스트 노드 뒤에
+   붙는 인라인 span. 기존엔 코너 배지(hc-badge-br)였는데 배지 기본 글자색(var(--ink), 어두운
+   갈색)이 배지의 어두운 배경과 거의 구분이 안 가 안 읽혔던 문제를 흰색 고정으로 해결 */
+.hc-dupe-count {
+  color: #fff;
+  font-weight: 700;
+}
+/* equip 인벤토리 카드(buildEquipCard)는 hc-sub를 face 밖에서 "장착중"/보너스 텍스트로 쓴다 —
+   기존 위치(이름 아래, 카드 flex 흐름) 유지 */
 .hero-card .hc-sub {
   position: relative;
   z-index: 1;
@@ -511,6 +522,19 @@
   font-size: 8.5px;
   letter-spacing: 0.5px;
   color: #ffd34d;
+}
+/* 영웅 카드는 별줄이 face 내부에 오버레이로 들어간다(초상화 내부 하단 끝) — 위 일반 규칙보다
+   구체적이라(.face 조상 추가) 자동으로 우선 적용됨 */
+.hero-card .face .hc-sub {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 2px;
+  transform: translateX(-50%);
+  font-size: 8px;
+  letter-spacing: 0.5px;
+  color: #ffd34d;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85), 0 0 2px rgba(0, 0, 0, 0.6);
 }
 /* §2026-07-30: 원래 .hero-card 안에서만 쓰던 코너 배지를 진영 배지(addFactionBadge)가
    party-slot/ascend-slot/equip-head/detail-head/sfx-card/sfx-new-card로도 재사용하게 되면서
@@ -1090,16 +1114,17 @@ img.hc-badge {
   align-items: center;
   justify-content: center;
   flex: 1 1 0;
-  padding: 8px 0;
+  padding: 6px 0;
   border-radius: 10px;
   background: var(--panel2);
   color: var(--ink2);
   border: 1.5px solid var(--line);
   cursor: pointer;
 }
-/* §2026-07-31 "진영필터 아이콘도 할당 영역 대비 너무 작다" — 18px→26px */
-.fc-icon { width: 26px; height: 26px; object-fit: contain; }
-.fc-icon.fc-icon-emoji { font-size: 20px; line-height: 1; }
+/* §2026-07-31(3차) "아이콘크기 2배 확대" — 26px→52px(패딩은 칩이 더 안 빽빽해 보이게 8px→6px로
+   살짝 줄임) */
+.fc-icon { width: 52px; height: 52px; object-fit: contain; }
+.fc-icon.fc-icon-emoji { font-size: 40px; line-height: 1; }
 .f-chip.on { background: var(--amber); color: #10131c; font-weight: 700; border-color: var(--amber); }
 .dh-stars { font-size: 12px; color: #ffd34d; letter-spacing: 2px; margin-top: 2px; }
 .asc-row {
@@ -1461,9 +1486,10 @@ img.hc-badge {
 /* ── 오프닝화면(§메뉴 구조, 2026-07-30) — 최초/재접속 시 뜨는 브랜딩 화면. 화려한 배경 이미지는
  * 아직 없어서 beige/gold 그라디언트로 대체(ASSETS.md 백로그). §2026-07-31 재배색으로 navy/purple에서
  * 전환 */
-/* §2026-07-31 오프닝 배경 아트 도착(assets/backgrounds/splash.png) — CSS 그라디언트 대신 실제
- * 이미지를 쓰되, 텍스트가 앉는 중앙 띠에 은은한 암전 오버레이를 겹쳐 어떤 위치에서도 제목/탭
- * 문구가 읽히도록 보정 */
+/* §2026-07-31(4차) "제목/탭 문구가 배경에 묻힌다" — 중앙(55%)만 살짝 어둡던 예전 그라디언트는
+ * 텍스트가 실제로 앉는 위(제목)/아래(탭) 쪽은 오히려 연해서 파스텔 배경 위에서 묻히기 쉬웠다.
+ * 텍스트가 있는 상단·하단 띠를 확실히 어둡게, 미카엘 일러스트가 들어가는 중앙은 원래 파스텔톤이
+ * 그대로 보이도록 가운데를 밝게 비워주는 구도로 재조정 */
 #splash {
   position: fixed;
   inset: 0;
@@ -1474,7 +1500,13 @@ img.hc-badge {
   justify-content: center;
   gap: 10px;
   background:
-    linear-gradient(180deg, rgba(10, 8, 4, 0.1) 0%, rgba(10, 8, 4, 0.32) 55%, rgba(10, 8, 4, 0.12) 100%),
+    linear-gradient(
+      180deg,
+      rgba(10, 8, 4, 0.5) 0%,
+      rgba(10, 8, 4, 0.08) 26%,
+      rgba(10, 8, 4, 0.08) 62%,
+      rgba(10, 8, 4, 0.55) 100%
+    ),
     url("splash.png") center/cover no-repeat;
   cursor: pointer;
   font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
@@ -1482,6 +1514,10 @@ img.hc-badge {
 /* §2026-07-31 로딩 완료 전엔 탭해도 안 닫히므로 클릭 가능한 느낌을 빼둔다 */
 #splash.loading { cursor: default; }
 #splash.loading #splash-tap { animation: none; opacity: 0.55; }
+/* §2026-07-31(4차) "문구 가독성 향상" — 기존엔 은은한 amber 글로우 하나뿐이라 밝은 파스텔
+ * 배경 위에선 그라디언트로 채운 글자(color:transparent + background-clip:text)가 배경과 거의
+ * 구분이 안 됐다. 어두운 다중 그림자를 겹쳐 얇은 외곽선(스트로크)처럼 보이게 해 어떤 배경
+ * 위에서도 윤곽이 또렷하게 남도록 보강 */
 #splash-title {
   font-size: 34px;
   font-weight: 800;
@@ -1490,22 +1526,37 @@ img.hc-badge {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 0 0 24px rgba(245, 172, 61, 0.35);
+  text-shadow:
+    0 0 24px rgba(245, 172, 61, 0.45),
+    0 2px 3px rgba(20, 12, 4, 0.85),
+    0 0 6px rgba(20, 12, 4, 0.9),
+    0 0 14px rgba(20, 12, 4, 0.6);
 }
-#splash-sub {
-  font-size: 13px;
-  color: var(--ink2);
-  letter-spacing: 0.04em;
-  margin-bottom: 40px;
+/* §2026-07-31(4차) "미카엘 일러스트를 파스텔톤으로 그려 가운데 추가" — 아직 파일이 없으면
+ * splash.ts의 onerror가 <img>를 지워서 조용히 아무것도 안 보이는 정상 상태로 돌아간다(파일
+ * 도착 시 코드 수정 없이 자동 반영). object-fit:contain으로 정배율 유지, 타이틀/탭투컨티뉴
+ * 사이 공간에 맞춰 최대 높이를 제한 */
+#splash-michael {
+  max-width: min(78vw, 340px);
+  max-height: 44vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 22px rgba(20, 12, 4, 0.35));
+  pointer-events: none;
 }
-/* §2026-07-31 "탭투컨티뉴를 좀 더 상단으로" — 화면 맨 아래(40px)에서 좀 더 위(140px)로 */
+/* §2026-07-31(4차) "탭투컨티뉴" 가독성 향상 — 예전엔 그림자가 아예 없어 밝은 배경 위에서
+ * 거의 안 보였다. 제목과 같은 어두운 다중 그림자로 보강 */
 #splash-tap {
   position: absolute;
   bottom: max(140px, env(safe-area-inset-bottom) + 100px);
   font-size: 13px;
   font-weight: 700;
-  color: var(--ink2);
+  color: #fff3d6;
   letter-spacing: 0.06em;
+  text-shadow:
+    0 1px 2px rgba(20, 12, 4, 0.9),
+    0 0 8px rgba(20, 12, 4, 0.75);
   animation: splashBlink 1.4s ease-in-out infinite;
 }
 @keyframes splashBlink {

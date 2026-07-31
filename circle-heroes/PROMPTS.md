@@ -1450,6 +1450,35 @@ and text overlay to be placed on top.
 No characters, no text, no letters, no watermark, no UI elements. Vertical 9:16.
 ```
 
+### 10. 오프닝화면 미카엘 일러스트 오버레이 (1024×1536 세로, 투명배경, 2026-07-31 백로그)
+
+"오프닝화면에 미카엘 일러스트를 현재 오프닝화면과 비슷한 파스텔톤으로 그려서 가운데 추가해줘"
+요청 — 위 9번 배경(`splash.png`)을 갈아치우는 게 아니라, 그 위에 겹쳐 보일 **캐릭터 단독
+일러스트 한 장**이 필요하다. `src/ui/splash.ts`가 `michael-splash.png`를 배경 위 중앙에
+`<img>`로 얹도록 이미 코드 연결까지 해뒀다 — 파일만 이 이름으로 도착하면 자동 반영되고, 도착
+전엔 조용히 안 보이는 정상 상태(onerror로 숨김)라 추가 코드 작업 불필요.
+
+- 캐릭터: 미카엘(`michael_light_001`, UR·빛 진영·서포터, "천군을 이끄는 대천사"). 기존 전투용
+  치비 초상화(`assets/characters/michael_light_001.png`)의 생김새를 그대로 따라가되(금발,
+  파란 눈, 황금 후광, 흰 깃털 날개, 크로스 문양이 있는 흰색+골드 갑옷, 황금 검, 파란 망토),
+  **치비 비율이 아니라** 9번 배경과 톤을 맞춘 세미리얼 페인터리 스타일로 새로 그린다.
+- **배경은 반드시 투명(alpha) PNG** — 자체 배경을 그리지 않는다. `splash.png` 위에 그대로
+  합성되므로 캐릭터(+옷자락/날개/검의 자연스러운 드롭섀도우 정도)만 남기고 나머지는 완전
+  투명해야 한다.
+- 구도: 정면~살짝 측면, 허리~무릎 위 정도(반신~3/4신), 화면 중앙에 배치될 걸 감안해 캔버스
+  상하좌우에 여백을 조금 남긴다(꽉 채운 풀블리드 아님).
+```
+Semi-realistic painterly anime portrait illustration of a young male archangel
+warrior, blonde hair, blue eyes, golden halo, large white feathered wings,
+white and gold ornate armor with a cross emblem on the chest, holding a
+glowing golden sword, flowing blue cape. Soft pastel warm beige and gold
+color palette matching a dreamy cloud-and-light fantasy sky, gentle painterly
+shading, serene confident expression. Three-quarter to waist-up framing,
+some empty margin around the figure (not full bleed). Transparent background,
+PNG with alpha channel, no background scenery of any kind, no text, no
+watermark, no frame or border. Vertical portrait orientation.
+```
+
 ## 카드 일러스트 (1024×1536 세로)
 
 > **Rev.3 결정**: 전투 스프라이트(치비)와 카드는 **의도적으로 다른 화풍**을 쓴다.
