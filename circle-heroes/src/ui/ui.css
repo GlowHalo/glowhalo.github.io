@@ -1621,9 +1621,12 @@ img.hc-badge {
  * splash.ts의 onerror가 <img>를 지워서 조용히 아무것도 안 보이는 정상 상태로 돌아간다(파일
  * 도착 시 코드 수정 없이 자동 반영). object-fit:contain으로 정배율 유지, 타이틀/탭투컨티뉴
  * 사이 공간에 맞춰 최대 높이를 제한 */
+/* §2026-07-31(5차) "미카엘 크기를 훨씬 더 키워서 화면에 꽉차게" — 78vw/44vh는 카드 한켠에
+ * 놓인 삽화처럼 작아 보였다는 피드백. 타이틀/탭투컨티뉴는 각각 flex 상단과 절대위치 하단이라
+ * 중앙 영역을 거의 다 내줘도 겹치지 않아 큰 폭으로 확대 */
 #splash-michael {
-  max-width: min(78vw, 340px);
-  max-height: 44vh;
+  max-width: min(94vw, 520px);
+  max-height: 68vh;
   width: auto;
   height: auto;
   object-fit: contain;
