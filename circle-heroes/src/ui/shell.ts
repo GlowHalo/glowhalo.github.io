@@ -5,7 +5,7 @@ import {
   unreadMailCount, markMailRead, claimMail, type MailItem, OFFLINE_CAP_HOURS,
   grantMaxTestHero,
 } from "../state/save";
-import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView, setMissionsSubView, setShopSubView, type ShopSubView, openPartyFormationModal } from "./screens";
+import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView, setMissionsSubView, openPartyFormationModal } from "./screens";
 import { partyPower } from "../systems/battle";
 import { isFirebaseConfigured, getBackupCode, backupNow, restoreFromCode } from "../state/backup";
 import { HEROES } from "../data/heroes";
@@ -33,11 +33,14 @@ interface TabDef {
 // 허브)을 독립 메인 탭으로 승격 — 전투 탭 바로 오른쪽에 배치. 아이콘은 전용 자산이 아직 없어
 // 주성 탭이 쓰던 tab-castle.png를 임시로 재사용(ASSETS.md 백로그 등록)
 const TABS: TabDef[] = [
-  { key: "heroes", label: "영웅", icon: "tab-hero.png", subs: ["보유·편성", "장비", "승급", "도감"] },
+  // §2026-07-31: "장비" → "장비승급"으로 라벨 변경 + 승급/장비승급 순서 교체(승급이 먼저)
+  { key: "heroes", label: "영웅", icon: "tab-hero.png", subs: ["보유·편성", "승급", "장비승급", "도감"] },
   { key: "summon", label: "소환", icon: "tab-summon.png", subs: [] },
   { key: "battle", label: "전투", icon: "tab-battle.png", center: true, subs: [] },
   { key: "adventure", label: "모험", icon: "tab-castle.png", subs: [] },
-  { key: "shop", label: "상점", icon: "tab-shop.png", subs: ["골드 상점", "보석 상점", "일일 무료"] },
+  // §2026-07-31 "세부메뉴 분류는 모두 없애고 상품들 한번에 다 보이도록" — 골드/보석/일일무료
+  // 서브탭 3개를 삭제하고 renderShop이 전 품목을 한 화면에 순서대로 그린다
+  { key: "shop", label: "상점", icon: "tab-shop.png", subs: [] },
   { key: "missions", label: "임무", icon: "tab-mission.png", subs: ["일일", "주간", "업적"] },
 ];
 
@@ -125,10 +128,6 @@ function switchTab(key: TabKey) {
   if (key === "missions") {
     missionsSubLabel = "일일";
     setMissionsSubView("daily");
-  }
-  if (key === "shop") {
-    shopSubLabel = "골드 상점";
-    setShopSubView("gold");
   }
   if (key === "battle" && battleMode !== "stage") {
     battleMode = "stage";
@@ -355,16 +354,6 @@ const MISSIONS_SUBVIEWS: Record<string, "daily" | "weekly" | "achievements"> = {
 };
 let missionsSubLabel = "일일";
 
-// §2026-07-30 "스크롤 없이 한 화면에" 조사 중 발견 — 상점 서브탭이 heroes/missions처럼 분기
-// 처리가 안 돼 있어서 실제로는 클릭해도 아무 화면도 안 바뀌던(그냥 "준비 중" 토스트만 뜨던)
-// 죽은 UI였다. 8개 항목이 한 화면에 다 몰려 오버플로도 컸던 참이라, 이름 그대로 나눠 고쳤다
-const SHOP_SUBVIEWS: Record<string, ShopSubView> = {
-  "골드 상점": "gold",
-  "보석 상점": "gems",
-  "일일 무료": "free",
-};
-let shopSubLabel = "골드 상점";
-
 function renderSubbar() {
   const bar = document.getElementById("subbar")!;
   bar.innerHTML = "";
@@ -381,7 +370,7 @@ function renderSubbar() {
         if (label === heroesSubLabel) return;
         heroesSubLabel = label;
         setHeroesSubView(
-          label === "승급" ? "ascend" : label === "도감" ? "codex" : label === "장비" ? "equip" : "party"
+          label === "승급" ? "ascend" : label === "도감" ? "codex" : label === "장비승급" ? "equip" : "party"
         );
         renderSubbar();
         renderHeroes(document.getElementById("screen-heroes")!);
@@ -400,21 +389,6 @@ function renderSubbar() {
         setMissionsSubView(MISSIONS_SUBVIEWS[label] ?? "daily");
         renderSubbar();
         renderMissions(document.getElementById("screen-missions")!);
-      };
-      bar.appendChild(chip);
-    });
-    return;
-  }
-
-  if (currentTab === "shop") {
-    def.subs.forEach((label) => {
-      const chip = h("button", "sub-chip" + (label === shopSubLabel ? " on" : ""), label);
-      chip.onclick = () => {
-        if (label === shopSubLabel) return;
-        shopSubLabel = label;
-        setShopSubView(SHOP_SUBVIEWS[label] ?? "gold");
-        renderSubbar();
-        renderShop(document.getElementById("screen-shop")!);
       };
       bar.appendChild(chip);
     });
