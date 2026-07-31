@@ -315,3 +315,14 @@ export function weeklyMilestoneClaim(points: number): boolean {
   emit("missions-changed");
   return true;
 }
+
+/** §2026-07-31 알림 점(빨간 점) 시스템 — 임무 탭에 수령 대기 중인 보상이 하나라도 있는지.
+ * 일일/주간 임무·마일스톤·업적 전부 포함(전체완료 보너스도 ALL_CLEAR_KEY로 함께 체크) */
+export function anyMissionRewardClaimable(): boolean {
+  if (DAILY_MISSIONS.some((m) => claimable(m.key)) || claimable(ALL_CLEAR_KEY)) return true;
+  if (MILESTONE_TRACK.some((m) => milestoneClaimable(m.points))) return true;
+  if (WEEKLY_MISSIONS.some((m) => weeklyClaimable(m.key)) || weeklyClaimable(ALL_CLEAR_KEY)) return true;
+  if (WEEKLY_MILESTONE_TRACK.some((m) => weeklyMilestoneClaimable(m.points))) return true;
+  if (currentAchievementTiers().some((a) => achievementClaimable(a.key))) return true;
+  return false;
+}
