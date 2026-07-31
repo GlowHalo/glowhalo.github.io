@@ -668,6 +668,12 @@ export function unreadMailCount(): number {
   return save.mail.filter((m) => !m.read).length;
 }
 
+/** §2026-07-31 알림 점(빨간 점) 시스템 — 상점의 "일일 무료 상자"가 오늘 아직 안 열렸는지 */
+export function shopFreeRewardAvailable(): boolean {
+  const today = new Date().toISOString().slice(0, 10);
+  return save.freeBoxDate !== today;
+}
+
 export function markMailRead(id: string) {
   const m = save.mail.find((x) => x.id === id);
   if (!m || m.read) return;
