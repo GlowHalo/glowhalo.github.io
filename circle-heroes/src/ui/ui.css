@@ -1494,15 +1494,35 @@ img.hc-badge {
 }
 .list-card.all-bonus { border-color: var(--amber); }
 
-/* ── 일일 마일스톤 포인트 트랙(BENCHMARK.md §21) ── */
+/* ── 일일 마일스톤 포인트 트랙(BENCHMARK.md §21) ──
+ * §2026-07-31 "일일마일스톤과 개별 임무는 성격이 다르므로 디자인/위치를 차별화" — 예전엔
+ * `.list-card`와 배경·테두리가 거의 동일(panel2 배경 + 1px line 테두리)해서 바로 아래 이어지는
+ * 개별 임무 카드들과 구분이 잘 안 됐다. 앰버 그라디언트 배경 + 굵은 앰버 테두리 + 은은한 글로우로
+ * "포인트 누적 트랙"이라는 별도 UI 문법임을 한눈에 알아보게 함 */
 .milestone-box {
-  background: var(--panel2);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 6px 12px;
-  margin-bottom: 6px;
+  background: linear-gradient(180deg, rgba(245, 172, 61, 0.22), rgba(245, 172, 61, 0.08));
+  border: 2px solid var(--amber);
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 0 0 1px rgba(245, 172, 61, 0.15), 0 2px 8px rgba(216, 138, 31, 0.18);
 }
-.milestone-title { font-size: 12.5px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+.milestone-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--amber-dark);
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.milestone-title::before { content: "🏆"; font-size: 12px; }
+.mission-list-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink3);
+  margin: 2px 2px 4px;
+}
 .milestone-bar { margin: 4px 0 6px; }
 .milestone-chests { display: flex; gap: 6px; }
 .milestone-chest {

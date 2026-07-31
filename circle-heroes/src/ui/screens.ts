@@ -2142,6 +2142,7 @@ export function renderMissions(root: HTMLElement) {
       claim: weeklyMilestoneClaim,
       rerender: () => renderMissions(root),
     });
+    root.appendChild(el("div", "mission-list-label", "임무 목록"));
     renderMissionList(root, WEEKLY_MISSIONS, {
       progress: weeklyProgress,
       isClaimed: weeklyIsClaimed,
@@ -2169,6 +2170,7 @@ export function renderMissions(root: HTMLElement) {
     claim: milestoneClaim,
     rerender: () => renderMissions(root),
   });
+  root.appendChild(el("div", "mission-list-label", "임무 목록"));
   renderMissionList(root, DAILY_MISSIONS, {
     progress: missionProgress,
     isClaimed: isClaimed,
