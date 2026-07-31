@@ -358,16 +358,9 @@ export function aliveOf(units: Unit[]): Unit[] {
   return units.filter((u) => u.alive);
 }
 
-/** §2026-07-30 "아레나에서 리스트로 대상을 선택해 공격" — forceTargetKey가 주어지고 그 유닛이
- * 아직 살아있으면 그 유닛을 그대로 우선한다(도발 중이어도 플레이어가 직접 고른 선택을 존중).
- * 죽었거나 안 넘어오면 기존 자동 선택으로 폴백 */
-export function pickTarget(attacker: Unit, foes: Unit[], now: number, forceTargetKey?: string): Unit | null {
+export function pickTarget(attacker: Unit, foes: Unit[], now: number): Unit | null {
   const alive = aliveOf(foes);
   if (alive.length === 0) return null;
-  if (forceTargetKey) {
-    const forced = alive.find((u) => u.key === forceTargetKey);
-    if (forced) return forced;
-  }
   // 도발 우선
   const taunter = alive.find((u) => u.tauntUntil > now);
   if (taunter) return taunter;
@@ -626,10 +619,8 @@ export const ACTIVES: Record<string, ActiveFn> = {
   },
 };
 
-/** 한 유닛의 행동 1회. 결과 목록 반환 (매혹 상태면 빈 배열 + stun 표시).
- * forceTargetKey(§2026-07-30, 아레나 대상 선택)는 기본공격에서만 적용된다 — 스킬은 영웅별로
- * 전체공격/아군버프/최저체력 등 고유 타게팅 로직이라 "고른 대상 하나"가 그대로 안 맞는다 */
-export function act(self: Unit, allies: Unit[], foes: Unit[], now: number, forceTargetKey?: string): HitResult[] {
+/** 한 유닛의 행동 1회. 결과 목록 반환 (매혹 상태면 빈 배열 + stun 표시) */
+export function act(self: Unit, allies: Unit[], foes: Unit[], now: number): HitResult[] {
   if (self.stunUntil > now) {
     return [{ attacker: self, target: self, amount: 0, crit: false, kind: "stun" }];
   }
@@ -651,7 +642,7 @@ export function act(self: Unit, allies: Unit[], foes: Unit[], now: number, force
       return results;
     }
   }
-  const target = pickTarget(self, foes, now, forceTargetKey);
+  const target = pickTarget(self, foes, now);
   if (target) dealDamage(self, target, allies, foes, now, results);
   return results;
 }
