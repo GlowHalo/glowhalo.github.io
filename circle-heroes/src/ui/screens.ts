@@ -19,7 +19,7 @@ import {
   GRADE_WEIGHT, NORMAL_GRADE_WEIGHT, PICKUP_RATE_UP, gradeRosterCount,
   freeSummonAvailable, type FreeSummonKind,
 } from "../systems/gacha";
-import { calcFactionSynergy, partyPower, FACTION_STRONG_AGAINST, FACTION_WEAK_AGAINST, REAL_FACTIONS } from "../systems/battle";
+import { calcFactionSynergy, partyPower, heroPower, FACTION_STRONG_AGAINST, FACTION_WEAK_AGAINST, REAL_FACTIONS } from "../systems/battle";
 import {
   DAILY_MISSIONS, ALL_CLEAR_KEY, ALL_CLEAR_BONUS,
   missionProgress, isClaimed, claimable, claim, track,
@@ -85,10 +85,14 @@ const GRADE_CARD_BG: Record<string, string> = {
 
 /** 카드 전체에 등급색 배경을 입힌다(C안). 카드는 position:relative 여야 함.
  * §2026-07-31: UR의 상시 펄스 발광(붉은 번쩍임)은 "배경 번쩍거림은 없애자" 요청으로 제거하고,
- * 대신 히든(Unknown) 등급에 무지개색 발광을 새로 붙였다(§카드 표시방식) */
+ * 대신 히든(Unknown) 등급에 무지개색 발광을 새로 붙였다(§카드 표시방식).
+ * §2026-07-31(5차) "UR은 테두리가 흰색 그라데이션으로 움직이게" — 새 요청으로 UR 전용 애니메이션
+ * 테두리(grade-shimmer-ur, ui.css)를 다시 추가. 위 노트의 "번쩍임 제거"는 예전의 붉은 펄스
+ * box-shadow 얘기라 이번 것과는 다른 연출(고정 발광이 아니라 흐르는 테두리)이라 상충하지 않음 */
 function setCardGrade(card: HTMLElement, grade: string) {
   card.style.background = GRADE_CARD_BG[grade] ?? GRADE_CARD_BG["Unknown"];
   card.classList.toggle("grade-shimmer-unknown", grade === "Unknown");
+  card.classList.toggle("grade-shimmer-ur", grade === "UR");
 }
 
 /** 상점/우편함 등 리스트 카드 맨 앞 아이콘(§2026-07-30 이미지 반영) 공용 헬퍼 */
@@ -140,11 +144,15 @@ const GRADE_GLOW: Record<string, string> = {
 };
 
 /** 장비 아이템에 등급을 테두리 색+굵기+등급색 외곽 매트(box-shadow 링)로 표시(§2026-07-30, 영웅
- * 카드는 setCardGrade/addFactionBadge로 분리됨 — 이 함수는 장비 전용으로 유지) */
+ * 카드는 setCardGrade/addFactionBadge로 분리됨 — 이 함수는 장비 전용으로 유지).
+ * §2026-07-31(5차) "UR은 테두리가 흰색 그라데이션으로 움직이게" — 기존 정적인 흰색 테두리+
+ * 은은한 발광(GRADE_BORDER/GRADE_GLOW의 UR 항목)은 그대로 두고, 그 위에 흐르는 하이라이트
+ * 링(grade-shimmer-ur, hero-card와 공유하는 CSS)을 얹는다 */
 function setGradeBorder(el: HTMLElement, grade: string) {
   el.style.borderColor = GRADE_BORDER[grade] ?? "#888";
   el.style.borderWidth = `${GRADE_BORDER_WIDTH[grade] ?? 3}px`;
   el.style.boxShadow = GRADE_GLOW[grade] ?? "";
+  el.classList.toggle("grade-shimmer-ur", grade === "UR");
 }
 
 /* ── 영웅 탭 ── */
@@ -623,22 +631,10 @@ export function renderHeroes(root: HTMLElement) {
     (h) => heroFilter === "전체" || h.faction === heroFilter
   );
 
-  // §2026-07-30 "영웅은 성급>등급>진영 순 정렬" 요청 — 가장 공들여 키운(성급 높은) 영웅이 먼저
-  // 보이고, 그다음 타고난 희귀도(등급), 마지막으로 진영 순으로 묶인다. REAL_FACTIONS에 없는
-  // 진영(히든 5종의 "불명")은 알려진 진영들 뒤로 보낸다
-  const factionRank = (f: string) => {
-    const i = REAL_FACTIONS.indexOf(f);
-    return i === -1 ? REAL_FACTIONS.length : i;
-  };
-  const owned = visible
-    .filter((h) => (save.owned[h.id] ?? 0) > 0)
-    .sort((a, b) => {
-      const starDiff = getStars(b.id) - getStars(a.id);
-      if (starDiff) return starDiff;
-      const gradeDiff = GRADE_ORDER.indexOf(a.grade) - GRADE_ORDER.indexOf(b.grade);
-      if (gradeDiff) return gradeDiff;
-      return factionRank(a.faction) - factionRank(b.faction);
-    });
+  // §2026-07-31 "정렬 기준은 기존 최상위 기준 위에 전투력 높은순을 추가" — compareHeroesByPower
+  // (전투력>성급>등급>진영, 아래 GRADE_ORDER 근처에 정의)를 승급 대상/장비 착용 대상 선택
+  // 목록과 공유한다
+  const owned = visible.filter((h) => (save.owned[h.id] ?? 0) > 0).sort(compareHeroesByPower);
 
   const grid = el("div", "hero-grid owned-grid");
   for (const hero of owned) {
@@ -650,6 +646,24 @@ export function renderHeroes(root: HTMLElement) {
 
 /* ── 도감(Codex) 화면: 등급별 구분선 + 전체 로스터, 미보유는 흑백 ── */
 const GRADE_ORDER: Hero["grade"][] = ["UR", "SSR", "SR", "R", "N"];
+
+/** §2026-07-31 "정렬 기준은 기존 최상위 기준 위에 전투력 높은순을 추가" — 보유 영웅 그리드,
+ * 승급 대상 선택, 장비 착용 대상 선택 3곳이 이 비교 함수를 공유한다.
+ * 전투력(레벨·성급 반영 실전 스탯 가중합) > 성급 > 등급 > 진영(REAL_FACTIONS에 없는 히든
+ * "불명"은 알려진 진영들 뒤로) 순 */
+function compareHeroesByPower(a: Hero, b: Hero): number {
+  const powerDiff = heroPower(b, getLevel(b.id), getStars(b.id)) - heroPower(a, getLevel(a.id), getStars(a.id));
+  if (powerDiff) return powerDiff;
+  const starDiff = getStars(b.id) - getStars(a.id);
+  if (starDiff) return starDiff;
+  const gradeDiff = GRADE_ORDER.indexOf(a.grade) - GRADE_ORDER.indexOf(b.grade);
+  if (gradeDiff) return gradeDiff;
+  const factionRankOf = (f: string) => {
+    const i = REAL_FACTIONS.indexOf(f);
+    return i === -1 ? REAL_FACTIONS.length : i;
+  };
+  return factionRankOf(a.faction) - factionRankOf(b.faction);
+}
 
 function renderCodex(root: HTMLElement) {
   root.appendChild(el("h2", "", "영웅 도감"));
@@ -731,7 +745,7 @@ function renderAscend(root: HTMLElement) {
   root.appendChild(el("h2", "", "영웅 승급"));
   root.appendChild(el("div", "desc", "승급할 영웅을 고르고, 동일 성급 영웅 2체를 재료로 골라주세요. 4→5성은 진영도 같아야 합니다. 재료는 소모됩니다."));
 
-  const owned = PLAYABLE_HEROES.filter((h) => (save.owned[h.id] ?? 0) > 0);
+  const owned = PLAYABLE_HEROES.filter((h) => (save.owned[h.id] ?? 0) > 0).sort(compareHeroesByPower);
   const target = ascendTargetId ? owned.find((h) => h.id === ascendTargetId) ?? null : null;
   const stars = target ? getStars(target.id) : 0;
   const maxed = !!target && stars >= MAX_STARS;
@@ -944,6 +958,17 @@ function equipBonusText(item: EquipItem): string {
 
 const EQUIP_GRADES_DESC = [...EQUIP_GRADES].reverse();
 
+/** §2026-07-31 "정렬 기준은 기존 최상위 기준 위에 전투력 높은순을 추가" — 장비 자체엔 영웅처럼
+ * 계산된 "전투력" 수치가 없다(진영/클래스 없이 슬롯+등급+강화레벨뿐). 등급과 강화레벨이 실제
+ * 스탯 보너스(equipEffectivePct/Flat)를 결정하는 유일한 두 변수라, 등급을 최우선으로 두고
+ * 그 안에서 강화레벨 높은 순으로 추가 정렬하는 것이 곧 "더 강한(전투력 높은) 장비 먼저"와
+ * 동일하다 */
+function compareEquipByPower(a: EquipItem, b: EquipItem): number {
+  const gradeDiff = EQUIP_GRADES_DESC.indexOf(a.grade) - EQUIP_GRADES_DESC.indexOf(b.grade);
+  if (gradeDiff) return gradeDiff;
+  return b.level - a.level;
+}
+
 /** 장비 강화 팝업(§마이티 아레나 반영계획 3, 2026-07-30) — 강화석 직접 투입 또는 다른 보유 장비를
  * 흡수해서 강화. 흡수 대상이 이미 강화돼 있으면 "그만큼 더 얹혀서 이월된다"는 걸 확인받는다 */
 function openEnhanceModal(item: EquipItem, onChange: () => void) {
@@ -1040,9 +1065,7 @@ function openEquipSlotModal(heroId: string, hero: Hero, slot: EquipSlot, onChang
     body.appendChild(row);
   }
 
-  const inv = equipInventoryFor(slot).sort(
-    (a, b) => EQUIP_GRADES_DESC.indexOf(a.grade) - EQUIP_GRADES_DESC.indexOf(b.grade)
-  );
+  const inv = equipInventoryFor(slot).sort(compareEquipByPower);
   body.appendChild(el("div", "equip-modal-title", `보유 ${info.label} (${inv.length})`));
   if (!inv.length) {
     body.appendChild(el("div", "as-label", "보유한 장비가 없습니다. 전투 승리나 상점 장비 상자로 얻을 수 있어요."));
@@ -1185,7 +1208,7 @@ function openEquipItemModal(item: EquipItem, rerender: () => void) {
 }
 
 function openEquipHeroPickerModal(item: EquipItem, rerender: () => void) {
-  const owned = PLAYABLE_HEROES.filter((h) => (save.owned[h.id] ?? 0) > 0);
+  const owned = PLAYABLE_HEROES.filter((h) => (save.owned[h.id] ?? 0) > 0).sort(compareHeroesByPower);
   const grid = el("div", "hero-grid");
   for (const hero of owned) {
     grid.appendChild(
@@ -1241,7 +1264,7 @@ function renderEquipment(root: HTMLElement) {
 
   const items = allEquipItems()
     .filter((it) => equipFilterSlot === "all" || it.slot === equipFilterSlot)
-    .sort((a, b) => EQUIP_GRADES_DESC.indexOf(a.grade) - EQUIP_GRADES_DESC.indexOf(b.grade));
+    .sort(compareEquipByPower);
 
   if (!items.length) {
     root.appendChild(el("div", "as-label", "보유한 장비가 없습니다. 전투 승리나 상점 장비 상자로 얻을 수 있어요."));
