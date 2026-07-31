@@ -133,7 +133,6 @@ function switchTab(key: TabKey) {
     battleMode = "stage";
     emit("battle-mode", "stage");
   }
-  document.getElementById("ui")!.classList.toggle("on-battle", key === "battle" || key === "adventure");
   document.querySelectorAll<HTMLElement>("#tabbar .tab").forEach((el) => {
     el.classList.toggle("on", el.dataset.key === key && !el.classList.contains("center"));
   });
@@ -143,6 +142,21 @@ function switchTab(key: TabKey) {
   renderSubbar();
   const renderer = RENDERERS[key];
   if (renderer) renderer(document.getElementById(`screen-${key}`)!);
+  // renderAdventure(위 renderer 호출)가 매번 adventure-live를 지우므로, on-battle 판정은
+  // 그 뒤에 해야 픽커 화면(아직 전투 시작 전)이 정확히 반영된다 — updateOnBattleState 참고
+  updateOnBattleState();
+}
+
+/** #topbar-bg를 투명하게(캔버스가 비치게) 할지 결정 — §2026-07-31 버그: 예전엔
+ * `key === "battle" || key === "adventure"` 로만 판단해서, 모험 탭에 진입만 해도(요일던전/
+ * 아레나/무한의탑 배너를 고르기 전, 아직 캔버스가 아니라 픽커 목록일 때도) 상단바 배경이
+ * 투명해져 뒤의 Phaser 캔버스(초원 등 전투 배경)가 화면 상단 중앙에 비쳐 보였다. 모험 탭은
+ * showAdventureCanvas()가 #screen-adventure에 adventure-live를 붙였을 때만(진짜로 캔버스를
+ * 보여줄 때만) 투명해져야 한다 */
+function updateOnBattleState() {
+  const adventureLive =
+    currentTab === "adventure" && !!document.getElementById("screen-adventure")?.classList.contains("adventure-live");
+  document.getElementById("ui")!.classList.toggle("on-battle", currentTab === "battle" || adventureLive);
 }
 
 let battleMode = "stage";
@@ -158,6 +172,9 @@ function showAdventureCanvas() {
   if (!el) return;
   el.classList.add("adventure-live");
   el.innerHTML = "";
+  // 이미 모험 탭에 있는 채로(switchTab을 거치지 않고) 픽커에서 던전/상대를 골라 전투를 막 시작한
+  // 경우라 updateOnBattleState를 여기서도 불러줘야 topbar-bg가 바로 투명해진다
+  updateOnBattleState();
 }
 
 /** 진영별 지붕색 — BattleScene.ts/screens.ts의 FACTION_COLORS와 동일 팔레트(작은 상수라 파일마다
