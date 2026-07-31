@@ -567,19 +567,39 @@ img.hc-badge {
 .hero-card.locked { cursor: default; }
 /* §2026-07-31: UR의 상시 붉은 펄스 발광은 "배경 번쩍거림은 없애자" 요청으로 제거(UR 카드
    식별은 이제 은백색 배경(GRADE_CARD_BG)만으로 충분). 대신 히든(Unknown) 등급 카드에 무지개색
-   상시 발광을 새로 붙인다 — 정체가 밝혀지지 않은 존재감을 색으로 표현 */
-@keyframes rainbowShimmer {
-  0% { box-shadow: 0 0 10px 3px rgba(255, 80, 80, 0.65); }
-  16% { box-shadow: 0 0 10px 3px rgba(255, 170, 60, 0.65); }
-  33% { box-shadow: 0 0 10px 3px rgba(230, 230, 70, 0.65); }
-  50% { box-shadow: 0 0 10px 3px rgba(70, 220, 130, 0.65); }
-  66% { box-shadow: 0 0 10px 3px rgba(70, 160, 255, 0.65); }
-  83% { box-shadow: 0 0 10px 3px rgba(180, 90, 255, 0.65); }
-  100% { box-shadow: 0 0 10px 3px rgba(255, 80, 80, 0.65); }
+   상시 발광을 새로 붙인다 — 정체가 밝혀지지 않은 존재감을 색으로 표현.
+   §2026-07-31(6차) "히든캐릭터는 무지개색으로 테두리가 빛나도록" — 카드 전체를 감싸는 은은한
+   box-shadow 발광에서, UR과 정확히 같은 기법(grade-shimmer-ur — mask-composite 링 +
+   background-position 애니메이션, conic-gradient/@property 없이 구형 모바일 사파리에서도
+   동작)의 "테두리를 따라 흐르는 무지개 그라디언트 링"으로 교체 — "테두리가 빛난다"는 표현
+   그대로 카드 가장자리 자체가 빛나 보인다 */
+.grade-shimmer-unknown {
+  position: relative;
 }
-.grade-shimmer-unknown { animation: rainbowShimmer 3.4s linear infinite; }
+.grade-shimmer-unknown::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 3px;
+  background: linear-gradient(
+    90deg,
+    #ff5050, #ffaa3c, #e6e646, #46dc82, #46a0ff, #b45aff, #ff5050, #ffaa3c, #e6e646, #46dc82, #46a0ff, #b45aff
+  );
+  background-size: 300% 100%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: rainbowBorderSweep 3.4s linear infinite;
+  pointer-events: none;
+  z-index: 3;
+}
+@keyframes rainbowBorderSweep {
+  0% { background-position: 0% 0; }
+  100% { background-position: -200% 0; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .grade-shimmer-unknown { animation: none; box-shadow: 0 0 8px 2px rgba(180, 90, 255, 0.6); }
+  .grade-shimmer-unknown::before { animation: none; box-shadow: 0 0 8px 2px rgba(180, 90, 255, 0.6); }
 }
 /* §2026-07-31(5차) "UR 영웅·장비·아이템은 테두리가 흰색 그라데이션으로 움직이게" — 카드 자체
    border는 그대로 두고(hero-card는 원래 등급 무관 공통 프레임), ::before로 카드 바깥 경계를
@@ -1187,6 +1207,30 @@ img.hc-badge {
   pointer-events: auto;
   overflow: hidden;
 }
+/* §2026-07-31(6차) "뽑기할 때 무의미한 다이아형태 문자가 생성됨" 버그(§103) 재현·원인 확정 —
+   SSR/UR 카드가 뒤집힐 때 screens.ts가 5개씩 만드는 .sfx-spark("✦" span)에 CSS 규칙이 아예
+   없었다. #summon-fx가 display:flex라서, 위치 지정이 없는 이 span들이 카드 위에 겹쳐 보이는
+   장식이 아니라 "각자 자기 줄을 차지하는 flex 아이템"이 돼 세로로 쌓였다 — 10연뽑기에서 고등급이
+   여럿 겹치면(카드당 5개) 화면 전체를 채우는 다이아 기둥으로 보였던 것. 1초 뒤 스스로 사라지긴
+   하지만(JS의 `later(() => spark.remove(), 1000)`) 그 사이엔 이렇게 화면이 깨져 보였다.
+   .orb-spark(소환 오브 반짝임)와 같은 절대위치 패턴으로 고쳐 flex 흐름에서 완전히 빼낸다 */
+.sfx-spark {
+  position: absolute;
+  z-index: 5;
+  color: #fff3d6;
+  font-size: 13px;
+  text-shadow: 0 0 6px rgba(255, 211, 77, 0.9), 0 0 2px rgba(20, 12, 4, 0.6);
+  pointer-events: none;
+  animation: sfxSparkPop 1s ease-out forwards;
+}
+@keyframes sfxSparkPop {
+  0% { opacity: 0; transform: scale(0.4); }
+  30% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0; transform: scale(0.8); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sfx-spark { animation: none; opacity: 0.8; }
+}
 #summon-fx.flash-sr::before {
   content: '';
   position: absolute;
@@ -1548,23 +1592,30 @@ img.hc-badge {
 /* §2026-07-31 로딩 완료 전엔 탭해도 안 닫히므로 클릭 가능한 느낌을 빼둔다 */
 #splash.loading { cursor: default; }
 #splash.loading #splash-tap { animation: none; opacity: 0.55; }
-/* §2026-07-31(4차) "문구 가독성 향상" — 기존엔 은은한 amber 글로우 하나뿐이라 밝은 파스텔
- * 배경 위에선 그라디언트로 채운 글자(color:transparent + background-clip:text)가 배경과 거의
- * 구분이 안 됐다. 어두운 다중 그림자를 겹쳐 얇은 외곽선(스트로크)처럼 보이게 해 어떤 배경
- * 위에서도 윤곽이 또렷하게 남도록 보강 */
+/* §2026-07-31(5차) "여전히 흐릿한 회색 글씨, 중앙정렬 대신 상단 1/3로" — 그라디언트로 채운
+ * 글자(color:transparent + background-clip:text)는 밝은 파스텔 배경 위에서 실사용시 여전히
+ * 흐릿한 회색조로 보인다는 피드백. background-clip:text를 완전히 버리고 단색 크림색 + 두꺼운
+ * 다중 그림자(외곽선처럼)로 교체해 배경과 무관하게 또렷하도록 했다. 레이아웃도 flex 중앙정렬
+ * 흐름에서 빼내 상단 1/3 지점에 절대배치, 미카엘 일러스트(아직 없음)는 남은 flex 공간에서
+ * 그대로 중앙에 위치 */
 #splash-title {
-  font-size: 34px;
-  font-weight: 800;
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 42px;
+  font-weight: 900;
   letter-spacing: 0.02em;
-  background: linear-gradient(180deg, #fff3d6, var(--amber) 55%, var(--amber-dark));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: #fff8e8;
+  text-align: center;
+  white-space: nowrap;
   text-shadow:
-    0 0 24px rgba(245, 172, 61, 0.45),
-    0 2px 3px rgba(20, 12, 4, 0.85),
-    0 0 6px rgba(20, 12, 4, 0.9),
-    0 0 14px rgba(20, 12, 4, 0.6);
+    0 2px 0 rgba(20, 12, 4, 0.95),
+    0 3px 8px rgba(20, 12, 4, 0.9),
+    0 0 4px rgba(20, 12, 4, 0.95),
+    0 0 20px rgba(245, 172, 61, 0.65),
+    0 0 32px rgba(20, 12, 4, 0.5);
+  z-index: 2;
 }
 /* §2026-07-31(4차) "미카엘 일러스트를 파스텔톤으로 그려 가운데 추가" — 아직 파일이 없으면
  * splash.ts의 onerror가 <img>를 지워서 조용히 아무것도 안 보이는 정상 상태로 돌아간다(파일
@@ -1631,9 +1682,29 @@ img.hc-badge {
   inset: 0;
   background: var(--ab-img) center/cover no-repeat;
 }
+/* §2026-07-31(6차) "모험 메뉴 글씨가 잘 안 보여" — 배너 그림에 어두운 스크림이 전혀 없어서
+   설명 문구가 그림 위에 그대로 얹혀 배경이 밝은/복잡한 부분에서는 거의 안 읽혔다(예: 요일던전
+   배너의 불여우 몸통 위). 텍스트가 앉는 카드 아래쪽~오른쪽에 어두운 그라디언트를 깔아 그림과
+   무관하게 항상 읽히도록 보정 */
+.adventure-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.55) 100%);
+}
 .adventure-banner .ab-body { position: relative; z-index: 1; flex: 1; min-width: 0; }
-.adventure-banner .ab-label { font-size: 16px; font-weight: 800; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
-.adventure-banner .ab-flavor { font-size: 11.5px; color: rgba(255, 255, 255, 0.85); margin-top: 2px; }
+.adventure-banner .ab-label {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95), 0 0 6px rgba(0, 0, 0, 0.8);
+}
+.adventure-banner .ab-flavor {
+  font-size: 11.5px;
+  color: #fff;
+  margin-top: 2px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95), 0 0 5px rgba(0, 0, 0, 0.8);
+}
 .adventure-banner .ab-arrow { position: relative; z-index: 1; flex: none; font-size: 18px; color: rgba(255, 255, 255, 0.8); }
 .adventure-banner.mode-raid { --ab-img: url("banner-raid.png"); }
 .adventure-banner.mode-arena { --ab-img: url("banner-arena.png"); }

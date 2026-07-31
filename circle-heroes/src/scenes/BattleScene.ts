@@ -427,8 +427,9 @@ export class BattleScene extends Phaser.Scene {
     if (this.mode === "stage") {
       boss = this.wave === WAVES_PER_STAGE;
       const count = boss ? 1 : Math.min(2 + Math.floor(this.stage / 3), 4);
+      const st = stageTierFor(this.stage);
       this.enemies = Array.from({ length: count }, (_, i) =>
-        makeEnemy(`enemy_${i}`, boss ? "슬라임 킹" : "슬라임", this.stage, boss)
+        makeEnemy(`enemy_${i}`, boss ? st.bossName : st.normalName, this.stage, boss)
       );
     } else if (this.mode === "tower") {
       const f = save.towerFloor;
