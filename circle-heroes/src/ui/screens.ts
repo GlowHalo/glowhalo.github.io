@@ -1672,7 +1672,10 @@ function playSummonFx(
           }
         }
         if (r.isNew) newQueue.push(r);
-        drainNewQueue();
+        // §2026-07-31 "신규영웅 팝업은 카드가 모두 뒤집어진 후 텀을 두고" — 예전엔 새 영웅 카드가
+        // 뒤집히는 즉시 팝업이 떠서, 전체 뒤집기(70ms 스태거) 도중 아직 안 뒤집힌 카드들 위로 팝업이
+        // 끼어들었다. 마지막 카드까지 다 뒤집힌 뒤에만 큐를 드레인하도록 바꾸고 살짝의 텀을 둔다
+        if (revealedCount === pulls.length) later(drainNewQueue, 500);
         maybeFinish();
       };
       if (isHigh) {
