@@ -12,7 +12,10 @@ import { HEROES } from "../data/heroes";
 import { isMuted, setMuted } from "../systems/audio";
 import { RAID_DUNGEONS, WEEKDAY_LABELS, requiredFaction, isRaidWeekend } from "../systems/raid";
 import { anyFreeSummonAvailable } from "../systems/gacha";
-import { generateArenaCandidates, selectArenaOpponent, type ArenaOpponent } from "../systems/arenaMatch";
+import {
+  generateArenaCandidates, selectArenaOpponent, type ArenaOpponent,
+  arenaWeeklyRewardClaimable, claimArenaWeeklyReward, arenaRewardTierFor,
+} from "../systems/arenaMatch";
 
 type TabKey = "heroes" | "summon" | "battle" | "adventure" | "shop" | "missions";
 
@@ -236,16 +239,18 @@ function openRaidSelectModal() {
  * (BattleScene의 "arena-round-ended" 이벤트를 buildShell에서 구독해 이 모달을 다시 연다) */
 function openArenaSelectModal() {
   const body = h("div", "arena-select");
-  body.appendChild(h("div", "desc", `내 레이팅 🏆${save.arenaRating}점 — 도전할 상대를 골라주세요.`));
+  const myTier = arenaRewardTierFor(save.arenaRank);
+  body.appendChild(h("div", "desc", `내 순위 🏆${save.arenaRank}위 — 도전할 상대를 골라주세요.`));
 
   const list = h("div", "arena-opp-list");
   const renderList = (candidates: ArenaOpponent[]) => {
     list.innerHTML = "";
     for (const opp of candidates) {
+      const above = opp.rank < save.arenaRank; // 위쪽(순위가 좋음) — 이기면 순위 교체
       const row = h("div", "list-card arena-opp-row");
       const grow = h("div", "grow");
-      grow.appendChild(h("div", "t", opp.name));
-      grow.appendChild(h("div", "s", `점수 ${opp.score} · 전투력 ${opp.power.toLocaleString()}`));
+      grow.appendChild(h("div", "t", `${opp.rank}위 · ${opp.name}`));
+      grow.appendChild(h("div", "s", `전투력 ${opp.power.toLocaleString()} · ${above ? "🔺상승" : "안전픽"}`));
       row.appendChild(grow);
       const challengeBtn = h("button", "btn primary", "도전") as HTMLButtonElement;
       challengeBtn.onclick = () => {
@@ -269,6 +274,26 @@ function openArenaSelectModal() {
   const refreshBtn = h("button", "btn", "🔄 상대 갱신") as HTMLButtonElement;
   refreshBtn.onclick = () => renderList(generateArenaCandidates());
   body.appendChild(refreshBtn);
+
+  // §2026-07-31 주간 순위 보상 — 현재 순위 구간 보상을 미리 보여주고, 주 1회 수령 가능
+  const rewardRow = h("div", "list-card arena-weekly-row");
+  const rewardGrow = h("div", "grow");
+  rewardGrow.appendChild(h("div", "t", `주간 보상 (${myTier.label})`));
+  rewardGrow.appendChild(
+    h("div", "s", `🪙${myTier.gold.toLocaleString()}${myTier.equipGrade ? ` · ${myTier.equipGrade}급 장비 확정` : ""}`)
+  );
+  rewardRow.appendChild(rewardGrow);
+  const claimBtn = h("button", "btn" + (arenaWeeklyRewardClaimable() ? " primary" : ""), arenaWeeklyRewardClaimable() ? "수령" : "수령 완료") as HTMLButtonElement;
+  claimBtn.disabled = !arenaWeeklyRewardClaimable();
+  claimBtn.onclick = () => {
+    const result = claimArenaWeeklyReward();
+    if (!result) return;
+    toast(`주간 보상 수령! 🪙${result.tier.gold.toLocaleString()}${result.equip ? ` · ${result.equip.grade}급 장비` : ""}`);
+    closeModal();
+    openArenaSelectModal();
+  };
+  rewardRow.appendChild(claimBtn);
+  body.appendChild(rewardRow);
 
   const close = h("button", "btn", "닫기") as HTMLButtonElement;
   close.onclick = closeModal;

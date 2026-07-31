@@ -100,10 +100,13 @@ export interface SaveState {
   freeBoxDate: string;
   /** 무한의 탑 현재 도전 층 (클리어한 최고층 + 1) */
   towerFloor: number;
-  /** 아레나 레이팅 */
-  arenaRating: number;
+  /** §2026-07-31 랭킹 사다리로 재설계 — 1위가 최상위, 1000위에서 시작해 나보다 순위가 좋은
+   * 상대를 이기면 그 순위와 교체(내려가는 일은 없음, 지거나 순위가 나쁜 상대를 이겨도 유지) */
+  arenaRank: number;
   /** YYYY-MM-DD — 아레나 오늘 첫 승리 보너스 수령일 */
   arenaWinDate: string;
+  /** ISO 주차가 바뀌면 리셋 — 아레나 주간 순위 보상 1회 수령 여부 */
+  arenaWeeklyClaim: { week: string; claimed: boolean };
   /** 일일 임무 상태 (날짜가 바뀌면 리셋) */
   missions: {
     date: string;
@@ -170,8 +173,9 @@ const DEFAULTS: SaveState = {
   lastSeenMs: Date.now(),
   freeBoxDate: "",
   towerFloor: 1,
-  arenaRating: 1000,
+  arenaRank: 1000,
   arenaWinDate: "",
+  arenaWeeklyClaim: { week: "", claimed: false },
   missions: { date: "", progress: {}, claimed: [] },
   weeklyMissions: { week: "", progress: {}, claimed: [] },
   achievementsClaimed: [],
@@ -477,12 +481,13 @@ function rollEquipSlot(): EquipSlot {
   return EQUIP_SLOTS[Math.floor(Math.random() * EQUIP_SLOTS.length)];
 }
 
-/** 등급/슬롯 무작위 장비 1개를 인벤토리에 추가(전투 드랍·상점 상자 공용) */
-export function grantRandomEquip(): EquipItem {
+/** 등급/슬롯 무작위 장비 1개를 인벤토리에 추가(전투 드랍·상점 상자 공용). forceGrade를 주면
+ * 등급 확정 지급(§아레나 주간 보상, 2026-07-31 — 순위 구간별로 최소 등급을 보장해야 함) */
+export function grantRandomEquip(forceGrade?: EquipGrade): EquipItem {
   const item: EquipItem = {
     id: `eq_${save.equipItemSeq++}`,
     slot: rollEquipSlot(),
-    grade: rollEquipGrade(),
+    grade: forceGrade ?? rollEquipGrade(),
     invested: 0,
     level: 0,
   };
@@ -613,9 +618,15 @@ export function setTowerFloor(floor: number) {
   emit("tower-changed");
 }
 
-/** 아레나 승패 반영. 오늘 첫 승리면 보석 보너스 지급 후 금액 반환 */
-export function applyArenaResult(won: boolean): { rating: number; bonusGems: number } {
-  save.arenaRating = Math.max(800, save.arenaRating + (won ? 25 : -15));
+/** 아레나 승패 반영(§2026-07-31 랭킹 사다리) — 나보다 순위가 좋은(숫자가 작은) 상대를 이기면
+ * 그 순위와 교체해서 올라가고, 지거나 순위가 나쁜(안전픽) 상대를 이겨도 순위는 그대로 — 절대
+ * 내려가지 않는다. 오늘 첫 승리면 보석 보너스는 기존 그대로 유지 */
+export function applyArenaResult(won: boolean, opponentRank: number): { rank: number; rankChanged: boolean; bonusGems: number } {
+  let rankChanged = false;
+  if (won && opponentRank < save.arenaRank) {
+    save.arenaRank = opponentRank;
+    rankChanged = true;
+  }
   let bonusGems = 0;
   if (won) {
     const today = new Date().toISOString().slice(0, 10);
@@ -628,7 +639,7 @@ export function applyArenaResult(won: boolean): { rating: number; bonusGems: num
   }
   persist();
   emit("arena-changed");
-  return { rating: save.arenaRating, bonusGems };
+  return { rank: save.arenaRank, rankChanged, bonusGems };
 }
 
 export function resetSave() {
