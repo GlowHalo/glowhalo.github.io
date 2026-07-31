@@ -1785,9 +1785,10 @@ const STONE_PACK_GOLD = 300;
 
 /** 소환권 상점(§마이티 아레나 반영계획 4, 2026-07-30) — 보석으로 정가 구매 + 하루 한정 수량 할인.
  * 던전/탑 보상으로도 얻는 경로는 추후 확대 예정(주인님 결정) */
-const TICKET_GEM_PRICE: Record<TicketKind, number> = { normal: 30, premium: 100 };
-const TICKET_DISCOUNT_PCT = 0.3;
-const TICKET_DISCOUNT_DAILY_LIMIT = 5;
+// §2026-07-31 "고급20다이아/일반10다이아로, 할인은 50%, 매일 각각 10회씩" — 가격·할인율·일일한도 재조정
+const TICKET_GEM_PRICE: Record<TicketKind, number> = { normal: 10, premium: 20 };
+const TICKET_DISCOUNT_PCT = 0.5;
+const TICKET_DISCOUNT_DAILY_LIMIT = 10;
 
 // §2026-07-30 버그 수정 — "일반소환권과 고급소환권이 수량을 공유하네" 신고 확인 결과, 실제
 // 보유 수량(ticketNormal/ticketPremium)은 애초부터 독립적이었고, 문제는 "오늘의 할인" 구매
@@ -1863,20 +1864,10 @@ export function renderShop(root: HTMLElement) {
   // §2026-07-31 "소환권 이미지는 할인여부 관계없이 획득상품 이미지로 통일" — 할인 카드가
   // 항상 🏷️(태그) 아이콘만 쓰던 걸 고쳐, 정가 카드와 동일하게 그 소환권 고유 아이콘을 쓴다.
   // ticket-normal.png/ticket-premium.png 도착으로 이모지 파라미터도 이미지로 교체
-  const ticketRow = (kind: TicketKind) => {
+  // §2026-07-31(2차) "무료>할인>정가 순으로 배치" — 할인 카드 4장을 정가보다 먼저 그리도록
+  // 두 함수로 분리(할인 렌더 함수를 먼저 호출, 정가 렌더 함수를 나중에 호출)
+  const ticketDiscountRow = (kind: TicketKind) => {
     const label = kind === "normal" ? "일반소환권" : "고급소환권";
-    const card = el("div", "list-card");
-    card.appendChild(liIcon(TICKET_ICON_FILE[kind]));
-    const grow = el("div", "grow");
-    grow.appendChild(el("div", "t", label));
-    grow.appendChild(el("div", "s", `정가 💎${TICKET_GEM_PRICE[kind]}`));
-    card.appendChild(grow);
-    const buyBtn = el("button", "btn primary", "구매") as HTMLButtonElement;
-    buyBtn.disabled = save.gems < TICKET_GEM_PRICE[kind];
-    buyBtn.onclick = () => buyTicket(root, kind, false);
-    card.appendChild(buyBtn);
-    root.appendChild(card);
-
     const remain = ticketDiscountRemaining(kind);
     const discPrice = Math.round(TICKET_GEM_PRICE[kind] * (1 - TICKET_DISCOUNT_PCT));
     const discCard = el("div", "list-card");
@@ -1891,8 +1882,24 @@ export function renderShop(root: HTMLElement) {
     discCard.appendChild(discBtn);
     root.appendChild(discCard);
   };
-  ticketRow("normal");
-  ticketRow("premium");
+  const ticketFullRow = (kind: TicketKind) => {
+    const label = kind === "normal" ? "일반소환권" : "고급소환권";
+    const card = el("div", "list-card");
+    card.appendChild(liIcon(TICKET_ICON_FILE[kind]));
+    const grow = el("div", "grow");
+    grow.appendChild(el("div", "t", label));
+    grow.appendChild(el("div", "s", `정가 💎${TICKET_GEM_PRICE[kind]}`));
+    card.appendChild(grow);
+    const buyBtn = el("button", "btn primary", "구매") as HTMLButtonElement;
+    buyBtn.disabled = save.gems < TICKET_GEM_PRICE[kind];
+    buyBtn.onclick = () => buyTicket(root, kind, false);
+    card.appendChild(buyBtn);
+    root.appendChild(card);
+  };
+  ticketDiscountRow("normal");
+  ticketDiscountRow("premium");
+  ticketFullRow("normal");
+  ticketFullRow("premium");
 
   // 실결제 보석 패키지는 결제 연동이 아직 없어 정직하게 "준비 중"으로만 표시(고스트 버튼 아님 — 클릭 대상 자체가 없음)
   const gemsCard = el("div", "list-card");
