@@ -581,6 +581,40 @@ img.hc-badge {
 @media (prefers-reduced-motion: reduce) {
   .grade-shimmer-unknown { animation: none; box-shadow: 0 0 8px 2px rgba(180, 90, 255, 0.6); }
 }
+/* §2026-07-31(5차) "UR 영웅·장비·아이템은 테두리가 흰색 그라데이션으로 움직이게" — 카드 자체
+   border는 그대로 두고(hero-card는 원래 등급 무관 공통 프레임), ::before로 카드 바깥 경계를
+   따라 도는 "링"만 하나 더 얹는다. mask-composite:exclude로 padding-box 안쪽(content-box)을
+   파내서 테두리 두께만큼만 남기는 표준 기법 — inset:0으로 카드 박스 안쪽에 딱 맞춰야
+   .hero-card의 overflow:hidden에 잘려나가지 않는다(바깥으로 삐져나오면 클리핑됨).
+   linear-gradient 한 겹을 크게(300%) 늘려 background-position만 애니메이션하면 흰 빛줄기가
+   테두리를 따라 흘러가는 것처럼 보인다 */
+.grade-shimmer-ur {
+  position: relative;
+}
+.grade-shimmer-ur::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 3px;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0) 15%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0) 85%),
+    linear-gradient(180deg, #cfd6ea, #ffffff);
+  background-size: 300% 300%, 100% 100%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: urBorderSweep 2.6s linear infinite;
+  pointer-events: none;
+  z-index: 3;
+}
+@keyframes urBorderSweep {
+  0% { background-position: 0% 50%, 0 0; }
+  100% { background-position: 300% 50%, 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grade-shimmer-ur::before { animation: none; background-position: 100% 50%, 0 0; }
+}
 /* 흑백이지만 실루엣은 알아볼 수 있게(수집 동기 부여) — 완전히 가리지 않는다 */
 .hero-card.locked .face { filter: grayscale(1) brightness(0.75); }
 .hero-card .hc-lock {
