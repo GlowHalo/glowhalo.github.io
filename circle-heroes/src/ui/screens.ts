@@ -1461,14 +1461,35 @@ export function renderSummon(root: HTMLElement) {
   box.appendChild(pity);
   root.appendChild(box);
 
+  // §2026-07-31 "소환권이 없으면 다이아로는 못 뽑는 버그" — gacha.ts의 pull()은 소환권 전용이라
+  // 원래부터 골드/보석 대체 결제 경로가 없었다(설계상 없었던 것이지 회귀 버그는 아님). "다이아로
+  // 뽑을 수 있게 연결해달라"는 요청대로, 소환권이 모자라면 부족분만큼을 보석으로 즉시 구매(상점의
+  // buyTicket과 동일 단가)한 뒤 그 소환권으로 정상 소환하는 대체 결제 흐름을 새로 연결한다
   const doPull = (count: number, useFree = false) => {
     if (selectedKind === "pickup" && !selectedPickupId) {
       toast("픽업할 영웅을 먼저 골라주세요");
       return;
     }
+    const cat = CATEGORIES.find((c) => c.kind === selectedKind)!;
+    if (!useFree) {
+      const ticketCost = count === 1 ? SINGLE_COST : TEN_COST;
+      const owned = cat.ticket === "normal" ? save.ticketNormal : save.ticketPremium;
+      const shortfall = ticketCost - owned;
+      if (shortfall > 0) {
+        const gemCost = shortfall * TICKET_GEM_PRICE[cat.ticket];
+        const ticketLabel = cat.ticket === "normal" ? "일반" : "고급";
+        if (save.gems < gemCost) {
+          toast(`${ticketLabel}소환권이 부족합니다 (보석도 부족: 💎${gemCost} 필요)`);
+          return;
+        }
+        if (!confirm(`${ticketLabel}소환권이 ${shortfall}장 부족합니다. 보석 💎${gemCost}로 대신 구매해서 소환할까요?`)) return;
+        if (!spendGems(gemCost)) return;
+        addTicket(cat.ticket, shortfall);
+        persist();
+      }
+    }
     const pulls = pull(count, selectedKind, selectedPickupId ?? undefined, useFree);
     if (!pulls) {
-      const cat = CATEGORIES.find((c) => c.kind === selectedKind)!;
       toast(useFree ? "무료소환을 이미 사용했습니다" : `${cat.ticket === "normal" ? "일반" : "고급"}소환권이 부족합니다`);
       return;
     }
