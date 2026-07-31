@@ -8,11 +8,10 @@ import {
 } from "../state/save";
 import { track } from "../systems/missions";
 import { todayFaction, requiredFaction, raidKills, applyRaidKill, raidBossName } from "../systems/raid";
-import { toast, modal, closeModal } from "../ui/shell";
+import { toast } from "../ui/shell";
 import { on, emit } from "../state/bus";
 import {
   act,
-  aliveOf,
   applyAuras,
   attackIntervalMs,
   calcFactionSynergy,
@@ -25,6 +24,7 @@ import {
 } from "../systems/battle";
 import { STAGE_TIERS, stageTierFor } from "../data/stageTiers";
 import { playSfx, playBgm } from "../systems/audio";
+import { getSelectedArenaOpponent } from "../systems/arenaMatch";
 
 export const GAME_W = 420;
 export const GAME_H = 740;
@@ -262,6 +262,13 @@ export class BattleScene extends Phaser.Scene {
       this.rosterDirty = true;
     });
     on("battle-mode", (m) => this.setMode(m as BattleMode));
+    // §2026-07-31 "상대 목록에서 골라 재도전" — 이미 아레나 모드인 채로 새 상대를 고른 경우
+    // setMode()의 "같은 모드면 무시" 가드에 막혀 재시작이 안 된다. 모드 전환 없이 강제로
+    // 다시 시작하는 전용 이벤트
+    on("arena-restart", () => {
+      this.gen++;
+      this.startArena();
+    });
 
     this.startStage(save.stage);
   }
@@ -359,8 +366,23 @@ export class BattleScene extends Phaser.Scene {
     this.spawnTeams();
   }
 
-  /** 아레나 상대: 소환 가능 영웅 중 랜덤 5인, 내 파티 수준에 레이팅 보정 */
+  /** 아레나 상대 — §2026-07-31 "리스트에서 상대 파티를 선택" 재설계 이후엔 도전 전 목록
+   * 모달(연무장)에서 고른 특정 상대를 그대로 재현한다. 선택된 상대가 없으면(이론상 도달 안
+   * 함 — shell.ts가 항상 먼저 선택시킨 뒤에만 아레나 모드로 전환한다) 예전 방식(레이팅 보정
+   * 랜덤 5인)으로 폴백 */
   private buildArenaOpponents(): Unit[] {
+    const selected = getSelectedArenaOpponent();
+    if (selected) {
+      return selected.heroIds
+        .map((id) => PLAYABLE_HEROES.find((h) => h.id === id))
+        .filter((h): h is Hero => !!h)
+        .map((h) => {
+          const u = unitFromHero(h, selected.level, 1);
+          u.isHero = false;
+          u.key = "arena_" + u.key;
+          return u;
+        });
+    }
     const pool = PLAYABLE_HEROES.filter((h) => h.acquireMethod === "gacha");
     const picks: Hero[] = [];
     const used = new Set<number>();
@@ -570,15 +592,14 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  /** 한 유닛의 행동 1회를 실행(액티브/기본공격 → 모션·이펙트 → 결과 표시). 전투가 끝났으면 true 반환.
-   * forceTargetKey(§2026-07-30 아레나 대상 선택)는 그대로 act()에 전달 — 기본공격에만 적용됨 */
-  private resolveUnitAction(unit: Unit, now: number, forceTargetKey?: string): boolean {
+  /** 한 유닛의 행동 1회를 실행(액티브/기본공격 → 모션·이펙트 → 결과 표시). 전투가 끝났으면 true 반환 */
+  private resolveUnitAction(unit: Unit, now: number): boolean {
     const allies = unit.isHero ? this.heroes : this.enemies;
     const foes = unit.isHero ? this.enemies : this.heroes;
     // 스킬 사용 여부를 act() 호출 전에 미리 예측(actionCount는 act() 내부에서 증가) — 시전 이펙트용
     const isSkillCast = !!unit.heroId && (unit.actionCount + 1) % SKILL_EVERY_N_ACTIONS === 0;
     const isUrCast = isSkillCast && this.isUrHero(unit.heroId) && !this.ultimateCutinPlayedThisWave.has(unit.heroId!);
-    const results = act(unit, allies, foes, now, forceTargetKey);
+    const results = act(unit, allies, foes, now);
     if (results.length > 0) {
       if (isUrCast) {
         this.ultimateCutinPlayedThisWave.add(unit.heroId!);
@@ -627,61 +648,21 @@ export class BattleScene extends Phaser.Scene {
     const isSkillCast = !!unit.heroId && (unit.actionCount + 1) % SKILL_EVERY_N_ACTIONS === 0;
     const isUrCast = isSkillCast && this.isUrHero(unit.heroId) && !this.ultimateCutinPlayedThisWave.has(unit.heroId!);
 
-    const proceed = (forceTargetKey?: string) => {
-      // now는 실제로 행동을 처리하는 시점에 다시 계산 — 대상 선택 대기 중 흐른 시간이
-      // 도발/기절 등 시간 비교 로직에 반영되도록
-      const now = this.time.now * this.speedMult;
-      const battleEnded = this.resolveUnitAction(unit, now, forceTargetKey);
-      if (battleEnded) return;
+    // §2026-07-31 "아레나 공격대상 지정"은 전투 중 수동 타겟팅이 아니라 도전 전 상대 목록에서
+    // 고르는 것이었다(요청 오해 정정) — 전투는 항상 우리 로직대로 완전 자동이라는 원칙에 따라
+    // 여기서 사용자 입력을 기다리지 않고 바로 진행한다
+    const now = this.time.now * this.speedMult;
+    const battleEnded = this.resolveUnitAction(unit, now);
+    if (battleEnded) return;
 
-      // 다음 턴은 이번 행동의 모션(시전 예고+돌진 애니메이션)이 다 끝난 뒤 시작 — 턴이 겹쳐 보이지 않도록
-      // UR 필살기 컷인은 연출이 훨씬 길어서(§11) 별도 여유를 더 준다
-      const animMs = isUrCast ? 70 + 620 : isSkillCast ? 70 + 240 : 240;
-      const gap = Math.max(animMs + 140, 300);
-      this.delayed(gap / this.speedMult, () => this.stepTurn());
-    };
-
-    // §2026-07-30 "아레나에서 리스트로 대상을 선택해 공격" — 아레나 모드의 영웅 기본공격
-    // 차례에서만 대상을 직접 고르게 한다(스킬 차례는 영웅별 고유 타게팅이라 제외)
-    if (this.mode === "arena" && unit.isHero && !isSkillCast) {
-      this.promptArenaTarget(unit, proceed);
-      return;
-    }
-    proceed();
-  }
-
-  /** 아레나 기본공격 차례에 "공격할 대상을 고르세요" 목록을 띄우고, 고른 유닛의 key를 넘겨
-   * onPicked를 호출한다. 살아있는 적이 하나뿐이면 굳이 물어보지 않고 바로 진행 */
-  private promptArenaTarget(attacker: Unit, onPicked: (targetKey?: string) => void) {
-    const foes = aliveOf(this.enemies);
-    if (foes.length <= 1) {
-      onPicked(foes[0]?.key);
-      return;
-    }
-    const body = document.createElement("div");
-    body.className = "arena-target-list";
-    let picked = false;
-    const pick = (key: string) => {
-      if (picked) return;
-      picked = true;
-      closeModal();
-      onPicked(key);
-    };
-    for (const foe of foes) {
-      const row = document.createElement("button");
-      row.className = "btn arena-target-row";
-      const pct = Math.max(0, Math.round((foe.hp / foe.maxHp) * 100));
-      const nameSpan = document.createElement("span");
-      nameSpan.className = "atr-name";
-      nameSpan.textContent = foe.name;
-      const hpSpan = document.createElement("span");
-      hpSpan.className = "atr-hp";
-      hpSpan.textContent = `HP ${pct}%`;
-      row.append(nameSpan, hpSpan);
-      row.onclick = () => pick(foe.key);
-      body.appendChild(row);
-    }
-    modal(`${attacker.name} — 공격할 대상을 선택하세요`, body);
+    // §2026-07-31 마이티 아레나 레퍼런스 영상을 0.5초 단위로 프레임 분석한 실측 결과 반영 —
+    // 기본공격류 연속 타격은 ~0.5초 간격이었지만, 스킬은 "스킬명 배너 예고(~0.5~1초) → 이펙트
+    // 판정(~1~1.5초)"로 한 행동이 총 1.5~2.5초 걸렸다(예: "작열지모" 광역 화염기 시퀀스).
+    // 이전엔 스킬/기본공격 gap이 380~830ms로 거의 차이가 없어 스킬 연출을 눈에 담기 전에 다음
+    // 턴이 시작됐다 — 스킬·필살기 gap을 실측 체감에 맞춰 늘린다(기본공격은 그대로 스냅피하게)
+    const animMs = isUrCast ? 70 + 620 : isSkillCast ? 70 + 240 : 240;
+    const gap = isUrCast ? 1400 : isSkillCast ? 1100 : Math.max(animMs + 200, 450);
+    this.delayed(gap / this.speedMult, () => this.stepTurn());
   }
 
   /** 예비동작(살짝 뒤로) → 돌진 → 탄성있게 복귀하는 3단 트윈 + 스쿼시&스트레치로 타격감 강화 */
@@ -747,10 +728,17 @@ export class BattleScene extends Phaser.Scene {
   /** 시전 순간 발밑에서 피어오르는 진영색 오라 링(마이티아레나식 스킬 예고) */
   private castGlow(caster: Unit) {
     playSfx("cast");
+    // §2026-07-31 마이티 아레나 영상엔 이펙트가 터지기 전에 항상 스킬명 배너("작열지모" 등)가
+    // 화면 중앙에 먼저 떴다 — 우리는 오라링만 있고 이 예고 텍스트가 없어서 스킬 연출 자체는
+    // 화려한데 "무슨 스킬을 썼는지" 정보가 안 읽혔다. 기존 showBanner()를 그대로 재사용
+    const hero = caster.heroId ? PLAYABLE_HEROES.find((h) => h.id === caster.heroId) : undefined;
+    const tint = FACTION_COLORS[caster.faction] ?? 0xffffff;
+    if (hero?.skill1Name) {
+      this.showBanner(hero.skill1Name, `#${tint.toString(16).padStart(6, "0")}`);
+    }
     if (!this.textures.exists("fx-cast-aura")) return;
     const view = this.views.get(caster);
     if (!view) return;
-    const tint = FACTION_COLORS[caster.faction] ?? 0xffffff;
     const fx = this.add.image(view.root.x, view.root.y + 16, "fx-cast-aura").setDepth(5);
     fx.setBlendMode(Phaser.BlendModes.ADD);
     fx.setTint(tint);
@@ -1138,14 +1126,15 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
 
-    // arena 승리
+    // arena 승리 — §2026-07-31 자동으로 다음 상대와 재전투하는 대신 상대 목록으로 돌아간다
+    // (item 3 재설계: "전투는 항상 자동, 사람이 결정하는 건 누구와 싸울지뿐")
     const { rating, bonusGems } = applyArenaResult(true);
     track("arenaWin");
     const arenaRewards = [`🏆 +25점 (${rating})`];
     if (bonusGems > 0) arenaRewards.push(`💎 +${bonusGems}`);
     this.showVictoryBanner("아레나 승리", arenaRewards);
     this.refreshHud();
-    this.delayed(1600 / this.speedMult, () => this.startArena());
+    this.delayed(1600 / this.speedMult, () => emit("arena-round-ended"));
   }
 
   private onDefeat() {
@@ -1177,7 +1166,7 @@ export class BattleScene extends Phaser.Scene {
     const { rating } = applyArenaResult(false);
     this.showBanner(`아레나 패배… -15점 (${rating})`, "#ff8f7a");
     this.refreshHud();
-    this.delayed(1600 / this.speedMult, () => this.startArena());
+    this.delayed(1600 / this.speedMult, () => emit("arena-round-ended"));
   }
 
   private refreshHud() {
