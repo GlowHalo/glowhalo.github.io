@@ -12,6 +12,7 @@ import { HEROES } from "../data/heroes";
 import { isMuted, setMuted } from "../systems/audio";
 import { RAID_DUNGEONS, WEEKDAY_LABELS, requiredFaction, isRaidWeekend } from "../systems/raid";
 import { anyFreeSummonAvailable } from "../systems/gacha";
+import { generateArenaCandidates, selectArenaOpponent, type ArenaOpponent } from "../systems/arenaMatch";
 
 type TabKey = "heroes" | "summon" | "battle" | "adventure" | "shop" | "missions";
 
@@ -228,6 +229,52 @@ function openRaidSelectModal() {
   modal("요일던전", body, [close]);
 }
 
+/** 아레나 상대 목록(§2026-07-31, 마이티 아레나 "연무장" 레퍼런스) — "공격대상 지정"은 전투 중
+ * 타겟팅이 아니라 도전 전 상대를 고르는 것이었다는 정정 신고로 신설. 랭킹 점수·전투력이 다른
+ * 상대 여럿을 보여주고 "도전"을 누른 상대와만 싸운다. 전투 자체는 항상 완전 자동(사용자 확인
+ * 규칙) — 승패 후엔 자동으로 다음 상대와 재전투하지 않고 새로 뽑은 목록으로 돌아온다
+ * (BattleScene의 "arena-round-ended" 이벤트를 buildShell에서 구독해 이 모달을 다시 연다) */
+function openArenaSelectModal() {
+  const body = h("div", "arena-select");
+  body.appendChild(h("div", "desc", `내 레이팅 🏆${save.arenaRating}점 — 도전할 상대를 골라주세요.`));
+
+  const list = h("div", "arena-opp-list");
+  const renderList = (candidates: ArenaOpponent[]) => {
+    list.innerHTML = "";
+    for (const opp of candidates) {
+      const row = h("div", "list-card arena-opp-row");
+      const grow = h("div", "grow");
+      grow.appendChild(h("div", "t", opp.name));
+      grow.appendChild(h("div", "s", `점수 ${opp.score} · 전투력 ${opp.power.toLocaleString()}`));
+      row.appendChild(grow);
+      const challengeBtn = h("button", "btn primary", "도전") as HTMLButtonElement;
+      challengeBtn.onclick = () => {
+        selectArenaOpponent(opp.id);
+        closeModal();
+        if (battleMode !== "arena") {
+          battleMode = "arena";
+          emit("battle-mode", "arena");
+        } else {
+          emit("arena-restart"); // 이미 아레나 모드인 채로 새 상대를 골랐으면 강제 재시작
+        }
+        showAdventureCanvas();
+      };
+      row.appendChild(challengeBtn);
+      list.appendChild(row);
+    }
+  };
+  renderList(generateArenaCandidates());
+  body.appendChild(list);
+
+  const refreshBtn = h("button", "btn", "🔄 상대 갱신") as HTMLButtonElement;
+  refreshBtn.onclick = () => renderList(generateArenaCandidates());
+  body.appendChild(refreshBtn);
+
+  const close = h("button", "btn", "닫기") as HTMLButtonElement;
+  close.onclick = closeModal;
+  modal("연무장", body, [close]);
+}
+
 /** 모험 탭(§2026-07-30, 전투 탭 서브메뉴에서 독립 메인 탭으로 승격) — 요일던전/아레나/무한의탑
  * 배너 3개짜리 허브를 화면 자체로 렌더링(예전엔 모달이었음). 요일던전은 기존 5선택 모달을 그대로
  * 열고, 아레나/무한의탑은 바로 전투모드를 전환해 캔버스를 드러낸다. 메뉴 재진입 시(item 7,
@@ -259,6 +306,10 @@ function renderAdventure(root: HTMLElement) {
     banner.onclick = () => {
       if (b.mode === "raid") {
         openRaidSelectModal();
+        return;
+      }
+      if (b.mode === "arena") {
+        openArenaSelectModal();
         return;
       }
       if (battleMode !== b.mode) {
@@ -746,6 +797,10 @@ export function buildShell() {
   on("party-changed", refreshHud);
   on("roster-changed", refreshHud);
   on("equipment-changed", refreshHud);
+  // §2026-07-31 아레나 전투가 끝나면(승/패 무관) 자동 재도전 대신 상대 목록으로 돌아간다
+  on("arena-round-ended", () => {
+    if (currentTab === "adventure") openArenaSelectModal();
+  });
   on("battle-mode-changed", (m) => {
     battleMode = m as string;
     if (currentTab === "battle") renderSubbar();
