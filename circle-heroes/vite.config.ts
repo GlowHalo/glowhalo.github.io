@@ -12,6 +12,16 @@ import { resolve, extname } from "node:path";
 // 2026-07-29) 안전 — closeBundle이 폴더 존재 여부를 먼저 확인하고 없으면 조용히 건너뜀
 const SERVED_ASSET_DIRS = ["characters", "monsters", "backgrounds", "icons", "effects", "cards-webp", "audio"];
 
+// §2026-07-31 버그 발견 — ui.css가 CSS 안에서 직접 `url("btn-primary-bg.png")`로 참조하는
+// 두 파일(9-slice 버튼 배경)은 JS의 img.src(항상 index.html 기준 상대경로라 위 평평한 서빙으로
+// 충분)와 달리 "CSS 파일 자신의 위치" 기준으로 상대경로가 풀린다. 개발 서버에선 Vite가 이 경로를
+// 사이트 루트 기준으로 재작성해줘서 문제가 없었지만, 빌드 산출물(play/)에서는 CSS가
+// play/assets/index-*.css에 놓이는데 실제 PNG는 위 SERVED_ASSET_DIRS 루프로 play/ 바로 밑에만
+// 복사돼 있어서 play/assets/btn-primary-bg.png가 없어 조용히 로드 실패 — border-image가
+// 깨지면서 소환/레벨업 등 주요 버튼이 전부 "테두리 없는 텍스트만" 보이던 버그의 원인이었다.
+// CSS가 참조하는 두 파일만 play/assets/에도 나란히 복사해서 상대경로가 그대로 맞게 한다
+const CSS_URL_REFERENCED_ASSETS = ["btn-primary-bg.png", "btn-danger-bg.png"];
+
 const MIME: Record<string, string> = {
   ".png": "image/png",
   ".jpg": "image/jpeg",
@@ -52,6 +62,12 @@ function gameAssets() {
           if (file.startsWith(".")) continue;
           cpSync(resolve(src, file), resolve(outDir, file));
         }
+      }
+      const assetsOutDir = resolve(outDir, "assets");
+      mkdirSync(assetsOutDir, { recursive: true });
+      for (const file of CSS_URL_REFERENCED_ASSETS) {
+        const src = resolve(__dirname, "assets", "icons", file);
+        if (existsSync(src)) cpSync(src, resolve(assetsOutDir, file));
       }
     },
   };
