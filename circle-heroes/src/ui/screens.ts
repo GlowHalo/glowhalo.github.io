@@ -1854,6 +1854,7 @@ export function renderShop(root: HTMLElement) {
     save.freeBoxDate = today;
     addGems(100);
     persist();
+    emit("shop-free-changed");
     toast("💎 100 획득!");
     freeBtn.textContent = "내일 다시";
     freeBtn.disabled = true;
