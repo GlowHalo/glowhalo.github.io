@@ -134,11 +134,12 @@ export class BattleScene extends Phaser.Scene {
   private stage = 1;
   private wave = 1;
   // §2026-07-30 "마이티아레나 2배속이 우리 1배속쯤 되는 것 같다, 전략을 보려면 전투화면을
-  // 유심히 보고 싶을 것" — 버튼에 보이는 배속 표기(x1/x2/x3)는 그대로 두되, 실제 물리 배속만
-  // 절반으로 낮춰서 체감 속도를 전반적으로 늦춘다(기존 x1 pacing이 새 x2에서 재현됨). 이렇게
-  // 하면 아래 수십 곳의 `/ this.speedMult`·`delta * this.speedMult` 계산을 하나도 안 건드리고
-  // speedTier→speedMult 변환 지점 하나만 고치면 된다
-  private speedTier = 2;
+  // 유심히 보고 싶을 것" — 버튼에 보이는 배속 표기는 실제 물리 배속의 절반으로 낮춰서 체감
+  // 속도를 전반적으로 늦춘다. speedTier→speedMult 변환은 `* 0.5`로 고정해두고 speedTier 값
+  // 자체만 바꾸면 표시 배속과 실제 배속 비율이 항상 정확히 일치한다(예: x1 대비 x5는 실제로도
+  // 정확히 5배 빠름) — 아래 수십 곳의 `/ this.speedMult`·`delta * this.speedMult` 계산은
+  // 그대로 둔 채 §2026-07-31 "배속을 1/3/5배로" 요청에 맞춰 단계만 1→3→5로 조정
+  private speedTier = 1;
   private get speedMult(): number {
     return this.speedTier * 0.5;
   }
@@ -240,8 +241,9 @@ export class BattleScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
+    const SPEED_TIERS = [1, 3, 5];
     this.speedBtn = this.add
-      .text(14, 578, "▶ x2", {
+      .text(14, 578, "▶ x1", {
         fontFamily: "sans-serif",
         fontSize: "14px",
         color: "#bfdcf0",
@@ -251,7 +253,8 @@ export class BattleScene extends Phaser.Scene {
       .setOrigin(0, 1)
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
-        this.speedTier = this.speedTier === 3 ? 1 : this.speedTier + 1;
+        const idx = SPEED_TIERS.indexOf(this.speedTier);
+        this.speedTier = SPEED_TIERS[(idx + 1) % SPEED_TIERS.length];
         this.speedBtn.setText(`▶ x${this.speedTier}`);
       });
 
