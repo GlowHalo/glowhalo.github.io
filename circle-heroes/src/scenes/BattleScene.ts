@@ -393,9 +393,7 @@ export class BattleScene extends Phaser.Scene {
       picks.push(pool[i]);
     }
     const myLevels = save.party.map((id) => getLevel(id));
-    const avgLv = Math.max(1, Math.round(myLevels.reduce((a, b) => a + b, 0) / Math.max(1, myLevels.length)));
-    const ratingAdj = Math.floor((save.arenaRating - 1000) / 100);
-    const lv = Math.max(1, avgLv + ratingAdj);
+    const lv = Math.max(1, Math.round(myLevels.reduce((a, b) => a + b, 0) / Math.max(1, myLevels.length)));
     return picks.map((h) => {
       const u = unitFromHero(h, lv, 1);
       u.isHero = false;
@@ -1126,11 +1124,13 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
 
-    // arena 승리 — §2026-07-31 자동으로 다음 상대와 재전투하는 대신 상대 목록으로 돌아간다
+    // arena 승리 — §2026-07-31 랭킹 사다리: 상대가 나보다 순위가 좋았으면(숫자가 작으면)
+    // 그 순위와 교체해서 올라간다. 자동으로 다음 상대와 재전투하는 대신 상대 목록으로 돌아간다
     // (item 3 재설계: "전투는 항상 자동, 사람이 결정하는 건 누구와 싸울지뿐")
-    const { rating, bonusGems } = applyArenaResult(true);
+    const opponentRank = getSelectedArenaOpponent()?.rank ?? save.arenaRank;
+    const { rank, rankChanged, bonusGems } = applyArenaResult(true, opponentRank);
     track("arenaWin");
-    const arenaRewards = [`🏆 +25점 (${rating})`];
+    const arenaRewards = [rankChanged ? `🏆 ${rank}위로 상승!` : `🏆 ${rank}위 유지`];
     if (bonusGems > 0) arenaRewards.push(`💎 +${bonusGems}`);
     this.showVictoryBanner("아레나 승리", arenaRewards);
     this.refreshHud();
@@ -1163,8 +1163,10 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
 
-    const { rating } = applyArenaResult(false);
-    this.showBanner(`아레나 패배… -15점 (${rating})`, "#ff8f7a");
+    // §2026-07-31 랭킹 사다리: 패배해도 순위는 절대 내려가지 않는다
+    const opponentRank = getSelectedArenaOpponent()?.rank ?? save.arenaRank;
+    applyArenaResult(false, opponentRank);
+    this.showBanner("아레나 패배… 순위는 그대로예요", "#ff8f7a");
     this.refreshHud();
     this.delayed(1600 / this.speedMult, () => emit("arena-round-ended"));
   }
@@ -1179,7 +1181,7 @@ export class BattleScene extends Phaser.Scene {
       const req = requiredFaction();
       this.stageText.setText(`요일던전 · ${raidBossName()} Lv.${raidKills() + 1}${req ? ` (${req}만 출전)` : " (전 진영)"}`);
     } else {
-      this.stageText.setText(`아레나 · ${save.arenaRating}점`);
+      this.stageText.setText(`아레나 · ${save.arenaRank}위`);
     }
   }
 
