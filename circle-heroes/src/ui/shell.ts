@@ -305,12 +305,13 @@ function openArenaSelectModal() {
  * "메뉴를 누르면 항상 대표화면으로") 항상 이 픽커부터 다시 보여준다 — switchTab이 매번
  * renderAdventure를 새로 호출하고, 여기서 매번 adventure-live 클래스를 지워 픽커로 되돌린다 */
 // §2026-07-30 "가로로 한줄에 하나씩 길게 배너를 넣자" — 2열 오두막 타일에서 마이티 아레나식
-// 가로 배너 3장(세로 스택)으로 재설계. 정식 배너 일러스트는 아직 없어 모드별 그라디언트+아이콘
-// 임시 배너로 대체(ASSETS.md에 실제 아트 백로그 등록)
-const ADVENTURE_BANNERS: { mode: string; icon: string; label: string; flavor: string }[] = [
-  { mode: "raid", icon: "⚔️", label: "요일던전", flavor: "요일마다 다른 진영의 마수가 나타난다" },
-  { mode: "arena", icon: "🏆", label: "아레나", flavor: "다른 유저와 순위를 겨루는 대전" },
-  { mode: "tower", icon: "🗼", label: "무한의탑", flavor: "층을 오를수록 강해지는 끝없는 도전" },
+// 가로 배너 3장(세로 스택)으로 재설계.
+// §2026-07-31 banner-raid/arena/tower.png 도착(모티프가 왼쪽에 이미 그려져 있어 별도 이모지
+// 아이콘 박스 불필요) — CSS mode-* 클래스가 그라디언트 대신 이 이미지를 배경으로 얹는다
+const ADVENTURE_BANNERS: { mode: string; label: string; flavor: string }[] = [
+  { mode: "raid", label: "요일던전", flavor: "요일마다 다른 진영의 마수가 나타난다" },
+  { mode: "arena", label: "아레나", flavor: "다른 유저와 순위를 겨루는 대전" },
+  { mode: "tower", label: "무한의탑", flavor: "층을 오를수록 강해지는 끝없는 도전" },
 ];
 
 function renderAdventure(root: HTMLElement) {
@@ -321,7 +322,6 @@ function renderAdventure(root: HTMLElement) {
   const list = h("div", "adventure-banner-list");
   for (const b of ADVENTURE_BANNERS) {
     const banner = h("button", `adventure-banner mode-${b.mode}`);
-    banner.appendChild(h("div", "ab-icon", b.icon));
     const body = h("div", "ab-body");
     body.appendChild(h("div", "ab-label", b.label));
     body.appendChild(h("div", "ab-flavor", b.flavor));
