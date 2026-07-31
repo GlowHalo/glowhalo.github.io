@@ -21,6 +21,13 @@ export const REVERSED_FACING_KEYS = new Set([
   "incubus_dark_001",
   "soldier_flame_001",
   "soldier_dark_001",
+  // §2026-07-31 추가 — soldier_light_001은 flame/dark와 동일한 원화 포즈(칼:왼손/방패:오른손)를
+  // 공유하는데 반전 목록에서만 누락되어 있었다. 실전 스샷에서 "빛병사만 방향이 반대"로 재현된 버그.
+  "soldier_light_001",
+  // §2026-07-31 추가 — 같은 방향 재조사 중 knight 계열에서도 동일한 패턴 발견: water/wind/dark는
+  // 이미 칼:오른손(정상)인데 flame/light 두 종만 칼:왼손 포즈이면서 반전 목록에서 누락돼 있었다.
+  "knight_flame_001",
+  "knight_light_001",
   "mage_dark_001",
   "unknown_hidden_001",
   "unknown_hidden_002",
