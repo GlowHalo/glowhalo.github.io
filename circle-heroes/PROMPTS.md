@@ -1511,6 +1511,27 @@ PNG with alpha channel, no background scenery of any kind, no text, no
 watermark, no frame or border. Vertical portrait orientation.
 ```
 
+### 11. 소환권 아이콘 재제작 — 두루마리+리본 (128×128, 투명배경, 2026-07-31 백로그)
+
+"소환권은 두루마리 이미지 사용. 일반소환권은 파란리본, 고급소환권은 빨간리본으로 묶여있는
+아이콘 사용" 요청 — 현재 `assets/icons/ticket-normal.png`/`ticket-premium.png`은 별 배지/
+보석 모티프라 두루마리 형태가 아니다. 파일명은 그대로 유지(코드가 이미 그 이름을 참조하므로
+교체만 하면 코드 변경 없이 자동 반영)하고, 아래 두 프롬프트로 다시 그린다.
+
+```
+Mobile game item icon, a rolled parchment scroll tied with a blue ribbon bow,
+warm aged paper texture, wax seal optional, thick dark outline, glossy anime
+game UI style, matching a beige-and-gold fantasy theme.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
+```
+Mobile game item icon, a rolled parchment scroll tied with a red ribbon bow,
+warm aged paper texture, small gold accents, thick dark outline, glossy anime
+game UI style, matching a beige-and-gold fantasy theme.
+Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
+```
+
 ## 카드 일러스트 (1024×1536 세로)
 
 > **Rev.3 결정**: 전투 스프라이트(치비)와 카드는 **의도적으로 다른 화풍**을 쓴다.
