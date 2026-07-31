@@ -420,21 +420,13 @@ export function setHeroesSubView(v: HeroesSubView) {
   heroesSubView = v;
 }
 
-// §2026-07-30 "이미지 들어온 거 있으면 반영" — 디자인 세션이 만든 class-*.png 3종을
-// 확인해서(테두리 선명한 플랫 SD 아이콘 톤, 기존 진영 배지와 잘 어울림) 이모지 대신 실제
-// 이미지로 교체. ASSETS.md 백로그에서 제거
-const CLASS_ICON: Record<string, string> = {
-  딜러: "class-dealer.png",
-  탱커: "class-tanker.png",
-  서포터: "class-support.png",
-};
-
-/** 보유 그리드/도감/장비 인벤토리 공용 카드(§2026-07-30 재정리) — "영웅편성화면(party-slot)
- * 구조가 가장 마음에 든다"는 피드백에 맞춰, 얼굴이 카드를 꽉 채우던 방식에서 party-slot과 같은
- * "작은 정사각 아이콘 + 이름 라벨" 구조로 통일했다. 이 카드 하나를 영웅(보유/도감/재료픽커)과
- * 장비 인벤토리(buildEquipCard)가 함께 쓰므로 화면마다 카드 모양이 달라지는 일이 없다.
- * 배경=등급, 좌상단=진영, 우상단=레벨, 우하단=클래스, 이름 아래 한 줄=성급/초월 별.
- * locked=true(미보유)면 흑백 처리 + 자물쇠만 표시 */
+/** 보유 그리드/도감/장비 인벤토리 공용 카드(§2026-07-31 레퍼런스 재정리) — "정사각형 레퍼런스를
+ * 따라가되 아래에 이름을 추가해 직사각형으로, 좌상단 진영·우상단 레벨·최하단 중앙 성급, 초상화
+ * 프레임 하단에 이름"이라는 스펙대로 재배치 — 기존에 우하단에 있던 클래스 아이콘은 이 4요소에
+ * 없어 빼고(클래스는 영웅 상세화면 텍스트로 계속 확인 가능), 그 자리는 중복 보유 수량 배지로
+ * 대체(2장 이상 보유 시에만 "×N" 표시 — 승급 재료로 남는 중복분이 있다는 걸 카드만 보고도 알 수
+ * 있게). 이 카드 하나를 영웅(보유/도감/재료픽커)과 장비 인벤토리(buildEquipCard)가 함께 쓰므로
+ * 화면마다 카드 모양이 달라지는 일이 없다. locked=true(미보유)면 흑백 처리 + 자물쇠만 표시 */
 function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean; onClick?: () => void } = {}): HTMLElement {
   const card = el(
     "div",
@@ -460,13 +452,8 @@ function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean;
 
   addFactionBadge(card, hero);
   card.appendChild(el("div", "hc-badge hc-badge-tr", `Lv.${getLevel(hero.id)}`));
-  const classIcon = CLASS_ICON[hero.heroClass];
-  if (classIcon) {
-    const img = el("img", "hc-badge hc-badge-br") as HTMLImageElement;
-    img.src = classIcon;
-    img.alt = "";
-    card.appendChild(img);
-  }
+  const owned = save.owned[hero.id] ?? 0;
+  if (owned > 1) card.appendChild(el("div", "hc-badge hc-badge-br", `×${owned}`));
   card.appendChild(el("div", "hc-name", hero.nameKr));
   const s = starState(hero.id);
   card.appendChild(el("div", "hc-sub" + (s.purple ? " star-purple" : ""), starRowText(hero.id)));
