@@ -1,11 +1,14 @@
+/* §2026-07-31 "진한보라색 계열→베이지/밝은톤" 전면 재배색 — 기존 navy/purple 다크테마를
+ * 따뜻한 베이지 라이트테마로 교체. amber(금색 포인트)/red(위험)는 밝은 배경에서도 그대로
+ * 잘 읽혀서 유지, 등급색(SR 보라 등)은 희귀도 의미축이라 별도로 손대지 않음(카드 표시방식 참고) */
 :root {
-  --bg: #0e1526;
-  --panel: #141c30;
-  --panel2: #1f2c47;
-  --line: #2c3a58;
-  --ink: #f2f8ff;
-  --ink2: #bfdcf0;
-  --ink3: #7d9ab5;
+  --bg: #f5ead6;
+  --panel: #ecdab3;
+  --panel2: #e2c48f;
+  --line: #c7a468;
+  --ink: #3b2a16;
+  --ink2: #6e5430;
+  --ink3: #9c8258;
   --amber: #f5ac3d;
   --amber-dark: #d88a1f;
   --red: #e8384a;
@@ -60,17 +63,17 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  background: #141c30cc;
+  background: #ecdab3cc;
   border: 1px solid var(--line);
   border-radius: 999px;
   padding: 1px 6px 1px 3px;
   font-size: 10px;
-  color: #f5e6c8;
+  color: #4a3418;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .hud-icon { width: 12px; height: 12px; object-fit: contain; flex: none; }
-.hud-power { color: #ffd9a0; }
+.hud-power { color: #a8650f; }
 
 /* ── 우상단 플로팅 ── */
 #corner {
@@ -85,7 +88,7 @@
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: #141c30dd;
+  background: #ecdab3dd;
   border: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -164,7 +167,7 @@
   display: flex;
   gap: 6px;
   padding: 8px 10px;
-  background: #182136f2;
+  background: #ecdab3f2;
   border-top: 1px solid var(--line);
   justify-content: center;
   pointer-events: auto;
@@ -175,7 +178,7 @@
   padding: 6px 14px;
   border-radius: 9px;
   background: var(--panel2);
-  color: #8fa8c4;
+  color: #8a7454;
   border: none;
   white-space: nowrap;
   cursor: pointer;
@@ -199,7 +202,7 @@
   align-items: center;
   gap: 3px;
   font-size: 11px;
-  color: #8fa8c4;
+  color: #8a7454;
   padding: 7px 0 3px;
   border-radius: 9px;
   background: none;
@@ -648,7 +651,7 @@ img.hc-badge {
 
 /* ── 소환 화면 ── */
 .summon-box {
-  background: radial-gradient(circle at 50% 30%, #2a2450, #141c30 75%);
+  background: radial-gradient(circle at 50% 30%, #fbe8c0, #ecdab3 75%);
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 14px 16px;
@@ -1045,7 +1048,7 @@ img.hc-badge {
   display: grid;
   grid-template-columns: 1fr 1fr;
   column-gap: 14px;
-  background: #141c30;
+  background: var(--panel);
   border-radius: 9px;
   padding: 8px 12px;
   margin-bottom: 8px;
@@ -1067,7 +1070,7 @@ img.hc-badge {
 .matchup-box {
   display: flex;
   gap: 14px;
-  background: #141c30;
+  background: var(--panel);
   border-radius: 9px;
   padding: 6px 12px;
   margin-bottom: 8px;
@@ -1108,7 +1111,7 @@ img.hc-badge {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  background: #141c30;
+  background: var(--panel);
   border-radius: 9px;
   padding: 9px 12px;
   margin-bottom: 10px;
@@ -1121,7 +1124,7 @@ img.hc-badge {
   position: absolute;
   inset: 0;
   z-index: 70;
-  background: radial-gradient(ellipse at 50% 40%, #241f45 0%, #0a0e1e 75%);
+  background: radial-gradient(ellipse at 50% 40%, #fdf0d0 0%, #f5ead6 75%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1330,7 +1333,7 @@ img.hc-badge {
   position: absolute;
   inset: 0;
   z-index: 5;
-  background: rgba(5, 7, 14, 0.93);
+  background: rgba(245, 234, 214, 0.95);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1444,7 +1447,8 @@ img.hc-badge {
 .raid-lock { position: absolute; top: 6px; right: 8px; font-size: 14px; }
 
 /* ── 오프닝화면(§메뉴 구조, 2026-07-30) — 최초/재접속 시 뜨는 브랜딩 화면. 화려한 배경 이미지는
- * 아직 없어서 navy/gold 그라디언트로 대체(ASSETS.md 백로그) */
+ * 아직 없어서 beige/gold 그라디언트로 대체(ASSETS.md 백로그). §2026-07-31 재배색으로 navy/purple에서
+ * 전환 */
 #splash {
   position: fixed;
   inset: 0;
@@ -1455,7 +1459,7 @@ img.hc-badge {
   justify-content: center;
   gap: 10px;
   background:
-    radial-gradient(circle at 50% 32%, #2a2450 0%, #0e1526 65%, #05070f 100%);
+    radial-gradient(circle at 50% 32%, #fbe8c0 0%, #f5ead6 65%, #ecdab3 100%);
   cursor: pointer;
   font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
 }
@@ -1537,7 +1541,7 @@ img.hc-badge {
 .adventure-banner .ab-flavor { font-size: 11.5px; color: rgba(255, 255, 255, 0.85); margin-top: 2px; }
 .adventure-banner .ab-arrow { position: relative; z-index: 1; flex: none; font-size: 18px; color: rgba(255, 255, 255, 0.8); }
 .adventure-banner.mode-raid { --ab-grad: linear-gradient(120deg, #7a2d1f, #b8471f); }
-.adventure-banner.mode-arena { --ab-grad: linear-gradient(120deg, #3a2166, #7238b0); }
+.adventure-banner.mode-arena { --ab-grad: linear-gradient(120deg, #7238b0, #a679dd); }
 .adventure-banner.mode-tower { --ab-grad: linear-gradient(120deg, #124a55, #1e8a8f); }
 
 /* ── HUD 클릭형 칩(§마이티 아레나 반영계획 A, 2026-07-29) — 골드/다이아를 누르면 상점으로 이동 */
