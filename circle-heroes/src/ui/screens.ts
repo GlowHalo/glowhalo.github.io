@@ -1276,7 +1276,9 @@ function renderEquipment(root: HTMLElement) {
 }
 
 /* ── 소환 탭(§마이티 아레나 반영계획 4, 2026-07-30) — 일반/고급/픽업 3갈래 ── */
-let selectedKind: SummonKind = "normal";
+// §2026-07-31 "소환메뉴 진입시 첫 화면은 가운데있는 고급소환으로" — CATEGORIES 배열 순서(일반/고급/픽업)상
+// 고급소환이 가운데 배치되는 탭이라 기본 선택값을 그쪽으로 변경
+let selectedKind: SummonKind = "premium";
 let selectedPickupId: string | null = null;
 
 // §2026-07-31 "이미지 들어온 거 있으면 반영" — ticket-normal.png/ticket-premium.png 도착 확인,
