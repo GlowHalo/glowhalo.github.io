@@ -34,15 +34,6 @@ import { emit } from "../state/bus";
 import { playSfx } from "../systems/audio";
 import { isReversedFacing } from "../data/facing";
 
-const FACTION_COLORS: Record<string, string> = {
-  불: "#e8683a",
-  바람: "#5fbf77",
-  빛: "#f0c95c",
-  어둠: "#8a63c9",
-  물: "#5a9bd8",
-  불명: "#888888",
-};
-
 function el(tag: string, cls?: string, text?: string): HTMLElement {
   const n = document.createElement(tag);
   if (cls) n.className = cls;
@@ -452,11 +443,19 @@ function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean;
 
   addFactionBadge(card, hero);
   card.appendChild(el("div", "hc-badge hc-badge-tr", `Lv.${getLevel(hero.id)}`));
-  const owned = save.owned[hero.id] ?? 0;
-  if (owned > 1) card.appendChild(el("div", "hc-badge hc-badge-br", `×${owned}`));
-  card.appendChild(el("div", "hc-name", hero.nameKr));
+  // §2026-07-31(3차) "별은 초상화 내부 하단 끝에" — hc-sub를 카드의 flex 흐름이 아니라 face
+  // 내부에 오버레이로 넣는다(CSS: .hero-card .face .hc-sub가 absolute+bottom 처리)
   const s = starState(hero.id);
-  card.appendChild(el("div", "hc-sub" + (s.purple ? " star-purple" : ""), starRowText(hero.id)));
+  face.appendChild(el("div", "hc-sub" + (s.purple ? " star-purple" : ""), starRowText(hero.id)));
+
+  // §2026-07-31(3차) "중복 보유 수는 이름 뒤에 x4처럼, 흰색으로" — 별도 배지 대신 이름 텍스트
+  // 노드 뒤에 인라인 span으로 붙인다(이전엔 hc-badge-br 코너 배지였는데, 배지 기본 글자색이
+  // var(--ink)라 어두운 배지 배경과 대비가 거의 없어 안 읽혔다는 신고)
+  const nameEl = el("div", "hc-name");
+  nameEl.appendChild(document.createTextNode(hero.nameKr));
+  const owned = save.owned[hero.id] ?? 0;
+  if (owned > 1) nameEl.appendChild(el("span", "hc-dupe-count", ` x${owned}`));
+  card.appendChild(nameEl);
 
   if (opts.onClick) card.onclick = opts.onClick;
   return card;
@@ -598,9 +597,11 @@ export function renderHeroes(root: HTMLElement) {
   const factions = ["전체", ...REAL_FACTIONS];
   const ftabs = el("div", "faction-tabs");
   for (const f of factions) {
+    // §2026-07-31(3차) "진영 아이콘 테두리를 동일한 기본색으로 통일" — 예전엔 진영별로 테두리색을
+    // 다르게(FACTION_COLORS) 입혀 칩마다 색이 제각각이었다. 기본 .f-chip 테두리(var(--line))로
+    // 통일하도록 이 inline override를 없앤다
     const chip = el("button", "f-chip" + (heroFilter === f ? " on" : ""));
     chip.title = f;
-    if (f !== "전체") chip.style.borderColor = FACTION_COLORS[f] ?? "#888";
     const icon = FACTION_ICON[f];
     if (icon) {
       const img = el("img", "fc-icon") as HTMLImageElement;

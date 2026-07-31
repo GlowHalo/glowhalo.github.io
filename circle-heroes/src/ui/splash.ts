@@ -16,10 +16,15 @@ export function renderSplash(onDismiss: () => void) {
   title.textContent = "Circle Heroes";
   overlay.appendChild(title);
 
-  const sub = document.createElement("div");
-  sub.id = "splash-sub";
-  sub.textContent = "원을 그리는 영웅들";
-  overlay.appendChild(sub);
+  // §2026-07-31(4차) "미카엘 일러스트를 배경과 비슷한 파스텔톤으로 그려서 가운데 추가" — 아직
+  // 파일이 없어도(PROMPTS.md에 생성 프롬프트 등록, ASSETS.md 백로그) 조용히 안 보이게만 하고
+  // 도착하면 자동 반영되도록 onerror로 숨긴다(다른 선택적 이미지들과 동일한 폴백 관례)
+  const michael = document.createElement("img");
+  michael.id = "splash-michael";
+  michael.src = "michael-splash.png";
+  michael.alt = "";
+  michael.onerror = () => michael.remove();
+  overlay.appendChild(michael);
 
   const tap = document.createElement("div");
   tap.id = "splash-tap";
