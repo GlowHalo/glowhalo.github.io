@@ -87,15 +87,17 @@ const GRADE_CARD_BG: Record<string, string> = {
   R: "linear-gradient(165deg, #1c5a91 0%, #17334a 55%, #1f2c47 100%)",
   SR: "linear-gradient(165deg, #6a2f96 0%, #3c2350 55%, #1f2c47 100%)",
   SSR: "linear-gradient(165deg, #a3781a 0%, #5c4519 55%, #1f2c47 100%)",
-  UR: "linear-gradient(165deg, #9c1830 0%, #551621 55%, #1f2c47 100%)",
+  // §2026-07-31 "UR은 붉은색 말고 흰색계열로" — 등급 최상위색을 적색 계열에서 은백색으로 교체
+  UR: "linear-gradient(165deg, #eef1f8 0%, #a9b2c8 55%, #1f2c47 100%)",
   Unknown: "linear-gradient(165deg, #3a4458 0%, #262f42 55%, #1f2c47 100%)",
 };
 
-/** 카드 전체에 등급색 배경을 입힌다(C안). 카드는 position:relative 여야 함. UR은 "항상
- * 번쩍이게"(2026-07-30 요청)로 펄스 발광 클래스를 추가로 붙인다 */
+/** 카드 전체에 등급색 배경을 입힌다(C안). 카드는 position:relative 여야 함.
+ * §2026-07-31: UR의 상시 펄스 발광(붉은 번쩍임)은 "배경 번쩍거림은 없애자" 요청으로 제거하고,
+ * 대신 히든(Unknown) 등급에 무지개색 발광을 새로 붙였다(§카드 표시방식) */
 function setCardGrade(card: HTMLElement, grade: string) {
   card.style.background = GRADE_CARD_BG[grade] ?? GRADE_CARD_BG["Unknown"];
-  card.classList.toggle("grade-shimmer-ur", grade === "UR");
+  card.classList.toggle("grade-shimmer-unknown", grade === "Unknown");
 }
 
 /** 상점/우편함 등 리스트 카드 맨 앞 아이콘(§2026-07-30 이미지 반영) 공용 헬퍼 */
@@ -121,7 +123,7 @@ const GRADE_BORDER: Record<string, string> = {
   R: "#4a9be8",
   SR: "#b060f0",
   SSR: "#ffd34d",
-  UR: "#ff5a6e",
+  UR: "#eef1f8",
   Unknown: "#8a8f9c",
 };
 /** 등급별 테두리 두께 — 색만으로는 카드 여러 장이 한 화면에 있을 때 다 똑같이 시끄러워 보인다는
@@ -142,7 +144,7 @@ const GRADE_GLOW: Record<string, string> = {
   R: "0 0 0 2px rgba(74, 155, 232, 0.32), 0 0 7px 1px rgba(74, 155, 232, 0.3)",
   SR: "0 0 0 3px rgba(176, 96, 240, 0.38), 0 0 9px 2px rgba(176, 96, 240, 0.4)",
   SSR: "0 0 0 3px rgba(255, 211, 77, 0.45), 0 0 12px 3px rgba(255, 211, 77, 0.6)",
-  UR: "0 0 0 4px rgba(255, 90, 110, 0.5), 0 0 14px 4px rgba(255, 90, 110, 0.7)",
+  UR: "0 0 0 4px rgba(238, 241, 248, 0.55), 0 0 14px 4px rgba(238, 241, 248, 0.75)",
   Unknown: "0 0 0 3px rgba(138, 143, 156, 0.4), 0 0 10px 2px rgba(138, 143, 156, 0.55)",
 };
 
@@ -172,9 +174,11 @@ function starState(id: string): { symbol: string; empty: string; filled: number;
   return { symbol: "★", empty: "☆", filled: getStars(id), purple: false };
 }
 
+// §2026-07-31 "1성인 경우 별 하나만 표기하자, 지금은 5개별에 1개가 채워져있어" — 빈 별(empty)로
+// 5칸을 채워 패딩하던 방식을 버리고, 실제 채워진 개수만큼만 표시한다
 function starRowText(id: string): string {
   const s = starState(id);
-  return s.symbol.repeat(s.filled) + s.empty.repeat(MAX_STARS - s.filled);
+  return s.symbol.repeat(s.filled);
 }
 
 /** 승급 전/후 스탯 수치 미리보기(§9) — 재화 소비 전에 얼마나 세지는지 보여준다 */
@@ -317,9 +321,19 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
   for (const slot of EQUIP_SLOTS) equipGrid.appendChild(buildEquipSlotBox(hero, slot, rerenderDetail));
   body.appendChild(equipGrid);
 
-  // 각성(성급)은 전용 승급 화면(영웅 탭 → 승급 서브메뉴)에서 진행
+  // 각성(성급)은 전용 승급 화면(영웅 탭 → 승급 서브메뉴)에서 진행.
+  // §2026-07-31 버그 수정 — "마초 8성인데 최대 성급 달성이라고 뜬다" 신고: 이 조건이 초월
+  // 진행도(getTranscend)는 안 보고 stars>=MAX_STARS만 봐서, 성급은 5성으로 다 찼지만 초월은
+  // 아직 안 끝난 영웅도 무조건 "최대 성급 달성"으로만 보였다. 초월 진행도까지 반영해 구분한다
   if (stars >= MAX_STARS) {
-    body.appendChild(el("p", "", "⭐ 최대 성급 달성"));
+    const t = getTranscend(hero.id);
+    if (t >= MAX_TRANSCEND) {
+      body.appendChild(el("p", "", "✪ 초월 최대 달성"));
+    } else if (t > 0) {
+      body.appendChild(el("p", "", `✪ 초월 ${t}/${MAX_TRANSCEND}단계 — 승급 탭에서 계속 진행할 수 있어요`));
+    } else {
+      body.appendChild(el("p", "", "⭐ 최대 성급 달성 — 승급 탭에서 초월을 시작할 수 있어요"));
+    }
   }
 
   // §2026-07-30 "누르고 있으면 연속 레벨업" — pointerdown에서 즉시 1회 실행하고(기존 탭 동작과
@@ -1210,7 +1224,7 @@ let equipFilterSlot: EquipSlot | "all" = "all";
 function renderEquipment(root: HTMLElement) {
   root.innerHTML = "";
   const rerender = () => renderEquipment(root);
-  root.appendChild(el("h2", "", "장비"));
+  root.appendChild(el("h2", "", "장비승급"));
   const totalCount = allEquipItems().length;
   root.appendChild(
     el(
@@ -1746,17 +1760,9 @@ function buyTicket(root: HTMLElement, kind: TicketKind, discounted: boolean) {
   renderShop(root);
 }
 
-/** §2026-07-30 "스크롤 없이 한 화면에" 조사 중 발견한 버그 — 상점 하단 서브탭("골드 상점/보석
- * 상점/일일 무료")이 실제로는 아무 화면도 안 바꾸는 죽은 UI였다(shell.ts가 heroes/missions만
- * 분기 처리하고 shop은 빠져 있어서 클릭하면 "준비 중" 토스트만 뜸). 8개 항목을 전부 한 화면에
- * 욱여넣은 게 오버플로의 원인이기도 해서, 서브탭을 실제로 동작하게 고치면서 항목도 이름 그대로
- * 나눴다 — 골드 상점(골드로 사는 것)/보석 상점(보석으로 사는 것+보석 패키지)/일일 무료(무료 상자) */
-export type ShopSubView = "gold" | "gems" | "free";
-let shopSubView: ShopSubView = "gold";
-export function setShopSubView(v: ShopSubView) {
-  shopSubView = v;
-}
-
+/** §2026-07-31 "세부메뉴 분류는 모두 없애고 상품들 한번에 다 보이도록, 무료상품은 최상단으로" —
+ * 골드/보석/일일무료 서브탭 구분을 완전히 없애고 전 품목을 한 화면에 순서대로 그린다.
+ * 순서: 일일 무료(맨 위) → 소환권(정가+할인) → 보석 패키지 → 골드 상품(장비 상자·강화석) */
 export function renderShop(root: HTMLElement) {
   root.innerHTML = "";
   root.appendChild(el("h2", "", "상점"));
@@ -1768,6 +1774,33 @@ export function renderShop(root: HTMLElement) {
     )
   );
 
+  // 일일 무료 상자 — 최상단
+  const today = new Date().toISOString().slice(0, 10);
+  const freeCard = el("div", "list-card");
+  freeCard.appendChild(liIcon("shop-freebox.png"));
+  const freeGrow = el("div", "grow");
+  freeGrow.appendChild(el("div", "t", "일일 무료 상자"));
+  freeGrow.appendChild(el("div", "s", "매일 1회 · 보석 100개"));
+  freeCard.appendChild(freeGrow);
+  const freeBtn = el("button", "btn primary", "열기") as HTMLButtonElement;
+  if (save.freeBoxDate === today) {
+    freeBtn.textContent = "내일 다시";
+    freeBtn.disabled = true;
+  }
+  freeBtn.onclick = () => {
+    if (save.freeBoxDate === today) return;
+    save.freeBoxDate = today;
+    addGems(100);
+    persist();
+    toast("💎 100 획득!");
+    freeBtn.textContent = "내일 다시";
+    freeBtn.disabled = true;
+  };
+  freeCard.appendChild(freeBtn);
+  root.appendChild(freeCard);
+
+  // §2026-07-31 "소환권 이미지는 할인여부 관계없이 획득상품 이미지로 통일" — 할인 카드가
+  // 항상 🏷️(태그) 아이콘만 쓰던 걸 고쳐, 정가 카드와 동일하게 그 소환권 고유 아이콘을 쓴다
   const ticketRow = (kind: TicketKind, icon: string) => {
     const label = kind === "normal" ? "일반소환권" : "고급소환권";
     const card = el("div", "list-card");
@@ -1785,7 +1818,7 @@ export function renderShop(root: HTMLElement) {
     const remain = ticketDiscountRemaining(kind);
     const discPrice = Math.round(TICKET_GEM_PRICE[kind] * (1 - TICKET_DISCOUNT_PCT));
     const discCard = el("div", "list-card");
-    discCard.appendChild(el("span", "", "🏷️"));
+    discCard.appendChild(el("span", "", icon));
     const dgrow = el("div", "grow");
     dgrow.appendChild(el("div", "t", `${label} 오늘의 할인`));
     dgrow.appendChild(el("div", "s", `💎${discPrice}(${Math.round(TICKET_DISCOUNT_PCT * 100)}%↓) · 오늘 ${remain}/${TICKET_DISCOUNT_DAILY_LIMIT}개 남음`));
@@ -1796,91 +1829,61 @@ export function renderShop(root: HTMLElement) {
     discCard.appendChild(discBtn);
     root.appendChild(discCard);
   };
-  if (shopSubView === "gems") {
-    ticketRow("normal", "🎫");
-    ticketRow("premium", "🎟️");
+  ticketRow("normal", "🎫");
+  ticketRow("premium", "🎟️");
 
-    // 실결제 보석 패키지는 결제 연동이 아직 없어 정직하게 "준비 중"으로만 표시(고스트 버튼 아님 — 클릭 대상 자체가 없음)
-    const c = el("div", "list-card");
-    c.style.opacity = "0.5";
-    c.appendChild(liIcon("shop-gems.png"));
-    const g = el("div", "grow");
-    g.appendChild(el("div", "t", "보석 패키지"));
-    g.appendChild(el("div", "s", "결제 연동 검토 중"));
-    c.appendChild(g);
-    c.appendChild(el("span", "s", "준비 중"));
-    root.appendChild(c);
-  }
+  // 실결제 보석 패키지는 결제 연동이 아직 없어 정직하게 "준비 중"으로만 표시(고스트 버튼 아님 — 클릭 대상 자체가 없음)
+  const gemsCard = el("div", "list-card");
+  gemsCard.style.opacity = "0.5";
+  gemsCard.appendChild(liIcon("shop-gems.png"));
+  const gemsGrow = el("div", "grow");
+  gemsGrow.appendChild(el("div", "t", "보석 패키지"));
+  gemsGrow.appendChild(el("div", "s", "결제 연동 검토 중"));
+  gemsCard.appendChild(gemsGrow);
+  gemsCard.appendChild(el("span", "s", "준비 중"));
+  root.appendChild(gemsCard);
 
-  if (shopSubView === "free") {
-    const today = new Date().toISOString().slice(0, 10);
-    const card = el("div", "list-card");
-    card.appendChild(liIcon("shop-freebox.png"));
-    const grow = el("div", "grow");
-    grow.appendChild(el("div", "t", "일일 무료 상자"));
-    grow.appendChild(el("div", "s", "매일 1회 · 보석 100개"));
-    card.appendChild(grow);
-    const btn = el("button", "btn primary", "열기") as HTMLButtonElement;
-    if (save.freeBoxDate === today) {
-      btn.textContent = "내일 다시";
-      btn.disabled = true;
+  // 장비 상자 — 장비 획득(§장비 시스템 v2)의 상시 구매 경로. 등급은 전투 드랍과 같은 확률표로 무작위
+  const boxCard = el("div", "list-card");
+  boxCard.appendChild(el("span", "", "🎁"));
+  const bg = el("div", "grow");
+  bg.appendChild(el("div", "t", "장비 상자"));
+  bg.appendChild(el("div", "s", `무작위 슬롯·등급 장비 1개 · 🪙${EQUIP_BOX_GOLD.toLocaleString()}`));
+  boxCard.appendChild(bg);
+  const boxBtn = el("button", "btn primary", "구매") as HTMLButtonElement;
+  boxBtn.disabled = save.gold < EQUIP_BOX_GOLD;
+  boxBtn.onclick = () => {
+    if (!spendGold(EQUIP_BOX_GOLD)) {
+      toast("골드가 부족합니다");
+      return;
     }
-    btn.onclick = () => {
-      if (save.freeBoxDate === today) return;
-      save.freeBoxDate = today;
-      addGems(100);
-      persist();
-      toast("💎 100 획득!");
-      btn.textContent = "내일 다시";
-      btn.disabled = true;
-    };
-    card.appendChild(btn);
-    root.appendChild(card);
-  }
+    const item = grantRandomEquip();
+    toast(`🎁 ${EQUIP_SLOT_INFO[item.slot].label}(${item.grade}) 획득!`);
+    renderShop(root);
+  };
+  boxCard.appendChild(boxBtn);
+  root.appendChild(boxCard);
 
-  if (shopSubView === "gold") {
-    // 장비 상자 — 장비 획득(§장비 시스템 v2)의 상시 구매 경로. 등급은 전투 드랍과 같은 확률표로 무작위
-    const boxCard = el("div", "list-card");
-    boxCard.appendChild(el("span", "", "🎁"));
-    const bg = el("div", "grow");
-    bg.appendChild(el("div", "t", "장비 상자"));
-    bg.appendChild(el("div", "s", `무작위 슬롯·등급 장비 1개 · 🪙${EQUIP_BOX_GOLD.toLocaleString()}`));
-    boxCard.appendChild(bg);
-    const boxBtn = el("button", "btn primary", "구매") as HTMLButtonElement;
-    boxBtn.disabled = save.gold < EQUIP_BOX_GOLD;
-    boxBtn.onclick = () => {
-      if (!spendGold(EQUIP_BOX_GOLD)) {
-        toast("골드가 부족합니다");
-        return;
-      }
-      const item = grantRandomEquip();
-      toast(`🎁 ${EQUIP_SLOT_INFO[item.slot].label}(${item.grade}) 획득!`);
-      renderShop(root);
-    };
-    boxCard.appendChild(boxBtn);
-    root.appendChild(boxCard);
-
-    // 강화석 — 장비 강화(§마이티 아레나 반영계획 3) 전용 재화. 전투 보상 외에 상점에서도 골드로 구매 가능
-    const stoneCard = el("div", "list-card");
-    stoneCard.appendChild(el("span", "", "💠"));
-    const sgrow = el("div", "grow");
-    sgrow.appendChild(el("div", "t", "강화석 10개"));
-    sgrow.appendChild(el("div", "s", `장비 강화 전용 재화 · 🪙${STONE_PACK_GOLD.toLocaleString()}`));
-    stoneCard.appendChild(sgrow);
-    const stoneBtn = el("button", "btn primary", "구매") as HTMLButtonElement;
-    stoneBtn.disabled = save.gold < STONE_PACK_GOLD;
-    stoneBtn.onclick = () => {
-      if (!spendGold(STONE_PACK_GOLD)) {
-        toast("골드가 부족합니다");
-        return;
-      }
-      addEnhanceStone(10);
-      toast("💠 강화석 +10");
-      renderShop(root);
-    };
-    stoneCard.appendChild(stoneBtn);
-    root.appendChild(stoneCard);
-  }
+  // 강화석 — 장비 강화(§마이티 아레나 반영계획 3) 전용 재화. 전투 보상 외에 상점에서도 골드로 구매 가능
+  const stoneCard = el("div", "list-card");
+  stoneCard.appendChild(el("span", "", "💠"));
+  const sgrow = el("div", "grow");
+  sgrow.appendChild(el("div", "t", "강화석 10개"));
+  sgrow.appendChild(el("div", "s", `장비 강화 전용 재화 · 🪙${STONE_PACK_GOLD.toLocaleString()}`));
+  stoneCard.appendChild(sgrow);
+  const stoneBtn = el("button", "btn primary", "구매") as HTMLButtonElement;
+  stoneBtn.disabled = save.gold < STONE_PACK_GOLD;
+  stoneBtn.onclick = () => {
+    if (!spendGold(STONE_PACK_GOLD)) {
+      toast("골드가 부족합니다");
+      return;
+    }
+    addEnhanceStone(10);
+    toast("💠 강화석 +10");
+    renderShop(root);
+  };
+  stoneCard.appendChild(stoneBtn);
+  root.appendChild(stoneCard);
 }
 
 /* ── 임무 탭 ── */
