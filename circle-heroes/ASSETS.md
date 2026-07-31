@@ -236,6 +236,7 @@ tab-castle 정식본·장비 슬롯 7종은 위 "이미 반영 완료"로 옮겼
 
 | 날짜 | 내용 |
 |---|---|
+| 2026-07-31 | **오프닝 스플래시 배경 제작·커밋 완료**(2시간 자동 체크 루틴) — `assets/backgrounds/splash.png`(1080×1920). `#splash`가 순수 CSS 그라디언트라 파일만으로는 자동 반영 안 됨, 배경이미지로 얹는 코드 작업 필요 |
 | 2026-07-31 | **모험 배너 3종 제작·커밋 완료**(2시간 자동 체크 루틴) — `banner-raid/arena/tower.png` 제작, `assets/icons/`에 반영. 코드가 이모지+CSS 그라디언트 방식이라 화면에 실제로 뜨려면 별도 코드 연결 필요(위 절 참고) |
 | 2026-07-30 | **모험 배너 3종 + 버튼 전수점검 백로그** — 14개 피드백 일괄 반영 라운드. 모험 배너를 오두막 그리드→가로 긴 배너 리스트(마이티아레나 참고)로 재설계하며 `banner-raid/arena/tower.png` 3종 백로그 등록(위 표 참고). "버튼 없는 곳 많다" 신고로 전수 점검한 결과, 실제 코드 버그는 마일스톤(일일/주간) 보상상자가 `<div onclick>`이라 버튼 접근성이 없던 것 하나였고 즉시 `<button>`으로 수정, 나머지 CTA는 이미 `btn-primary-bg.png` 9-slice가 적용돼 있어 추가 에셋 불필요로 결론 |
 | 2026-07-30 | **딜리버리 반영 9종 + badge-new.png 문제 발견** — "이미지 제작중, 들어온 거 있으면 반영"이라는 요청으로 `assets/icons/`를 다시 훑어봤더니, 2026-07-29에 이미 도착해 있었지만 코드에 연결이 안 돼 계속 이모지로 보이던 파일 9개(class-dealer/tanker/support, icon-lock, icon-power, mail-item/notice/normal, shop-freebox, shop-gems, skill-attack/defense)를 발견해 전부 반영. `badge-new.png`도 도착은 했지만 "NEW" 글자가 없는 빈 리본 그림이라 그대로 못 씀 — 정보가 사라지는 문제라 이번엔 보류하고 재제작/오버레이 방향 정리해 백로그에 남김(위 표 참고). 나머지(star-filled/empty, icon-check, equip-* 6종, ticket-* 2종, icon-stone, star-transcend, tab-castle 정식본)는 여전히 미도착 |
