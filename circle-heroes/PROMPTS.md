@@ -1408,6 +1408,25 @@ sparkle highlights, thick dark outline, anime game UI style, matching the gold c
 Single icon, centered. Transparent background. No text, no watermark. Square 1:1.
 ```
 
+### 9. 오프닝(스플래시) 화면 배경 (1080×1920 세로, 2026-07-31 백로그)
+
+지금은 `src/ui/splash.ts`/`ui.css` `#splash`가 전용 아트 없이 베이지·골드 CSS 그라디언트로
+대체 중(§ASSETS.md 진행기록 2026-07-30). 이번 라운드에서 게임 전체 색상을 진한 navy/purple에서
+베이지·골드 라이트테마로 바꿔서(§BENCHMARK.md §47), 아래 프롬프트도 새 테마에 맞춰 작성했다.
+로고 타이틀("Circle Heroes")과 부제("원을 그리는 영웅들") 텍스트, "Tap to continue" 문구는
+전부 코드가 얹으므로 그림에는 넣지 않는다 — 화면 중앙~하단에 글자가 겹칠 여백을 남겨줘야 한다.
+```
+Vertical mobile game splash/title screen background, 9:16 portrait, warm
+beige and gold fantasy atmosphere. Soft cream sky with gentle golden light
+rays radiating from upper area, a few light clouds. A large, subtle glowing
+magic circle / rune circle motif faintly visible in the background (matching
+a "Circle Heroes" brand theme), warm amber and soft purple accent glows.
+Painterly anime game key-art style, soft blended shading, no harsh dark
+areas. Leave open negative space in the center and lower-center for a logo
+and text overlay to be placed on top.
+No characters, no text, no letters, no watermark, no UI elements. Vertical 9:16.
+```
+
 ## 카드 일러스트 (1024×1536 세로)
 
 > **Rev.3 결정**: 전투 스프라이트(치비)와 카드는 **의도적으로 다른 화풍**을 쓴다.

@@ -9,7 +9,7 @@ import {
 import { track } from "../systems/missions";
 import { todayFaction, requiredFaction, raidKills, applyRaidKill, raidBossName } from "../systems/raid";
 import { toast } from "../ui/shell";
-import { on, emit } from "../state/bus";
+import { on, emit, markBattleAssetsReady } from "../state/bus";
 import {
   act,
   applyAuras,
@@ -200,6 +200,10 @@ export class BattleScene extends Phaser.Scene {
     for (const key of Object.values(HIT_FX_BY_FACTION)) {
       this.load.image(key, `${key.replace("fx-", "")}.png`);
     }
+
+    // §2026-07-31 "재접속 시 전투화면 로딩이 오래 걸려 오류처럼 느껴짐" — 영웅 초상화 100여 장을
+    // 한꺼번에 미리 로드하는 동안 오프닝 스플래시가 이 완료를 기다리게 하기 위한 신호
+    this.load.once("complete", markBattleAssetsReady);
   }
 
   create() {
