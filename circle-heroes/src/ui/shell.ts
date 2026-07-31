@@ -3,7 +3,7 @@ import { on, emit } from "../state/bus";
 import {
   save, calcOfflineReward, addGold, addGems, addHero, resetSave,
   unreadMailCount, markMailRead, claimMail, type MailItem, OFFLINE_CAP_HOURS,
-  grantMaxTestHero,
+  grantMaxTestHero, shopFreeRewardAvailable,
 } from "../state/save";
 import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView, setMissionsSubView, openPartyFormationModal } from "./screens";
 import { partyPower } from "../systems/battle";
@@ -12,6 +12,7 @@ import { HEROES } from "../data/heroes";
 import { isMuted, setMuted } from "../systems/audio";
 import { RAID_DUNGEONS, WEEKDAY_LABELS, requiredFaction, isRaidWeekend } from "../systems/raid";
 import { anyFreeSummonAvailable } from "../systems/gacha";
+import { anyMissionRewardClaimable } from "../systems/missions";
 import {
   generateArenaCandidates, selectArenaOpponent, type ArenaOpponent,
   arenaWeeklyRewardClaimable, claimArenaWeeklyReward, arenaRewardTierFor,
@@ -770,6 +771,8 @@ export function buildShell() {
   const tabbar = h("div");
   tabbar.id = "tabbar";
   let summonTabBtn: HTMLElement | null = null;
+  let shopTabBtn: HTMLElement | null = null;
+  let missionsTabBtn: HTMLElement | null = null;
   for (const t of TABS) {
     const b = h("button", "tab" + (t.center ? " center" : ""));
     b.dataset.key = t.key;
@@ -780,11 +783,14 @@ export function buildShell() {
     b.onclick = () => switchTab(t.key);
     tabbar.appendChild(b);
     if (t.key === "summon") summonTabBtn = b;
+    if (t.key === "shop") shopTabBtn = b;
+    if (t.key === "missions") missionsTabBtn = b;
   }
   ui.appendChild(tabbar);
 
-  // 무료소환 배지(§2026-07-30) — 시간(00시/12시)마다 자동으로 바뀌므로 이벤트뿐 아니라
-  // 주기적으로도 다시 확인해야 한다
+  // 알림 점(빨간 점, §2026-07-31) — 무료소환/상점 무료상품/미수령 임무·마일스톤은 자정·주간
+  // 리셋처럼 이벤트 없이도 시간이 지나면 자동으로 바뀌므로, 이벤트뿐 아니라 주기적으로도
+  // 다시 확인해야 한다(무료소환 배지와 동일 패턴 재사용)
   const refreshSummonBadge = () => {
     if (!summonTabBtn) return;
     let dot = summonTabBtn.querySelector<HTMLElement>(".badge");
@@ -797,6 +803,32 @@ export function buildShell() {
   refreshSummonBadge();
   on("free-summon-changed", refreshSummonBadge);
   window.setInterval(refreshSummonBadge, 60_000);
+
+  const refreshShopBadge = () => {
+    if (!shopTabBtn) return;
+    let dot = shopTabBtn.querySelector<HTMLElement>(".badge");
+    if (shopFreeRewardAvailable()) {
+      if (!dot) shopTabBtn.appendChild(h("span", "badge"));
+    } else {
+      dot?.remove();
+    }
+  };
+  refreshShopBadge();
+  on("shop-free-changed", refreshShopBadge);
+  window.setInterval(refreshShopBadge, 60_000);
+
+  const refreshMissionsBadge = () => {
+    if (!missionsTabBtn) return;
+    let dot = missionsTabBtn.querySelector<HTMLElement>(".badge");
+    if (anyMissionRewardClaimable()) {
+      if (!dot) missionsTabBtn.appendChild(h("span", "badge"));
+    } else {
+      dot?.remove();
+    }
+  };
+  refreshMissionsBadge();
+  on("missions-changed", refreshMissionsBadge);
+  window.setInterval(refreshMissionsBadge, 60_000);
 
   // 모달/토스트
   const modalRoot = h("div");
