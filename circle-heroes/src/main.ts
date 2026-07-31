@@ -6,7 +6,7 @@ import { renderSplash } from "./ui/splash";
 new Phaser.Game({
   type: Phaser.AUTO,
   parent: "app",
-  backgroundColor: "#12141c",
+  backgroundColor: "#f5ead6",
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
