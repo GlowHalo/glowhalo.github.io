@@ -447,7 +447,10 @@
 .hero-card {
   position: relative;
   overflow: hidden;
-  background: var(--panel2);
+  /* §2026-08-01 setCardGrade가 이제 inline background 대신 --grade-fill 커스텀 프로퍼티만
+     세팅한다(아래 grade-shimmer-* 두 겹 배경 기법과 값을 공유하기 위함). buildEmptyHeroCard처럼
+     grade가 없는 카드는 --grade-fill이 안 잡혀있어 panel2로 폴백 */
+  background: var(--grade-fill, var(--panel2));
   border: 3px solid var(--line);
   border-radius: 10px;
   aspect-ratio: 3 / 4;
@@ -605,14 +608,68 @@ img.face-corner-badge { padding: 3px; width: 16px; object-fit: contain; }
   color: #10131c;
 }
 .hero-card.locked { cursor: default; }
-/* §2026-07-31: UR의 상시 붉은 펄스 발광은 "배경 번쩍거림은 없애자" 요청으로 제거(UR 카드
-   식별은 이제 은백색 배경(GRADE_CARD_BG)만으로 충분). 대신 히든(Unknown) 등급 카드에 무지개색
-   상시 발광을 새로 붙인다 — 정체가 밝혀지지 않은 존재감을 색으로 표현.
-   §2026-07-31(6차) "히든캐릭터는 무지개색으로 테두리가 빛나도록" — 카드 전체를 감싸는 은은한
-   box-shadow 발광에서, UR과 정확히 같은 기법(grade-shimmer-ur — mask-composite 링 +
-   background-position 애니메이션, conic-gradient/@property 없이 구형 모바일 사파리에서도
-   동작)의 "테두리를 따라 흐르는 무지개 그라디언트 링"으로 교체 — "테두리가 빛난다"는 표현
-   그대로 카드 가장자리 자체가 빛나 보인다 */
+/* §2026-08-01 재설계 — "테두리가 카드프레임 안에서 따로 움직이는 게 아니라 카드프레임 자체가
+   움직이길 원함". 예전 기법(::before를 inset:0+padding으로 얹어 mask-composite로 도려낸 링)은
+   absolute 자식의 inset:0이 부모의 "패딩 에지" 기준이라, .hero-card 자체의 3px border보다
+   한 겹 더 안쪽에 그려져 실제 카드 테두리와 사이에 틈이 생기는 게 스크린샷으로 확인됐다(border
+   두께만큼 이중으로 안쪽에 배치).
+   새 기법: 카드 자체의 border-color를 투명하게 비우고(공간은 그대로 3px 유지), 카드 자체의
+   background를 두 겹으로 쌓는다 — 첫 겹(카드 내부 색, --grade-fill)은 background-clip:
+   padding-box로 안쪽에만, 둘째 겹(그라디언트)은 background-clip:border-box로 border 영역
+   에만 비친다. 절대위치·mask 없이 표준 background-clip만으로 "테두리 그 자체"가 그라디언트로
+   칠해지므로 개념적으로도, 픽셀 위치로도 별도 레이어가 아니라 카드 프레임 그 자체가 된다.
+   (장비 인벤토리 등 .grade-shimmer-ur/-unknown을 공유하는 다른 곳은 카드와 구조가 달라
+   이 새 규칙에서 제외 — .hero-card로 스코프를 좁혀서 기존 ::before 링 방식을 그대로 유지) */
+.hero-card.grade-shimmer-unknown::before,
+.hero-card.grade-shimmer-ur::before {
+  display: none;
+}
+.hero-card.grade-shimmer-unknown,
+.hero-card.grade-shimmer-ur {
+  border-color: transparent;
+  background-origin: border-box;
+}
+.hero-card.grade-shimmer-unknown {
+  /* --grade-fill 자체가 이미 완성된 linear-gradient(...) 함수값이라, linear-gradient()로
+     한 번 더 감싸면 그라디언트 함수 안에 그라디언트 함수가 중첩되는 유효하지 않은 문법이 되어
+     background-image 선언 전체가 무시된다(콤마로 구분된 값 중 하나라도 무효하면 전체 무효) —
+     감싸지 않고 값 그대로 한 겹으로 사용해야 한다 */
+  background-image:
+    var(--grade-fill),
+    linear-gradient(
+      90deg,
+      #ff5050, #ffaa3c, #e6e646, #46dc82, #46a0ff, #b45aff, #ff5050, #ffaa3c, #e6e646, #46dc82, #46a0ff, #b45aff
+    );
+  background-clip: padding-box, border-box;
+  background-size: 100% 100%, 300% 100%;
+  animation: rainbowBorderSweepCard 3.4s linear infinite;
+}
+@keyframes rainbowBorderSweepCard {
+  0% { background-position: 0 0, 0% 0; }
+  100% { background-position: 0 0, -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-card.grade-shimmer-unknown { animation: none; background-position: 0 0, 0% 0; }
+}
+.hero-card.grade-shimmer-ur {
+  background-image:
+    var(--grade-fill),
+    linear-gradient(115deg, #cfd6ea 0%, #ffffff 20%, #cfd6ea 40%, #ffffff 60%, #cfd6ea 80%, #ffffff 100%);
+  background-clip: padding-box, border-box;
+  background-size: 100% 100%, 300% 100%;
+  animation: urBorderSweepCard 2.6s linear infinite;
+}
+@keyframes urBorderSweepCard {
+  0% { background-position: 0 0, 0% 0; }
+  100% { background-position: 0 0, -300% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-card.grade-shimmer-ur { animation: none; background-position: 0 0, 0% 0; }
+}
+/* §2026-07-31(6차)/(5차) — 위 .hero-card 스코프 규칙이 새로 생기기 전의 원래 구현. 장비
+   인벤토리(setGradeBorder)처럼 .hero-card가 아닌 다른 요소에서 여전히 이 클래스를 공유해서
+   쓰므로 그대로 남겨둔다(그 쪽은 --grade-fill이 없고 border/box-shadow 방식이라 위 새 규칙과
+   무관하게 이 ::before 링 기법이 계속 필요함) */
 .grade-shimmer-unknown {
   position: relative;
 }
@@ -634,20 +691,9 @@ img.face-corner-badge { padding: 3px; width: 16px; object-fit: contain; }
   pointer-events: none;
   z-index: 3;
 }
-@keyframes rainbowBorderSweep {
-  0% { background-position: 0% 0; }
-  100% { background-position: -200% 0; }
-}
 @media (prefers-reduced-motion: reduce) {
   .grade-shimmer-unknown::before { animation: none; box-shadow: 0 0 8px 2px rgba(180, 90, 255, 0.6); }
 }
-/* §2026-07-31(5차) "UR 영웅·장비·아이템은 테두리가 흰색 그라데이션으로 움직이게" — 카드 자체
-   border는 그대로 두고(hero-card는 원래 등급 무관 공통 프레임), ::before로 카드 바깥 경계를
-   따라 도는 "링"만 하나 더 얹는다. mask-composite:exclude로 padding-box 안쪽(content-box)을
-   파내서 테두리 두께만큼만 남기는 표준 기법 — inset:0으로 카드 박스 안쪽에 딱 맞춰야
-   .hero-card의 overflow:hidden에 잘려나가지 않는다(바깥으로 삐져나오면 클리핑됨).
-   linear-gradient 한 겹을 크게(300%) 늘려 background-position만 애니메이션하면 흰 빛줄기가
-   테두리를 따라 흘러가는 것처럼 보인다 */
 .grade-shimmer-ur {
   position: relative;
 }
