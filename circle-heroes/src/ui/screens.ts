@@ -164,12 +164,15 @@ function statLine(label: string, value: string): HTMLElement {
 }
 
 /** §카드 표시방식 재정리(2026-07-30) — "황금별 6이 아니라 보라별 1로 표현하자"는 설계대로, 성급
- * (골드 ★, 1~5)과 초월(보라 ✪, 1~5)을 별개 줄로 병기하지 않고 같은 5칸 별 자리 하나를 공유한다.
+ * (골드 ★, 1~5)과 초월(보라 ★, 1~5)을 별개 줄로 병기하지 않고 같은 5칸 별 자리 하나를 공유한다.
  * 초월이 시작되면(getTranscend > 0) 그 순간부터는 골드 별 대신 보라 별이 그 자리를 전부 대체해서
- * 채운 개수만큼 보여준다 — 칸을 하나 더 늘리는 게 아니라 색과 채움 기준이 통째로 바뀌는 방식 */
+ * 채운 개수만큼 보여준다 — 칸을 하나 더 늘리는 게 아니라 색과 채움 기준이 통째로 바뀌는 방식.
+ * §2026-08-01 "마크 자체가 달라졌다, 노란 1~5단계와 동일한 모양에 색만 보라로" — 기존엔 초월을
+ * 별개 글리프(✪/✩)로 표현해 성급 별과 모양 자체가 달라 보였다. 글리프는 ★/☆로 통일하고 색(purple
+ * 플래그)만으로 구분하도록 되돌림 — 실제 보라색 처리는 ui.css `.star-purple`(그라데이션 반짝임)이 담당 */
 function starState(id: string): { symbol: string; empty: string; filled: number; purple: boolean } {
   const t = getTranscend(id);
-  if (t > 0) return { symbol: "✪", empty: "✩", filled: t, purple: true };
+  if (t > 0) return { symbol: "★", empty: "☆", filled: t, purple: true };
   return { symbol: "★", empty: "☆", filled: getStars(id), purple: false };
 }
 
@@ -449,8 +452,26 @@ function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean;
     return card;
   }
 
-  addFactionBadge(card, hero);
-  card.appendChild(el("div", "hc-badge hc-badge-tr", `Lv.${getLevel(hero.id)}`));
+  // §2026-08-01 "진영은 프레임 오른쪽 위, 레벨은 왼쪽 위로 서로 맞바꾸고 프레임 모서리에
+  // 여백 없이 딱 맞물리도록" — 기존 addFactionBadge(카드 기준 좌상단 4px 여백)는 카드 전체를
+  // 기준으로 좌표를 잡아 프레임(.face) 모서리와 살짝 어긋났다. 이번엔 .face의 자식으로 직접
+  // 붙여 프레임 테두리 굴곡(border-radius:8px)에 배지 바깥쪽 모서리가 그대로 이어지게 한다.
+  // 원화가 왼쪽을 보는 예외(isReversedFacing)는 setFace가 .face 전체를 scaleX(-1)로 뒤집는데,
+  // 그 자식인 배지도 함께 좌우/글자가 뒤집혀버린다 — 코너를 반대로 배치하고 배지 자체에 반대
+  // 방향 scaleX(-1)을 걸어 상쇄시켜서, 뒤집힌 영웅이어도 항상 "화면 기준" 오른쪽 위=진영,
+  // 왼쪽 위=레벨로 보이고 글자도 정방향으로 읽히게 한다
+  const flipped = isReversedFacing(hero.id);
+  const factionIcon = FACTION_ICON[hero.faction];
+  if (factionIcon) {
+    const fImg = el("img", `face-corner-badge ${flipped ? "fc-tl" : "fc-tr"}`) as HTMLImageElement;
+    fImg.src = factionIcon;
+    fImg.alt = "";
+    if (flipped) fImg.style.transform = "scaleX(-1)";
+    face.appendChild(fImg);
+  }
+  const lvBadge = el("div", `face-corner-badge badge-level ${flipped ? "fc-tr" : "fc-tl"}`, `Lv.${getLevel(hero.id)}`);
+  if (flipped) lvBadge.style.transform = "scaleX(-1)";
+  face.appendChild(lvBadge);
   // §2026-07-31(3차) "별은 초상화 내부 하단 끝에" — hc-sub를 카드의 flex 흐름이 아니라 face
   // 내부에 오버레이로 넣는다(CSS: .hero-card .face .hc-sub가 absolute+bottom 처리)
   const s = starState(hero.id);
