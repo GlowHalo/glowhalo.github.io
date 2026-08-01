@@ -564,6 +564,46 @@ img.hc-badge {
 .hero-card .hc-badge-br { bottom: 4px; right: 4px; }
 .hero-card .hc-badge-bl { bottom: 4px; left: 4px; }
 .hero-card.in-party, .hero-card.selected { border-color: var(--amber); }
+/* §2026-08-01 "진영·레벨 배지를 초상화 프레임 모서리에 여백 없이" — 카드 기준 좌표를 쓰던
+ * 기존 hc-badge-tl/tr(4px 여백)과 달리 .face(초상화 프레임)의 직계 자식으로 붙여 top:0/left:0
+ * (또는 right:0)이 프레임 테두리 안쪽 경계에 정확히 맞물리게 한다. 바깥쪽 모서리만 프레임과
+ * 같은 반지름(8px)을 줘서 굴곡이 이어지는 것처럼 보이게 하고, 안쪽 모서리는 작은 반지름(5px)의
+ * "탭" 모양으로 처리. 진영(아이콘)·레벨(텍스트) 둘 다 높이를 16px로 통일해 좌우 일관성 유지 */
+.face-corner-badge {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  height: 16px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0 4px;
+  background: #10131cf0;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+img.face-corner-badge { padding: 3px; width: 16px; object-fit: contain; }
+/* 좌우 위치(fc-tl/tr)는 원화 반전 여부에 따라 뒤바뀔 수 있어(스크립트 쪽 flipped 처리) 색은
+   여기 묶지 않는다 — 배지 종류(레벨=badge-level)로만 색을 결정해, 뒤집힌 영웅도 레벨=항상
+   호박색/진영=항상 어두운 배경을 유지한다 */
+.face-corner-badge.fc-tl {
+  left: 0;
+  border-top-left-radius: 8px;
+  border-bottom-right-radius: 5px;
+}
+.face-corner-badge.fc-tr {
+  right: 0;
+  border-top-right-radius: 8px;
+  border-bottom-left-radius: 5px;
+}
+.face-corner-badge.badge-level {
+  background: var(--amber);
+  color: #10131c;
+}
 .hero-card.locked { cursor: default; }
 /* §2026-07-31: UR의 상시 붉은 펄스 발광은 "배경 번쩍거림은 없애자" 요청으로 제거(UR 카드
    식별은 이제 은백색 배경(GRADE_CARD_BG)만으로 충분). 대신 히든(Unknown) 등급 카드에 무지개색
@@ -1854,17 +1894,26 @@ img.hc-badge {
 .transcend-mats { justify-content: center; }
 
 /* §카드 표시방식 재정리(2026-07-30) — "황금별6이 보라별1로" 설계: 초월이 시작되면 성급 별(★, 골드)
-   자리를 초월 별(✪, 보라)이 통째로 대체한다. dh-stars/as-stars/hc-badge-bl 어디에 붙어도 동일하게
-   동작하도록 색만 덮어쓰는 유틸 클래스 + 반짝이는 발광 애니메이션 */
+   자리를 초월 별(★, 보라)이 통째로 대체한다. dh-stars/as-stars/hc-badge-bl 어디에 붙어도 동일하게
+   동작하도록 색만 덮어쓰는 유틸 클래스.
+   §2026-08-01 "노란 1~5단계와 동일하게, 색만 보라로 바꾸고 그라데이션 번쩍임 효과" — 기존엔
+   단색 보라 + 발광 펄스였는데, UR 테두리(grade-shimmer-ur)와 같은 방식으로 그라데이션 자체가
+   글자 위를 흐르게(background-clip:text) 바꿔서 "번쩍임"을 색상 흐름으로 표현 */
 .star-purple {
-  color: #c98bff !important;
-  animation: starSparkle 1.8s ease-in-out infinite;
+  background: linear-gradient(115deg, #7c3fd6 15%, #f0d9ff 50%, #7c3fd6 85%);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 6px rgba(176, 96, 240, 0.55);
+  animation: starPurpleShine 2.2s linear infinite;
 }
-@keyframes starSparkle {
-  0%, 100% { text-shadow: 0 0 4px rgba(176, 96, 240, 0.55); }
-  50% { text-shadow: 0 0 11px rgba(216, 140, 255, 0.95), 0 0 18px rgba(176, 96, 240, 0.75); }
+@keyframes starPurpleShine {
+  0% { background-position: 0% 0; }
+  100% { background-position: -200% 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .star-purple { animation: none; text-shadow: 0 0 6px rgba(176, 96, 240, 0.6); }
+  .star-purple { animation: none; background-position: -100% 0; }
 }
 
