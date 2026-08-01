@@ -88,9 +88,14 @@ const GRADE_CARD_BG: Record<string, string> = {
  * 대신 히든(Unknown) 등급에 무지개색 발광을 새로 붙였다(§카드 표시방식).
  * §2026-07-31(5차) "UR은 테두리가 흰색 그라데이션으로 움직이게" — 새 요청으로 UR 전용 애니메이션
  * 테두리(grade-shimmer-ur, ui.css)를 다시 추가. 위 노트의 "번쩍임 제거"는 예전의 붉은 펄스
- * box-shadow 얘기라 이번 것과는 다른 연출(고정 발광이 아니라 흐르는 테두리)이라 상충하지 않음 */
+ * box-shadow 얘기라 이번 것과는 다른 연출(고정 발광이 아니라 흐르는 테두리)이라 상충하지 않음.
+ * §2026-08-01 "테두리가 카드프레임 안에서 따로 움직이지 말고 카드프레임 자체가 움직이길" —
+ * inline style.background 대신 --grade-fill 커스텀 프로퍼티로 채움색을 넘긴다. ui.css의
+ * .hero-card.grade-shimmer-ur/-unknown가 이 값을 두 겹 배경(내부=padding-box, 그라디언트=
+ * border-box)으로 조합해 카드 자체 테두리 영역에 직접 칠하기 때문 — inline background였다면
+ * 특정성 때문에 그 두 겹 배경 규칙을 덮어써버려 무력화된다 */
 function setCardGrade(card: HTMLElement, grade: string) {
-  card.style.background = GRADE_CARD_BG[grade] ?? GRADE_CARD_BG["Unknown"];
+  card.style.setProperty("--grade-fill", GRADE_CARD_BG[grade] ?? GRADE_CARD_BG["Unknown"]);
   card.classList.toggle("grade-shimmer-unknown", grade === "Unknown");
   card.classList.toggle("grade-shimmer-ur", grade === "UR");
 }
