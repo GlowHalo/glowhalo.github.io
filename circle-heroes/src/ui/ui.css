@@ -490,15 +490,21 @@
    두 줄까지 접히도록(line-clamp) 바꿔 이름이 실제로 읽히게 함. word-break는 keep-all이 아니라
    break-all이어야 한다 — 한글 이름은 띄어쓰기가 없는 한 단어라 keep-all이면 줄바꿈 지점 자체가
    없어서 그냥 한 줄로 넘쳐 잘렸다(음절 사이 줄바꿈은 한글에서 어색하지 않음) */
+/* §2026-08-01 "이름 글씨가 안보이니 이름구간을 배경색 통일" — 등급별 --grade-fill 배경이
+   하단으로 갈수록 짙은 남색(#1f2c47)이라 어두운 var(--ink) 글자색과 거의 구분이 안 됐다.
+   등급과 무관한 고정 배경(코너 배지와 같은 톤)을 깔고 글자는 흰색으로 바꿔 항상 읽히게 함 —
+   카드 전체 폭에 걸치도록 align-self:stretch(부모가 align-items:center라 기본은 내용 크기) */
 .hero-card .hc-name {
   position: relative;
   z-index: 1;
   flex: none;
+  align-self: stretch;
   height: 15px;
   font-size: 7.5px;
   line-height: 1.05;
   font-weight: 600;
-  color: var(--ink);
+  background: #10131cd9;
+  color: #fff;
   white-space: normal;
   word-break: break-all;
   display: -webkit-box;
@@ -507,7 +513,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
-  padding: 0 2px;
+  padding: 0 4px;
 }
 /* §2026-07-31(3차) "중복 보유 수는 이름 뒤에 x4처럼, 흰색으로" — hc-name 텍스트 노드 뒤에
    붙는 인라인 span. 기존엔 코너 배지(hc-badge-br)였는데 배지 기본 글자색(var(--ink), 어두운
@@ -584,12 +590,14 @@ img.hc-badge {
   font-size: 9px;
   font-weight: 700;
   line-height: 1;
-  padding: 0 4px;
+  /* §2026-08-01 "여백을 절반으로" — 기존 4px → 2px */
+  padding: 0 2px;
   background: #10131cf0;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
-img.face-corner-badge { padding: 3px; width: 16px; object-fit: contain; }
+/* §2026-08-01 "여백을 절반으로" — 기존 3px → 1.5px */
+img.face-corner-badge { padding: 1.5px; width: 16px; object-fit: contain; }
 /* 좌우 위치(fc-tl/tr)는 원화 반전 여부에 따라 뒤바뀔 수 있어(스크립트 쪽 flipped 처리) 색은
    여기 묶지 않는다 — 배지 종류(레벨=badge-level)로만 색을 결정해, 뒤집힌 영웅도 레벨=항상
    호박색/진영=항상 어두운 배경을 유지한다 */
@@ -606,6 +614,8 @@ img.face-corner-badge { padding: 3px; width: 16px; object-fit: contain; }
 .face-corner-badge.badge-level {
   background: var(--amber);
   color: #10131c;
+  /* §2026-08-01 "Lv.10 글씨크기를 2/3으로" — 기존 9px → 6px */
+  font-size: 6px;
 }
 .hero-card.locked { cursor: default; }
 /* §2026-08-01 재설계 — "테두리가 카드프레임 안에서 따로 움직이는 게 아니라 카드프레임 자체가
