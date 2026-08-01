@@ -163,8 +163,16 @@ export const PARTY_SIZE = 5;
 const DEFAULTS: SaveState = {
   gold: 0,
   gems: 1000, // 초기 지급 (테스트 겸 튜토리얼 소환용)
-  owned: { minotaur_flame_001: 1, ma_chao_wind_001: 1 },
-  party: ["minotaur_flame_001", "ma_chao_wind_001"],
+  // §2026-08-01 "시작 영웅은 기사 5종만" — 마초/미노타우로스 대신 진영별 기사(불/물/바람/빛/어둠)
+  // 5종을 신규 계정 시작 시 전원 지급. PARTY_SIZE(5)와 정확히 맞아떨어져 처음부터 풀 파티로 시작
+  owned: {
+    knight_flame_001: 1,
+    knight_water_001: 1,
+    knight_wind_001: 1,
+    knight_light_001: 1,
+    knight_dark_001: 1,
+  },
+  party: ["knight_flame_001", "knight_water_001", "knight_wind_001", "knight_light_001", "knight_dark_001"],
   levels: {},
   stars: {},
   stage: 1,
