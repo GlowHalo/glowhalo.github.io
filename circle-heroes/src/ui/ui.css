@@ -73,7 +73,8 @@
   white-space: nowrap;
 }
 .hud-icon { width: 12px; height: 12px; object-fit: contain; flex: none; }
-.hud-power { color: #a8650f; }
+/* §2026-08-01 "전투력 글씨 색깔이 골드/보석과 다름, 통일" — hud-power만 별도 색(#a8650f)을 쓰던
+   걸 제거해 .hud-chip 기본 색(#4a3418)을 그대로 따르게 함 */
 
 /* ── 우상단 플로팅 ── */
 #corner {
