@@ -1,35 +1,50 @@
-## 제우스 공격 포즈 재생성 프롬프트 (2026-08-01 백로그)
+## 제우스 공격 포즈 재생성 완료 (2026-08-01, 검수 통과·반영)
 
 지난번 UR+SSR 26종 제작 때 남겨둔 교훈("--strength Mid는 같은 캐릭터 레퍼런스 방식에서
 정체성 드리프트가 잦음 → High + 특징 명시적 재서술이 안정적", 아래 "71종 공용 템플릿"
 바로 위 섹션 참고)이 정작 그 71종 공용 템플릿 자체엔 반영이 안 돼 있었다 — 템플릿은
 포즈 문구만 클래스별로 갈아끼우는 구조라 `--strength` 값이나 특징 재서술 지시가 없었고,
 그 결과 제우스가 특히 심하게 드리프트함(치비 2.5등신 기준 이미지인데 공격 포즈는 실사에
-가까운 성인 근육질 비율로 통째로 바뀜 — `assets/characters/zeus_light_001.png` vs
-`zeus_light_001-attack.png` 비교로 확인).
+가까운 성인 근육질 비율로 통째로 바뀜).
 
-**대응**: `--ref zeus_light_001.png --strength High`로 고정하고, 제우스의 특징(웨이브
-장발+파란 브릿지, 각진 수염, 청동 건틀릿, 흰 토가+금띠, 번개창)을 프롬프트에 못 바꾸게
-명시적으로 재서술. 포즈 변화폭도 "격하게 휘두르기"보다 "무기를 앞으로 내미는" 쪽으로
-줄여서 정체성 유지에 무게를 실음(포즈가 격할수록 레퍼런스 이탈 폭도 커지는 경향 확인).
+**1차 시도**: `--ref zeus_light_001.png --strength High` + 특징 명시적 재서술 + "무기를
+앞으로 내미는" 절제된 포즈로 재생성 → 정체성은 확실히 잡혔지만, 원본도 이미 창을 비스듬히
+든 자세라 결과물이 "거의 같은 그림"처럼 보인다는 피드백. 이 김에 Leonardo API에 strengthType
+유효값을 직접 질의해 `Low/Mid/High/Ultra/Max` 5단계가 있는 걸 확인하고 Ultra로도 뽑아
+비교했으나, High와 Ultra는 육안상 큰 차이가 없었음(오히려 강도를 더 높일수록 포즈 변화폭이
+줄어드는 부작용만 있는 것으로 보임 — 강도는 "정체성 고정"에 쓰고 "포즈를 확실히 바꾸는 힘"은
+따로 프롬프트 문구로 줘야 한다는 교훈).
+
+**2차 시도(채택)**: strength는 그대로 High로 유지하고, 포즈 문구만 "대각선으로 크게 휘두르는
+스윙 동작, 한쪽 다리를 앞으로 내딛는 액션 포즈"로 되돌려 강하게 재서술 — 이번엔 확실히
+역동적인 자세가 나오면서도 정체성은 유지됨. 3장 중 3번째 후보로 확정.
 
 ```
 Same character as the attached reference image, matching exact face, costume,
 colors, and proportions — chibi-heroic 2.5-head proportions (NOT a realistic
 adult body), wavy long brown hair with a blue streak, angular pointed beard,
 bronze gauntlets on both wrists, white toga draped over one shoulder with a
-gold sash/belt, holding a glowing golden lightning-bolt spear.
-Change ONLY the pose: thrusting the lightning spear forward toward the viewer,
-weight shifted forward, determined expression. Same bold dark outlines, same
-glossy cel shading, same lighting direction as the reference.
+gold sash/belt, holding a glowing golden lightning-bolt spear. Change ONLY
+the pose: a dynamic mid-swing attack, sweeping the lightning spear across the
+body in a wide arc as if striking, front foot stepping forward, dramatic
+action lines, aggressive fierce expression, clearly different silhouette
+from a standing idle pose. Same bold dark outlines, same glossy cel shading,
+same lighting direction as the reference.
 Full body, single character only, facing right (3/4 view), feet at bottom
 center, small margin. Transparent background (alpha PNG). No text, no
 watermark, no frame. Square 1:1. 512×512.
 ```
 
-이 교훈(High 고정 + 특징 명시적 재서술 + 포즈 변화폭 축소)은 남은 SR/R/N 40여 종
-공격 포즈를 나중에 진행할 때도 공용 템플릿에 반영해야 함(§아래 "71종 공용 템플릿" 절
-업데이트 필요 — 이번에 같이 반영).
+`assets/characters/zeus_light_001-attack.png` 교체 커밋 완료 — 기존 정지 초상화 폴백
+구조라 코드 수정 없이 자동 반영. 아쉬운 점: 하체가 원본(맨다리+흰 스커트)과 달리 흰
+바지처럼 나온 사소한 드리프트가 있었으나, 정체성 핵심 요소(헤어/수염/건틀릿/토가 상의/
+번개창)는 잘 유지돼 있어 승인됨 — 다음에 다시 만들 일이 있으면 "bare legs, not covered
+by trousers"처럼 하체도 명시적으로 못박을 것.
+
+이 교훈(strength는 정체성 고정용 High 고정 + 특징 명시적 재서술, 포즈는 강도와 별개로
+프롬프트 문구 자체를 확실히 역동적으로 쓸 것)은 남은 SR/R/N 40여 종 공격 포즈를 나중에
+진행할 때도 공용 템플릿에 반영해야 함(§아래 "71종 공용 템플릿" 절 업데이트 필요 — 이번에
+같이 반영).
 
 ## 2026-07-31: 소환권 아이콘 2차 재제작 — "말려있는 두루마리+리본" 형태로 통일
 
@@ -1994,15 +2009,19 @@ Transparent background (alpha PNG). No text, no watermark. Square 1:1.
 
 > **2026-08-01 개정**: UR+SSR 26종 제작 때 얻은 교훈(--strength Mid는 정체성 드리프트가
 > 잦음)이 이 템플릿엔 반영이 안 돼 있어서 제우스가 치비 비율을 완전히 잃고 실사풍 성인
-> 체형으로 나오는 사고가 있었음(§"제우스 공격 포즈 재생성 프롬프트" 절 참고). 아래처럼
-> **① `--strength High` 고정 ② 해당 영웅의 핵심 시각 특징을 프롬프트에 문장으로 재서술
-> ③ 포즈 변화폭을 "격하게 휘두르기"보다 약간 절제된 동작으로** 3가지를 반드시 지킬 것 —
-> 포즈가 격할수록 레퍼런스 이탈 폭도 커지는 경향이 확인됐다.
+> 체형으로 나오는 사고가 있었음(§"제우스 공격 포즈 재생성" 절 참고). 1차 수정으로
+> **① `--strength High` 고정 ② 특징 명시적 재서술** 까지는 맞았지만, 그 김에 "③ 포즈
+> 변화폭을 절제된 동작으로 축소"까지 했더니 이번엔 정지 포즈와 거의 구분이 안 될 만큼
+> 밋밋해졌다는 피드백을 받음 — **strength High는 그대로 유지하되(정체성 고정 담당),
+> 포즈 문구는 절제하지 말고 원래대로 확실히 역동적으로 쓸 것**(강도와 포즈 역동성은
+> 서로 다른 축이라 하나를 낮춘다고 다른 하나가 좋아지지 않음, 오히려 `Ultra`/`Max`
+> 처럼 강도를 더 올릴수록 포즈 변화폭만 같이 줄어드는 부작용이 확인됨 — 강도는 High
+> 이상 올릴 필요 없음).
 
 **사용법**: 영웅 하나마다 `assets/characters/<영웅id>.png`(기존 정지 초상화)를 이미지
 레퍼런스로 `--strength High`와 함께 첨부 → 아래 템플릿의 `[핵심 특징 재서술]`에 그 영웅의
 헤어/무기/의상 등 놓치면 안 되는 특징을 2~4개 문장으로 직접 채워넣고, `[포즈 문구]`는
-클래스(딜러/탱커/서포터)에 맞는 것을 절제된 버전으로 골라 끼워넣기 → 생성. 저장 파일명:
+클래스(딜러/탱커/서포터)에 맞는 것을 역동적인 버전 그대로 끼워넣기 → 생성. 저장 파일명:
 `assets/characters/<영웅id>-attack.png` (기존 정지 초상화와 같은 폴더). 순서 상관없이
 하나씩 도착하는 대로 자동 적용됨(코드 배선 완료).
 
@@ -2018,8 +2037,9 @@ center, small margin. Transparent background (alpha PNG). No text, no
 watermark, no frame. Square 1:1. 512×512.
 ```
 
-클래스별 `[포즈 문구]` (절제된 버전 — 격한 동작일수록 드리프트 위험이 커서 톤 다운):
-- **딜러**: `thrusting the weapon forward toward the viewer, sharp forward lean, determined expression`
+클래스별 `[포즈 문구]` (역동적으로 — 절제하지 말 것, "clearly different silhouette
+from a standing idle pose" 같은 문구를 덧붙이면 도움 됨):
+- **딜러**: `a dynamic mid-swing attack, sweeping the weapon across the body in a wide arc as if striking, front foot stepping forward, dramatic action lines, aggressive fierce expression`
 - **탱커**: `bracing forward with shield raised, weight low and grounded, defiant expression`
 - **서포터**: `casting a spell/skill, one arm raised with a small glow effect at the hand, focused expression`
 
