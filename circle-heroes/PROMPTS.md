@@ -1,3 +1,36 @@
+## 제우스 공격 포즈 재생성 프롬프트 (2026-08-01 백로그)
+
+지난번 UR+SSR 26종 제작 때 남겨둔 교훈("--strength Mid는 같은 캐릭터 레퍼런스 방식에서
+정체성 드리프트가 잦음 → High + 특징 명시적 재서술이 안정적", 아래 "71종 공용 템플릿"
+바로 위 섹션 참고)이 정작 그 71종 공용 템플릿 자체엔 반영이 안 돼 있었다 — 템플릿은
+포즈 문구만 클래스별로 갈아끼우는 구조라 `--strength` 값이나 특징 재서술 지시가 없었고,
+그 결과 제우스가 특히 심하게 드리프트함(치비 2.5등신 기준 이미지인데 공격 포즈는 실사에
+가까운 성인 근육질 비율로 통째로 바뀜 — `assets/characters/zeus_light_001.png` vs
+`zeus_light_001-attack.png` 비교로 확인).
+
+**대응**: `--ref zeus_light_001.png --strength High`로 고정하고, 제우스의 특징(웨이브
+장발+파란 브릿지, 각진 수염, 청동 건틀릿, 흰 토가+금띠, 번개창)을 프롬프트에 못 바꾸게
+명시적으로 재서술. 포즈 변화폭도 "격하게 휘두르기"보다 "무기를 앞으로 내미는" 쪽으로
+줄여서 정체성 유지에 무게를 실음(포즈가 격할수록 레퍼런스 이탈 폭도 커지는 경향 확인).
+
+```
+Same character as the attached reference image, matching exact face, costume,
+colors, and proportions — chibi-heroic 2.5-head proportions (NOT a realistic
+adult body), wavy long brown hair with a blue streak, angular pointed beard,
+bronze gauntlets on both wrists, white toga draped over one shoulder with a
+gold sash/belt, holding a glowing golden lightning-bolt spear.
+Change ONLY the pose: thrusting the lightning spear forward toward the viewer,
+weight shifted forward, determined expression. Same bold dark outlines, same
+glossy cel shading, same lighting direction as the reference.
+Full body, single character only, facing right (3/4 view), feet at bottom
+center, small margin. Transparent background (alpha PNG). No text, no
+watermark, no frame. Square 1:1. 512×512.
+```
+
+이 교훈(High 고정 + 특징 명시적 재서술 + 포즈 변화폭 축소)은 남은 SR/R/N 40여 종
+공격 포즈를 나중에 진행할 때도 공용 템플릿에 반영해야 함(§아래 "71종 공용 템플릿" 절
+업데이트 필요 — 이번에 같이 반영).
+
 ## 2026-07-31: 소환권 아이콘 2차 재제작 — "말려있는 두루마리+리본" 형태로 통일
 
 지난 라운드 결과물(파란 리본이 넓게 펼쳐진 두루마리 vs 빨간 리본이 대각선 원통형 롤인 두루마리)이
@@ -1952,32 +1985,41 @@ Single creature only, facing right, centered, small margin.
 Transparent background (alpha PNG). No text, no watermark. Square 1:1.
 ```
 
-## 영웅 공격 포즈 프롬프트 (71종 공용 템플릿, 2026-07-29)
+## 영웅 공격 포즈 프롬프트 (71종 공용 템플릿, 2026-07-29 → 2026-08-01 개정)
 
 71명을 하나하나 새로 설명할 필요 없음 — **기존 배틀 스프라이트를 레퍼런스 이미지로 강하게
 걸고**(Leonardo/Gemini의 이미지 참조 기능, reference strength를 높게), 포즈만 공격 동작으로
 바꾸는 방식. 얼굴·의상·색·비율은 레퍼런스가 그대로 고정해주므로 "카드 일러스트" 절과 같은
 원리다.
 
+> **2026-08-01 개정**: UR+SSR 26종 제작 때 얻은 교훈(--strength Mid는 정체성 드리프트가
+> 잦음)이 이 템플릿엔 반영이 안 돼 있어서 제우스가 치비 비율을 완전히 잃고 실사풍 성인
+> 체형으로 나오는 사고가 있었음(§"제우스 공격 포즈 재생성 프롬프트" 절 참고). 아래처럼
+> **① `--strength High` 고정 ② 해당 영웅의 핵심 시각 특징을 프롬프트에 문장으로 재서술
+> ③ 포즈 변화폭을 "격하게 휘두르기"보다 약간 절제된 동작으로** 3가지를 반드시 지킬 것 —
+> 포즈가 격할수록 레퍼런스 이탈 폭도 커지는 경향이 확인됐다.
+
 **사용법**: 영웅 하나마다 `assets/characters/<영웅id>.png`(기존 정지 초상화)를 이미지
-레퍼런스로 첨부 → 아래 템플릿에서 그 영웅의 클래스(딜러/탱커/서포터)에 맞는 포즈 문구를
-골라 끼워넣기 → 생성. 71명 전원 이 템플릿 하나로 처리 가능, 개별 프롬프트 작성 불필요.
-저장 파일명: `assets/characters/<영웅id>-attack.png` (기존 정지 초상화와 같은 폴더).
-순서 상관없이 하나씩 도착하는 대로 자동 적용됨(코드 배선 완료).
+레퍼런스로 `--strength High`와 함께 첨부 → 아래 템플릿의 `[핵심 특징 재서술]`에 그 영웅의
+헤어/무기/의상 등 놓치면 안 되는 특징을 2~4개 문장으로 직접 채워넣고, `[포즈 문구]`는
+클래스(딜러/탱커/서포터)에 맞는 것을 절제된 버전으로 골라 끼워넣기 → 생성. 저장 파일명:
+`assets/characters/<영웅id>-attack.png` (기존 정지 초상화와 같은 폴더). 순서 상관없이
+하나씩 도착하는 대로 자동 적용됨(코드 배선 완료).
 
 ```
 Same character as the attached reference image, matching exact face,
-costume, colors, and proportions. Change ONLY the pose to a dynamic
-mid-attack impact moment: [아래 클래스별 포즈 문구]. Same chibi-heroic 3-head
-proportions, same bold dark outlines, same glossy cel shading, same lighting
-direction as the reference.
+costume, colors, and proportions — chibi-heroic 2.5-head proportions
+(NOT a realistic adult body). [핵심 특징 재서술 — 헤어스타일/색, 무기, 의상,
+액세서리 등 이 캐릭터를 다른 캐릭터와 구분 짓는 요소를 구체적으로 문장으로 나열].
+Change ONLY the pose to [아래 클래스별 포즈 문구]. Same bold dark outlines, same
+glossy cel shading, same lighting direction as the reference.
 Full body, single character only, facing right (3/4 view), feet at bottom
 center, small margin. Transparent background (alpha PNG). No text, no
 watermark, no frame. Square 1:1. 512×512.
 ```
 
-클래스별 `[포즈 문구]`:
-- **딜러**: `mid-swing weapon strike, weapon fully extended toward the viewer's right, sharp forward lean, aggressive expression`
+클래스별 `[포즈 문구]` (절제된 버전 — 격한 동작일수록 드리프트 위험이 커서 톤 다운):
+- **딜러**: `thrusting the weapon forward toward the viewer, sharp forward lean, determined expression`
 - **탱커**: `bracing forward with shield raised, weight low and grounded, defiant expression`
 - **서포터**: `casting a spell/skill, one arm raised with a small glow effect at the hand, focused expression`
 
