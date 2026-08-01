@@ -29,6 +29,16 @@ import { getSelectedArenaOpponent } from "../systems/arenaMatch";
 export const GAME_W = 420;
 export const GAME_H = 740;
 
+const SPEED_TIERS = [1, 3, 5];
+const SPEED_KEY = "circle-heroes-battle-speed-v1";
+/** §2026-08-01 "배속은 재접속해도 마지막 설정 유지" — 기존엔 speedTier가 BattleScene 인스턴스
+ * 필드라 페이지 재로드 시 항상 1로 초기화됐다. audio.ts의 mute 설정과 같은 방식으로
+ * localStorage에 저장해두고 시작 시 복원한다. */
+function loadSavedSpeedTier(): number {
+  const raw = Number(localStorage.getItem(SPEED_KEY));
+  return SPEED_TIERS.includes(raw) ? raw : SPEED_TIERS[0];
+}
+
 const FACTION_COLORS: Record<string, number> = {
   불: 0xe8683a,
   바람: 0x5fbf77,
@@ -139,7 +149,7 @@ export class BattleScene extends Phaser.Scene {
   // 자체만 바꾸면 표시 배속과 실제 배속 비율이 항상 정확히 일치한다(예: x1 대비 x5는 실제로도
   // 정확히 5배 빠름) — 아래 수십 곳의 `/ this.speedMult`·`delta * this.speedMult` 계산은
   // 그대로 둔 채 §2026-07-31 "배속을 1/3/5배로" 요청에 맞춰 단계만 1→3→5로 조정
-  private speedTier = 1;
+  private speedTier = loadSavedSpeedTier();
   private get speedMult(): number {
     return this.speedTier * 0.5;
   }
@@ -241,9 +251,8 @@ export class BattleScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    const SPEED_TIERS = [1, 3, 5];
     this.speedBtn = this.add
-      .text(14, 578, "▶ x1", {
+      .text(14, 578, `▶ x${this.speedTier}`, {
         fontFamily: "sans-serif",
         fontSize: "14px",
         color: "#bfdcf0",
@@ -256,6 +265,7 @@ export class BattleScene extends Phaser.Scene {
         const idx = SPEED_TIERS.indexOf(this.speedTier);
         this.speedTier = SPEED_TIERS[(idx + 1) % SPEED_TIERS.length];
         this.speedBtn.setText(`▶ x${this.speedTier}`);
+        localStorage.setItem(SPEED_KEY, String(this.speedTier));
       });
 
     // 편성·레벨이 바뀌면 다음 웨이브부터 반영 (뽑기만으로는 합류하지 않음)
