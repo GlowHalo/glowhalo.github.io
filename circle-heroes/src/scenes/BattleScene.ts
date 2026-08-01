@@ -635,12 +635,12 @@ export class BattleScene extends Phaser.Scene {
       if (isUrCast) {
         this.ultimateCutinPlayedThisWave.add(unit.heroId!);
         this.ultimateCutin(unit);
-        this.delayed(70 / this.speedMult, () => this.lunge(unit, results[0].kind));
+        this.delayed(70 / this.speedMult, () => this.lunge(unit, results[0].kind, results[0].target));
       } else if (isSkillCast) {
         this.castGlow(unit);
-        this.delayed(70 / this.speedMult, () => this.lunge(unit, results[0].kind));
+        this.delayed(70 / this.speedMult, () => this.lunge(unit, results[0].kind, results[0].target));
       } else {
-        this.lunge(unit, results[0].kind);
+        this.lunge(unit, results[0].kind, results[0].target);
       }
     }
     for (const r of results) {
@@ -691,46 +691,64 @@ export class BattleScene extends Phaser.Scene {
     // 판정(~1~1.5초)"로 한 행동이 총 1.5~2.5초 걸렸다(예: "작열지모" 광역 화염기 시퀀스).
     // 이전엔 스킬/기본공격 gap이 380~830ms로 거의 차이가 없어 스킬 연출을 눈에 담기 전에 다음
     // 턴이 시작됐다 — 스킬·필살기 gap을 실측 체감에 맞춰 늘린다(기본공격은 그대로 스냅피하게)
-    const animMs = isUrCast ? 70 + 620 : isSkillCast ? 70 + 240 : 240;
+    // §2026-08-01(2차) lunge()의 전체 길이를 240→320으로 늘렸으므로(정점 머무름 구간 추가) 다음
+    // 유닛 턴이 시작되기 전 이번 유닛의 복귀 동작이 끝나도록 기준값도 함께 늘림
+    const animMs = isUrCast ? 70 + 620 : isSkillCast ? 70 + 320 : 320;
     const gap = isUrCast ? 1400 : isSkillCast ? 1100 : Math.max(animMs + 200, 450);
     this.delayed(gap / this.speedMult, () => this.stepTurn());
   }
 
-  /** 예비동작(살짝 뒤로) → 돌진 → 탄성있게 복귀하는 3단 트윈 + 스쿼시&스트레치로 타격감 강화 */
-  private lunge(attacker: Unit, kind: HitResult["kind"]) {
+  /** 예비동작(살짝 뒤로) → 대상 근처까지 돌진 → 정점에서 머무름 → 탄성있게 복귀하는 4단 트윈 +
+   * 스쿼시&스트레치로 타격감 강화.
+   * §2026-08-01(2차) "크로스페이드 방향은 좋은데 너무 찰나라 효과가 크지 않다, 시간을 더 길게
+   * 배분하고 돌진 범위도 공격 대상까지 길게 빼보자" — 기존엔 26px 고정으로 살짝 앞으로 기우는
+   * 정도였는데, 실제 타깃 위치까지(간격만 남기고) 뻗어나가도록 거리를 동적 계산하고, 정점에서
+   * 머무는 구간(포즈 교체가 보이는 구간)을 별도 단계로 떼어내 훨씬 길게 배분했다 */
+  private lunge(attacker: Unit, kind: HitResult["kind"], target?: Unit) {
     if (kind === "stun" && attacker.stunUntil > 0) return; // 매혹당한 유닛은 돌진 없음
     const view = this.views.get(attacker);
     if (!view) return;
     const dir = attacker.isHero ? 1 : -1;
-    // 사전동작을 대기시간 대비 눈에 띄게 늘림(기존엔 전체 모션이 너무 빨라 예비동작이 안 보였음)
-    const d = 240 / this.speedMult;
+    // 전체 모션 길이를 240→320으로 늘려 정점에서 머무는 시간을 확보(§2026-08-01 2차 피드백)
+    const d = 320 / this.speedMult;
+
+    // 대상까지 실제 거리를 구해서, 딱 붙지는 않고 살짝 간격(GAP)만 남기고 뻗어나가게 계산
+    const targetView = target ? this.views.get(target) : undefined;
+    const GAP = 62;
+    const MAX_TRAVEL = 240;
+    const travel = targetView
+      ? Phaser.Math.Clamp(Math.abs(targetView.root.x - view.homeX) - GAP, 30, MAX_TRAVEL)
+      : 26;
+
     view.root.setDepth(10);
     this.tweens.chain({
       targets: view.root,
       tweens: [
-        { x: view.homeX - dir * 13, duration: d * 0.45, ease: "Sine.easeInOut" },
-        { x: view.homeX + dir * 26, duration: d * 0.25, ease: "Quad.easeIn" },
-        { x: view.homeX, duration: d * 0.3, ease: "Back.easeOut" },
+        { x: view.homeX - dir * 13, duration: d * 0.25, ease: "Sine.easeInOut" }, // 예비동작
+        { x: view.homeX + dir * travel, duration: d * 0.2, ease: "Quad.easeIn" }, // 대상까지 돌진
+        { x: view.homeX + dir * travel, duration: d * 0.3 }, // 정점 머무름(포즈 교체가 보이는 구간)
+        { x: view.homeX, duration: d * 0.25, ease: "Back.easeOut" }, // 복귀
       ],
       onComplete: () => view.root.setDepth(0),
     });
     // 돌진 순간 잔상(스피드라인) — 예비동작 끝나는 시점에 맞춰 스폰
-    this.delayed(d * 0.45, () => this.spawnDashTrail(view));
+    this.delayed(d * 0.25, () => this.spawnDashTrail(view));
     // §2026-08-01 "대기/공격 그림이 다른 캐릭터처럼 보인다" — 순간 텍스처 교체(컷) 대신 알파
     // 크로스페이드로 부드럽게 넘기고, 전환이 가장 두드러지는 정점 순간에 짧은 백색 섬광을 겹쳐
     // 시선을 이펙트로 유도해 그림 간 미세한 불일치를 가린다. 그림이 없는 영웅은 오버레이 자체가
-    // 없어 기존 A안(정지 그림+스쿼시&스트레치)과 동일하게 동작(하이브리드 폴백 그대로 유지)
+    // 없어 기존 A안(정지 그림+스쿼시&스트레치)과 동일하게 동작(하이브리드 폴백 그대로 유지).
+    // §2026-08-01(2차) 정점 머무름 구간(d*0.45~d*0.75) 전체를 오버레이 노출에 배분해 훨씬 오래 보이게 함
     if (view.attackOverlay) {
       const overlay = view.attackOverlay;
       this.tweens.chain({
         targets: overlay,
         tweens: [
           { alpha: 1, duration: d * 0.15, ease: "Sine.easeOut" },
-          { alpha: 1, duration: d * 0.12 }, // 정점 유지
+          { alpha: 1, duration: d * 0.3 }, // 정점 유지 — 기존 대비 훨씬 길게
           { alpha: 0, duration: d * 0.15, ease: "Sine.easeIn" },
         ],
       });
-      // 크로스페이드 정점(오버레이가 완전히 보이는 구간의 중간)에 맞춰 짧은 백색 섬광 —
+      // 크로스페이드 정점(오버레이가 완전히 보이는 구간의 초입)에 맞춰 짧은 백색 섬광 —
       // 기존 피격 플래시(setTintFill)와 같은 기법을 공격자 본인에게도 적용
       this.delayed(d * 0.45 + d * 0.06, () => {
         view.flashImage?.setTintFill(0xffffff);
@@ -747,9 +765,10 @@ export class BattleScene extends Phaser.Scene {
       this.tweens.chain({
         targets,
         tweens: [
-          { scaleX: s * 0.94, scaleY: s * 1.06, duration: d * 0.45, ease: "Sine.easeInOut" },
-          { scaleX: s * 1.1, scaleY: s * 0.9, duration: d * 0.25, ease: "Quad.easeIn" },
-          { scaleX: s, scaleY: s, duration: d * 0.3, ease: "Back.easeOut" },
+          { scaleX: s * 0.94, scaleY: s * 1.06, duration: d * 0.25, ease: "Sine.easeInOut" },
+          { scaleX: s * 1.1, scaleY: s * 0.9, duration: d * 0.2, ease: "Quad.easeIn" },
+          { scaleX: s * 1.1, scaleY: s * 0.9, duration: d * 0.3 }, // 정점 유지
+          { scaleX: s, scaleY: s, duration: d * 0.25, ease: "Back.easeOut" },
         ],
       });
     }
@@ -972,14 +991,26 @@ export class BattleScene extends Phaser.Scene {
       this.spawnFx(view.root.x, view.root.y, fxKey, { scale: r.crit ? 0.85 : 0.6 });
       if (r.crit) this.spawnFx(view.root.x, view.root.y, "fx-hit-crit", { scale: 1.05 });
       // 넉백: 맞은 유닛이 진영 안쪽에서 바깥쪽으로 살짝 튕겨나감
+      // §2026-08-01(2차) 버그 발견 — 이 넉백이 root.x를 직접 건드리는데, lunge()의 대상까지
+      // 돌진하는 트윈도 같은 root.x를 쓴다. 실시간 전투에선 서로가 거의 동시에 공격하므로,
+      // "내가 상대를 향해 돌진하는 도중 상대의 반격에 맞는" 경우가 흔한데 이때 두 트윈이 같은
+      // 속성을 다퉈서 lunge()의 큰 돌진이 이 작은 넉백에 거의 즉시 뭉개졌다(돌진 거리를 늘리기
+      // 전엔 26px라 티가 안 났을 뿐, 항상 있던 충돌). root 대신 root의 자식인 flashImage/
+      // flashShape 자체 위치를 살짝 흔들도록 바꿔서 두 트윈이 서로 다른 프로퍼티를 쓰게 분리
       const knockDir = t.isHero ? -1 : 1;
-      this.tweens.add({
-        targets: view.root,
-        x: view.homeX + knockDir * 10,
-        duration: 60 / this.speedMult,
-        yoyo: true,
-        ease: "Quad.easeOut",
-      });
+      const knockTargets: unknown[] = [];
+      if (view.flashImage) knockTargets.push(view.flashImage);
+      if (view.attackOverlay) knockTargets.push(view.attackOverlay);
+      if (view.flashShape) knockTargets.push(view.flashShape);
+      if (knockTargets.length) {
+        this.tweens.add({
+          targets: knockTargets,
+          x: knockDir * 10,
+          duration: 60 / this.speedMult,
+          yoyo: true,
+          ease: "Quad.easeOut",
+        });
+      }
     } else if (r.kind === "heal") {
       playSfx("heal");
       // 회복량이 클수록(치유량 비례) 더 크고 오래가는 초록빛 오라 + 캐릭터 자체에 옅은 녹색 펄스
