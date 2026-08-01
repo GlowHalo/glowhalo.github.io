@@ -582,7 +582,11 @@ img.hc-badge {
   position: absolute;
   z-index: 2;
   top: 0;
-  height: 16px;
+  /* §2026-08-01(2차) "Lv.10 위아래 여백을 줄이고 싶다"는 요청을 그동안 padding(가로 전용
+     속성)만 손대서 반영을 못 했다 — 실제 위아래 여백의 원인은 padding이 아니라 이 고정
+     height(16px)가 6px로 줄어든 글자보다 훨씬 커서 남는 빈 공간이었다. height 자체를
+     줄여서 해결(16px→11px, 진영·레벨 공용이라 둘의 높이는 계속 일치) */
+  height: 11px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -600,16 +604,17 @@ img.hc-badge {
 img.face-corner-badge { padding: 1.5px; width: 16px; object-fit: contain; }
 /* 좌우 위치(fc-tl/tr)는 원화 반전 여부에 따라 뒤바뀔 수 있어(스크립트 쪽 flipped 처리) 색은
    여기 묶지 않는다 — 배지 종류(레벨=badge-level)로만 색을 결정해, 뒤집힌 영웅도 레벨=항상
-   호박색/진영=항상 어두운 배경을 유지한다 */
+   호박색/진영=항상 어두운 배경을 유지한다.
+   §2026-08-01(2차) "네 귀퉁이를 둥근 마감 처리" — 기존엔 프레임과 맞물리는 바깥쪽 모서리(8px)와
+   안쪽 "탭" 모서리 1개(5px)만 둥글고 나머지 2개는 직각(0)이었다. 프레임과 맞물려야 하는 바깥쪽
+   모서리(8px)는 유지하고, 나머지 세 모서리를 전부 5px로 둥글려 사각이 남지 않게 함 */
 .face-corner-badge.fc-tl {
   left: 0;
-  border-top-left-radius: 8px;
-  border-bottom-right-radius: 5px;
+  border-radius: 8px 5px 5px 5px;
 }
 .face-corner-badge.fc-tr {
   right: 0;
-  border-top-right-radius: 8px;
-  border-bottom-left-radius: 5px;
+  border-radius: 5px 8px 5px 5px;
 }
 .face-corner-badge.badge-level {
   background: var(--amber);
