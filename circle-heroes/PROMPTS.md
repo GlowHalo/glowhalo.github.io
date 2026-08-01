@@ -1,3 +1,46 @@
+## 2026-08-01: 제우스 공격 포즈 재제작 프롬프트 — 정체성 드리프트 개선 시도 (1종 테스트)
+
+"대기 포즈와 공격 포즈가 거의 다른 캐릭터로 보인다"는 신고. 원인 추정: 아래 "영웅 공격 포즈
+프롬프트(71종 공용 템플릿)" 절은 "reference strength를 높게"라고만 되어 있는데, 정작 1차
+26종(UR+SSR) 제작 뒤 따로 남겨둔 기술 메모("`--strength Mid`는 정체성 드리프트가 잦았음(투구·
+뿔·꼬리·의상이 통째로 바뀜) → `High`로 올리고 색/특징을 프롬프트에 명시적으로 재서술해야
+안정적")가 템플릿 자체엔 소급 반영이 안 돼 있었다. 주인님이 테스트해본 프롬프트가 이 교훈
+적용 전 버전이었을 가능성이 있어, 제우스 한 종만 교훈을 반영해 다시 시도해보고 결과가 좋으면
+템플릿 전체(71종 공용)에 소급 반영하기로 함.
+
+기존 정지 초상화(`assets/characters/zeus_light_001.png`) 특징 — 재서술 대상: 갈색 웨이브
+장발+한쪽에 파란 브릿지 하이라이트, 두껍고 각진 갈색 턱수염, 찌푸린 눈썹의 근엄한 표정,
+양팔의 청동색 건틀릿/암밴드, 금테 두른 흰색 토가+금띠, 황금 번개창(트라이던트형) 무기, 샌들.
+
+```
+Same character as the attached reference image — match EXACTLY: wavy brown
+hair with a blue streak/highlight on one side, thick square-trimmed brown
+beard, stern furrowed brow, same facial proportions and skin tone, bronze
+gauntlet armbands on both wrists, white toga with gold trim and a gold belt,
+the same golden lightning-bolt spear weapon, sandals. Do not reinterpret or
+redesign any of these — only the pose changes.
+Change ONLY the pose to a mid-attack impact moment: weapon thrust forward
+toward the viewer's right, sharp forward lean, aggressive expression, weight
+shifted onto the front leg.
+Same chibi-heroic 3-head proportions, same bold dark outlines, same glossy
+cel shading, same lighting direction as the reference.
+Full body, single character only, facing right (3/4 view), feet at bottom
+center, small margin. Transparent background (alpha PNG). No text, no
+watermark, no frame. Square 1:1. 512×512.
+Image reference influence: HIGH (not medium) — prioritize character
+consistency over pose dynamism.
+```
+
+**저장 파일명**: `assets/characters/zeus_light_001-attack.png` (기존 파일 있으면 그대로 교체 —
+코드가 이미 이 파일명을 참조하므로 교체만 하면 자동 반영). 포즈 변화폭을 기존 템플릿의
+"무기를 휘두르는 격한 동작"보다 "무기를 앞으로 내미는" 쪽으로 살짝 줄여서(변화폭이 클수록
+드리프트도 커지는 경향 있음) 정체성 유지와 타격감의 절충을 시도함 — 결과가 밋밋하면 다음
+시도에서 다시 격한 포즈로 올려도 됨.
+
+결과가 만족스러우면 아래 "영웅 공격 포즈 프롬프트(71종 공용 템플릿)" 절도 이 교훈(특징
+재서술 문구 + High strength 명시)을 반영해 갱신할 것 — 나머지 45종 제작 전에 템플릿부터
+고쳐야 같은 문제가 반복되지 않음.
+
 ## 2026-07-31: 소환권 아이콘 2차 재제작 — "말려있는 두루마리+리본" 형태로 통일
 
 지난 라운드 결과물(파란 리본이 넓게 펼쳐진 두루마리 vs 빨간 리본이 대각선 원통형 롤인 두루마리)이

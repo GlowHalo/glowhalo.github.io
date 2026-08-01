@@ -80,6 +80,9 @@ interface UnitView {
   idleTexKey?: string;
   /** 공격 포즈 전용 일러스트가 있으면 그 텍스처 키(§공격모션 B) — 없으면 undefined(A안 그대로 유지) */
   attackTexKey?: string;
+  /** §2026-08-01 "대기/공격 그림이 다른 캐릭터처럼 보인다" — 순간 교체 대신 알파 크로스페이드로
+   * 바꾸기 위한 오버레이 이미지(attackTexKey가 있을 때만 생성). flashImage 위에 겹쳐 그림 */
+  attackOverlay?: Phaser.GameObjects.Image;
 }
 
 /** 무한의 탑 몬스터 테마 순환(§타워 다양화, 2026-07-29) — 스테이지처럼 새 아트를 새로 만들지 않고
@@ -524,6 +527,7 @@ export class BattleScene extends Phaser.Scene {
     const attackKey = hasPortrait ? `portrait-attack-${unit.heroId}` : undefined;
     const hasAttackArt = !!attackKey && this.textures.exists(attackKey);
 
+    let attackOverlay: Phaser.GameObjects.Image | undefined;
     if (spriteKey) {
       const img = this.add.image(0, 0, spriteKey);
       artScale = artSize / Math.max(img.width, img.height);
@@ -534,6 +538,16 @@ export class BattleScene extends Phaser.Scene {
       img.setFlipX(artId && REVERSED_FACING_KEYS.has(artId) ? !baseFlip : baseFlip);
       root.add(img);
       flashImage = img;
+      // §2026-08-01 공격 포즈 오버레이 — idle 이미지 바로 위에 같은 위치/스케일/반전으로 겹쳐두고
+      // 평소엔 alpha 0으로 숨겨둔다(lunge()가 알파 크로스페이드로 페이드인/아웃)
+      if (hasAttackArt) {
+        const overlay = this.add.image(0, 0, attackKey!);
+        overlay.setScale(artScale);
+        overlay.setFlipX(img.flipX);
+        overlay.setAlpha(0);
+        root.add(overlay);
+        attackOverlay = overlay;
+      }
     } else {
       const body = this.add.circle(0, 0, r, fallbackColor).setStrokeStyle(3, 0x10131c, 0.6);
       const eyeOffset = r * 0.35;
@@ -583,6 +597,7 @@ export class BattleScene extends Phaser.Scene {
       hpBg, hpBar, homeX: x, homeY: y, artScale, shieldRing,
       idleTexKey: spriteKey,
       attackTexKey: hasAttackArt ? attackKey : undefined,
+      attackOverlay,
     };
   }
 
@@ -701,16 +716,36 @@ export class BattleScene extends Phaser.Scene {
     });
     // 돌진 순간 잔상(스피드라인) — 예비동작 끝나는 시점에 맞춰 스폰
     this.delayed(d * 0.45, () => this.spawnDashTrail(view));
-    // 공격 포즈 일러스트(§공격모션 B)가 있으면 타격 순간만 잠깐 바꿔치기 — 없으면 기존 A안(정지 그림+
-    // 스쿼시&스트레치)만으로 그대로 동작(하이브리드 폴백, 영웅별로 그림 도착 순서와 무관하게 안전)
-    if (view.flashImage && view.attackTexKey) {
-      this.delayed(d * 0.45, () => view.flashImage!.setTexture(view.attackTexKey!));
-      this.delayed(d * 0.7, () => view.flashImage!.setTexture(view.idleTexKey!));
+    // §2026-08-01 "대기/공격 그림이 다른 캐릭터처럼 보인다" — 순간 텍스처 교체(컷) 대신 알파
+    // 크로스페이드로 부드럽게 넘기고, 전환이 가장 두드러지는 정점 순간에 짧은 백색 섬광을 겹쳐
+    // 시선을 이펙트로 유도해 그림 간 미세한 불일치를 가린다. 그림이 없는 영웅은 오버레이 자체가
+    // 없어 기존 A안(정지 그림+스쿼시&스트레치)과 동일하게 동작(하이브리드 폴백 그대로 유지)
+    if (view.attackOverlay) {
+      const overlay = view.attackOverlay;
+      this.tweens.chain({
+        targets: overlay,
+        tweens: [
+          { alpha: 1, duration: d * 0.15, ease: "Sine.easeOut" },
+          { alpha: 1, duration: d * 0.12 }, // 정점 유지
+          { alpha: 0, duration: d * 0.15, ease: "Sine.easeIn" },
+        ],
+      });
+      // 크로스페이드 정점(오버레이가 완전히 보이는 구간의 중간)에 맞춰 짧은 백색 섬광 —
+      // 기존 피격 플래시(setTintFill)와 같은 기법을 공격자 본인에게도 적용
+      this.delayed(d * 0.45 + d * 0.06, () => {
+        view.flashImage?.setTintFill(0xffffff);
+        view.attackOverlay?.setTintFill(0xffffff);
+        this.time.delayedCall(d * 0.1, () => {
+          view.flashImage?.clearTint();
+          view.attackOverlay?.clearTint();
+        });
+      });
     }
     if (view.flashImage) {
       const s = view.artScale;
+      const targets = view.attackOverlay ? [view.flashImage, view.attackOverlay] : [view.flashImage];
       this.tweens.chain({
-        targets: view.flashImage,
+        targets,
         tweens: [
           { scaleX: s * 0.94, scaleY: s * 1.06, duration: d * 0.45, ease: "Sine.easeInOut" },
           { scaleX: s * 1.1, scaleY: s * 0.9, duration: d * 0.25, ease: "Quad.easeIn" },
