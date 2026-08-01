@@ -1960,15 +1960,18 @@ img.face-corner-badge { padding: 1.5px; width: 16px; object-fit: contain; }
    동작하도록 색만 덮어쓰는 유틸 클래스.
    §2026-08-01 "노란 1~5단계와 동일하게, 색만 보라로 바꾸고 그라데이션 번쩍임 효과" — 기존엔
    단색 보라 + 발광 펄스였는데, UR 테두리(grade-shimmer-ur)와 같은 방식으로 그라데이션 자체가
-   글자 위를 흐르게(background-clip:text) 바꿔서 "번쩍임"을 색상 흐름으로 표현 */
+   글자 위를 흐르게(background-clip:text) 바꿔서 "번쩍임"을 색상 흐름으로 표현
+   §2026-08-01(2차) "보라색이 잘 안 보인다, 밝은빨강으로" — 클래스명(star-purple)·starState()의
+   purple 플래그는 "초월 별" 의미로 그대로 두고(리네임은 범위 밖) 실제 색상만 빨강 계열로 교체 */
 .star-purple {
-  background: linear-gradient(115deg, #7c3fd6 15%, #f0d9ff 50%, #7c3fd6 85%);
+  background: linear-gradient(115deg, #ff2d3d 15%, #ffe3d6 50%, #ff2d3d 85%);
   background-size: 300% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent !important;
   -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 6px rgba(176, 96, 240, 0.55);
+  /* 어두운 초상화(수염 등) 위에 얹힐 때도 도드라지도록 글로우를 진하고 넓게 */
+  text-shadow: 0 0 3px #000, 0 0 8px rgba(255, 40, 55, 0.85);
   animation: starPurpleShine 2.2s linear infinite;
 }
 @keyframes starPurpleShine {
