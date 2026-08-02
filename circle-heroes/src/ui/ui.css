@@ -546,6 +546,14 @@
   color: #ffd34d;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85), 0 0 2px rgba(0, 0, 0, 0.6);
 }
+/* §2026-08-02(2차) 버그 수정 — 위 text-shadow는 골드 별(단색)엔 문제없지만, 초월 별
+   (.star-purple, 그라데이션+background-clip:text)과 만나면 이 작은 8px 크기에서 블러된
+   검은 그림자가 색을 거의 다 뒤덮어 "탁한 검은 별"로 보였다(실기 스크린샷 재현). .star-purple
+   자체의 filter:drop-shadow가 이미 자기 몫의 그림자를 그려주므로, 여기서는 text-shadow만
+   꺼서 두 그림자가 겹치지 않게 한다 */
+.hero-card .face .hc-sub.star-purple {
+  text-shadow: none;
+}
 /* §2026-07-30: 원래 .hero-card 안에서만 쓰던 코너 배지를 진영 배지(addFactionBadge)가
    party-slot/ascend-slot/equip-head/detail-head/sfx-card/sfx-new-card로도 재사용하게 되면서
    부모 스코프(.hero-card )를 뗌 — 해당 위치는 전부 이미 position:relative(또는 absolute)라
@@ -1965,16 +1973,26 @@ img.face-corner-badge { padding: 1.5px; width: 16px; object-fit: contain; }
    §2026-08-01(2차) "보라색이 잘 안 보인다, 밝은빨강으로" — 클래스명(star-purple)·starState()의
    purple 플래그는 "초월 별" 의미로 그대로 두고(리네임은 범위 밖) 실제 색상만 빨강 계열로 교체
    §2026-08-01(3차) "빨강 말고 다른 색으로" → 핫핑크/마젠타로 재변경(고급소환권 리본이 이미
-   빨강이라 겹치지 않게 하는 효과도 겸함) */
+   빨강이라 겹치지 않게 하는 효과도 겸함)
+   §2026-08-02 "10개 후보 중 프리즘 레인보우로 확정" — 히든(Unknown) 등급 카드 테두리의
+   무지개 스윕(grade-shimmer-unknown, 아래)과 동일한 6색 팔레트를 그대로 재사용해 "게임 안의
+   무지개 = 특별함"이라는 하나의 시각 언어로 통일했다 */
 .star-purple {
-  background: linear-gradient(115deg, #ff17a8 15%, #ffd6f2 50%, #ff17a8 85%);
-  background-size: 300% 100%;
+  background: linear-gradient(
+    115deg,
+    #ff5050, #ffaa3c, #e6e646, #46dc82, #46a0ff, #b45aff, #ff5050
+  );
+  background-size: 400% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent !important;
   -webkit-text-fill-color: transparent;
-  /* 어두운 초상화(수염 등) 위에 얹힐 때도 도드라지도록 글로우를 진하고 넓게 */
-  text-shadow: 0 0 3px #000, 0 0 8px rgba(255, 23, 168, 0.85);
+  /* §2026-08-02(2차) 버그 수정 — text-shadow는 (배경색이 아니라) 글자 자체를 블러 처리한
+     "그림자 사본"을 그 위에 겹쳐 그리는 방식이라, background-clip:text로 투명하게 채운
+     글자와 만나면 블러된 검은 사본이 그라데이션을 거의 다 뒤덮어버렸다(실기 스크린샷에서
+     검은 별로 재현·확인). filter:drop-shadow는 완성된 렌더링 결과(이미 색이 입혀진 글자
+     모양)의 알파 채널을 기준으로 그림자를 그리는 방식이라 같은 문제가 없다 */
+  filter: drop-shadow(0 0 1.2px rgba(0, 0, 0, 0.9)) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
   animation: starPurpleShine 2.2s linear infinite;
 }
 @keyframes starPurpleShine {
