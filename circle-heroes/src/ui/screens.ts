@@ -7,6 +7,7 @@ import {
   getStars, dupeCount, tryAscend, MAX_STARS, ASCEND_MATERIAL_COUNT,
   getTranscend, tryTranscendStep1, tryTranscendStep, MAX_TRANSCEND, TRANSCEND_MATERIAL_COUNT,
   EQUIP_SLOTS, EQUIP_GRADES, EQUIP_SLOT_STAT, EQUIP_SELL_GOLD, EQUIP_MAX_ENHANCE, EQUIP_LEVEL_COST,
+  EQUIP_DROP_WEIGHT,
   equipEffectivePct, equipEffectiveFlat,
   equipInventoryFor, equippedItem, equipItem, unequipItem, sellEquipItem, grantRandomEquip,
   tryEnhanceEquipWithStones, absorbEquipItem, addEnhanceStone,
@@ -1306,6 +1307,10 @@ function renderEquipment(root: HTMLElement) {
 // 고급소환이 가운데 배치되는 탭이라 기본 선택값을 그쪽으로 변경
 let selectedKind: SummonKind = "premium";
 let selectedPickupId: string | null = null;
+// §2026-08-02 "장비를 얻는 곳은 한곳이고 소환탭으로 옮기자" — 상점의 "장비 상자"를 픽업소환
+// 오른쪽 4번째 탭으로 이전. CATEGORIES/pull()은 소환권 기반 영웅 뽑기 전용 타입이라 여기 억지로
+// 끼워 넣는 대신, 독립된 골드 결제 경로를 별도 플래그로 관리한다(탭 UI만 같은 자리를 공유)
+let summonShowEquip = false;
 
 // §2026-07-31 "이미지 들어온 거 있으면 반영" — ticket-normal.png/ticket-premium.png 도착 확인,
 // 소환권 표기(🎫/🎟️ 이모지)를 전부 실제 이미지로 교체. 버튼 라벨이 문자열 하나로 만들어지던
@@ -1390,6 +1395,7 @@ export function renderSummon(root: HTMLElement) {
   const titleRow = el("div", "summon-title-row");
   const probBtn = el("button", "btn prob-btn", "❗ 확률고지") as HTMLButtonElement;
   probBtn.onclick = () => openProbabilityModal(selectedKind);
+  if (summonShowEquip) probBtn.style.visibility = "hidden";
   titleRow.appendChild(probBtn);
   titleRow.appendChild(el("h2", "", "영웅 소환"));
   const rightCol = el("div", "summon-corner-right");
@@ -1399,7 +1405,7 @@ export function renderSummon(root: HTMLElement) {
   const pityRing = el("div", "pity-ring");
   const pityRingText = el("span", "pity-ring-text");
   pityRing.appendChild(pityRingText);
-  rightCol.appendChild(pityRing);
+  if (!summonShowEquip) rightCol.appendChild(pityRing);
   titleRow.appendChild(rightCol);
   root.appendChild(titleRow);
   const updatePityRing = () => {
@@ -1410,18 +1416,32 @@ export function renderSummon(root: HTMLElement) {
   };
   updatePityRing();
 
-  // 3갈래 카테고리 탭(레퍼런스 "기본/우정/고급 소환" 화면뷰 차용)
+  // 3갈래 카테고리 탭(레퍼런스 "기본/우정/고급 소환" 화면뷰 차용) + §2026-08-02 장비뽑기 4번째 탭
   const catRow = el("div", "banner-row summon-cat-row");
   for (const cat of CATEGORIES) {
-    const chip = el("button", "summon-cat-chip" + (cat.kind === selectedKind ? " on" : ""), cat.name);
+    const chip = el("button", "summon-cat-chip" + (!summonShowEquip && cat.kind === selectedKind ? " on" : ""), cat.name);
     chip.onclick = () => {
-      if (selectedKind === cat.kind) return;
+      if (!summonShowEquip && selectedKind === cat.kind) return;
+      summonShowEquip = false;
       selectedKind = cat.kind;
       renderSummon(root);
     };
     catRow.appendChild(chip);
   }
+  const equipChip = el("button", "summon-cat-chip" + (summonShowEquip ? " on" : ""), "장비뽑기");
+  equipChip.onclick = () => {
+    if (summonShowEquip) return;
+    summonShowEquip = true;
+    renderSummon(root);
+  };
+  catRow.appendChild(equipChip);
   root.appendChild(catRow);
+
+  if (summonShowEquip) {
+    root.appendChild(el("div", "desc summon-cat-desc", "골드로 무작위 슬롯·등급 장비 1개를 얻습니다 — 게임 내 유일한 장비 획득 경로예요."));
+    renderEquipSummonSection(root);
+    return;
+  }
   root.appendChild(el("div", "desc summon-cat-desc", CATEGORIES.find((c) => c.kind === selectedKind)!.desc));
 
   // 픽업소환 — 화면 중앙에 후보 3명, 하나를 골라야 뽑기 버튼이 켜진다(레퍼런스 "확률업 소환" 문법)
@@ -1563,6 +1583,54 @@ export function renderSummon(root: HTMLElement) {
   };
   single.onclick = () => doPull(1, freeAvailable);
   ten.onclick = () => doPull(10);
+}
+
+/** §2026-08-02 "장비를 얻는 곳은 한곳이고 소환탭으로 옮기자" — 상점 "장비 상자"를 그대로
+ * 이전한 골드 결제 전용 소환 배너. 소환권/천장(pull()/CATEGORIES)과는 완전히 분리된 별도
+ * 경로 — 등급 확률표는 전투 드랍과 동일(EQUIP_DROP_WEIGHT) */
+function renderEquipSummonSection(root: HTMLElement) {
+  const total = EQUIP_GRADES.reduce((s, g) => s + EQUIP_DROP_WEIGHT[g], 0);
+  const probLine = el(
+    "div",
+    "desc",
+    EQUIP_GRADES.map((g) => `${g} ${Math.round((EQUIP_DROP_WEIGHT[g] / total) * 100)}%`).join(" · ")
+  );
+  root.appendChild(probLine);
+
+  const box = el("div", "summon-box equip-summon-box");
+  const orb = el("div", "orb");
+  orb.appendChild(el("div", "orb-card orb-card-back2"));
+  orb.appendChild(el("div", "orb-card orb-card-back1"));
+  const orbMain = el("div", "orb-card orb-card-main");
+  orbMain.appendChild(el("div", "orb-card-ring"));
+  orbMain.appendChild(el("div", "orb-card-mark", "🎁"));
+  orbMain.appendChild(el("div", "orb-card-shine"));
+  orb.appendChild(orbMain);
+  box.appendChild(orb);
+
+  const btnRow = el("div", "summon-btn-row");
+  const buyBtn = el("button", "btn primary summon-single-btn") as HTMLButtonElement;
+  buyBtn.textContent = `장비뽑기 (🪙${EQUIP_BOX_GOLD.toLocaleString()})`;
+  buyBtn.disabled = save.gold < EQUIP_BOX_GOLD;
+  const goldLine = el("div", "pity");
+  const updateGoldLine = () => {
+    goldLine.textContent = `보유 골드 🪙${save.gold.toLocaleString()}`;
+  };
+  updateGoldLine();
+  buyBtn.onclick = () => {
+    if (!spendGold(EQUIP_BOX_GOLD)) {
+      toast("골드가 부족합니다");
+      return;
+    }
+    const item = grantRandomEquip();
+    toast(`🎁 ${EQUIP_SLOT_INFO[item.slot].label}(${item.grade}) 획득!`);
+    updateGoldLine();
+    buyBtn.disabled = save.gold < EQUIP_BOX_GOLD;
+  };
+  btnRow.appendChild(buyBtn);
+  box.appendChild(btnRow);
+  box.appendChild(goldLine);
+  root.appendChild(box);
 }
 
 /* ── 소환 연출: 오브 차징 → 카드 개별/전체 뒤집기 → 고등급 예고·플래시 → 신규영웅 프로필 팝업 ── */
@@ -1939,26 +2007,8 @@ export function renderShop(root: HTMLElement) {
   gemsCard.appendChild(el("span", "s", "준비 중"));
   root.appendChild(gemsCard);
 
-  // 장비 상자 — 장비 획득(§장비 시스템 v2)의 상시 구매 경로. 등급은 전투 드랍과 같은 확률표로 무작위
-  const boxCard = el("div", "list-card");
-  boxCard.appendChild(el("span", "", "🎁"));
-  const bg = el("div", "grow");
-  bg.appendChild(el("div", "t", "장비 상자"));
-  bg.appendChild(el("div", "s", `무작위 슬롯·등급 장비 1개 · 🪙${EQUIP_BOX_GOLD.toLocaleString()}`));
-  boxCard.appendChild(bg);
-  const boxBtn = el("button", "btn primary", "구매") as HTMLButtonElement;
-  boxBtn.disabled = save.gold < EQUIP_BOX_GOLD;
-  boxBtn.onclick = () => {
-    if (!spendGold(EQUIP_BOX_GOLD)) {
-      toast("골드가 부족합니다");
-      return;
-    }
-    const item = grantRandomEquip();
-    toast(`🎁 ${EQUIP_SLOT_INFO[item.slot].label}(${item.grade}) 획득!`);
-    renderShop(root);
-  };
-  boxCard.appendChild(boxBtn);
-  root.appendChild(boxCard);
+  // §2026-08-02 "장비를 얻는 곳은 한곳" — 장비 상자는 여기(상점)에서 소환 탭의 "장비뽑기"
+  // 배너로 이전했다(renderSummon 참고). 상점엔 장비 획득 경로를 남겨두지 않는다.
 
   // 강화석 — 장비 강화(§마이티 아레나 반영계획 3) 전용 재화. 전투 보상 외에 상점에서도 골드로 구매 가능
   const stoneCard = el("div", "list-card");
