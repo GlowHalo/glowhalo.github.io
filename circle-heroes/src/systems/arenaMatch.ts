@@ -1,6 +1,6 @@
 import type { Hero } from "../data/heroTypes";
 import { PLAYABLE_HEROES } from "../data/heroes";
-import { save, persist, getLevel, addGold, grantRandomEquip, type EquipGrade, type EquipItem } from "../state/save";
+import { save, persist, getLevel, addGold, addEnhanceStone } from "../state/save";
 import { emit } from "../state/bus";
 import { isoWeek } from "./missions";
 import { heroPower } from "./battle";
@@ -111,19 +111,21 @@ export function getSelectedArenaOpponent(): ArenaOpponent | null {
   return selectedOpponent;
 }
 
-/** 주간 순위 보상(§2026-07-31) — 구간별 골드+장비. "일반적인 아레나" 레퍼런스(Summoners War
- * 시즌 보상, 마이티 아레나 "랭킹 보상" 탭)처럼 상위 구간일수록 확정 장비 등급이 오른다 */
+/** 주간 순위 보상(§2026-07-31, §2026-08-02 재정비) — 구간별 골드+강화석. "일반적인 아레나"
+ * 레퍼런스(Summoners War 시즌 보상, 마이티 아레나 "랭킹 보상" 탭)처럼 상위 구간일수록 보상이
+ * 좋아지는 큰 그림은 그대로 두되, "장비를 얻는 곳은 한곳(소환탭 장비뽑기)뿐이고 그 외 콘텐츠는
+ * 전부 강화석만 준다"는 정리에 맞춰 확정 장비 지급을 강화석으로 교체했다 */
 export interface ArenaRewardTier {
   maxRank: number;
   label: string;
   gold: number;
-  equipGrade?: EquipGrade;
+  stones?: number;
 }
 export const ARENA_WEEKLY_REWARDS: ArenaRewardTier[] = [
-  { maxRank: 1, label: "1위", gold: 5000, equipGrade: "UR" },
-  { maxRank: 10, label: "2~10위", gold: 3000, equipGrade: "SSR" },
-  { maxRank: 50, label: "11~50위", gold: 2000, equipGrade: "SR" },
-  { maxRank: 200, label: "51~200위", gold: 1200, equipGrade: "R" },
+  { maxRank: 1, label: "1위", gold: 5000, stones: 60 },
+  { maxRank: 10, label: "2~10위", gold: 3000, stones: 40 },
+  { maxRank: 50, label: "11~50위", gold: 2000, stones: 25 },
+  { maxRank: 200, label: "51~200위", gold: 1200, stones: 15 },
   { maxRank: 500, label: "201~500위", gold: 700 },
   { maxRank: 1000, label: "501~1000위", gold: 400 },
   { maxRank: Infinity, label: "1001위 이하", gold: 200 },
@@ -146,14 +148,14 @@ export function arenaWeeklyRewardClaimable(): boolean {
   return !save.arenaWeeklyClaim.claimed;
 }
 
-export function claimArenaWeeklyReward(): { tier: ArenaRewardTier; equip?: EquipItem } | null {
+export function claimArenaWeeklyReward(): { tier: ArenaRewardTier } | null {
   ensureArenaWeek();
   if (save.arenaWeeklyClaim.claimed) return null;
   const tier = arenaRewardTierFor(save.arenaRank);
   save.arenaWeeklyClaim.claimed = true;
   persist();
   addGold(tier.gold);
-  const equip = tier.equipGrade ? grantRandomEquip(tier.equipGrade) : undefined;
+  if (tier.stones) addEnhanceStone(tier.stones);
   emit("arena-changed");
-  return { tier, equip };
+  return { tier };
 }
