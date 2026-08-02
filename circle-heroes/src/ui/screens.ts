@@ -42,16 +42,18 @@ function el(tag: string, cls?: string, text?: string): HTMLElement {
   return n;
 }
 
-/** 영웅 초상화를 .face 배경으로 채운다(얼굴 클로즈업 크롭). §2026-07-30: 프레임 자체 배경은
+/** 영웅 초상화를 .face 배경으로 채운다(상반신 크롭). §2026-07-30: 프레임 자체 배경은
  * 투명 — 누끼(배경 제거) PNG의 빈 여백으로 부모 카드의 등급색 그라디언트(setCardGrade)가 그대로
  * 비쳐서 캐릭터와 카드 배경이 하나로 스며들게 한다. 등급은 카드 전체 배경으로, 진영은 좌상단
- * 코너 배지(addFactionBadge)로 따로 표시 */
+ * 코너 배지(addFactionBadge)로 따로 표시
+ * §2026-08-02(3차) "초상화 크롭 통일 V2(5:7, 상반신)로 디벨롭" — 예전엔 얼굴만 보이도록 230%
+ * 확대해서 잘라냈는데, 카드가 5:7로 세로로 길어진 만큼 줌을 줄여(160%) 어깨~무기까지 보이는
+ * 상반신 프레임으로 바꿨다. .hero-card의 aspect-ratio(ui.css)와 반드시 같이 맞춰야 한다 */
 function setFace(face: HTMLElement, hero: Hero) {
   face.style.background = "transparent";
   face.style.backgroundImage = `url(${hero.id}.png)`;
-  // SD 전신 일러스트 상단 ~45%가 얼굴 — 확대해서 얼굴만 보이도록 크롭(전투화면은 전신 그대로 별도 처리)
-  face.style.backgroundSize = "230% 230%";
-  face.style.backgroundPosition = "center 4%";
+  face.style.backgroundSize = "160% 160%";
+  face.style.backgroundPosition = "center 6%";
   face.style.backgroundRepeat = "no-repeat";
   // 카드는 항상 아군(오른쪽 보기) 방향으로 통일 — 원화가 왼쪽을 보는 예외는 좌우반전
   face.style.transform = isReversedFacing(hero.id) ? "scaleX(-1)" : "";
@@ -490,7 +492,7 @@ function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean;
   const nameEl = el("div", "hc-name");
   nameEl.appendChild(document.createTextNode(hero.nameKr));
   const owned = save.owned[hero.id] ?? 0;
-  if (owned > 1) nameEl.appendChild(el("span", "hc-dupe-count", ` x${owned}`));
+  if (owned > 1) nameEl.appendChild(el("span", "hc-dupe-count", `x${owned}`));
   card.appendChild(nameEl);
 
   if (opts.onClick) card.onclick = opts.onClick;
