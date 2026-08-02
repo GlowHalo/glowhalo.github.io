@@ -26,8 +26,10 @@ export const REVERSED_FACING_KEYS = new Set([
   "soldier_light_001",
   // §2026-07-31 추가 — 같은 방향 재조사 중 knight 계열에서도 동일한 패턴 발견: water/wind/dark는
   // 이미 칼:오른손(정상)인데 flame/light 두 종만 칼:왼손 포즈이면서 반전 목록에서 누락돼 있었다.
-  "knight_flame_001",
-  "knight_light_001",
+  // §2026-08-01 되돌림 — 실제 게임에서 knight_flame_001/knight_light_001 두 종 모두 방향이
+  // 반대로 보인다는 주인님 확인에 따라 목록에서 제거(위 §2026-07-31 추가를 되돌림).
+  // "knight_flame_001", "knight_light_001" 제거됨 — 앞으로 "OOO 반대"라고 지시하면
+  // 그 영웅의 REVERSED_FACING_KEYS 소속 여부를 토글(있으면 제거, 없으면 추가)한다.
   "mage_dark_001",
   "unknown_hidden_001",
   "unknown_hidden_002",
