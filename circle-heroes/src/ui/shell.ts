@@ -664,6 +664,27 @@ function buildBackupSection(): HTMLElement {
   return box;
 }
 
+/** §2026-08-02 "토스후원 링크를 주면 넣을 위치 잡아줘" — 실제 URL은 아직 안 받아서 빈
+ * 문자열로 비워둔다. 다른 폴백 자산들과 같은 관례: 값이 없으면 섹션 자체를 조용히 숨기고,
+ * 나중에 URL만 채우면 코드 수정 없이 바로 나타난다. 앱 안에는 외부 브라우저로 여는 링크만
+ * 두고(순수 응원, 어떤 보상도 지급하지 않음) — Play/App Store의 IAP 강제 대상이 아닌
+ * "대가 없는 기부" 요건을 지키기 위함(§2026-08-02 논의 참고) */
+const TOSS_DONATION_URL = "";
+
+function buildDonationSection(): HTMLElement | null {
+  if (!TOSS_DONATION_URL) return null;
+  const box = h("div", "backup-box");
+  box.appendChild(h("h4", "", "☕ 개발자 응원하기"));
+  box.appendChild(h("p", "muted", "게임이 마음에 드셨다면 토스로 커피 한 잔 응원해 주세요."));
+  const btn = h("a", "btn") as HTMLAnchorElement;
+  btn.textContent = "토스로 응원하기";
+  btn.href = TOSS_DONATION_URL;
+  btn.target = "_blank";
+  btn.rel = "noopener noreferrer";
+  box.appendChild(btn);
+  return box;
+}
+
 export function buildShell() {
   const ui = h("div");
   ui.id = "ui";
@@ -742,6 +763,8 @@ export function buildShell() {
       body.appendChild(buildSoundSection());
       body.appendChild(buildCodeSection());
       body.appendChild(buildBackupSection());
+      const donation = buildDonationSection();
+      if (donation) body.appendChild(donation);
       const danger = h("button", "btn danger", "세이브 초기화") as HTMLButtonElement;
       danger.onclick = () => {
         if (confirm("정말 처음부터 시작할까요? 되돌릴 수 없습니다.")) resetSave();
