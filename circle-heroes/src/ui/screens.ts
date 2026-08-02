@@ -469,13 +469,14 @@ function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean;
   const flipped = isReversedFacing(hero.id);
   const factionIcon = FACTION_ICON[hero.faction];
   if (factionIcon) {
-    const fImg = el("img", `face-corner-badge ${flipped ? "fc-tl" : "fc-tr"}`) as HTMLImageElement;
+    const fImg = el("img", `face-corner-badge badge-faction ${flipped ? "fc-tl" : "fc-tr"}`) as HTMLImageElement;
     fImg.src = factionIcon;
     fImg.alt = "";
     if (flipped) fImg.style.transform = "scaleX(-1)";
     face.appendChild(fImg);
   }
-  const lvBadge = el("div", `face-corner-badge badge-level ${flipped ? "fc-tr" : "fc-tl"}`, `Lv.${getLevel(hero.id)}`);
+  // §2026-08-02 "Lv.10 → LV 10" — 배지 스타일을 알약형→사각형으로 바꾸면서 표기도 함께 정리
+  const lvBadge = el("div", `face-corner-badge badge-level ${flipped ? "fc-tr" : "fc-tl"}`, `LV ${getLevel(hero.id)}`);
   if (flipped) lvBadge.style.transform = "scaleX(-1)";
   face.appendChild(lvBadge);
   // §2026-07-31(3차) "별은 초상화 내부 하단 끝에" — hc-sub를 카드의 flex 흐름이 아니라 face
