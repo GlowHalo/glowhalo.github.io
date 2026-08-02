@@ -460,25 +460,23 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
-  padding: 2px 0;
+  gap: 0;
+  padding: 0;
   text-align: center;
 }
-/* §2026-07-31(3차) "초상화가 테두리에 닿도록 정배율로 키우고, 별은 초상화 내부 하단에" —
-   좌우 패딩을 0으로 비워 얼굴이 카드 안쪽 폭(54px)에 거의 맞닿게 키움(36→52px, 정사각형
-   유지라 setFace의 background-size 크롭 비율은 그대로 정상 동작). 별줄(.hc-sub)은 더 이상
-   이름 아래 flex 흐름에 있지 않고 face 내부에 절대위치로 오버레이(아래 규칙) — 그 공간이
-   빠지니 얼굴을 이만큼 키워도 이름 2줄 예산(15px)이 그대로 맞는다. face/hc-name 전부
-   flex:none으로 고정해, flex 기본 shrink(flex-shrink:1 + min-height:auto)가 줄바꿈된 이름을
-   다시 짓눌러 자르는 걸 막는다 */
+/* §2026-08-02 "초상화 상하좌우 여백을 없애자" 재설계 — 예전엔 .face가 카드 안에 고정
+   52×52px 정사각형+자체 테두리(2px)로 떠 있어서 카드 프레임과 초상화 사이에 여백 띠가
+   남았다. face 자체 테두리를 없애고 flex:1로 카드의 남은 세로 공간(이름줄 15px 제외)을
+   전부 채우도록 늘려서, 캐릭터 그림이 카드 좌우와 상단 모서리에 완전히 맞닿게 한다.
+   위쪽 모서리만 카드 라운드(10px에서 자기 테두리 3px를 뺀 7px)를 따라가고 아래쪽은
+   이름줄과 맞닿아야 하니 각지게 둔다 */
 .hero-card .face {
   position: relative;
   z-index: 1;
-  width: 52px;
-  height: 52px;
-  border-radius: 8px;
-  border: 2px solid #10131c;
-  flex: none;
+  width: 100%;
+  flex: 1;
+  border-radius: 7px 7px 0 0;
+  border: none;
 }
 .hero-card .face.equip-face {
   display: flex;
@@ -535,11 +533,15 @@
 }
 /* 영웅 카드는 별줄이 face 내부에 오버레이로 들어간다(초상화 내부 하단 끝) — 위 일반 규칙보다
    구체적이라(.face 조상 추가) 자동으로 우선 적용됨 */
+/* §2026-08-02 "별을 도드라지게가 아니라 아래 테두리에 더 밀착시키자" — 배경판을 얹는 대신
+   bottom 값을 face의 새 하단 경계(이름줄과 맞닿는 지점)에 바짝 붙임. face가 위 §2026-08-02
+   재설계로 카드 안쪽을 꽉 채우도록 커진 만큼, 같은 bottom:1px라도 화면상 위치는 자연히
+   훨씬 아래(테두리 쪽)로 내려간다 */
 .hero-card .face .hc-sub {
   position: absolute;
   z-index: 2;
   left: 50%;
-  bottom: 2px;
+  bottom: 1px;
   transform: translateX(-50%);
   font-size: 8px;
   letter-spacing: 0.5px;
@@ -617,11 +619,24 @@ img.face-corner-badge { padding: 1.5px; width: 16px; object-fit: contain; }
   right: 0;
   border-radius: 5px 8px 5px 5px;
 }
+/* §2026-08-02 재설계 — "Lv.10 오렌지 알약형 → LV 10 파란 사각형"과 "진영 아이콘 검은 원 →
+   파란 원, 더 크게"를 함께 반영. 레벨/진영 둘 다 같은 계열의 파란색으로 통일해 "이 둘은
+   같은 부류의 정보"라는 느낌을 주고, 대신 모양(사각 vs 원)으로 구분한다 */
 .face-corner-badge.badge-level {
-  background: var(--amber);
-  color: #10131c;
-  /* §2026-08-01 "Lv.10 글씨크기를 2/3으로" — 기존 9px → 6px */
+  background: #2f6fed;
+  color: #fff;
   font-size: 6px;
+  border-radius: 8px 3px 3px 3px;
+}
+.face-corner-badge.fc-tr.badge-level {
+  border-radius: 3px 8px 3px 3px;
+}
+.face-corner-badge.badge-faction {
+  background: #2f6fedcc;
+}
+img.face-corner-badge.badge-faction {
+  width: 20px;
+  padding: 2.5px;
 }
 .hero-card.locked { cursor: default; }
 /* §2026-08-01 재설계 — "테두리가 카드프레임 안에서 따로 움직이는 게 아니라 카드프레임 자체가
