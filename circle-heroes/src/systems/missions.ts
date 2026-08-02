@@ -7,55 +7,54 @@ export interface MissionDef {
   label: string;
   goal: number;
   reward: { gold?: number; gems?: number };
+  /** 마일스톤 포인트 트랙 기여도 — §2026-08-02 재설계 전엔 임무마다 무조건 20점 균일이라
+   * "임무 개수 == 마일스톤 구간 개수 == 20점 간격"이 그대로 겹쳐서 임무 하나 = 마일스톤 하나
+   * 였다(사실상 보상 2배 지급). 난이도 체감에 맞춰 임무별로 다르게 줘서 그 우연한 1:1을 깬다 */
+  points: number;
 }
 
 export const DAILY_MISSIONS: MissionDef[] = [
-  { key: "wave", icon: "⚔️", label: "웨이브 5회 클리어", goal: 5, reward: { gold: 500 } },
-  { key: "summon", icon: "✨", label: "영웅 소환 3회", goal: 3, reward: { gems: 15 } },
-  { key: "levelup", icon: "📈", label: "영웅 레벨업 2회", goal: 2, reward: { gold: 300 } },
-  { key: "tower", icon: "🗼", label: "무한의 탑 1층 돌파", goal: 1, reward: { gems: 20 } },
-  { key: "arenaWin", icon: "🏟", label: "아레나 1승", goal: 1, reward: { gems: 20 } },
+  { key: "wave", icon: "⚔️", label: "웨이브 5회 클리어", goal: 5, reward: { gold: 500 }, points: 15 },
+  { key: "summon", icon: "✨", label: "영웅 소환 3회", goal: 3, reward: { gems: 15 }, points: 20 },
+  { key: "levelup", icon: "📈", label: "영웅 레벨업 2회", goal: 2, reward: { gold: 300 }, points: 15 },
+  { key: "tower", icon: "🗼", label: "무한의 탑 1층 돌파", goal: 1, reward: { gems: 20 }, points: 25 },
+  { key: "arenaWin", icon: "🏟", label: "아레나 1승", goal: 1, reward: { gems: 20 }, points: 25 },
 ];
 
 export const ALL_CLEAR_KEY = "__all__";
 export const ALL_CLEAR_BONUS: { gold?: number; gems?: number } = { gems: 50 };
 
-/** 일일 마일스톤 포인트 트랙(BENCHMARK.md §21) — 일일 임무를 하나 수령할 때마다 20점씩 쌓여
- * DAILY_MISSIONS 5개를 다 받으면 정확히 100점(20×5)이 된다. 임무별 개별 보상·전체완료 보너스와는
- * 별개의 3번째 보상 레이어 — 20/40/60/80/100 구간마다 상자를 따로 수령한다(레퍼런스 공통 패턴).
- * 별도 저장 필드 없이 `save.missions.claimed`에 "milestone_N" 키를 얹어 재사용 — 일일 리셋
- * (ensureToday)에 자동으로 같이 초기화된다 */
-export const DAILY_MISSION_POINTS = 20;
+/** 일일 마일스톤 포인트 트랙(BENCHMARK.md §21, §2026-08-02 재설계) — 임무별 점수 합은 100점
+ * (15+20+15+25+25)인데 구간은 3개(40/70/100)뿐이라, 구간 간격(40/30/30)이 가장 비싼 임무 하나의
+ * 점수(25)보다 항상 커서 어느 순서로 수령해도 임무 한 번만으로는 다음 구간에 못 닿는다 — 여러
+ * 임무를 "모아야" 마일스톤이 열리는 진짜 누적형 트랙. 임무별 개별 보상·전체완료 보너스와는 별개의
+ * 3번째 보상 레이어(레퍼런스 공통 패턴). 별도 저장 필드 없이 `save.missions.claimed`에
+ * "milestone_N" 키를 얹어 재사용 — 일일 리셋(ensureToday)에 자동으로 같이 초기화된다 */
 export interface MilestoneDef { points: number; reward: { gold?: number; gems?: number } }
 export const MILESTONE_TRACK: MilestoneDef[] = [
-  { points: 20, reward: { gold: 200 } },
-  { points: 40, reward: { gems: 15 } },
-  { points: 60, reward: { gold: 500 } },
-  { points: 80, reward: { gems: 30 } },
-  { points: 100, reward: { gold: 1000, gems: 50 } },
+  { points: 40, reward: { gold: 400 } },
+  { points: 70, reward: { gems: 40 } },
+  { points: 100, reward: { gold: 1500, gems: 80 } },
 ];
 
-/** 주간 임무 — 카테고리 키는 일일과 동일(wave/summon/…)해서 track() 한 번으로 둘 다 갱신됨 */
+/** 주간 임무 — 카테고리 키는 일일과 동일(wave/summon/…)해서 track() 한 번으로 둘 다 갱신됨.
+ * 점수 배분(15/20/15/25/25)도 일일과 동일 비율 재사용 */
 export const WEEKLY_MISSIONS: MissionDef[] = [
-  { key: "wave", icon: "⚔️", label: "웨이브 30회 클리어", goal: 30, reward: { gold: 3000 } },
-  { key: "summon", icon: "✨", label: "영웅 소환 15회", goal: 15, reward: { gems: 80 } },
-  { key: "levelup", icon: "📈", label: "영웅 레벨업 10회", goal: 10, reward: { gold: 2000 } },
-  { key: "tower", icon: "🗼", label: "무한의 탑 5층 돌파", goal: 5, reward: { gems: 100 } },
-  { key: "arenaWin", icon: "🏟", label: "아레나 5승", goal: 5, reward: { gems: 100 } },
+  { key: "wave", icon: "⚔️", label: "웨이브 30회 클리어", goal: 30, reward: { gold: 3000 }, points: 15 },
+  { key: "summon", icon: "✨", label: "영웅 소환 15회", goal: 15, reward: { gems: 80 }, points: 20 },
+  { key: "levelup", icon: "📈", label: "영웅 레벨업 10회", goal: 10, reward: { gold: 2000 }, points: 15 },
+  { key: "tower", icon: "🗼", label: "무한의 탑 5층 돌파", goal: 5, reward: { gems: 100 }, points: 25 },
+  { key: "arenaWin", icon: "🏟", label: "아레나 5승", goal: 5, reward: { gems: 100 }, points: 25 },
 ];
 export const WEEKLY_ALL_CLEAR_BONUS: { gold?: number; gems?: number } = { gems: 200 };
 
-/** 주간 마일스톤 포인트 트랙(§마이티 아레나 반영계획 F, 2026-07-29) — 일일 마일스톤(바로 아래)과
- * 완전히 같은 구조를 주간에 재사용한다. WEEKLY_MISSIONS 5개를 하나 수령할 때마다 20점씩 쌓여
- * 다 받으면 100점, 20/40/60/80/100 구간마다 상자를 따로 수령. 저장은 daily와 동일하게
+/** 주간 마일스톤 포인트 트랙(§마이티 아레나 반영계획 F, §2026-08-02 재설계) — 일일 마일스톤과
+ * 완전히 같은 3구간(40/70/100) 누적형 구조를 주간에 재사용한다. 저장은 daily와 동일하게
  * `save.weeklyMissions.claimed`에 "milestone_N" 키를 얹어 재사용(주간 리셋에 자동으로 같이 초기화) */
-export const WEEKLY_MISSION_POINTS = 20;
 export const WEEKLY_MILESTONE_TRACK: MilestoneDef[] = [
-  { points: 20, reward: { gold: 1200 } },
-  { points: 40, reward: { gems: 90 } },
-  { points: 60, reward: { gold: 3000 } },
-  { points: 80, reward: { gems: 180 } },
-  { points: 100, reward: { gold: 6000, gems: 300 } },
+  { points: 40, reward: { gold: 2500 } },
+  { points: 70, reward: { gems: 220 } },
+  { points: 100, reward: { gold: 9000, gems: 500 } },
 ];
 
 export interface AchievementDef {
@@ -263,7 +262,7 @@ export function claim(key: string): boolean {
 /* ── 일일 마일스톤 포인트 트랙 ── */
 export function dailyPoints(): number {
   ensureToday();
-  return DAILY_MISSIONS.filter((m) => isClaimed(m.key)).length * DAILY_MISSION_POINTS;
+  return DAILY_MISSIONS.filter((m) => isClaimed(m.key)).reduce((sum, m) => sum + m.points, 0);
 }
 
 function milestoneKey(points: number): string {
@@ -293,7 +292,7 @@ export function milestoneClaim(points: number): boolean {
 /* ── 주간 마일스톤 포인트 트랙 ── */
 export function weeklyPoints(): number {
   ensureWeek();
-  return WEEKLY_MISSIONS.filter((m) => weeklyIsClaimed(m.key)).length * WEEKLY_MISSION_POINTS;
+  return WEEKLY_MISSIONS.filter((m) => weeklyIsClaimed(m.key)).reduce((sum, m) => sum + m.points, 0);
 }
 
 export function weeklyMilestoneClaimed(points: number): boolean {

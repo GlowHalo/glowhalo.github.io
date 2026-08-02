@@ -6,11 +6,11 @@ import {
   grantMaxTestHero, shopFreeRewardAvailable,
 } from "../state/save";
 import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView, setMissionsSubView, openPartyFormationModal } from "./screens";
-import { partyPower } from "../systems/battle";
+import { partyPower, counterFactionOf } from "../systems/battle";
 import { isFirebaseConfigured, getBackupCode, backupNow, restoreFromCode } from "../state/backup";
 import { HEROES } from "../data/heroes";
 import { isMuted, setMuted } from "../systems/audio";
-import { RAID_DUNGEONS, WEEKDAY_LABELS, requiredFaction, isRaidWeekend } from "../systems/raid";
+import { RAID_DUNGEONS, WEEKDAY_LABELS, isRaidWeekend, selectRaidDungeon } from "../systems/raid";
 import { anyFreeSummonAvailable } from "../systems/gacha";
 import { anyMissionRewardClaimable } from "../systems/missions";
 import {
@@ -196,7 +196,6 @@ const FACTION_ROOF: Record<string, string> = {
 function openRaidSelectModal() {
   const weekend = isRaidWeekend();
   const todayDay = new Date().getDay();
-  const required = requiredFaction();
 
   const body = h("div", "raid-select");
   if (weekend) {
@@ -210,13 +209,18 @@ function openRaidSelectModal() {
   const grid = h("div", "raid-dungeon-grid");
   for (const d of RAID_DUNGEONS) {
     const unlocked = weekend || d.day === todayDay;
+    // §2026-08-02 버그 수정 — 예전엔 "이기는 진영"을 그날 하나뿐인 던전 기준 required(오늘
+    // 요일)로 계산해서, 주말(요일 기준 진영이 없음)엔 5개 타일 전부 "전 진영"이라고 잘못
+    // 표시했다. 실제 전투 필터는 항상 "이 타일의 보스 진영"을 기준으로 걸리므로 안내 문구도
+    // 타일별 보스 진영(d.bossFaction)에서 직접 계산해야 한다.
+    const tileRequired = counterFactionOf(d.bossFaction) ?? "전 진영";
     const hut = h("button", "raid-hut" + (unlocked ? "" : " locked"));
     hut.style.setProperty("--roof", FACTION_ROOF[d.bossFaction] ?? "#888");
     hut.appendChild(h("div", "hub-roof"));
     const hbody = h("div", "hub-body");
     hbody.appendChild(h("div", "hub-label", `${d.bossFaction}의 마수`));
     hbody.appendChild(
-      h("div", "hub-flavor", unlocked ? `이기는 진영: ${weekend ? "전 진영" : required}` : `${d.dayLabel} 출현`)
+      h("div", "hub-flavor", unlocked ? `이기는 진영: ${tileRequired}` : `${d.dayLabel} 출현`)
     );
     hut.appendChild(hbody);
     if (!unlocked) hut.appendChild(h("div", "raid-lock", "🔒"));
@@ -226,12 +230,13 @@ function openRaidSelectModal() {
         return;
       }
       closeModal();
+      // §2026-08-02 주말엔 5개 던전이 동시에 열려 있어 "오늘 요일"만으로는 어떤 던전인지
+      // 구분이 안 된다 — 클릭한 타일의 진영을 여기서 명시적으로 박아둔다(activeRaidBoss).
+      selectRaidDungeon(d.bossFaction);
       // §2026-07-30 "요일던전에 들어가면 편성화면을 띄우자, 파티편성하는 곳이 없네" — 예전엔
       // 여기서 바로 전투를 시작해 save.party를 손볼 방법이 없었다. 편성 팝업을 먼저 띄우고,
       // "전투 시작"을 눌러야 실제로 전환되게 순서를 바꿨다
-      const subtitle = weekend
-        ? `오늘은 혼돈의 마수 — ${d.bossFaction}의 마수를 상대할 파티를 편성하세요.`
-        : `${d.bossFaction}의 마수는 ${required} 진영이 유리합니다. 파티를 편성하고 전투를 시작하세요.`;
+      const subtitle = `${d.bossFaction}의 마수는 ${tileRequired} 진영이 유리합니다. 파티를 편성하고 전투를 시작하세요.`;
       openPartyFormationModal(subtitle, () => {
         if (battleMode !== "raid") {
           battleMode = "raid";
