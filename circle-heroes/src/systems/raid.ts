@@ -20,15 +20,30 @@ export function todayFaction(): string | null {
   return DAY_FACTIONS[new Date().getDay()];
 }
 
-/** 오늘 이 요일던전에 출전 가능한 진영 — 보스 진영 자체가 아니라 그 진영을 "이기는" 상성 진영
- * (예: 바람의 마수 → 바람을 이기는 불만 출전). 주말(전 진영 개방)이면 null */
-export function requiredFaction(): string | null {
-  const boss = todayFaction();
-  return boss ? counterFactionOf(boss) ?? null : null;
-}
-
 export function isRaidWeekend(): boolean {
   return todayFaction() === null;
+}
+
+// §2026-08-02 버그 수정 — 주말엔 5개 던전이 전부 열리므로 "오늘 요일"만으로는 지금 싸우고
+// 있는 던전이 어떤 진영인지 알 수 없다(평일엔 열린 던전이 하나뿐이라 todayFaction()과 늘
+// 같았을 뿐). openRaidSelectModal에서 던전 타일을 고르는 순간 selectRaidDungeon()으로 이
+// 값을 박아두고, 전투 중엔 반드시 이 값(activeRaidBoss)만 기준 삼는다 — todayFaction()은
+// "요일별 접근 가능 여부" 판정에만 쓰고 편성 제한/보상 계산엔 다시 쓰지 않는다.
+let selectedRaidBoss: string | null = null;
+
+export function selectRaidDungeon(bossFaction: string) {
+  selectedRaidBoss = bossFaction;
+}
+
+export function activeRaidBoss(): string | null {
+  return selectedRaidBoss ?? todayFaction();
+}
+
+/** 지금 싸우는 요일던전에 출전 가능한 진영 — 보스 진영 자체가 아니라 그 진영을 "이기는" 상성 진영
+ * (예: 바람의 마수 → 바람을 이기는 불만 출전). */
+export function requiredFaction(): string | null {
+  const boss = activeRaidBoss();
+  return boss ? counterFactionOf(boss) ?? null : null;
 }
 
 export interface RaidDungeon {
@@ -47,7 +62,7 @@ export const RAID_DUNGEONS: RaidDungeon[] = DAY_FACTIONS.reduce<RaidDungeon[]>((
 }, []);
 
 function raidKey(): string {
-  return todayFaction() ?? "전체";
+  return activeRaidBoss() ?? "전체";
 }
 
 /** 오늘 진영 보스를 잡은 누적 횟수 (진영별로 영구 누적 — 잡을수록 강해짐) */
@@ -69,6 +84,6 @@ export function applyRaidKill(): number {
 }
 
 export function raidBossName(): string {
-  const f = todayFaction();
+  const f = activeRaidBoss();
   return f ? `${f}의 마수` : "혼돈의 마수";
 }

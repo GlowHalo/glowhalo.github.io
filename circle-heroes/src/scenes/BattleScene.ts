@@ -7,7 +7,7 @@ import {
   setTowerFloor, applyArenaResult,
 } from "../state/save";
 import { track } from "../systems/missions";
-import { todayFaction, requiredFaction, raidKills, applyRaidKill, raidBossName } from "../systems/raid";
+import { activeRaidBoss, requiredFaction, raidKills, applyRaidKill, raidBossName } from "../systems/raid";
 import { toast } from "../ui/shell";
 import { on, emit, markBattleAssetsReady } from "../state/bus";
 import {
@@ -364,7 +364,7 @@ export class BattleScene extends Phaser.Scene {
   /** 요일던전(§카운터 진영, 2026-07-29): 보스 진영 자체가 아니라 그 진영을 "이기는" 상성
    * 진영만 출전 가능(예: 바람의 마수 → 불만 출전). 편성에 해당 진영이 없으면 스테이지로 복귀 */
   private startRaid() {
-    const boss = todayFaction();
+    const boss = activeRaidBoss();
     const required = requiredFaction();
     this.wave = 1;
     this.updateBackgroundForStage(1);
@@ -1168,7 +1168,17 @@ export class BattleScene extends Phaser.Scene {
       this.refreshHud();
       if (this.wave < WAVES_PER_STAGE) {
         this.wave += 1;
-        this.delayed(800 / this.speedMult, () => this.spawnTeams());
+        // §2026-08-02 버그 수정 — 여기서 buildTeam()을 안 부르고 spawnTeams()만 호출하면
+        // 직전 웨이브에서 깎인 체력/보호막/버프가 그대로 다음 웨이브로 넘어간다.
+        // startStage/startTower/startArena/startRaid는 전부 buildTeam()으로 만재체력부터
+        // 다시 시작하는데 스테이지 내부 웨이브 전환만 유일하게 이 초기화를 빠뜨리고 있었다.
+        // spawnTeams() 직전에 재빌드해야 그 사이(800ms 딜레이) 레벨업 등으로 rosterDirty가
+        // 걸려도 최신 스탯으로 합쳐진다(다른 start*()들과 동일한 순서).
+        this.delayed(800 / this.speedMult, () => {
+          this.heroes = this.buildTeam();
+          this.rosterDirty = false;
+          this.spawnTeams();
+        });
       } else {
         // 스테이지 보스 웨이브(마지막 웨이브) 클리어 시에만 장비 드랍 판정 — 장비 획득(§장비
         // 시스템 v2)의 상시 파밍 경로. 매 웨이브마다 주면 너무 흔해져서 보스 클리어로 한정
