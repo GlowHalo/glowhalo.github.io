@@ -3,7 +3,7 @@ import { PLAYABLE_HEROES } from "../data/heroes";
 import type { Hero } from "../data/heroTypes";
 import { REVERSED_FACING_KEYS } from "../data/facing";
 import {
-  save, addGold, addGems, grantRandomEquip, addEnhanceStone, setStage, getLevel, getStars,
+  save, addGold, addGems, addEnhanceStone, setStage, getLevel, getStars,
   setTowerFloor, applyArenaResult,
 } from "../state/save";
 import { track } from "../systems/missions";
@@ -1180,11 +1180,10 @@ export class BattleScene extends Phaser.Scene {
           this.spawnTeams();
         });
       } else {
-        // 스테이지 보스 웨이브(마지막 웨이브) 클리어 시에만 장비 드랍 판정 — 장비 획득(§장비
-        // 시스템 v2)의 상시 파밍 경로. 매 웨이브마다 주면 너무 흔해져서 보스 클리어로 한정
+        // §2026-08-02 "장비를 얻는 곳은 한곳(소환탭 장비뽑기)이고 그 외엔 강화석만" — 스테이지
+        // 보스 클리어의 장비 드랍(40%)을 없애고 강화석만 남긴다. 스테이지 보스 웨이브(마지막
+        // 웨이브) 클리어 시에만 지급하는 건 그대로 유지(매 웨이브마다 주면 너무 흔해짐)
         const rewards = [`🪙 +${reward}`];
-        if (Math.random() < 0.4) rewards.push(`🎁 ${grantRandomEquip().grade} 장비 획득!`);
-        // 강화석(§장비 강화, 2026-07-30) — 장비 드랍과 별개로 매 보스 웨이브 소량 지급
         const stones = 3 + Math.floor(this.stage / 10);
         addEnhanceStone(stones);
         rewards.push(`💠 +${stones}`);
@@ -1202,7 +1201,11 @@ export class BattleScene extends Phaser.Scene {
       addGems(gems);
       track("tower");
       const rewards = [`💎 +${gems}`];
-      if (Math.random() < 0.25) rewards.push(`🎁 ${grantRandomEquip().grade} 장비 획득!`);
+      // §2026-08-02 "장비를 얻는 곳은 한곳이고 그 외엔 강화석만" — 25% 장비 드랍을 없애고
+      // 대신 강화석을 지급(예전엔 탑에선 장비만 있고 강화석은 없었다)
+      const stones = 2 + Math.floor(f / 10);
+      addEnhanceStone(stones);
+      rewards.push(`💠 +${stones}`);
       this.showVictoryBanner(`${f}층 돌파`, rewards);
       setTowerFloor(f + 1);
       this.refreshHud();

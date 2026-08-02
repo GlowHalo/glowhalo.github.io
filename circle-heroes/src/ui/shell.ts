@@ -302,7 +302,7 @@ function openArenaSelectModal() {
   const rewardGrow = h("div", "grow");
   rewardGrow.appendChild(h("div", "t", `주간 보상 (${myTier.label})`));
   rewardGrow.appendChild(
-    h("div", "s", `🪙${myTier.gold.toLocaleString()}${myTier.equipGrade ? ` · ${myTier.equipGrade}급 장비 확정` : ""}`)
+    h("div", "s", `🪙${myTier.gold.toLocaleString()}${myTier.stones ? ` · 💠${myTier.stones}` : ""}`)
   );
   rewardRow.appendChild(rewardGrow);
   const claimBtn = h("button", "btn" + (arenaWeeklyRewardClaimable() ? " primary" : ""), arenaWeeklyRewardClaimable() ? "수령" : "수령 완료") as HTMLButtonElement;
@@ -310,7 +310,7 @@ function openArenaSelectModal() {
   claimBtn.onclick = () => {
     const result = claimArenaWeeklyReward();
     if (!result) return;
-    toast(`주간 보상 수령! 🪙${result.tier.gold.toLocaleString()}${result.equip ? ` · ${result.equip.grade}급 장비` : ""}`);
+    toast(`주간 보상 수령! 🪙${result.tier.gold.toLocaleString()}${result.tier.stones ? ` · 💠${result.tier.stones}` : ""}`);
     closeModal();
     openArenaSelectModal();
   };
