@@ -628,35 +628,43 @@ img.face-corner-badge { padding: 1.5px; width: 16px; object-fit: contain; }
 /* 좌우 위치(fc-tl/tr)는 원화 반전 여부에 따라 뒤바뀔 수 있어(스크립트 쪽 flipped 처리) 색은
    여기 묶지 않는다 — 배지 종류(레벨=badge-level)로만 색을 결정해, 뒤집힌 영웅도 레벨=항상
    호박색/진영=항상 어두운 배경을 유지한다.
-   §2026-08-01(2차) "네 귀퉁이를 둥근 마감 처리" — 기존엔 프레임과 맞물리는 바깥쪽 모서리(8px)와
+   §2026-08-01(2차) "네 귀퉁이를 둥근 마감 처리" — 기존엔 프레임과 맞물리는 바깥쪽 모서리와
    안쪽 "탭" 모서리 1개(5px)만 둥글고 나머지 2개는 직각(0)이었다. 프레임과 맞물려야 하는 바깥쪽
-   모서리(8px)는 유지하고, 나머지 세 모서리를 전부 5px로 둥글려 사각이 남지 않게 함 */
+   모서리는 유지하고, 나머지 세 모서리를 전부 5px로 둥글려 사각이 남지 않게 함.
+   §2026-08-02(4차) 버그 수정 — 바깥쪽 모서리 반지름이 8px였는데, §여백 제거 재설계 이후
+   .face 자신의 실제 모서리 반지름은 7px(카드 10px 반지름 - 3px 테두리)라 1px 어긋나
+   배지 바깥쪽 귀퉁이에 초상화 배경이 살짝 비치는 "찌그러진" 틈이 생겼다(실기 스크린샷에서
+   확인). .face와 정확히 같은 7px로 맞춰서 틈을 없앤다 */
 .face-corner-badge.fc-tl {
   left: 0;
-  border-radius: 8px 5px 5px 5px;
+  border-radius: 7px 5px 5px 5px;
 }
 .face-corner-badge.fc-tr {
   right: 0;
-  border-radius: 5px 8px 5px 5px;
+  border-radius: 5px 7px 5px 5px;
 }
 /* §2026-08-02 재설계 — "Lv.10 오렌지 알약형 → LV 10 파란 사각형"과 "진영 아이콘 검은 원 →
-   파란 원, 더 크게"를 함께 반영. 레벨/진영 둘 다 같은 계열의 파란색으로 통일해 "이 둘은
-   같은 부류의 정보"라는 느낌을 주고, 대신 모양(사각 vs 원)으로 구분한다 */
+   파란 원, 더 크게"를 함께 반영. 레벨/진영 둘 다 같은 계열의 색으로 통일해 "이 둘은 같은
+   부류의 정보"라는 느낌을 주고, 대신 모양(사각 vs 원)으로 구분한다.
+   §2026-08-02(4차) "베이지로 진행" — 블루/블랙/화이트/베이지 4종을 실제 카드에 얹어 비교한
+   결과, 화이트는 UR 등급의 은백색 카드 배경과 거의 구분이 안 됐고(실기 스크린샷에서 확인),
+   베이지는 앱 전체 파치먼트 톤(--bg)과 자연스럽게 이어지면서도 모든 등급 배경 위에서 충분한
+   대비를 유지해 확정 */
 /* §2026-08-02(3차) "진영영역을 대칭으로 가져와서 레벨표시영역으로 만들자" — 진영 배지의
    박스 폭(20px)을 레벨 배지에도 최소폭으로 맞춰 짧은 레벨("LV 1"~"LV 10")에서는 좌우
    대칭으로 보이게 하고, 3자리("LV 100")처럼 넘칠 때만 min-width를 넘어 자연스럽게 늘어난다 */
 .face-corner-badge.badge-level {
-  background: #2f6fed;
-  color: #fff;
+  background: #f3e6c8ee;
+  color: var(--ink);
   font-size: 6px;
-  border-radius: 8px 3px 3px 3px;
+  border-radius: 7px 3px 3px 3px;
   min-width: 20px;
 }
 .face-corner-badge.fc-tr.badge-level {
-  border-radius: 3px 8px 3px 3px;
+  border-radius: 3px 7px 3px 3px;
 }
 .face-corner-badge.badge-faction {
-  background: #2f6fedcc;
+  background: #f3e6c8ee;
 }
 img.face-corner-badge.badge-faction {
   width: 20px;
