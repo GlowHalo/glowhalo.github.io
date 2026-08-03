@@ -1108,7 +1108,7 @@ function openEquipSlotModal(heroId: string, hero: Hero, slot: EquipSlot, onChang
   const inv = equipInventoryFor(slot).sort(compareEquipByPower);
   body.appendChild(el("div", "equip-modal-title", `보유 ${info.label} (${inv.length})`));
   if (!inv.length) {
-    body.appendChild(el("div", "as-label", "보유한 장비가 없습니다. 전투 승리나 상점 장비 상자로 얻을 수 있어요."));
+    body.appendChild(el("div", "as-label", "보유한 장비가 없습니다. 소환 화면의 장비뽑기로 얻을 수 있어요."));
   } else {
     for (const it of inv) {
       const row = el("div", "equip-modal-row");
@@ -1307,7 +1307,7 @@ function renderEquipment(root: HTMLElement) {
     .sort(compareEquipByPower);
 
   if (!items.length) {
-    root.appendChild(el("div", "as-label", "보유한 장비가 없습니다. 전투 승리나 상점 장비 상자로 얻을 수 있어요."));
+    root.appendChild(el("div", "as-label", "보유한 장비가 없습니다. 소환 화면의 장비뽑기로 얻을 수 있어요."));
   } else {
     const grid = el("div", "hero-grid");
     for (const it of items) grid.appendChild(buildEquipCard(it, () => openEquipItemModal(it, rerender)));

@@ -483,7 +483,7 @@ function buildCodeSection(): HTMLElement {
   box.appendChild(h("p", "muted", "공개된 코드를 입력하면 보상을 받을 수 있어요."));
   const row = h("div", "row");
   const input = h("input", "code-input") as HTMLInputElement;
-  input.placeholder = "코드를 입력하세요";
+  input.placeholder = "코드 입력하세요";
   input.maxLength = 12;
   const redeemBtn = h("button", "btn primary", "받기") as HTMLButtonElement;
   const redeem = () => {
