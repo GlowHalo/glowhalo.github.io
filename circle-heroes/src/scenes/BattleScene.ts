@@ -1260,6 +1260,12 @@ export class BattleScene extends Phaser.Scene {
       const stones = 2 + Math.floor(f / 10);
       addEnhanceStone(stones);
       rewards.push(`💠 +${stones}`);
+      // §2026-08-03 경제 밸런스 점검 — 탑은 그동안 골드가 아예 안 나와서, 후반부에 탑/요일던전
+      // 위주로 플레이하는 유저는 레벨업 골드가 완전히 말랐다. 주력(보석)은 그대로 두고 스테이지
+      // 대비 20~30% 수준의 소량 골드만 부수입으로 추가
+      const gold = f * 6;
+      addGold(gold);
+      rewards.push(`🪙 +${gold}`);
       this.showVictoryBanner(`${f}층 돌파`, rewards);
       setTowerFloor(f + 1);
       this.refreshHud();
@@ -1269,7 +1275,11 @@ export class BattleScene extends Phaser.Scene {
 
     if (this.mode === "raid") {
       const gems = applyRaidKill();
-      this.showVictoryBanner(`${raidBossName()} 격파 — 더 강해져 돌아옵니다`, [`💎 +${gems}`]);
+      // §2026-08-03 경제 밸런스 점검 — 요일던전은 보석만 나오고 강화석이 전혀 없어서 반복
+      // 플레이가 장비 강화 쪽으로는 전혀 이어지지 않았다. 주력(보석)은 그대로 두고 소량만 추가
+      const stones = 1 + Math.floor(raidKills() / 5);
+      addEnhanceStone(stones);
+      this.showVictoryBanner(`${raidBossName()} 격파 — 더 강해져 돌아옵니다`, [`💎 +${gems}`, `💠 +${stones}`]);
       this.refreshHud();
       this.delayed(1600 / this.speedMult, () => this.startRaid());
       return;

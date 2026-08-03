@@ -336,10 +336,11 @@ function openArenaSelectModal() {
 // 가로 배너 3장(세로 스택)으로 재설계.
 // §2026-07-31 banner-raid/arena/tower.png 도착(모티프가 왼쪽에 이미 그려져 있어 별도 이모지
 // 아이콘 박스 불필요) — CSS mode-* 클래스가 그라디언트 대신 이 이미지를 배경으로 얹는다
+// §2026-08-03 경제 밸런스 점검 — 각 모드가 "여기선 뭘 버는지" 한눈에 보이게 보상 요약을 덧붙임
 const ADVENTURE_BANNERS: { mode: string; label: string; flavor: string }[] = [
-  { mode: "raid", label: "요일던전", flavor: "요일마다 다른 진영의 마수가 나타난다" },
-  { mode: "arena", label: "아레나", flavor: "다른 유저와 순위를 겨루는 대전" },
-  { mode: "tower", label: "무한의탑", flavor: "층을 오를수록 강해지는 끝없는 도전" },
+  { mode: "raid", label: "요일던전", flavor: "요일마다 다른 진영의 마수가 나타난다 · 보석+강화석" },
+  { mode: "arena", label: "아레나", flavor: "다른 유저와 순위를 겨루는 대전 · 첫 승리 보석, 주간 상자" },
+  { mode: "tower", label: "무한의탑", flavor: "층을 오를수록 강해지는 끝없는 도전 · 보석+골드" },
 ];
 
 function renderAdventure(root: HTMLElement) {
