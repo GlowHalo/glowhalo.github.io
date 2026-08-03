@@ -241,6 +241,11 @@ function openRaidSelectModal() {
         if (battleMode !== "raid") {
           battleMode = "raid";
           emit("battle-mode", "raid");
+        } else {
+          // §2026-08-03 아레나와 같은 버그 — 이미 요일던전 모드인 채로 다른 던전 타일을 고르면
+          // setMode()의 "같은 모드면 무시" 가드에 막혀 새 보스로 재시작이 안 됐다(주말 5던전
+          // 중 처음 고른 것만 계속 반복됨). 모드 전환 없이 강제로 다시 시작하는 전용 이벤트
+          emit("raid-restart");
         }
         showAdventureCanvas();
       });
