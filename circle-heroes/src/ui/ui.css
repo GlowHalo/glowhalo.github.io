@@ -163,6 +163,32 @@
 /* 전투 탭은 캔버스가 비치도록 투명 */
 #screen-battle { background: none; pointer-events: none; }
 
+/* §2026-08-03 전투 화면 우측하단 편성 버튼 — #screens(탭바 위, topbar 아래의 순수 전투영역)의
+ * 직계 자식으로 둬서 어떤 .screen이 켜져 있든(전투 탭/모험 탭 실전투 화면) 위치가 안 흔들리고,
+ * 캔버스가 실제로 보일 때만(.on-battle) 노출한다 */
+.formation-fab {
+  display: none;
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 6;
+  pointer-events: auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #ecdab3dd;
+  border: 1px solid var(--line);
+  color: var(--ink2);
+  font-size: 10px;
+  cursor: pointer;
+}
+.formation-fab img { width: 22px; height: 22px; object-fit: contain; }
+#ui.on-battle .formation-fab { display: flex; }
+
 /* ── 하단 서브메뉴 바 (P2) ── */
 #subbar {
   display: flex;
@@ -400,31 +426,6 @@ a.btn { display: inline-block; text-decoration: none; text-align: center; }
   white-space: nowrap;
 }
 #toast.on { opacity: 1; }
-
-.power-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 2px;
-}
-.power-row h2 { margin: 0; }
-.power-chip {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--amber);
-  background: var(--panel2);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 4px 10px;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-.power-chip img { width: 13px; height: 13px; object-fit: contain; flex: none; }
 
 .synergy-line {
   font-size: 11.5px;

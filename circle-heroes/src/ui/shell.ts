@@ -10,7 +10,7 @@ import { partyPower, counterFactionOf } from "../systems/battle";
 import { isFirebaseConfigured, getBackupCode, backupNow, restoreFromCode } from "../state/backup";
 import { HEROES } from "../data/heroes";
 import { isMuted, setMuted } from "../systems/audio";
-import { RAID_DUNGEONS, WEEKDAY_LABELS, isRaidWeekend, selectRaidDungeon } from "../systems/raid";
+import { RAID_DUNGEONS, WEEKDAY_LABELS, isRaidWeekend, selectRaidDungeon, requiredFaction } from "../systems/raid";
 import { anyFreeSummonAvailable } from "../systems/gacha";
 import { anyMissionRewardClaimable } from "../systems/missions";
 import {
@@ -36,7 +36,7 @@ interface TabDef {
 // 주성 탭이 쓰던 tab-castle.png를 임시로 재사용(ASSETS.md 백로그 등록)
 const TABS: TabDef[] = [
   // §2026-07-31: "장비" → "장비승급"으로 라벨 변경 + 승급/장비승급 순서 교체(승급이 먼저)
-  { key: "heroes", label: "영웅", icon: "tab-hero.png", subs: ["보유·편성", "승급", "장비승급", "도감"] },
+  { key: "heroes", label: "영웅", icon: "tab-hero.png", subs: ["보유", "승급", "장비승급", "도감"] },
   { key: "summon", label: "소환", icon: "tab-summon.png", subs: [] },
   { key: "battle", label: "전투", icon: "tab-battle.png", center: true, subs: [] },
   { key: "adventure", label: "모험", icon: "tab-castle.png", subs: [] },
@@ -124,7 +124,7 @@ function switchTab(key: TabKey) {
   // 스테이지(캠페인)로 강제 전환(요일던전/아레나/무한의탑은 이제 모험 탭 소관이라 전투 탭에
   // 남아있으면 안 됨). 모험 탭 자체의 리셋(픽커로 복귀)은 renderAdventure 안에서 처리된다
   if (key === "heroes") {
-    heroesSubLabel = "보유·편성";
+    heroesSubLabel = "보유";
     setHeroesSubView("party");
   }
   if (key === "missions") {
@@ -162,7 +162,7 @@ function updateOnBattleState() {
 }
 
 let battleMode = "stage";
-let heroesSubLabel = "보유·편성";
+let heroesSubLabel = "보유";
 
 /** 모험 탭이 실제 전투 화면(캔버스)을 보여주는 중인지 — 배너를 고르기 전엔 허브 픽커가
  * 화면을 덮고, 고른 뒤엔 스테이지 탭과 똑같이 투명해져 Phaser 캔버스가 비친다(§2026-07-30).
@@ -827,6 +827,27 @@ export function buildShell() {
     screens.appendChild(sc);
   }
   ui.appendChild(screens);
+
+  // §2026-08-03 "전투 화면 우측하단에 편성 버튼, 여기서 바꾼 편성은 화면의 전투에 바로 반영" —
+  // 영웅 탭 최상단에 있던 편성 UI를 없애고 이 버튼(+openPartyFormationModal) 하나로 통일한다.
+  // 실제 반영은 새 코드가 필요 없다 — toggleParty()가 이미 "party-changed"를 emit하고
+  // BattleScene이 그걸 구독해 rosterDirty=true로 표시해뒀다가 다음 웨이브 시작 시 팀을 다시
+  // 빌드한다(그 사이 생존해 있던 유닛은 체력을 그대로 유지) — 그 배선을 그대로 재사용.
+  // 캔버스가 실제로 보일 때만(#ui.on-battle) 노출되도록 CSS로 게이팅(updateOnBattleState가
+  // 전투/모험 두 탭 모두에서 이 클래스를 관리해준다)
+  const formationFab = h("button", "formation-fab") as HTMLButtonElement;
+  formationFab.appendChild(icon("tab-hero.png"));
+  formationFab.appendChild(h("span", "", "편성"));
+  formationFab.onclick = () => {
+    const filter = battleMode === "raid" ? requiredFaction() : null;
+    openPartyFormationModal(
+      "편성을 변경하면 진행 중인 전투에 바로 반영됩니다.",
+      () => {},
+      filter,
+      "확인"
+    );
+  };
+  screens.appendChild(formationFab);
 
   // 서브메뉴 바 + 탭바
   const subbar = h("div");

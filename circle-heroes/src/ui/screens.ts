@@ -20,7 +20,7 @@ import {
   GRADE_WEIGHT, NORMAL_GRADE_WEIGHT, PICKUP_RATE_UP, gradeRosterCount,
   freeSummonAvailable, type FreeSummonKind,
 } from "../systems/gacha";
-import { calcFactionSynergy, partyPower, heroPower, unitFromHero, FACTION_STRONG_AGAINST, FACTION_WEAK_AGAINST, REAL_FACTIONS } from "../systems/battle";
+import { calcFactionSynergy, heroPower, unitFromHero, FACTION_STRONG_AGAINST, FACTION_WEAK_AGAINST, REAL_FACTIONS } from "../systems/battle";
 import {
   DAILY_MISSIONS, ALL_CLEAR_KEY, ALL_CLEAR_BONUS,
   missionProgress, isClaimed, claimable, claim, track,
@@ -537,13 +537,21 @@ function buildEmptyHeroCard(onClick?: () => void): HTMLElement {
  * 그 진영만으로 좁혀서 애초에 출전 불가능한 영웅을 편성에 추가할 수 없게 막는다. 이미 편성돼
  * 있던 슬롯에 다른 진영 영웅이 남아있으면(다른 콘텐츠에서 짜둔 편성 재사용) 지우지는 않되
  * 흐리게 표시해 "얘는 이 전투에 못 나간다"는 걸 알려준다(실제 제외는 BattleScene가 처리) */
-export function openPartyFormationModal(subtitle: string, onConfirm: () => void, factionFilter?: string | null) {
+export function openPartyFormationModal(
+  subtitle: string,
+  onConfirm: () => void,
+  factionFilter?: string | null,
+  confirmLabel = "전투 시작"
+) {
   const body = el("div");
   body.appendChild(el("div", "desc", subtitle));
 
   const partyRow = el("div", "party-row");
+  // §2026-08-03 "영웅 탭 최상단 편성 영역 삭제, 편성은 이 팝업(전투 화면 편성 버튼 포함)에서만"
+  // — 예전엔 renderHeroes()에 있던 시너지 표시를 편성을 실제로 조작하는 이 팝업으로 옮겨왔다
+  const synergyLine = el("div", "synergy-line");
   const grid = el("div", "hero-grid");
-  const startBtn = el("button", "btn primary btn-cta", "전투 시작") as HTMLButtonElement;
+  const startBtn = el("button", "btn primary btn-cta", confirmLabel) as HTMLButtonElement;
 
   const refresh = () => {
     partyRow.innerHTML = "";
@@ -581,10 +589,20 @@ export function openPartyFormationModal(subtitle: string, onConfirm: () => void,
       );
     }
     startBtn.disabled = save.party.length === 0;
+
+    const partyFactions = save.party
+      .map((id) => PLAYABLE_HEROES.find((h) => h.id === id))
+      .filter((h): h is Hero => !!h && (save.owned[h.id] ?? 0) > 0)
+      .map((h) => h.faction);
+    const synergy = calcFactionSynergy(partyFactions);
+    synergyLine.textContent = synergy
+      ? `⚡ ${synergy.label}${synergy.atkMult > 1 ? ` · 공격력 +${Math.round((synergy.atkMult - 1) * 100)}%` : ""}${synergy.dmgTakenMult < 1 ? ` · 받는피해 -${Math.round((1 - synergy.dmgTakenMult) * 100)}%` : ""}`
+      : "진영 시너지 없음 — 같은 진영 3명↑ 또는 전 진영 1명씩 편성 시 발동";
   };
   refresh();
 
   body.appendChild(partyRow);
+  body.appendChild(synergyLine);
   body.appendChild(el("h4", "", "보유 영웅"));
   body.appendChild(grid);
 
@@ -614,44 +632,9 @@ export function renderHeroes(root: HTMLElement) {
     return;
   }
 
-  const powerRow = el("div", "power-row");
-  powerRow.appendChild(el("h2", "", `편성 (${save.party.length}/${PARTY_SIZE})`));
-  const powerChip = el("div", "power-chip");
-  powerChip.appendChild(liIcon("icon-power.png"));
-  powerChip.appendChild(el("span", "", `전투력 ${partyPower().toLocaleString()}`));
-  powerRow.appendChild(powerChip);
-  root.appendChild(powerRow);
-  root.appendChild(el("div", "desc", "편성된 영웅만 전투에 출전합니다. 카드를 눌러 편성·레벨업하세요."));
-  // §2026-07-31 "영웅카드는 어디서나 동일하기를 원함(편성 포함)" — 편성 슬롯도 보유 그리드와
-  // 완전히 같은 buildHeroCard/buildEmptyHeroCard를 그대로 써서 배지 위치·별표기까지 전부 통일
-  const partyRow = el("div", "party-row");
-  for (let i = 0; i < PARTY_SIZE; i++) {
-    const id = save.party[i];
-    const hero = id ? PLAYABLE_HEROES.find((h) => h.id === id) : undefined;
-    const slot = hero ? buildHeroCard(hero, { onClick: () => openHeroDetail(hero, rerender) }) : buildEmptyHeroCard();
-    partyRow.appendChild(slot);
-  }
-  root.appendChild(partyRow);
-
-  // 진영 시너지 표시 — §2026-07-30 버그 수정: 전투(BattleScene.buildTeam)는 실제로 보유 중인
-  // (owned>0) 영웅만 팀에 넣는데, 여기는 그 필터가 빠져있었다. 승급/초월 재료로 마지막 1장이
-  // 소모돼도 save.party 슬롯엔 id가 그대로 남아있을 수 있어서, 화면 표시용 진영 집계가 실제
-  // 전투에 나가는 인원보다 많게(유령 인원 포함) 잡혀 화면과 전투의 시너지 판정이 어긋날 수 있었다
-  const partyFactions = save.party
-    .map((id) => PLAYABLE_HEROES.find((h) => h.id === id))
-    .filter((h): h is Hero => !!h && (save.owned[h.id] ?? 0) > 0)
-    .map((h) => h.faction);
-  const synergy = calcFactionSynergy(partyFactions);
-  root.appendChild(
-    el(
-      "div",
-      "synergy-line",
-      synergy
-        ? `⚡ ${synergy.label}${synergy.atkMult > 1 ? ` · 공격력 +${Math.round((synergy.atkMult - 1) * 100)}%` : ""}${synergy.dmgTakenMult < 1 ? ` · 받는피해 -${Math.round((1 - synergy.dmgTakenMult) * 100)}%` : ""}`
-        : "진영 시너지 없음 — 같은 진영 3명↑ 또는 전 진영 1명씩 편성 시 발동"
-    )
-  );
-
+  // §2026-08-03 "영웅 메뉴의 최상단 편성 영역은 삭제, 편성은 전투 화면 우측하단 편성 버튼에서"
+  // — 예전엔 여기서 5슬롯 편성을 직접 조작했지만, 이제 openPartyFormationModal(전투 화면 진입점)
+  // 하나로 통일한다. 이 화면은 순수하게 "보유 영웅 관리"(레벨업 등)만 담당
   root.appendChild(el("h2", "", "보유 영웅"));
 
   // 진영 탭(마이티식) — §2026-07-30 "아이콘으로만 표시해서 한 줄로 만들자" 요청으로 텍스트
