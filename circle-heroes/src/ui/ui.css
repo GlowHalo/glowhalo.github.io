@@ -303,6 +303,10 @@
   border-image-repeat: stretch;
 }
 .btn:disabled { opacity: 0.45; cursor: default; }
+/* §2026-08-03 개발자 응원 버튼(<a class="btn">, 외부링크라 <button> 대신 앵커 사용) — 브라우저
+ * 기본 앵커 스타일(파란 밑줄)이 .btn의 색상 지정보다 나중에 적용돼 버튼처럼 안 보이던 문제.
+ * 다른 .btn은 전부 <button>이라 지금까지 안 드러났다 */
+a.btn { display: inline-block; text-decoration: none; text-align: center; }
 
 .backup-box { margin: 4px 0 16px; }
 .backup-box h4 { margin: 0 0 6px; font-size: 13px; color: var(--ink); }
