@@ -98,6 +98,8 @@ export interface SaveState {
   lastSeenMs: number;
   /** YYYY-MM-DD — 일일 무료 상자 수령일 */
   freeBoxDate: string;
+  /** YYYY-MM-DD(그 주 토요일 날짜) — 주말 온타임 보상 우편을 마지막으로 지급한 주 */
+  weekendMailDate: string;
   /** 무한의 탑 현재 도전 층 (클리어한 최고층 + 1) */
   towerFloor: number;
   /** §2026-07-31 랭킹 사다리로 재설계 — 1위가 최상위, 1000위에서 시작해 나보다 순위가 좋은
@@ -180,6 +182,7 @@ const DEFAULTS: SaveState = {
   bannerPity: {},
   lastSeenMs: Date.now(),
   freeBoxDate: "",
+  weekendMailDate: "",
   towerFloor: 1,
   arenaRank: 1000,
   arenaWinDate: "",
@@ -719,6 +722,38 @@ function ensureWelcomeMail() {
   persist();
 }
 ensureWelcomeMail();
+
+/** 그 주(오늘이 속한, 지나갔거나 오늘인) 토요일 날짜(YYYY-MM-DD, UTC 기준 — freeBoxDate와 동일
+ * 관례). 앱이 항상 켜져 있는 서버가 아니라 "토요일 0시 정각"을 직접 잡아낼 수 없으므로, 대신
+ * "이번 주 토요일 우편을 아직 못 받았으면 다음 접속 때 지급"하는 지연 지급 방식으로 구현한다 */
+function mostRecentSaturday(d: Date): string {
+  const day = d.getUTCDay(); // 0=일 ... 6=토
+  const diff = (day - 6 + 7) % 7;
+  const sat = new Date(d);
+  sat.setUTCDate(d.getUTCDate() - diff);
+  return sat.toISOString().slice(0, 10);
+}
+
+/** §2026-08-03 "매 토요일 0시마다 주말 온타임 보상" — 최초 1회뿐인 환영 우편과 달리 매주 반복.
+ * id에 그 주 토요일 날짜를 박아 넣어 같은 주에 중복 지급되지 않게 하고(freeBoxDate와 같은
+ * idempotent 패턴), 지난 주말에 접속 안 했어도 다음 접속 시 그 주 몫을 놓치지 않고 받는다 */
+function ensureWeekendMail() {
+  const satDate = mostRecentSaturday(new Date());
+  if (save.weekendMailDate === satDate) return;
+  save.weekendMailDate = satDate;
+  save.mail.push({
+    id: `weekend-${satDate}`,
+    kind: "item",
+    title: "주말 온타임 보상",
+    body: "이번 주도 함께해주셔서 감사해요!\n주말 접속 기념 선물을 드립니다.",
+    reward: { gold: 1000, gems: 100 },
+    read: false,
+    claimed: false,
+    createdAt: Date.now(),
+  });
+  persist();
+}
+ensureWeekendMail();
 
 // 주기적으로 lastSeen 갱신 (앱 켜둔 채 방치해도 오프라인 보상이 중복 적립되지 않도록)
 setInterval(persist, 30_000);
