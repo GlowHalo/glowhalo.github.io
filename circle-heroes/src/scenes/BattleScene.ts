@@ -289,6 +289,12 @@ export class BattleScene extends Phaser.Scene {
       this.gen++;
       this.startArena();
     });
+    // §2026-08-03 요일던전판 arena-restart — 이미 raid 모드인 채로 다른 던전 타일을 골라도
+    // 같은 이유(setMode "같은 모드면 무시" 가드)로 재시작이 안 됐다
+    on("raid-restart", () => {
+      this.gen++;
+      this.startRaid();
+    });
 
     this.startStage(save.stage);
   }
