@@ -3,11 +3,11 @@ import { PLAYABLE_HEROES } from "../data/heroes";
 import type { Hero } from "../data/heroTypes";
 import { REVERSED_FACING_KEYS } from "../data/facing";
 import {
-  save, addGold, addGems, addEnhanceStone, setStage, getLevel, getStars,
+  save, addGems, addEnhanceStone, setStage, getLevel, getStars,
   setTowerFloor, applyArenaResult,
 } from "../state/save";
 import { track } from "../systems/missions";
-import { activeRaidBoss, requiredFaction, raidKills, applyRaidKill, raidBossName } from "../systems/raid";
+import { activeRaidBoss, requiredFaction, raidFloor, applyRaidClear, raidBossName, RAID_MAX_FLOOR } from "../systems/raid";
 import { toast } from "../ui/shell";
 import { on, emit, markBattleAssetsReady } from "../state/bus";
 import {
@@ -508,7 +508,10 @@ export class BattleScene extends Phaser.Scene {
       );
     } else if (this.mode === "raid") {
       boss = true;
-      this.enemies = [makeEnemy("raid_boss", raidBossName(), 3 + raidKills() * 2, true)];
+      // §2026-08-03 무한 누적 킬 대신 20층 캡 진행형으로 재설계 — 도전 중인(다음) 층수로 스탯을
+      // 스케일링. 20층 도달 후엔 20층 스탯에서 반복 파밍
+      const nextFloor = Math.min(raidFloor() + 1, RAID_MAX_FLOOR);
+      this.enemies = [makeEnemy("raid_boss", raidBossName(), 3 + nextFloor * 2, true)];
     } else {
       this.enemies = this.buildArenaOpponents();
     }
@@ -1216,8 +1219,11 @@ export class BattleScene extends Phaser.Scene {
     playSfx("victory");
 
     if (this.mode === "stage") {
-      const reward = 10 * this.stage * (this.wave === WAVES_PER_STAGE ? 3 : 1);
-      addGold(reward);
+      // §2026-08-03 경제 재설계 — "스테이지는 상시틱, 클리어시마다 상시 틱량이 늘어나는 구조"로
+      // 확정. 웨이브/스테이지 클리어 즉시 지급되던 골드·강화석 버스트를 없애고, 스테이지가
+      // 오를수록 배경 골드 적립 속도(STAGE_GOLD_PER_MIN × save.stage, save.ts)가 자동으로
+      // 오르는 상시 틱만 남긴다 — 골드 원천은 이제 스테이지 하나(틱)뿐이고, 재료(강화석)는
+      // 탑/요일던전이 맡는다
       track("wave");
       this.refreshHud();
       if (this.wave < WAVES_PER_STAGE) {
@@ -1234,14 +1240,7 @@ export class BattleScene extends Phaser.Scene {
           this.spawnTeams();
         });
       } else {
-        // §2026-08-02 "장비를 얻는 곳은 한곳(소환탭 장비뽑기)이고 그 외엔 강화석만" — 스테이지
-        // 보스 클리어의 장비 드랍(40%)을 없애고 강화석만 남긴다. 스테이지 보스 웨이브(마지막
-        // 웨이브) 클리어 시에만 지급하는 건 그대로 유지(매 웨이브마다 주면 너무 흔해짐)
-        const rewards = [`🪙 +${reward}`];
-        const stones = 3 + Math.floor(this.stage / 10);
-        addEnhanceStone(stones);
-        rewards.push(`💠 +${stones}`);
-        this.showVictoryBanner(`STAGE ${this.stage} 클리어`, rewards);
+        this.showVictoryBanner(`STAGE ${this.stage} 클리어`, [`🪙 골드 획득 속도 상승`]);
         const next = this.stage + 1;
         setStage(next);
         this.delayed(1400 / this.speedMult, () => this.startStage(next));
@@ -1250,22 +1249,17 @@ export class BattleScene extends Phaser.Scene {
     }
 
     if (this.mode === "tower") {
+      // §2026-08-03 경제 재설계 확정 — "무한의 탑은 메인재료 보석, 서브재료 강화석"으로 역할이
+      // 명시됐다. 직전에 시험 삼아 넣었던 소량 골드(f×6)는 이 확정안엔 없어서 도로 뺀다 — 골드는
+      // 스테이지(상시틱) 하나로 원천을 통일
       const f = save.towerFloor;
       const gems = 10 + f * 5;
       addGems(gems);
       track("tower");
       const rewards = [`💎 +${gems}`];
-      // §2026-08-02 "장비를 얻는 곳은 한곳이고 그 외엔 강화석만" — 25% 장비 드랍을 없애고
-      // 대신 강화석을 지급(예전엔 탑에선 장비만 있고 강화석은 없었다)
       const stones = 2 + Math.floor(f / 10);
       addEnhanceStone(stones);
       rewards.push(`💠 +${stones}`);
-      // §2026-08-03 경제 밸런스 점검 — 탑은 그동안 골드가 아예 안 나와서, 후반부에 탑/요일던전
-      // 위주로 플레이하는 유저는 레벨업 골드가 완전히 말랐다. 주력(보석)은 그대로 두고 스테이지
-      // 대비 20~30% 수준의 소량 골드만 부수입으로 추가
-      const gold = f * 6;
-      addGold(gold);
-      rewards.push(`🪙 +${gold}`);
       this.showVictoryBanner(`${f}층 돌파`, rewards);
       setTowerFloor(f + 1);
       this.refreshHud();
@@ -1274,12 +1268,15 @@ export class BattleScene extends Phaser.Scene {
     }
 
     if (this.mode === "raid") {
-      const gems = applyRaidKill();
-      // §2026-08-03 경제 밸런스 점검 — 요일던전은 보석만 나오고 강화석이 전혀 없어서 반복
-      // 플레이가 장비 강화 쪽으로는 전혀 이어지지 않았다. 주력(보석)은 그대로 두고 소량만 추가
-      const stones = 1 + Math.floor(raidKills() / 5);
-      addEnhanceStone(stones);
-      this.showVictoryBanner(`${raidBossName()} 격파 — 더 강해져 돌아옵니다`, [`💎 +${gems}`, `💠 +${stones}`]);
+      // §2026-08-03 경제 재설계 확정 — "요일던전은 강화석 메인, 골드 서브". 던전당 20층 캡으로
+      // 바뀌면서 보상도 이제 층수 기반(applyRaidClear)이고, 그동안 나오던 보석은 이 콘텐츠에서
+      // 뺐다(보석 원천은 탑/아레나가 맡는다)
+      const { stones, gold, floor } = applyRaidClear();
+      const capped = floor >= RAID_MAX_FLOOR;
+      this.showVictoryBanner(
+        `${raidBossName()} 격파 (${floor}/${RAID_MAX_FLOOR}층)${capped ? " — 최고층 도달!" : ""}`,
+        [`💠 +${stones}`, `🪙 +${gold}`]
+      );
       this.refreshHud();
       this.delayed(1600 / this.speedMult, () => this.startRaid());
       return;
@@ -1340,7 +1337,8 @@ export class BattleScene extends Phaser.Scene {
       this.stageText.setText(`무한의 탑 · ${save.towerFloor}층`);
     } else if (this.mode === "raid") {
       const req = requiredFaction();
-      this.stageText.setText(`요일던전 · ${raidBossName()} Lv.${raidKills() + 1}${req ? ` (${req}만 출전)` : " (전 진영)"}`);
+      const nextFloor = Math.min(raidFloor() + 1, RAID_MAX_FLOOR);
+      this.stageText.setText(`요일던전 · ${raidBossName()} ${nextFloor}/${RAID_MAX_FLOOR}층${req ? ` (${req}만 출전)` : " (전 진영)"}`);
     } else {
       this.stageText.setText(`아레나 · ${save.arenaRank}위`);
     }
