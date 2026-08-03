@@ -201,6 +201,7 @@
   overflow-x: auto;
 }
 .sub-chip {
+  position: relative;
   font-size: 12px;
   padding: 6px 14px;
   border-radius: 9px;
@@ -211,6 +212,17 @@
   cursor: pointer;
 }
 .sub-chip.on { background: var(--amber); color: #10131c; font-weight: 700; }
+/* §2026-08-03 임무 일일/주간/업적 서브탭 개별 알림 점 — .tab .badge와 같은 모양, 칩 크기에 맞게 위치만 조정 */
+.sub-chip .badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  border: 2px solid var(--panel);
+}
 
 /* ── 하단 탭바 ── */
 #tabbar {

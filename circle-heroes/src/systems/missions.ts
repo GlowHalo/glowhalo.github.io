@@ -321,13 +321,21 @@ export function weeklyMilestoneClaim(points: number): boolean {
   return true;
 }
 
+/** §2026-08-03 "일일/주간/업적 서브탭에도 개별 빨간점" — 예전엔 임무 메인 탭 하나에만 알림
+ * 점을 띄워서, 탭에 들어가서도 어느 서브탭에 수령할 게 있는지 직접 뒤져봐야 했다. 카테고리별로
+ * 쪼개서 서브탭 칩에도 바로 띄운다. anyMissionRewardClaimable은 이 셋의 OR로 재정의 */
+export function dailyRewardClaimable(): boolean {
+  return DAILY_MISSIONS.some((m) => claimable(m.key)) || claimable(ALL_CLEAR_KEY) || MILESTONE_TRACK.some((m) => milestoneClaimable(m.points));
+}
+export function weeklyRewardClaimable(): boolean {
+  return WEEKLY_MISSIONS.some((m) => weeklyClaimable(m.key)) || weeklyClaimable(ALL_CLEAR_KEY) || WEEKLY_MILESTONE_TRACK.some((m) => weeklyMilestoneClaimable(m.points));
+}
+export function achievementRewardClaimable(): boolean {
+  return currentAchievementTiers().some((a) => achievementClaimable(a.key));
+}
+
 /** §2026-07-31 알림 점(빨간 점) 시스템 — 임무 탭에 수령 대기 중인 보상이 하나라도 있는지.
  * 일일/주간 임무·마일스톤·업적 전부 포함(전체완료 보너스도 ALL_CLEAR_KEY로 함께 체크) */
 export function anyMissionRewardClaimable(): boolean {
-  if (DAILY_MISSIONS.some((m) => claimable(m.key)) || claimable(ALL_CLEAR_KEY)) return true;
-  if (MILESTONE_TRACK.some((m) => milestoneClaimable(m.points))) return true;
-  if (WEEKLY_MISSIONS.some((m) => weeklyClaimable(m.key)) || weeklyClaimable(ALL_CLEAR_KEY)) return true;
-  if (WEEKLY_MILESTONE_TRACK.some((m) => weeklyMilestoneClaimable(m.points))) return true;
-  if (currentAchievementTiers().some((a) => achievementClaimable(a.key))) return true;
-  return false;
+  return dailyRewardClaimable() || weeklyRewardClaimable() || achievementRewardClaimable();
 }

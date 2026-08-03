@@ -1937,7 +1937,8 @@ function buyTicket(root: HTMLElement, kind: TicketKind, discounted: boolean) {
 
 /** §2026-07-31 "세부메뉴 분류는 모두 없애고 상품들 한번에 다 보이도록, 무료상품은 최상단으로" —
  * 골드/보석/일일무료 서브탭 구분을 완전히 없애고 전 품목을 한 화면에 순서대로 그린다.
- * 순서: 일일 무료(맨 위) → 소환권(정가+할인) → 보석 패키지 → 골드 상품(장비 상자·강화석) */
+ * 순서: 일일 무료(맨 위) → 소환권(정가+할인) → 골드 상품(강화석). §2026-08-03 보석 패키지
+ * "준비 중" 자리표시자는 삭제 — 실결제 상품 붙일 때 다시 추가 */
 export function renderShop(root: HTMLElement) {
   root.innerHTML = "";
   root.appendChild(el("h2", "", "상점"));
@@ -2015,16 +2016,8 @@ export function renderShop(root: HTMLElement) {
   ticketFullRow("normal");
   ticketFullRow("premium");
 
-  // 실결제 보석 패키지는 결제 연동이 아직 없어 정직하게 "준비 중"으로만 표시(고스트 버튼 아님 — 클릭 대상 자체가 없음)
-  const gemsCard = el("div", "list-card");
-  gemsCard.style.opacity = "0.5";
-  gemsCard.appendChild(liIcon("shop-gems.png"));
-  const gemsGrow = el("div", "grow");
-  gemsGrow.appendChild(el("div", "t", "보석 패키지"));
-  gemsGrow.appendChild(el("div", "s", "결제 연동 검토 중"));
-  gemsCard.appendChild(gemsGrow);
-  gemsCard.appendChild(el("span", "s", "준비 중"));
-  root.appendChild(gemsCard);
+  // §2026-08-03 "상점에 보석패키지 삭제" — 결제 연동 미정 상태로 "준비 중" 카드만 띄워두던
+  // 자리표시자를 제거. 실결제 상품을 붙일 때 다시 넣는다
 
   // §2026-08-02 "장비를 얻는 곳은 한곳" — 장비 상자는 여기(상점)에서 소환 탭의 "장비뽑기"
   // 배너로 이전했다(renderSummon 참고). 상점엔 장비 획득 경로를 남겨두지 않는다.

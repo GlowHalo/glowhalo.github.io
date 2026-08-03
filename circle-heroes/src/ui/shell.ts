@@ -12,7 +12,7 @@ import { HEROES } from "../data/heroes";
 import { isMuted, setMuted } from "../systems/audio";
 import { RAID_DUNGEONS, WEEKDAY_LABELS, isRaidWeekend, selectRaidDungeon, requiredFaction } from "../systems/raid";
 import { anyFreeSummonAvailable } from "../systems/gacha";
-import { anyMissionRewardClaimable } from "../systems/missions";
+import { anyMissionRewardClaimable, dailyRewardClaimable, weeklyRewardClaimable, achievementRewardClaimable } from "../systems/missions";
 import {
   generateArenaCandidates, selectArenaOpponent, type ArenaOpponent,
   arenaFreeChallengesRemaining, arenaNextChallengeCost, consumeArenaChallenge,
@@ -419,8 +419,16 @@ function renderSubbar() {
   }
 
   if (currentTab === "missions") {
+    // §2026-08-03 "일일/주간/업적 서브탭에도 개별 빨간점" — 메인 탭 알림 점(anyMissionRewardClaimable)은
+    // 그대로 두고, 어느 카테고리에 수령할 게 있는지 서브탭 칩에서 바로 보이게 한다
+    const MISSIONS_SUB_CLAIMABLE: Record<string, () => boolean> = {
+      일일: dailyRewardClaimable,
+      주간: weeklyRewardClaimable,
+      업적: achievementRewardClaimable,
+    };
     def.subs.forEach((label) => {
       const chip = h("button", "sub-chip" + (label === missionsSubLabel ? " on" : ""), label);
+      if (MISSIONS_SUB_CLAIMABLE[label]?.()) chip.appendChild(h("span", "badge"));
       chip.onclick = () => {
         if (label === missionsSubLabel) return;
         missionsSubLabel = label;
@@ -911,6 +919,8 @@ export function buildShell() {
     } else {
       dot?.remove();
     }
+    // §2026-08-03 서브탭(일일/주간/업적) 개별 빨간점도 같은 타이밍에 새로고침
+    if (currentTab === "missions") renderSubbar();
   };
   refreshMissionsBadge();
   on("missions-changed", refreshMissionsBadge);
