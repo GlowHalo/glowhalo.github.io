@@ -20,7 +20,7 @@ import {
   GRADE_WEIGHT, NORMAL_GRADE_WEIGHT, PICKUP_RATE_UP, gradeRosterCount,
   freeSummonAvailable, type FreeSummonKind,
 } from "../systems/gacha";
-import { calcFactionSynergy, partyPower, heroPower, FACTION_STRONG_AGAINST, FACTION_WEAK_AGAINST, REAL_FACTIONS } from "../systems/battle";
+import { calcFactionSynergy, partyPower, heroPower, unitFromHero, FACTION_STRONG_AGAINST, FACTION_WEAK_AGAINST, REAL_FACTIONS } from "../systems/battle";
 import {
   DAILY_MISSIONS, ALL_CLEAR_KEY, ALL_CLEAR_BONUS,
   missionProgress, isClaimed, claimable, claim, track,
@@ -250,7 +250,6 @@ function openIllustration(hero: Hero) {
 function openHeroDetail(hero: Hero, rerender: () => void) {
   const lv = getLevel(hero.id);
   const stars = getStars(hero.id);
-  const mult = (1 + 0.1 * (lv - 1)) * (1 + 0.3 * (stars - 1));
   const body = el("div");
 
   const head = el("div", "detail-head");
@@ -284,12 +283,16 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
 
   // §2026-07-30 "상세화면을 스크롤 없이 한 화면에" 요청으로 5줄 세로 목록 대신 2열 그리드로
   // 압축(HP/공격/방어/속도는 2×2, 치명타만 폭이 넓어 아래 한 줄 전체를 차지)
+  // §2026-08-03 정밀테스트에서 발견 — 이 패널은 레벨/성급만 반영하고 장착 장비 보너스를 빼먹어서,
+  // 실전 전투(unitFromHero가 계산하는 값)와 다른 숫자를 보여주고 있었다. 전투와 동일한 함수를
+  // 그대로 써서 항상 실제 전투 스탯과 일치하게 한다
+  const u = unitFromHero(hero, lv, stars);
   const stats = el("div", "stat-box");
-  stats.appendChild(statLine("체력", `${Math.round(hero.baseHp * mult).toLocaleString()}`));
-  stats.appendChild(statLine("공격", `${Math.round(hero.baseAtk * mult).toLocaleString()}`));
-  stats.appendChild(statLine("방어", `${Math.round(hero.baseDef * mult).toLocaleString()}`));
-  stats.appendChild(statLine("속도", `${hero.baseSpd}`));
-  const critRow = statLine("치명타", `${hero.critRate}% (피해 ${hero.critDmg}%)`);
+  stats.appendChild(statLine("체력", u.maxHp.toLocaleString()));
+  stats.appendChild(statLine("공격", u.atk.toLocaleString()));
+  stats.appendChild(statLine("방어", u.def.toLocaleString()));
+  stats.appendChild(statLine("속도", `${u.spd}`));
+  const critRow = statLine("치명타", `${u.critRate}% (피해 ${u.critDmg}%)`);
   critRow.classList.add("stat-row-wide");
   stats.appendChild(critRow);
   body.appendChild(stats);
@@ -332,7 +335,14 @@ function openHeroDetail(hero: Hero, rerender: () => void) {
   // 채울까"는 여기서 슬롯을 눌러 openEquipSlotModal로 처리 — 기존 로직을 그대로 재사용한다
   body.appendChild(el("h4", "", "✨ 장비"));
   const equipGrid = el("div", "equip-slot-grid");
-  const rerenderDetail = () => openHeroDetail(hero, rerender);
+  // §2026-08-03 정밀테스트에서 발견 — 장비 장착/해제/강화 후 상세 모달 자체는 다시 그려지는데
+  // 그 뒤에 깔린 배경 화면(보유·편성의 전투력 칩·파티 카드 등)은 그대로 남아 다른 탭을 갔다
+  // 와야 갱신됐다. modal-root는 배경 화면과 별개 오버레이라 rerender()를 같이 불러도 열려있는
+  // 모달엔 지장이 없다
+  const rerenderDetail = () => {
+    rerender();
+    openHeroDetail(hero, rerender);
+  };
   for (const slot of EQUIP_SLOTS) equipGrid.appendChild(buildEquipSlotBox(hero, slot, rerenderDetail));
   body.appendChild(equipGrid);
 
@@ -850,9 +860,14 @@ function renderAscend(root: HTMLElement) {
     const ascBtn = el("button", "btn primary ascend-btn", "승급하기") as HTMLButtonElement;
     ascBtn.disabled = materialIds.length !== ASCEND_MATERIAL_COUNT;
     ascBtn.onclick = () => {
+      // §2026-08-03 정밀테스트에서 발견 — 토스트가 실제 증가율(별이 오를수록 16~30%로 체감
+      // 감소하는 renderAscendPreview 공식)과 무관하게 항상 "+30%"로 못박혀 있었다. 승급으로
+      // stars가 바뀌기 전에 같은 공식으로 미리 계산해둔다(레벨 항은 분자/분모에서 상쇄되므로
+      // 별 항만 필요)
+      const pct = Math.round(((1 + 0.3 * stars) / (1 + 0.3 * (stars - 1)) - 1) * 100);
       if (tryAscend(target.id, materialIds)) {
         playSfx("levelup");
-        toast(`${target.nameKr} ${getStars(target.id)}성 각성! 능력치 +30%`);
+        toast(`${target.nameKr} ${getStars(target.id)}성 각성! 능력치 +${pct}%`);
         materialIds = [];
         rerender();
       } else {
