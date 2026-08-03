@@ -88,14 +88,18 @@ interface UnitView {
 /** 무한의 탑 몬스터 테마 순환(§타워 다양화, 2026-07-29) — 스테이지처럼 새 아트를 새로 만들지 않고
  * STAGE_TIERS 로스터를 재사용해 15층마다 한 바퀴 돈다. 탑 전용 아트(tower_soldier/guardian)는
  * 1번째 순환에, 나머지는 스테이지 지역 몬스터를 빌려온다 — 아직 아트가 없는 구간은 기존 스테이지와
- * 동일하게 makeUnitView가 조용히 플레이스홀더로 대체하므로 아트가 도착하면 자동으로 살아난다 */
-const TOWER_TIERS: { normalKey: string; bossKey: string; normalName: string; bossName: string }[] = [
-  { normalKey: "tower_soldier_001", bossKey: "tower_guardian_001", normalName: "탑 병사", bossName: "탑의 수호자" },
-  { normalKey: "wolf_001", bossKey: "boss_direwolf_001", normalName: "탑의 늑대", bossName: "다이어울프" },
-  { normalKey: "bat_001", bossKey: "boss_golem_001", normalName: "탑의 박쥐", bossName: "탑의 골렘" },
-  { normalKey: "imp_001", bossKey: "boss_salamander_001", normalName: "탑의 임프", bossName: "샐러맨더" },
-  { normalKey: "frost_wolf_001", bossKey: "boss_yeti_001", normalName: "서리 늑대", bossName: "예티" },
-  { normalKey: "wraith_001", bossKey: "boss_demonlord_001", normalName: "탑의 망령", bossName: "마령왕" },
+ * 동일하게 makeUnitView가 조용히 플레이스홀더로 대체하므로 아트가 도착하면 자동으로 살아난다
+ * §2026-08-03 "탑배경 느낌을 일정 구간마다 순환" — bgKey를 추가해 몬스터처럼 배경도 층 구간마다
+ * 바뀌게 배선. 스테이지 배경을 재사용하지 않고 전용 "탑 내부" 컨셉으로 신규 제작 예정(ASSETS.md
+ * 백로그) — 파일이 아직 없는 동안은 setBattleBackground가 안전하게 초원(STAGE_TIERS[0])으로
+ * 폴백하므로 지금 당장은 화면상 변화 없음, 도착하는 대로 자동 전환 */
+const TOWER_TIERS: { normalKey: string; bossKey: string; normalName: string; bossName: string; bgKey: string }[] = [
+  { normalKey: "tower_soldier_001", bossKey: "tower_guardian_001", normalName: "탑 병사", bossName: "탑의 수호자", bgKey: "battle-tower-entrance" },
+  { normalKey: "wolf_001", bossKey: "boss_direwolf_001", normalName: "탑의 늑대", bossName: "다이어울프", bgKey: "battle-tower-corridor" },
+  { normalKey: "bat_001", bossKey: "boss_golem_001", normalName: "탑의 박쥐", bossName: "탑의 골렘", bgKey: "battle-tower-crypt" },
+  { normalKey: "imp_001", bossKey: "boss_salamander_001", normalName: "탑의 임프", bossName: "샐러맨더", bgKey: "battle-tower-forge" },
+  { normalKey: "frost_wolf_001", bossKey: "boss_yeti_001", normalName: "서리 늑대", bossName: "예티", bgKey: "battle-tower-frost" },
+  { normalKey: "wraith_001", bossKey: "boss_demonlord_001", normalName: "탑의 망령", bossName: "마령왕", bgKey: "battle-tower-summit" },
 ];
 const TOWER_FLOORS_PER_TIER = 15;
 
@@ -104,18 +108,15 @@ function towerTier(floor: number) {
   return TOWER_TIERS[idx];
 }
 
-/** 스테이지/무한의탑/요일던전 몬스터 → 실제 몬스터 아트 매핑 (탑·요일던전 전용 아트 반영 완료).
- * 일반 스테이지는 stageTiers.ts 구간에 따라 몬스터가 바뀐다(§4 지역 전환, 아트 없는 구간은
- * makeUnitView의 텍스처 존재 체크가 알아서 플레이스홀더로 대체하므로 여기선 그냥 원하는 키를 반환) */
-function monsterSpriteKey(mode: BattleMode, boss: boolean, stage: number): string {
-  if (mode === "tower") {
-    const tier = towerTier(save.towerFloor);
-    return boss ? tier.bossKey : tier.normalKey;
-  }
-  if (mode === "raid") return "raid_boss_001";
-  const tier = stageTierFor(stage);
-  return boss ? tier.bossKey : tier.normalKey;
-}
+/** 요일던전 진영별 전용 몬스터/배경(§2026-08-03) — 지금까지 5개 던전이 전부 raid_boss_001 한 장을
+ * 재사용해서 "불의 마수"든 "바람의 마수"든 똑같이 생겼다. 진영별 전용 몬스터 아트가 도착하면
+ * 자동 활성화되도록 키를 미리 분기해두되, 아직 없는 동안은 기존 raid_boss_001로 안전하게 폴백한다.
+ * 배경은 진영별로 5장을 새로 그리는 대신, 단일 던전 배경 1장(RAID_BG_KEY)에 진영색 틴트를 입히는
+ * 방식으로 훨씬 적은 제작비로 5가지 느낌을 낸다(§경제 점검 논의) */
+const RAID_FACTION_SLUG: Record<string, string> = { 불: "fire", 물: "water", 바람: "wind", 빛: "light", 어둠: "dark" };
+const RAID_FACTION_TINT: Record<string, number> = { 불: 0xffb08a, 물: 0x9ecbff, 바람: 0xb9f2d6, 빛: 0xfff2b0, 어둠: 0xc9a8f0 };
+const RAID_BG_KEY = "battle-raid-dungeon";
+const ARENA_BG_KEY = "battle-arena";
 
 /**
  * flipX는 기본적으로 "원화는 오른쪽을 본다"는 가정으로 아군=그대로/적군=반전 처리한다.
@@ -206,6 +207,16 @@ export class BattleScene extends Phaser.Scene {
       this.load.image(`bg-${tier.bgKey}`, `${tier.bgKey}.png`);
       this.load.image(`monster-${tier.normalKey}`, `${tier.normalKey}.png`);
       this.load.image(`monster-${tier.bossKey}`, `${tier.bossKey}.png`);
+    }
+    // §2026-08-03 콘텐츠별 배경/몬스터 차별화 백로그 — 위와 같은 "파일 없으면 조용히 폴백" 규칙.
+    // 탑 전용 배경 6장(층 구간별), 아레나 전용 배경 1장, 요일던전 진영별 몬스터 5장+던전 배경 1장
+    for (const tier of TOWER_TIERS) {
+      this.load.image(`bg-${tier.bgKey}`, `${tier.bgKey}.png`);
+    }
+    this.load.image(`bg-${ARENA_BG_KEY}`, `${ARENA_BG_KEY}.png`);
+    this.load.image(`bg-${RAID_BG_KEY}`, `${RAID_BG_KEY}.png`);
+    for (const slug of Object.values(RAID_FACTION_SLUG)) {
+      this.load.image(`monster-raid_boss_${slug}`, `raid_boss_${slug}.png`);
     }
 
     this.load.image("fx-cast-aura", "cast-aura.png");
@@ -304,16 +315,43 @@ export class BattleScene extends Phaser.Scene {
     this.bg.setScale(bgScale);
   }
 
-  /** 스테이지 티어(§4 지역 전환)에 맞는 배경으로 교체 — 해당 티어 아트가 아직 없으면(로드 실패)
-   * 텍스처가 캐시에 없으므로 조용히 1티어(초원) 배경을 유지한다 */
+  /** §2026-08-03 콘텐츠별 배경 차별화 — 스테이지 전용이던 배경 전환을 모든 모드가 쓸 수 있게
+   * 일반화. 원하는 티어 아트가 아직 없으면(로드 실패로 텍스처가 캐시에 없음) 조용히 1티어(초원)로
+   * 폴백해 지금까지의 화면과 동일하게 유지한다. 반환값은 "원하는 그림을 실제로 썼는지" — 요일던전
+   * 틴트처럼 폴백 상태에선 걸면 안 되는 연출을 호출부가 판단할 수 있게 */
+  private setBattleBackground(bgKey: string): boolean {
+    const key = `bg-${bgKey}`;
+    const usingDesired = this.textures.exists(key);
+    const resolved = usingDesired ? key : `bg-${STAGE_TIERS[0].bgKey}`;
+    if (resolved !== this.bgTexKey) {
+      this.bgTexKey = resolved;
+      this.bg.setTexture(resolved);
+      this.fitBg();
+    }
+    return usingDesired;
+  }
+
   private updateBackgroundForStage(stage: number) {
+    this.setBattleBackground(stageTierFor(stage).bgKey);
+  }
+
+  /** 스테이지/무한의탑/요일던전 몬스터 → 실제 몬스터 아트 매핑. 일반 스테이지는 stageTiers.ts
+   * 구간에 따라 몬스터가 바뀐다(§4 지역 전환). §2026-08-03부터 요일던전도 진영별 전용 몬스터
+   * 키를 시도하되(this.textures로 존재 확인 필요해 메서드로 전환), 아트가 아직 없으면 기존
+   * raid_boss_001로 안전하게 폴백한다 */
+  private monsterSpriteKey(mode: BattleMode, boss: boolean, stage: number): string {
+    if (mode === "tower") {
+      const tier = towerTier(save.towerFloor);
+      return boss ? tier.bossKey : tier.normalKey;
+    }
+    if (mode === "raid") {
+      const bossFaction = activeRaidBoss();
+      const slug = bossFaction ? RAID_FACTION_SLUG[bossFaction] : undefined;
+      const key = slug ? `raid_boss_${slug}` : "raid_boss_001";
+      return this.textures.exists(`monster-${key}`) ? key : "raid_boss_001";
+    }
     const tier = stageTierFor(stage);
-    const key = `bg-${tier.bgKey}`;
-    const resolved = this.textures.exists(key) ? key : `bg-${STAGE_TIERS[0].bgKey}`;
-    if (resolved === this.bgTexKey) return;
-    this.bgTexKey = resolved;
-    this.bg.setTexture(resolved);
-    this.fitBg();
+    return boss ? tier.bossKey : tier.normalKey;
   }
 
   private setMode(m: BattleMode) {
@@ -347,6 +385,7 @@ export class BattleScene extends Phaser.Scene {
     this.wave = 1;
     this.heroes = this.buildTeam();
     this.rosterDirty = false;
+    this.bg.clearTint();
     this.updateBackgroundForStage(stage);
     this.spawnTeams();
   }
@@ -355,7 +394,9 @@ export class BattleScene extends Phaser.Scene {
     this.wave = 1;
     this.heroes = this.buildTeam();
     this.rosterDirty = false;
-    this.updateBackgroundForStage(1); // 탑/아레나/요일던전은 지역 전환 대상 아님 — 항상 기본(초원) 배경
+    // §2026-08-03 탑도 15층 구간마다 배경이 순환(몬스터와 같은 TOWER_TIERS 구간)
+    this.bg.clearTint();
+    this.setBattleBackground(towerTier(save.towerFloor).bgKey);
     this.spawnTeams();
   }
 
@@ -363,7 +404,9 @@ export class BattleScene extends Phaser.Scene {
     this.wave = 1;
     this.heroes = this.buildTeam();
     this.rosterDirty = false;
-    this.updateBackgroundForStage(1);
+    // §2026-08-03 아레나는 순환 없이 경기장 배경 한 종류로 고정
+    this.bg.clearTint();
+    this.setBattleBackground(ARENA_BG_KEY);
     this.spawnTeams();
   }
 
@@ -373,7 +416,12 @@ export class BattleScene extends Phaser.Scene {
     const boss = activeRaidBoss();
     const required = requiredFaction();
     this.wave = 1;
-    this.updateBackgroundForStage(1);
+    // §2026-08-03 요일던전 배경 — 전용 던전 배경 1장에 진영색 틴트를 입혀 5던전을 구분한다
+    // (신규 아트 5장 대신 1장+코드 틴트로 저비용 차별화). 배경 파일이 아직 없어 초원으로 폴백된
+    // 상태에선 틴트를 걸지 않는다(초원에 색만 입히면 오히려 어색하므로) — 던전 배경이 실제로
+    // 로드됐을 때만 진영색을 얹는다
+    const usingRaidBg = this.setBattleBackground(RAID_BG_KEY);
+    this.bg.setTint(usingRaidBg && boss ? RAID_FACTION_TINT[boss] ?? 0xffffff : 0xffffff);
     this.heroes = this.buildTeam().filter(
       (u) => required === null || u.faction === required
     );
@@ -478,7 +526,7 @@ export class BattleScene extends Phaser.Scene {
       });
     } else {
       const enemyX = GAME_W - 108;
-      const monsterKey = monsterSpriteKey(this.mode, boss, this.stage);
+      const monsterKey = this.monsterSpriteKey(this.mode, boss, this.stage);
       this.enemies.forEach((u, i) => {
         const y = boss ? 360 : 250 + i * 74;
         this.views.set(u, this.makeUnitView(u, enemyX + (i % 2) * 30, y, boss, monsterKey));
