@@ -437,6 +437,48 @@ export function setHeroesSubView(v: HeroesSubView) {
  * 대체(2장 이상 보유 시에만 "×N" 표시 — 승급 재료로 남는 중복분이 있다는 걸 카드만 보고도 알 수
  * 있게). 이 카드 하나를 영웅(보유/도감/재료픽커)과 장비 인벤토리(buildEquipCard)가 함께 쓰므로
  * 화면마다 카드 모양이 달라지는 일이 없다. locked=true(미보유)면 흑백 처리 + 자물쇠만 표시 */
+// §2026-08-02(4차) "영웅카드는 등장하는 모든 곳에서 동일해야 한다" 정밀점검 — buildHeroCard
+// 전용이던 진영·레벨·별 배지 로직을 공용 헬퍼로 뽑아서, 같은 "영웅 썸네일 고르기" 패턴인 승급
+// 슬롯/뽑기연출 카드도 똑같은 최신 배지 규격(face-corner-badge)을 쓰게 한다. 이전엔 이 두 곳만
+// 구세대 addFactionBadge(둥근 진영 아이콘, 레벨·별 표시 없음)에 머물러 있었다
+function decorateHeroFace(face: HTMLElement, hero: Hero) {
+  // §2026-08-01 "진영은 프레임 오른쪽 위, 레벨은 왼쪽 위로 서로 맞바꾸고 프레임 모서리에
+  // 여백 없이 딱 맞물리도록" — .face의 자식으로 직접 붙여 프레임 테두리 굴곡에 배지 바깥쪽
+  // 모서리가 그대로 이어지게 한다. 원화가 왼쪽을 보는 예외(isReversedFacing)는 setFace가
+  // .face 전체를 scaleX(-1)로 뒤집는데, 그 자식인 배지도 함께 좌우/글자가 뒤집혀버린다 —
+  // 코너를 반대로 배치하고 배지 자체에 반대 방향 scaleX(-1)을 걸어 상쇄시켜서, 뒤집힌
+  // 영웅이어도 항상 "화면 기준" 오른쪽 위=진영, 왼쪽 위=레벨로 보이고 글자도 정방향으로
+  // 읽히게 한다
+  const flipped = isReversedFacing(hero.id);
+  const factionIcon = FACTION_ICON[hero.faction];
+  if (factionIcon) {
+    const fImg = el("img", `face-corner-badge badge-faction ${flipped ? "fc-tl" : "fc-tr"}`) as HTMLImageElement;
+    fImg.src = factionIcon;
+    fImg.alt = "";
+    if (flipped) fImg.style.transform = "scaleX(-1)";
+    face.appendChild(fImg);
+  }
+  // §2026-08-02 "Lv.10 → LV 10" — 배지 스타일을 알약형→사각형으로 바꾸면서 표기도 함께 정리
+  const lvBadge = el("div", `face-corner-badge badge-level ${flipped ? "fc-tr" : "fc-tl"}`, `LV ${getLevel(hero.id)}`);
+  if (flipped) lvBadge.style.transform = "scaleX(-1)";
+  face.appendChild(lvBadge);
+  // §2026-07-31(3차) "별은 초상화 내부 하단 끝에" — hc-sub를 카드의 flex 흐름이 아니라 face
+  // 내부에 오버레이로 넣는다(CSS: .hero-card .face .hc-sub가 absolute+bottom 처리)
+  const s = starState(hero.id);
+  face.appendChild(el("div", "hc-sub" + (s.purple ? " star-purple" : ""), starRowText(hero.id)));
+}
+
+// §2026-07-31(3차) "중복 보유 수는 이름 뒤에 x4처럼, 흰색으로" — 별도 배지 대신 이름 텍스트
+// 노드 뒤에 인라인 span으로 붙인다(이전엔 hc-badge-br 코너 배지였는데, 배지 기본 글자색이
+// var(--ink)라 어두운 배지 배경과 대비가 거의 없어 안 읽혔다는 신고)
+function buildHeroNameLine(hero: Hero): HTMLElement {
+  const nameEl = el("div", "hc-name");
+  nameEl.appendChild(document.createTextNode(hero.nameKr));
+  const owned = save.owned[hero.id] ?? 0;
+  if (owned > 1) nameEl.appendChild(el("span", "hc-dupe-count", `x${owned}`));
+  return nameEl;
+}
+
 function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean; onClick?: () => void } = {}): HTMLElement {
   const card = el(
     "div",
@@ -460,40 +502,8 @@ function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean;
     return card;
   }
 
-  // §2026-08-01 "진영은 프레임 오른쪽 위, 레벨은 왼쪽 위로 서로 맞바꾸고 프레임 모서리에
-  // 여백 없이 딱 맞물리도록" — 기존 addFactionBadge(카드 기준 좌상단 4px 여백)는 카드 전체를
-  // 기준으로 좌표를 잡아 프레임(.face) 모서리와 살짝 어긋났다. 이번엔 .face의 자식으로 직접
-  // 붙여 프레임 테두리 굴곡(border-radius:8px)에 배지 바깥쪽 모서리가 그대로 이어지게 한다.
-  // 원화가 왼쪽을 보는 예외(isReversedFacing)는 setFace가 .face 전체를 scaleX(-1)로 뒤집는데,
-  // 그 자식인 배지도 함께 좌우/글자가 뒤집혀버린다 — 코너를 반대로 배치하고 배지 자체에 반대
-  // 방향 scaleX(-1)을 걸어 상쇄시켜서, 뒤집힌 영웅이어도 항상 "화면 기준" 오른쪽 위=진영,
-  // 왼쪽 위=레벨로 보이고 글자도 정방향으로 읽히게 한다
-  const flipped = isReversedFacing(hero.id);
-  const factionIcon = FACTION_ICON[hero.faction];
-  if (factionIcon) {
-    const fImg = el("img", `face-corner-badge badge-faction ${flipped ? "fc-tl" : "fc-tr"}`) as HTMLImageElement;
-    fImg.src = factionIcon;
-    fImg.alt = "";
-    if (flipped) fImg.style.transform = "scaleX(-1)";
-    face.appendChild(fImg);
-  }
-  // §2026-08-02 "Lv.10 → LV 10" — 배지 스타일을 알약형→사각형으로 바꾸면서 표기도 함께 정리
-  const lvBadge = el("div", `face-corner-badge badge-level ${flipped ? "fc-tr" : "fc-tl"}`, `LV ${getLevel(hero.id)}`);
-  if (flipped) lvBadge.style.transform = "scaleX(-1)";
-  face.appendChild(lvBadge);
-  // §2026-07-31(3차) "별은 초상화 내부 하단 끝에" — hc-sub를 카드의 flex 흐름이 아니라 face
-  // 내부에 오버레이로 넣는다(CSS: .hero-card .face .hc-sub가 absolute+bottom 처리)
-  const s = starState(hero.id);
-  face.appendChild(el("div", "hc-sub" + (s.purple ? " star-purple" : ""), starRowText(hero.id)));
-
-  // §2026-07-31(3차) "중복 보유 수는 이름 뒤에 x4처럼, 흰색으로" — 별도 배지 대신 이름 텍스트
-  // 노드 뒤에 인라인 span으로 붙인다(이전엔 hc-badge-br 코너 배지였는데, 배지 기본 글자색이
-  // var(--ink)라 어두운 배지 배경과 대비가 거의 없어 안 읽혔다는 신고)
-  const nameEl = el("div", "hc-name");
-  nameEl.appendChild(document.createTextNode(hero.nameKr));
-  const owned = save.owned[hero.id] ?? 0;
-  if (owned > 1) nameEl.appendChild(el("span", "hc-dupe-count", `x${owned}`));
-  card.appendChild(nameEl);
+  decorateHeroFace(face, hero);
+  card.appendChild(buildHeroNameLine(hero));
 
   if (opts.onClick) card.onclick = opts.onClick;
   return card;
@@ -1648,10 +1658,10 @@ function buildNewHeroPopup(hero: Hero, onConfirm: () => void): HTMLElement {
   popup.appendChild(el("div", "sfx-new-title", "🎉 신규 영웅 획득!"));
   const card = el("div", "sfx-new-card");
   setCardGrade(card, hero.grade);
-  addFactionBadge(card, hero);
   const face = el("div", "face");
   setFace(face, hero);
   card.appendChild(face);
+  decorateHeroFace(face, hero);
   popup.appendChild(card);
   popup.appendChild(el("div", "sfx-new-name", hero.nameKr));
   popup.appendChild(el("div", "sfx-new-sub", `${hero.grade} · ${hero.faction} · ${hero.heroClass}`));
@@ -1770,11 +1780,11 @@ function playSummonFx(
     inner.appendChild(back);
     const front = el("div", "front");
     setCardGrade(front, r.hero.grade);
-    addFactionBadge(front, r.hero);
     const face = el("div", "face");
     setFace(face, r.hero);
     front.appendChild(face);
-    front.appendChild(el("div", "", r.hero.nameKr));
+    decorateHeroFace(face, r.hero);
+    front.appendChild(buildHeroNameLine(r.hero));
     if (r.isNew) {
       const newtag = el("img", "newtag") as HTMLImageElement;
       newtag.src = "badge-new.png";
