@@ -15,7 +15,8 @@ import { anyFreeSummonAvailable } from "../systems/gacha";
 import { anyMissionRewardClaimable } from "../systems/missions";
 import {
   generateArenaCandidates, selectArenaOpponent, type ArenaOpponent,
-  arenaWeeklyRewardClaimable, claimArenaWeeklyReward, arenaRewardTierFor,
+  arenaFreeChallengesRemaining, arenaNextChallengeCost, consumeArenaChallenge,
+  ARENA_FREE_CHALLENGES_PER_DAY, ARENA_EXTRA_CHALLENGE_GEM_COST,
 } from "../systems/arenaMatch";
 
 type TabKey = "heroes" | "summon" | "battle" | "adventure" | "shop" | "missions";
@@ -266,8 +267,17 @@ function openRaidSelectModal() {
  * (BattleScene의 "arena-round-ended" 이벤트를 buildShell에서 구독해 이 모달을 다시 연다) */
 function openArenaSelectModal() {
   const body = h("div", "arena-select");
-  const myTier = arenaRewardTierFor(save.arenaRank);
+  const remain = arenaFreeChallengesRemaining();
   body.appendChild(h("div", "desc", `내 순위 🏆${save.arenaRank}위 — 도전할 상대를 골라주세요.`));
+  body.appendChild(
+    h(
+      "div",
+      "muted",
+      remain > 0
+        ? `오늘 무료 도전 ${remain}/${ARENA_FREE_CHALLENGES_PER_DAY}회 남음`
+        : `무료 도전 소진 — 추가 도전 시 💎${ARENA_EXTRA_CHALLENGE_GEM_COST} 소모`
+    )
+  );
 
   const list = h("div", "arena-opp-list");
   const renderList = (candidates: ArenaOpponent[]) => {
@@ -281,6 +291,12 @@ function openArenaSelectModal() {
       row.appendChild(grow);
       const challengeBtn = h("button", "btn primary", "도전") as HTMLButtonElement;
       challengeBtn.onclick = () => {
+        const cost = arenaNextChallengeCost();
+        if (cost > 0 && !confirm(`오늘 무료 도전을 모두 사용했습니다. 다이아 💎${cost}를 소모하여 도전할까요?`)) return;
+        if (!consumeArenaChallenge()) {
+          toast("다이아가 부족합니다");
+          return;
+        }
         selectArenaOpponent(opp.id);
         closeModal();
         if (battleMode !== "arena") {
@@ -302,25 +318,15 @@ function openArenaSelectModal() {
   refreshBtn.onclick = () => renderList(generateArenaCandidates());
   body.appendChild(refreshBtn);
 
-  // §2026-07-31 주간 순위 보상 — 현재 순위 구간 보상을 미리 보여주고, 주 1회 수령 가능
-  const rewardRow = h("div", "list-card arena-weekly-row");
-  const rewardGrow = h("div", "grow");
-  rewardGrow.appendChild(h("div", "t", `주간 보상 (${myTier.label})`));
-  rewardGrow.appendChild(
-    h("div", "s", `🪙${myTier.gold.toLocaleString()}${myTier.stones ? ` · 💠${myTier.stones}` : ""}`)
+  // §2026-08-03 경제 재설계 — 정산은 더 이상 수동 클릭이 아니라 매주 월요일/매월 1일 0시에
+  // 우편함으로 자동 발송(요일던전과 동일한 패턴). 여기선 그 사실만 안내한다
+  body.appendChild(
+    h(
+      "div",
+      "muted",
+      "매주 월요일 0시 주간 정산(다이아+골드), 매월 1일 0시 월간 정산(1~10위 장비, 1~100위 강화석+골드, 순위 초기화)을 우편함으로 보내드려요."
+    )
   );
-  rewardRow.appendChild(rewardGrow);
-  const claimBtn = h("button", "btn" + (arenaWeeklyRewardClaimable() ? " primary" : ""), arenaWeeklyRewardClaimable() ? "수령" : "수령 완료") as HTMLButtonElement;
-  claimBtn.disabled = !arenaWeeklyRewardClaimable();
-  claimBtn.onclick = () => {
-    const result = claimArenaWeeklyReward();
-    if (!result) return;
-    toast(`주간 보상 수령! 🪙${result.tier.gold.toLocaleString()}${result.tier.stones ? ` · 💠${result.tier.stones}` : ""}`);
-    closeModal();
-    openArenaSelectModal();
-  };
-  rewardRow.appendChild(claimBtn);
-  body.appendChild(rewardRow);
 
   const close = h("button", "btn", "닫기") as HTMLButtonElement;
   close.onclick = closeModal;
@@ -339,7 +345,7 @@ function openArenaSelectModal() {
 // §2026-08-03 경제 밸런스 점검 — 각 모드가 "여기선 뭘 버는지" 한눈에 보이게 보상 요약을 덧붙임
 const ADVENTURE_BANNERS: { mode: string; label: string; flavor: string }[] = [
   { mode: "raid", label: "요일던전", flavor: "요일마다 다른 진영의 마수가 나타난다 · 보석+강화석" },
-  { mode: "arena", label: "아레나", flavor: "다른 유저와 순위를 겨루는 대전 · 첫 승리 보석, 주간 상자" },
+  { mode: "arena", label: "아레나", flavor: "다른 유저와 순위를 겨루는 대전 · 승리마다 보석" },
   { mode: "tower", label: "무한의탑", flavor: "층을 오를수록 강해지는 끝없는 도전 · 보석+강화석" },
 ];
 
@@ -548,6 +554,17 @@ function buildMailRow(m: MailItem): HTMLElement {
       chip.appendChild(icon("icon-stone.png"));
       chip.appendChild(h("span", "", m.reward.stones.toLocaleString()));
       rewardRow.appendChild(chip);
+    }
+    if (m.reward.equips?.length) {
+      // §2026-08-03 아레나 월간 정산(1~10위)에 장비가 섞여 들어와서 신설 — 같은 등급끼리 묶어
+      // "UR×3" 식으로 표시. 기존 gd/grade-* 클래스(장비 상세화면과 동일)를 그대로 재사용해
+      // 등급별 색상이 자동으로 맞는다
+      const counts = new Map<string, number>();
+      for (const g of m.reward.equips) counts.set(g, (counts.get(g) ?? 0) + 1);
+      for (const [grade, n] of counts) {
+        const chip = h("span", `mail-reward-chip gd grade-${grade}`, `🛡️ ${grade}×${n}`);
+        rewardRow.appendChild(chip);
+      }
     }
     expand.appendChild(rewardRow);
     if (m.claimed) {

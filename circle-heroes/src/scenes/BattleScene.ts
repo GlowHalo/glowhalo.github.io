@@ -86,22 +86,30 @@ interface UnitView {
 }
 
 /** 무한의 탑 몬스터 테마 순환(§타워 다양화, 2026-07-29) — 스테이지처럼 새 아트를 새로 만들지 않고
- * STAGE_TIERS 로스터를 재사용해 15층마다 한 바퀴 돈다. 탑 전용 아트(tower_soldier/guardian)는
- * 1번째 순환에, 나머지는 스테이지 지역 몬스터를 빌려온다 — 아직 아트가 없는 구간은 기존 스테이지와
- * 동일하게 makeUnitView가 조용히 플레이스홀더로 대체하므로 아트가 도착하면 자동으로 살아난다
+ * STAGE_TIERS 로스터를 재사용해 한 바퀴 돈다. 탑 전용 아트(tower_soldier/guardian)는 1번째 순환에,
+ * 나머지는 스테이지 지역 몬스터를 빌려온다 — 아직 아트가 없는 구간은 기존 스테이지와 동일하게
+ * makeUnitView가 조용히 플레이스홀더로 대체하므로 아트가 도착하면 자동으로 살아난다
  * §2026-08-03 "탑배경 느낌을 일정 구간마다 순환" — bgKey를 추가해 몬스터처럼 배경도 층 구간마다
  * 바뀌게 배선. 스테이지 배경을 재사용하지 않고 전용 "탑 내부" 컨셉으로 신규 제작 예정(ASSETS.md
  * 백로그) — 파일이 아직 없는 동안은 setBattleBackground가 안전하게 초원(STAGE_TIERS[0])으로
- * 폴백하므로 지금 당장은 화면상 변화 없음, 도착하는 대로 자동 전환 */
+ * 폴백하므로 지금 당장은 화면상 변화 없음, 도착하는 대로 자동 전환
+ * §2026-08-03 "탑은 10층마다 배경순환, 10종 배경/몬스터로" — 15층/6티어에서 10층/10티어로 확장.
+ * 입구→정상까지 한 방향으로 올라가는 단일 루트(분기 없음)이며, 한 바퀴(100층) 돌면 다시 입구부터
+ * 반복. 기존 6종(스테이지 재사용 5종 + 탑 전용 1종)은 그대로 유지하고 신규 4종(온실/뇌운/서고/정상)을
+ * 추가 — 아직 아트가 없는 신규 4종은 위와 같은 "조용히 폴백" 규칙으로 안전, ART_CATALOG.md 백로그 등록 */
 const TOWER_TIERS: { normalKey: string; bossKey: string; normalName: string; bossName: string; bgKey: string }[] = [
   { normalKey: "tower_soldier_001", bossKey: "tower_guardian_001", normalName: "탑 병사", bossName: "탑의 수호자", bgKey: "battle-tower-entrance" },
   { normalKey: "wolf_001", bossKey: "boss_direwolf_001", normalName: "탑의 늑대", bossName: "다이어울프", bgKey: "battle-tower-corridor" },
   { normalKey: "bat_001", bossKey: "boss_golem_001", normalName: "탑의 박쥐", bossName: "탑의 골렘", bgKey: "battle-tower-crypt" },
   { normalKey: "imp_001", bossKey: "boss_salamander_001", normalName: "탑의 임프", bossName: "샐러맨더", bgKey: "battle-tower-forge" },
   { normalKey: "frost_wolf_001", bossKey: "boss_yeti_001", normalName: "서리 늑대", bossName: "예티", bgKey: "battle-tower-frost" },
-  { normalKey: "wraith_001", bossKey: "boss_demonlord_001", normalName: "탑의 망령", bossName: "마령왕", bgKey: "battle-tower-summit" },
+  { normalKey: "tower_thorn_001", bossKey: "tower_treant_001", normalName: "가시덩굴", bossName: "정원의 파수목", bgKey: "battle-tower-garden" },
+  { normalKey: "tower_wisp_001", bossKey: "tower_thunderbird_001", normalName: "뇌운의 도깨비불", bossName: "뇌조", bgKey: "battle-tower-storm" },
+  { normalKey: "tower_specter_001", bossKey: "tower_archmage_001", normalName: "서고의 망령", bossName: "탑의 대마도사", bgKey: "battle-tower-archive" },
+  { normalKey: "wraith_001", bossKey: "boss_demonlord_001", normalName: "심연의 망령", bossName: "마령왕", bgKey: "battle-tower-abyss" },
+  { normalKey: "tower_sentinel_001", bossKey: "tower_lord_001", normalName: "정상의 파수병", bossName: "탑의 군주", bgKey: "battle-tower-summit" },
 ];
-const TOWER_FLOORS_PER_TIER = 15;
+const TOWER_FLOORS_PER_TIER = 10;
 
 function towerTier(floor: number) {
   const idx = Math.floor((floor - 1) / TOWER_FLOORS_PER_TIER) % TOWER_TIERS.length;
@@ -197,6 +205,16 @@ export class BattleScene extends Phaser.Scene {
     }
     this.load.image("monster-tower_soldier_001", "tower_soldier_001.png");
     this.load.image("monster-tower_guardian_001", "tower_guardian_001.png");
+    // §2026-08-03 탑 10티어 확장분 — 신규 4개 구간(온실/뇌운/서고/정상) 전용 몬스터. 나머지 티어는
+    // STAGE_TIERS 로스터를 재사용해 그쪽 로더에서 이미 로드되므로 여기선 신규분만 추가
+    this.load.image("monster-tower_thorn_001", "tower_thorn_001.png");
+    this.load.image("monster-tower_treant_001", "tower_treant_001.png");
+    this.load.image("monster-tower_wisp_001", "tower_wisp_001.png");
+    this.load.image("monster-tower_thunderbird_001", "tower_thunderbird_001.png");
+    this.load.image("monster-tower_specter_001", "tower_specter_001.png");
+    this.load.image("monster-tower_archmage_001", "tower_archmage_001.png");
+    this.load.image("monster-tower_sentinel_001", "tower_sentinel_001.png");
+    this.load.image("monster-tower_lord_001", "tower_lord_001.png");
     this.load.image("monster-raid_boss_001", "raid_boss_001.png");
     // 스테이지 지역 전환(§4)용 티어별 배경·몬스터(1티어=초원이 기존 bg-battle 역할도 겸함) —
     // 1티어 외엔 아직 실제 파일이 없어

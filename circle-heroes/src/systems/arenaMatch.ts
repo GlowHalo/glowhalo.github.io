@@ -1,8 +1,7 @@
 import type { Hero } from "../data/heroTypes";
 import { PLAYABLE_HEROES } from "../data/heroes";
-import { save, persist, getLevel, addGold, addEnhanceStone } from "../state/save";
-import { emit } from "../state/bus";
-import { isoWeek } from "./missions";
+import { save, persist, getLevel, spendGems, type EquipGrade } from "../state/save";
+import { isoWeek, isoMonth } from "./missions";
 import { heroPower } from "./battle";
 
 /** 아레나 랭킹 사다리(§2026-07-31 설계) — 실제 매칭 서버가 없는 싱글플레이 게임이라 "다른 유저"는
@@ -83,6 +82,7 @@ function pickDistinctRanks(lo: number, hi: number, count: number): number[] {
  * 내가 이미 최상위권이라 위쪽 범위가 20칸이 안 나오면(rank가 20보다 작을 때) 부족한 만큼
  * 아래쪽에서 더 채워 항상 5명을 보여준다 */
 export function generateArenaCandidates(): ArenaOpponent[] {
+  ensureArenaTimers();
   const myRank = save.arenaRank;
   const aboveLo = Math.max(1, myRank - 20);
   const aboveHi = myRank - 1;
@@ -111,51 +111,137 @@ export function getSelectedArenaOpponent(): ArenaOpponent | null {
   return selectedOpponent;
 }
 
-/** 주간 순위 보상(§2026-07-31, §2026-08-02 재정비) — 구간별 골드+강화석. "일반적인 아레나"
- * 레퍼런스(Summoners War 시즌 보상, 마이티 아레나 "랭킹 보상" 탭)처럼 상위 구간일수록 보상이
- * 좋아지는 큰 그림은 그대로 두되, "장비를 얻는 곳은 한곳(소환탭 장비뽑기)뿐이고 그 외 콘텐츠는
- * 전부 강화석만 준다"는 정리에 맞춰 확정 장비 지급을 강화석으로 교체했다 */
-export interface ArenaRewardTier {
-  maxRank: number;
-  label: string;
-  gold: number;
-  stones?: number;
-}
-export const ARENA_WEEKLY_REWARDS: ArenaRewardTier[] = [
-  { maxRank: 1, label: "1위", gold: 5000, stones: 60 },
-  { maxRank: 10, label: "2~10위", gold: 3000, stones: 40 },
-  { maxRank: 50, label: "11~50위", gold: 2000, stones: 25 },
-  { maxRank: 200, label: "51~200위", gold: 1200, stones: 15 },
-  { maxRank: 500, label: "201~500위", gold: 700 },
-  { maxRank: 1000, label: "501~1000위", gold: 400 },
-  { maxRank: Infinity, label: "1001위 이하", gold: 200 },
-];
+// §2026-08-03 경제 재설계 — "도전 횟수는 일일 5회 무료, 초과분은 다이아 소모" +
+// "순위는 주단위로는 유지, 매월 1일 0시에만 초기화" + "주정산은 우편함으로 다이아+골드,
+// 월정산은 우편함으로 순위별 장비(1~10위)/강화석+골드(1~100위) 지급 후 순위 초기화"로
+// 전면 재설계. 기존의 "하루 첫 승리만 보석", "수동 클릭형 주간 보상"은 폐기.
 
-export function arenaRewardTierFor(rank: number): ArenaRewardTier {
-  return ARENA_WEEKLY_REWARDS.find((t) => rank <= t.maxRank) ?? ARENA_WEEKLY_REWARDS[ARENA_WEEKLY_REWARDS.length - 1];
+export const ARENA_FREE_CHALLENGES_PER_DAY = 5;
+export const ARENA_EXTRA_CHALLENGE_GEM_COST = 10;
+
+function today(): string {
+  return new Date().toISOString().slice(0, 10);
 }
 
-function ensureArenaWeek() {
-  const wk = isoWeek();
-  if (save.arenaWeeklyClaim.week !== wk) {
-    save.arenaWeeklyClaim = { week: wk, claimed: false };
+function ensureArenaChallengeDay() {
+  const t = today();
+  if (save.arenaChallengeDate !== t) {
+    save.arenaChallengeDate = t;
+    save.arenaChallengeCount = 0;
     persist();
   }
 }
 
-export function arenaWeeklyRewardClaimable(): boolean {
-  ensureArenaWeek();
-  return !save.arenaWeeklyClaim.claimed;
+export function arenaFreeChallengesRemaining(): number {
+  ensureArenaChallengeDay();
+  return Math.max(0, ARENA_FREE_CHALLENGES_PER_DAY - save.arenaChallengeCount);
 }
 
-export function claimArenaWeeklyReward(): { tier: ArenaRewardTier } | null {
-  ensureArenaWeek();
-  if (save.arenaWeeklyClaim.claimed) return null;
-  const tier = arenaRewardTierFor(save.arenaRank);
-  save.arenaWeeklyClaim.claimed = true;
-  persist();
-  addGold(tier.gold);
-  if (tier.stones) addEnhanceStone(tier.stones);
-  emit("arena-changed");
-  return { tier };
+export function arenaNextChallengeCost(): number {
+  return arenaFreeChallengesRemaining() > 0 ? 0 : ARENA_EXTRA_CHALLENGE_GEM_COST;
 }
+
+/** 도전 시작 직전(상대 선택 "도전" 버튼)에 호출 — 무료 횟수가 남아있으면 그대로 소모하고,
+ * 다 썼으면 다이아를 차감한 뒤 진행. 다이아가 부족하면 false를 반환해 도전을 막는다 */
+export function consumeArenaChallenge(): boolean {
+  ensureArenaChallengeDay();
+  const cost = arenaNextChallengeCost();
+  if (cost > 0 && !spendGems(cost)) return false;
+  save.arenaChallengeCount++;
+  persist();
+  return true;
+}
+
+/** 주간 정산(§매주 월요일 0시, 우편함) — 순위는 초기화하지 않고 그 시점 순위 구간 보상만 지급 */
+export interface ArenaWeeklyTier {
+  maxRank: number;
+  label: string;
+  gold: number;
+  gems: number;
+}
+export const ARENA_WEEKLY_REWARDS: ArenaWeeklyTier[] = [
+  { maxRank: 1, label: "1위", gold: 3000, gems: 300 },
+  { maxRank: 10, label: "2~10위", gold: 2000, gems: 150 },
+  { maxRank: 50, label: "11~50위", gold: 1200, gems: 80 },
+  { maxRank: 200, label: "51~200위", gold: 800, gems: 40 },
+  { maxRank: 500, label: "201~500위", gold: 500, gems: 20 },
+  { maxRank: 1000, label: "501~1000위", gold: 300, gems: 10 },
+  { maxRank: Infinity, label: "1001위 이하", gold: 150, gems: 0 },
+];
+export function arenaWeeklyTierFor(rank: number): ArenaWeeklyTier {
+  return ARENA_WEEKLY_REWARDS.find((t) => rank <= t.maxRank) ?? ARENA_WEEKLY_REWARDS[ARENA_WEEKLY_REWARDS.length - 1];
+}
+
+/** 월간 정산(§매월 1일 0시, 우편함) — 1~10위는 장비, 1~100위는 강화석+골드, 지급 후 순위 초기화.
+ * "장비는 소환탭 뽑기로만 얻는다" 원칙의 명시적 예외(사용자 지시, 2026-08-03) */
+interface ArenaMonthlyTier {
+  maxRank: number;
+  equips?: EquipGrade[];
+  stones: number;
+  gold: number;
+}
+const ARENA_MONTHLY_TIERS: ArenaMonthlyTier[] = [
+  { maxRank: 1, equips: ["UR", "UR", "UR"], stones: 300, gold: 20000 },
+  { maxRank: 2, equips: ["UR", "UR"], stones: 250, gold: 15000 },
+  { maxRank: 3, equips: ["UR"], stones: 200, gold: 12000 },
+  { maxRank: 10, equips: ["SSR", "SSR", "SSR"], stones: 150, gold: 8000 },
+  { maxRank: 100, stones: 60, gold: 3000 },
+];
+function arenaMonthlyTierFor(rank: number): ArenaMonthlyTier | null {
+  return ARENA_MONTHLY_TIERS.find((t) => rank <= t.maxRank) ?? null;
+}
+
+/** 이전 주 진행분이 있으면 정산 우편 발송(순위는 유지). raid.ts의 ensureRaidWeek()와 동일한
+ * idempotent 패턴 — 매 접속/모달 진입 시 호출해도 안전 */
+function ensureArenaWeek() {
+  const wk = isoWeek();
+  if (save.arenaWeek === wk) return;
+  if (save.arenaWeek) {
+    const tier = arenaWeeklyTierFor(save.arenaRank);
+    save.mail.push({
+      id: `arena-week-${save.arenaWeek}`,
+      kind: "item",
+      title: "아레나 주간 정산",
+      body: `지난주 최고 순위 🏆${save.arenaRank}위(${tier.label}) 보상이에요!`,
+      reward: { gold: tier.gold, gems: tier.gems || undefined },
+      read: false,
+      claimed: false,
+      createdAt: Date.now(),
+    });
+  }
+  save.arenaWeek = wk;
+  persist();
+}
+
+/** 이전 달 진행분이 있으면 정산 우편 발송 후 순위를 1000위(초기값)로 리셋 — 100위 밖이면
+ * 보상 우편 없이 순위만 초기화된다 */
+function ensureArenaMonth() {
+  const mo = isoMonth();
+  if (save.arenaMonth === mo) return;
+  if (save.arenaMonth) {
+    const tier = arenaMonthlyTierFor(save.arenaRank);
+    if (tier) {
+      save.mail.push({
+        id: `arena-month-${save.arenaMonth}`,
+        kind: "item",
+        title: "아레나 월간 정산",
+        body: `지난달 최고 순위 🏆${save.arenaRank}위 보상이에요! 순위는 다시 1000위부터 시작합니다.`,
+        reward: { gold: tier.gold, stones: tier.stones, equips: tier.equips },
+        read: false,
+        claimed: false,
+        createdAt: Date.now(),
+      });
+    }
+    save.arenaRank = 1000;
+  }
+  save.arenaMonth = mo;
+  persist();
+}
+
+/** 모듈 로드 시 + 아레나 상대 목록을 새로 뽑을 때마다(모달 진입 시점) 호출해 정산 타이밍을
+ * 놓치지 않게 한다. 주간을 먼저 처리해야 월간 리셋 전 순위로 주간 보상이 계산된다 */
+function ensureArenaTimers() {
+  ensureArenaWeek();
+  ensureArenaMonth();
+}
+ensureArenaTimers();

@@ -138,6 +138,12 @@ export function isoWeek(): string {
   return `${date.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
 }
 
+/** YYYY-MM(UTC 기준) — 아레나 월간 정산/순위초기화(§2026-08-03) 기준 */
+export function isoMonth(): string {
+  const d = new Date();
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
 /** 날짜가 바뀌었으면 일일 임무 리셋 */
 function ensureToday() {
   if (save.missions.date !== today()) {

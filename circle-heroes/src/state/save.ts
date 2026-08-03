@@ -72,7 +72,7 @@ export interface MailItem {
   kind: "item" | "notice" | "normal";
   title: string;
   body: string;
-  reward?: { gold?: number; gems?: number; stones?: number };
+  reward?: { gold?: number; gems?: number; stones?: number; equips?: EquipGrade[] };
   read: boolean;
   claimed: boolean;
   createdAt: number;
@@ -105,10 +105,15 @@ export interface SaveState {
   /** §2026-07-31 랭킹 사다리로 재설계 — 1위가 최상위, 1000위에서 시작해 나보다 순위가 좋은
    * 상대를 이기면 그 순위와 교체(내려가는 일은 없음, 지거나 순위가 나쁜 상대를 이겨도 유지) */
   arenaRank: number;
-  /** YYYY-MM-DD — 아레나 오늘 첫 승리 보너스 수령일 */
-  arenaWinDate: string;
-  /** ISO 주차가 바뀌면 리셋 — 아레나 주간 순위 보상 1회 수령 여부 */
-  arenaWeeklyClaim: { week: string; claimed: boolean };
+  /** §2026-08-03 경제 재설계 — 승리마다 보석 지급으로 바뀌며 "오늘 첫 승리"만 체크하던
+   * arenaWinDate는 더 이상 쓰지 않고, 대신 일일 무료 도전 횟수 카운터가 필요해졌다 */
+  arenaChallengeDate: string;
+  arenaChallengeCount: number;
+  /** 마지막으로 정산 우편을 보낸 ISO 주차 — 바뀌면 주간 정산(다이아+골드) 발송. 순위 자체는
+   * 주간으로는 초기화하지 않는다(월간에만 초기화) */
+  arenaWeek: string;
+  /** 마지막으로 정산 우편을 보낸 월(YYYY-MM) — 바뀌면 월간 정산(장비/강화석+골드) 발송 후 순위 초기화 */
+  arenaMonth: string;
   /** 일일 임무 상태 (날짜가 바뀌면 리셋) */
   missions: {
     date: string;
@@ -189,8 +194,10 @@ const DEFAULTS: SaveState = {
   weekendMailDate: "",
   towerFloor: 1,
   arenaRank: 1000,
-  arenaWinDate: "",
-  arenaWeeklyClaim: { week: "", claimed: false },
+  arenaChallengeDate: "",
+  arenaChallengeCount: 0,
+  arenaWeek: "",
+  arenaMonth: "",
   missions: { date: "", progress: {}, claimed: [] },
   weeklyMissions: { week: "", progress: {}, claimed: [] },
   achievementsClaimed: [],
@@ -634,24 +641,22 @@ export function setTowerFloor(floor: number) {
   emit("tower-changed");
 }
 
+/** §2026-08-03 경제 재설계 — "승리시마다 보석 제공"으로 바뀌어 더 이상 하루 한 번이 아니다 */
+export const ARENA_WIN_GEMS = 20;
+
 /** 아레나 승패 반영(§2026-07-31 랭킹 사다리) — 나보다 순위가 좋은(숫자가 작은) 상대를 이기면
  * 그 순위와 교체해서 올라가고, 지거나 순위가 나쁜(안전픽) 상대를 이겨도 순위는 그대로 — 절대
- * 내려가지 않는다. 오늘 첫 승리면 보석 보너스는 기존 그대로 유지 */
+ * 내려가지 않는다 */
 export function applyArenaResult(won: boolean, opponentRank: number): { rank: number; rankChanged: boolean; bonusGems: number } {
   let rankChanged = false;
   if (won && opponentRank < save.arenaRank) {
     save.arenaRank = opponentRank;
     rankChanged = true;
   }
-  let bonusGems = 0;
-  if (won) {
-    const today = new Date().toISOString().slice(0, 10);
-    if (save.arenaWinDate !== today) {
-      save.arenaWinDate = today;
-      bonusGems = 50;
-      save.gems += bonusGems;
-      emit("gems-changed");
-    }
+  const bonusGems = won ? ARENA_WIN_GEMS : 0;
+  if (bonusGems > 0) {
+    save.gems += bonusGems;
+    emit("gems-changed");
   }
   persist();
   emit("arena-changed");
@@ -704,6 +709,7 @@ export function claimMail(id: string): boolean {
   if (m.reward.gold) save.gold += m.reward.gold;
   if (m.reward.gems) save.gems += m.reward.gems;
   if (m.reward.stones) save.enhanceStone += m.reward.stones;
+  if (m.reward.equips) for (const grade of m.reward.equips) grantRandomEquip(grade);
   m.claimed = true;
   persist();
   if (m.reward.gold) emit("gold-changed");
