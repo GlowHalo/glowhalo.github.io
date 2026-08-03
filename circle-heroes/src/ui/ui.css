@@ -845,6 +845,11 @@ img.face-corner-badge.badge-faction {
 }
 /* 흑백이지만 실루엣은 알아볼 수 있게(수집 동기 부여) — 완전히 가리지 않는다 */
 .hero-card.locked .face { filter: grayscale(1) brightness(0.75); }
+/* §2026-08-03 요일던전 편성화면 — 진영 필터에 안 맞는 기존 편성 슬롯(다른 콘텐츠에서 짜둔
+   편성 재사용)을 "이 전투엔 못 나간다"는 신호로 흐리게. locked와 달리 자물쇠 아이콘 없이
+   클릭(제거)은 그대로 가능해야 하므로 opacity만 낮춘다 */
+.hero-card.faction-mismatch { opacity: 0.45; }
+.hero-card.faction-mismatch .face { filter: grayscale(1); }
 .hero-card .hc-lock {
   position: absolute;
   z-index: 2;

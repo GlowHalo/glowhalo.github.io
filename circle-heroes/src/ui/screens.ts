@@ -489,13 +489,14 @@ function buildHeroNameLine(hero: Hero): HTMLElement {
   return nameEl;
 }
 
-function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean; onClick?: () => void } = {}): HTMLElement {
+function buildHeroCard(hero: Hero, opts: { locked?: boolean; selected?: boolean; dim?: boolean; onClick?: () => void } = {}): HTMLElement {
   const card = el(
     "div",
     "hero-card" +
       (!opts.locked && inParty(hero.id) ? " in-party" : "") +
       (opts.selected ? " selected" : "") +
-      (opts.locked ? " locked" : "")
+      (opts.locked ? " locked" : "") +
+      (opts.dim ? " faction-mismatch" : "")
   );
   setCardGrade(card, hero.grade);
   const face = el("div", "face");
@@ -532,7 +533,11 @@ function buildEmptyHeroCard(onClick?: () => void): HTMLElement {
  * 요일던전은 save.party를 그대로 들고 바로 전투를 시작해서 편성을 바꿀 방법이 없었다. 보유·편성
  * 탭의 5슬롯+보유 영웅 그리드를 그대로 재사용한 팝업으로, 슬롯이나 카드를 누르면 바로 편성이
  * 토글된다(영웅 상세로 안 들어가고 즉시 반영 — 재료픽커와 같은 "누르면 추가/제거" 패턴) */
-export function openPartyFormationModal(subtitle: string, onConfirm: () => void) {
+/** factionFilter가 있으면(요일던전처럼 "이기는 진영"만 출전 가능한 콘텐츠) 보유 영웅 그리드를
+ * 그 진영만으로 좁혀서 애초에 출전 불가능한 영웅을 편성에 추가할 수 없게 막는다. 이미 편성돼
+ * 있던 슬롯에 다른 진영 영웅이 남아있으면(다른 콘텐츠에서 짜둔 편성 재사용) 지우지는 않되
+ * 흐리게 표시해 "얘는 이 전투에 못 나간다"는 걸 알려준다(실제 제외는 BattleScene가 처리) */
+export function openPartyFormationModal(subtitle: string, onConfirm: () => void, factionFilter?: string | null) {
   const body = el("div");
   body.appendChild(el("div", "desc", subtitle));
 
@@ -547,6 +552,7 @@ export function openPartyFormationModal(subtitle: string, onConfirm: () => void)
       const hero = id ? PLAYABLE_HEROES.find((h) => h.id === id) : undefined;
       const slot = hero
         ? buildHeroCard(hero, {
+            dim: !!factionFilter && hero.faction !== factionFilter,
             onClick: () => {
               toggleParty(hero.id);
               refresh();
@@ -557,7 +563,9 @@ export function openPartyFormationModal(subtitle: string, onConfirm: () => void)
     }
 
     grid.innerHTML = "";
-    for (const hero of PLAYABLE_HEROES.filter((h) => (save.owned[h.id] ?? 0) > 0)) {
+    for (const hero of PLAYABLE_HEROES.filter(
+      (h) => (save.owned[h.id] ?? 0) > 0 && (!factionFilter || h.faction === factionFilter)
+    )) {
       grid.appendChild(
         buildHeroCard(hero, {
           selected: inParty(hero.id),

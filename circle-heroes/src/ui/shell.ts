@@ -237,7 +237,10 @@ function openRaidSelectModal() {
       // §2026-07-30 "요일던전에 들어가면 편성화면을 띄우자, 파티편성하는 곳이 없네" — 예전엔
       // 여기서 바로 전투를 시작해 save.party를 손볼 방법이 없었다. 편성 팝업을 먼저 띄우고,
       // "전투 시작"을 눌러야 실제로 전환되게 순서를 바꿨다
-      const subtitle = `${d.bossFaction}의 마수는 ${tileRequired} 진영이 유리합니다. 파티를 편성하고 전투를 시작하세요.`;
+      // §2026-08-03 버그 수정 — 편성화면이 진영 필터 없이 전 영웅을 다 보여줘서 어차피 못
+      // 나갈 다른 진영 영웅도 넣을 수 있었다. counterFactionOf(d.bossFaction)을 그대로
+      // factionFilter로 넘겨 보유 영웅 그리드를 그 진영만으로 좁힌다
+      const subtitle = `${d.bossFaction}의 마수는 ${tileRequired} 진영만 출전할 수 있습니다. 파티를 편성하고 전투를 시작하세요.`;
       openPartyFormationModal(subtitle, () => {
         if (battleMode !== "raid") {
           battleMode = "raid";
@@ -249,7 +252,7 @@ function openRaidSelectModal() {
           emit("raid-restart");
         }
         showAdventureCanvas();
-      });
+      }, counterFactionOf(d.bossFaction));
     };
     grid.appendChild(hut);
   }
