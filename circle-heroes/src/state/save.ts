@@ -72,7 +72,7 @@ export interface MailItem {
   kind: "item" | "notice" | "normal";
   title: string;
   body: string;
-  reward?: { gold?: number; gems?: number };
+  reward?: { gold?: number; gems?: number; stones?: number };
   read: boolean;
   claimed: boolean;
   createdAt: number;
@@ -123,8 +123,12 @@ export interface SaveState {
   };
   /** 메인(업적) 임무 — 리셋 없이 영구 누적, 달성 시 1회만 수령 */
   achievementsClaimed: string[];
-  /** 요일던전: 진영별 보스 누적 처치 수 (잡을수록 강해짐) */
-  raidKills: Record<string, number>;
+  /** §2026-08-03 재설계 — 요일던전은 진영별 무한 누적 킬 대신 "던전당 20층" 진행형으로 변경.
+   * 진영별 현재 층(1~20, 0=미시작) */
+  raidFloor: Record<string, number>;
+  /** ISO 주차(예: "2026-W32") — 마지막으로 요일던전 진행을 정산한 주. 주가 바뀌면(월요일 0시
+   * 기준) 그 전 주 진행분을 우편으로 정산하고 raidFloor를 초기화한다 */
+  raidWeek: string;
   /** 클라우드 백업 복구 코드 (없으면 아직 백업 안 함) */
   backupCode: string;
   /** 우편함 */
@@ -190,7 +194,8 @@ const DEFAULTS: SaveState = {
   missions: { date: "", progress: {}, claimed: [] },
   weeklyMissions: { week: "", progress: {}, claimed: [] },
   achievementsClaimed: [],
-  raidKills: {},
+  raidFloor: {},
+  raidWeek: "",
   backupCode: "",
   mail: [],
   totalSummons: 0,
@@ -698,10 +703,12 @@ export function claimMail(id: string): boolean {
   if (!m || m.claimed || !m.reward) return false;
   if (m.reward.gold) save.gold += m.reward.gold;
   if (m.reward.gems) save.gems += m.reward.gems;
+  if (m.reward.stones) save.enhanceStone += m.reward.stones;
   m.claimed = true;
   persist();
   if (m.reward.gold) emit("gold-changed");
   if (m.reward.gems) emit("gems-changed");
+  if (m.reward.stones) emit("stones-changed");
   emit("mail-changed");
   return true;
 }

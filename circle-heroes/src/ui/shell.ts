@@ -340,7 +340,7 @@ function openArenaSelectModal() {
 const ADVENTURE_BANNERS: { mode: string; label: string; flavor: string }[] = [
   { mode: "raid", label: "요일던전", flavor: "요일마다 다른 진영의 마수가 나타난다 · 보석+강화석" },
   { mode: "arena", label: "아레나", flavor: "다른 유저와 순위를 겨루는 대전 · 첫 승리 보석, 주간 상자" },
-  { mode: "tower", label: "무한의탑", flavor: "층을 오를수록 강해지는 끝없는 도전 · 보석+골드" },
+  { mode: "tower", label: "무한의탑", flavor: "층을 오를수록 강해지는 끝없는 도전 · 보석+강화석" },
 ];
 
 function renderAdventure(root: HTMLElement) {
@@ -543,6 +543,12 @@ function buildMailRow(m: MailItem): HTMLElement {
       chip.appendChild(h("span", "", m.reward.gems.toLocaleString()));
       rewardRow.appendChild(chip);
     }
+    if (m.reward.stones) {
+      const chip = h("span", "mail-reward-chip");
+      chip.appendChild(icon("icon-stone.png"));
+      chip.appendChild(h("span", "", m.reward.stones.toLocaleString()));
+      rewardRow.appendChild(chip);
+    }
     expand.appendChild(rewardRow);
     if (m.claimed) {
       expand.appendChild(h("div", "mail-claimed", "✔ 수령 완료"));
@@ -587,21 +593,25 @@ function renderMailList(box: HTMLElement) {
     bulkBtn.onclick = () => {
       let gold = 0;
       let gems = 0;
+      let stones = 0;
       let count = 0;
       for (const m of list) {
         if (m.claimed || !m.reward) continue;
         const g = m.reward.gold ?? 0;
         const d = m.reward.gems ?? 0;
+        const s = m.reward.stones ?? 0;
         if (claimMail(m.id)) {
           count++;
           gold += g;
           gems += d;
+          stones += s;
         }
       }
       if (count > 0) {
         const parts: string[] = [];
         if (gold) parts.push(`🪙 ${gold.toLocaleString()}`);
         if (gems) parts.push(`💎 ${gems.toLocaleString()}`);
+        if (stones) parts.push(`🔩 ${stones.toLocaleString()}`);
         toast(`우편 ${count}건 일괄 수령! ${parts.join(" ")}`);
       }
       renderMailList(box);
