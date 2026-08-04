@@ -34,7 +34,7 @@ import { toast, modal, closeModal } from "./shell";
 import { emit } from "../state/bus";
 import { playSfx } from "../systems/audio";
 import { isReversedFacing } from "../data/facing";
-import { REWARDED_AD_DAILY_CAP, REWARDED_AD_REWARD, rewardedAdsRemainingToday, watchRewardedAd } from "../systems/ads";
+import { REWARDED_AD_REWARD, watchRewardedAd } from "../systems/ads";
 
 function el(tag: string, cls?: string, text?: string): HTMLElement {
   const n = document.createElement(tag);
@@ -2020,28 +2020,22 @@ export function renderShop(root: HTMLElement) {
   // §2026-08-03 "상점에 보석패키지 삭제" — 결제 연동 미정 상태로 "준비 중" 카드만 띄워두던
   // 자리표시자를 제거. 실결제 상품을 붙일 때 다시 넣는다
 
-  // §2026-08-03 "선택형 보상형 광고 준비, 상점에 상품 추가" — 실제 광고 SDK 전이라
-  // watchRewardedAd()는 즉시완료 스텁이지만, 버튼·일일횟수·보상지급 배선은 전부 진짜로 동작한다
+  // §2026-08-03 "선택형 보상형 광고, 캡 없이 계속 볼 수 있게" — 실제 광고 SDK 계정 연동 전이라
+  // watchRewardedAd()는 즉시완료 스텁이지만, 버튼·보상지급 배선은 전부 진짜로 동작한다.
+  // 일일 횟수 제한은 두지 않는다(사용자 지시) — 실제 광고가 붙으면 유저가 직접 계속 눌러야만
+  // 반복되므로 이 경제 안에서는 문제 되지 않는다는 판단
   const adCard = el("div", "list-card");
   adCard.appendChild(liIcon("shop-gems.png"));
   const adGrow = el("div", "grow");
   adGrow.appendChild(el("div", "t", "광고 보고 보상 받기"));
-  const adRemain = rewardedAdsRemainingToday();
-  adGrow.appendChild(
-    el("div", "s", `🪙${REWARDED_AD_REWARD.gold.toLocaleString()} · 💎${REWARDED_AD_REWARD.gems} · 오늘 ${adRemain}/${REWARDED_AD_DAILY_CAP}회 남음`)
-  );
+  adGrow.appendChild(el("div", "s", `🪙${REWARDED_AD_REWARD.gold.toLocaleString()} · 💎${REWARDED_AD_REWARD.gems} · 몇 번이든 반복 가능`));
   adCard.appendChild(adGrow);
   const adBtn = el("button", "btn primary", "광고 보기") as HTMLButtonElement;
-  adBtn.disabled = adRemain <= 0;
   adBtn.onclick = async () => {
     adBtn.disabled = true;
     const ok = await watchRewardedAd();
-    if (ok) {
-      toast(`🪙+${REWARDED_AD_REWARD.gold.toLocaleString()} 💎+${REWARDED_AD_REWARD.gems}`);
-    } else {
-      toast("오늘 시청 횟수를 다 썼습니다");
-    }
-    renderShop(root);
+    if (ok) toast(`🪙+${REWARDED_AD_REWARD.gold.toLocaleString()} 💎+${REWARDED_AD_REWARD.gems}`);
+    adBtn.disabled = false;
   };
   adCard.appendChild(adBtn);
   root.appendChild(adCard);
