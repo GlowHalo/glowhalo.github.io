@@ -114,6 +114,10 @@ export interface SaveState {
   arenaWeek: string;
   /** 마지막으로 정산 우편을 보낸 월(YYYY-MM) — 바뀌면 월간 정산(장비/강화석+골드) 발송 후 순위 초기화 */
   arenaMonth: string;
+  /** §2026-08-03 보상형 광고(상점) — 일일 시청 횟수 카운터. 날짜 바뀌면 0으로 리셋(요일던전
+   * 도전횟수와 동일 패턴). 아직 실제 광고 SDK 연동 전이라 시청=즉시완료로 처리 중(systems/ads.ts) */
+  rewardedAdDate: string;
+  rewardedAdCount: number;
   /** 일일 임무 상태 (날짜가 바뀌면 리셋) */
   missions: {
     date: string;
@@ -198,6 +202,8 @@ const DEFAULTS: SaveState = {
   arenaChallengeCount: 0,
   arenaWeek: "",
   arenaMonth: "",
+  rewardedAdDate: "",
+  rewardedAdCount: 0,
   missions: { date: "", progress: {}, claimed: [] },
   weeklyMissions: { week: "", progress: {}, claimed: [] },
   achievementsClaimed: [],
