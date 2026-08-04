@@ -2020,26 +2020,6 @@ export function renderShop(root: HTMLElement) {
   // §2026-08-03 "상점에 보석패키지 삭제" — 결제 연동 미정 상태로 "준비 중" 카드만 띄워두던
   // 자리표시자를 제거. 실결제 상품을 붙일 때 다시 넣는다
 
-  // §2026-08-03 "선택형 보상형 광고, 캡 없이 계속 볼 수 있게" — 실제 광고 SDK 계정 연동 전이라
-  // watchRewardedAd()는 즉시완료 스텁이지만, 버튼·보상지급 배선은 전부 진짜로 동작한다.
-  // 일일 횟수 제한은 두지 않는다(사용자 지시) — 실제 광고가 붙으면 유저가 직접 계속 눌러야만
-  // 반복되므로 이 경제 안에서는 문제 되지 않는다는 판단
-  const adCard = el("div", "list-card");
-  adCard.appendChild(liIcon("shop-gems.png"));
-  const adGrow = el("div", "grow");
-  adGrow.appendChild(el("div", "t", "광고 보고 보상 받기"));
-  adGrow.appendChild(el("div", "s", `🪙${REWARDED_AD_REWARD.gold.toLocaleString()} · 💎${REWARDED_AD_REWARD.gems} · 몇 번이든 반복 가능`));
-  adCard.appendChild(adGrow);
-  const adBtn = el("button", "btn primary", "광고 보기") as HTMLButtonElement;
-  adBtn.onclick = async () => {
-    adBtn.disabled = true;
-    const ok = await watchRewardedAd();
-    if (ok) toast(`🪙+${REWARDED_AD_REWARD.gold.toLocaleString()} 💎+${REWARDED_AD_REWARD.gems}`);
-    adBtn.disabled = false;
-  };
-  adCard.appendChild(adBtn);
-  root.appendChild(adCard);
-
   // §2026-08-02 "장비를 얻는 곳은 한곳" — 장비 상자는 여기(상점)에서 소환 탭의 "장비뽑기"
   // 배너로 이전했다(renderSummon 참고). 상점엔 장비 획득 경로를 남겨두지 않는다.
 
@@ -2063,6 +2043,26 @@ export function renderShop(root: HTMLElement) {
   };
   stoneCard.appendChild(stoneBtn);
   root.appendChild(stoneCard);
+
+  // §2026-08-04 "광고보기상품은 맨 하단으로" — 결제형 상품(소환권·강화석)보다 아래, 상점 리스트
+  // 맨 끝에 배치. 실제 광고 SDK 계정 연동 전이라 watchRewardedAd()는 즉시완료 스텁이지만,
+  // 버튼·보상지급 배선은 전부 진짜로 동작한다. 일일 횟수 제한은 두지 않는다(사용자 지시) — 실제
+  // 광고가 붙으면 유저가 직접 계속 눌러야만 반복되므로 이 경제 안에서는 문제 되지 않는다는 판단
+  const adCard = el("div", "list-card");
+  adCard.appendChild(liIcon("shop-gems.png"));
+  const adGrow = el("div", "grow");
+  adGrow.appendChild(el("div", "t", "광고 보고 보상 받기"));
+  adGrow.appendChild(el("div", "s", `🪙${REWARDED_AD_REWARD.gold.toLocaleString()} · 💎${REWARDED_AD_REWARD.gems} · 몇 번이든 반복 가능`));
+  adCard.appendChild(adGrow);
+  const adBtn = el("button", "btn primary", "광고 보기") as HTMLButtonElement;
+  adBtn.onclick = async () => {
+    adBtn.disabled = true;
+    const ok = await watchRewardedAd();
+    if (ok) toast(`🪙+${REWARDED_AD_REWARD.gold.toLocaleString()} 💎+${REWARDED_AD_REWARD.gems}`);
+    adBtn.disabled = false;
+  };
+  adCard.appendChild(adBtn);
+  root.appendChild(adCard);
 }
 
 /* ── 임무 탭 ── */
