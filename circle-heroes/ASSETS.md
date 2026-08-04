@@ -68,12 +68,16 @@ assets/backgrounds/<장소/테마>.png           ← 슬롯9·10
 
 | 구간(스테이지) | 지역명 | 배경 파일(1080×1920) | 일반 몬스터(512×512) | 보스(768×768) |
 |---|---|---|---|---|
-| 1~9 | 초원 | `battle-grassland.png` ✅ 완료 | `slime_green_001.png` ✅ 완료 | `boss_slime_001.png` ✅ 완료 |
-| 10~19 | 어둠숲 | `battle-forest.png` ✅ 완료 | `wolf_001.png` ✅ 완료 | `boss_direwolf_001.png` ✅ 완료 |
-| 20~29 | 수정동굴 | `battle-cave.png` ✅ 완료 | `bat_001.png` ✅ 완료 | `boss_golem_001.png` ✅ 완료 |
-| 30~39 | 화산지대 | `battle-volcano.png` ✅ 완료 | `imp_001.png` ✅ 완료 | `boss_salamander_001.png` ✅ 완료 |
-| 40~49 | 빙하설원 | `battle-frozen.png` ✅ 완료 | `frost_wolf_001.png` ✅ 완료 | `boss_yeti_001.png` ✅ 완료 |
-| 50+ | 심연 | `battle-abyss.png` ✅ 완료 | `wraith_001.png` ✅ 완료 | `boss_demonlord_001.png` ✅ 완료 |
+| 1~9 | 초원 | `battle-grassland.webp` ✅ 완료 | `slime_green_001.png` ✅ 완료 | `boss_slime_001.png` ✅ 완료 |
+| 10~19 | 어둠숲 | `battle-forest.webp` ✅ 완료 | `wolf_001.png` ✅ 완료 | `boss_direwolf_001.png` ✅ 완료 |
+| 20~29 | 수정동굴 | `battle-cave.webp` ✅ 완료 | `bat_001.png` ✅ 완료 | `boss_golem_001.png` ✅ 완료 |
+| 30~39 | 화산지대 | `battle-volcano.webp` ✅ 완료 | `imp_001.png` ✅ 완료 | `boss_salamander_001.png` ✅ 완료 |
+| 40~49 | 빙하설원 | `battle-frozen.webp` ✅ 완료 | `frost_wolf_001.png` ✅ 완료 | `boss_yeti_001.png` ✅ 완료 |
+| 50+ | 심연 | `battle-abyss.webp` ✅ 완료 | `wraith_001.png` ✅ 완료 | `boss_demonlord_001.png` ✅ 완료 |
+
+> §2026-08-04 "초기 로딩 속도 개선" — 위 배경 6장을 WebP로 재압축(품질 82, PNG 대비 평균 94%
+> 감량, 화질 체감차 없음). `battle-*.png`가 아니라 `battle-*.webp`가 정본이며 BattleScene.ts
+> 로더도 이미 반영 완료. 몬스터/보스는 투명배경이 필요해 PNG 그대로 유지.
 
 **2026-07-31**: "이미지 들어온 거 있으면 반영" 점검 중 6개 구간 전부(배경 6장+몬스터 12종) 이미
 `assets/`에 도착해 있던 걸 발견 — 코드가 텍스처 존재를 자동 감지하는 폴백 구조라 파일이 도착한

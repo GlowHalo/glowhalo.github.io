@@ -674,6 +674,12 @@ export function resetSave() {
  * 별개로 그대로 유지되는 "실력에 따른 추가 수입" */
 export const STAGE_GOLD_PER_MIN = 5;
 
+/** §2026-08-04 "전투 화면에서 골드 틱을 얼마나 얻고 있는지 명시" — BattleScene의 상시 적립
+ * 표시줄과 위 계산이 항상 같은 공식을 쓰도록 단일화 */
+export function stageGoldPerMin(stage: number): number {
+  return stage * STAGE_GOLD_PER_MIN;
+}
+
 /** 오프라인 적립: 분당 스테이지×5골드, 최대 240시간(§마이티 아레나 반영계획 I, 2026-07-29 —
  * 적립 방식(온라인 tick)은 그대로 유지하고 상한 시간만 화면에 표기하기로 함). 3분 미만이면 null */
 export const OFFLINE_CAP_HOURS = 240;
@@ -775,4 +781,9 @@ setInterval(persist, 30_000);
  * 적립된다 — 현재 스테이지를 못 뚫어 웨이브 골드를 못 벌더라도 육성 골드가 완전히 막히지 않게 하는
  * 안전망. 전투 승패·반복 횟수와 무관하게 "시간 × 스테이지"로만 계산되므로 일부러 지는 방식으로는
  * 더 벌 수 없다(어뷰징 불가) — 실제로 잘 싸워서 얻는 웨이브 클리어 골드가 여전히 훨씬 크다 */
-setInterval(() => addGold(Math.round((save.stage * STAGE_GOLD_PER_MIN) / 2)), 30_000);
+setInterval(() => {
+  const amount = Math.round((save.stage * STAGE_GOLD_PER_MIN) / 2);
+  addGold(amount);
+  // §2026-08-04 "골드 틱을 명시" — HUD 골드 칩 옆에 뜨는 "+N" 플로팅 텍스트가 이 이벤트로 트리거됨
+  emit("gold-tick", amount);
+}, 30_000);

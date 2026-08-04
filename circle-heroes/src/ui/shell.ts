@@ -76,6 +76,17 @@ export function toast(msg: string) {
   );
 }
 
+/** §2026-08-04 "골드 틱을 명시" — save.ts의 30초 상시 적립 setInterval이 emit("gold-tick", N)할
+ * 때마다 HUD 골드 칩 위로 "+N"이 떠올랐다 사라지는 플로팅 텍스트(아이들 게임 관용 표현). 애니메이션
+ * 자체는 ui.css @keyframes goldTickPop이 담당, 여기선 DOM 요소 생성·제거만 */
+function showGoldTickPop(amount: number) {
+  const chip = document.getElementById("hud-gold");
+  if (!chip) return;
+  const pop = h("span", "gold-tick-pop", `+${amount.toLocaleString()}`);
+  chip.appendChild(pop);
+  window.setTimeout(() => pop.remove(), 1300);
+}
+
 export function modal(title: string, body: string | HTMLElement, actions?: HTMLElement[]) {
   const root = document.getElementById("modal-root")!;
   root.innerHTML = "";
@@ -960,6 +971,7 @@ export function buildShell() {
   on("party-changed", refreshHud);
   on("roster-changed", refreshHud);
   on("equipment-changed", refreshHud);
+  on("gold-tick", (amount) => showGoldTickPop(amount as number));
   // §2026-07-31 아레나 전투가 끝나면(승/패 무관) 자동 재도전 대신 상대 목록으로 돌아간다
   on("arena-round-ended", () => {
     if (currentTab === "adventure") openArenaSelectModal();

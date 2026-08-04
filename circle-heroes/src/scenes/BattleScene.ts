@@ -4,7 +4,7 @@ import type { Hero } from "../data/heroTypes";
 import { REVERSED_FACING_KEYS } from "../data/facing";
 import {
   save, addGems, addEnhanceStone, setStage, getLevel, getStars,
-  setTowerFloor, applyArenaResult,
+  setTowerFloor, applyArenaResult, STAGE_GOLD_PER_MIN, stageGoldPerMin,
 } from "../state/save";
 import { track } from "../systems/missions";
 import { activeRaidBoss, requiredFaction, raidFloor, applyRaidClear, raidBossName, RAID_MAX_FLOOR } from "../systems/raid";
@@ -178,6 +178,7 @@ export class BattleScene extends Phaser.Scene {
   private stageText!: Phaser.GameObjects.Text;
   private speedBtn!: Phaser.GameObjects.Text;
   private synergyText!: Phaser.GameObjects.Text;
+  private goldRateText!: Phaser.GameObjects.Text;
 
   /** 필살기 컷인(§11) 대상 판별용 — UR 등급만 풀스크린 연출 특권을 가진다 */
   private urHeroIds = new Set(PLAYABLE_HEROES.filter((h) => h.grade === "UR").map((h) => h.id));
@@ -222,7 +223,10 @@ export class BattleScene extends Phaser.Scene {
     // 사용하는 쪽(makeUnitView/updateBackgroundForStage)이 존재 여부를 확인해 초원/슬라임으로
     // 폴백하므로 안전하다. 아트가 도착하면 파일만 추가하면 코드 변경 없이 자동 적용됨
     for (const tier of STAGE_TIERS) {
-      this.load.image(`bg-${tier.bgKey}`, `${tier.bgKey}.png`);
+      // §2026-08-04 "초기 로딩 속도 개선" — 6장 배경(장당 2~2.8MB PNG, 전체 스테이지 진행분을
+      // 매번 몽땅 미리 로드하던 게 초기 로딩의 가장 큰 무게였음)을 WebP로 재압축(품질 82,
+      // 화질 체감차 없이 평균 94% 감량). 몬스터는 투명배경 유지가 더 중요해 PNG 그대로 둠
+      this.load.image(`bg-${tier.bgKey}`, `${tier.bgKey}.webp`);
       this.load.image(`monster-${tier.normalKey}`, `${tier.normalKey}.png`);
       this.load.image(`monster-${tier.bossKey}`, `${tier.bossKey}.png`);
     }
@@ -280,6 +284,19 @@ export class BattleScene extends Phaser.Scene {
         fontStyle: "bold",
         stroke: "#0a0d16",
         strokeThickness: 4,
+      })
+      .setOrigin(0.5);
+
+    // §2026-08-04 "전투 화면에서 골드 틱을 얼마나 얻고 있는지 명시, 다음 스테이지 진행 시
+    // 얼마나 느는지도" — 스테이지(캠페인) 모드에서만 refreshHud()가 채워 넣는다(탑/아레나/
+    // 요일던전엔 이 상시 적립 자체가 없음, save.ts stageGoldPerMin 참고)
+    this.goldRateText = this.add
+      .text(GAME_W / 2, 120, "", {
+        fontFamily: "sans-serif",
+        fontSize: "11.5px",
+        color: "#b9e8a8",
+        stroke: "#0a0d16",
+        strokeThickness: 3,
       })
       .setOrigin(0.5);
 
@@ -1351,14 +1368,21 @@ export class BattleScene extends Phaser.Scene {
     if (this.mode === "stage") {
       const tierName = stageTierFor(this.stage).name;
       this.stageText.setText(`${tierName} STAGE ${this.stage}  ·  WAVE ${this.wave}/${WAVES_PER_STAGE}`);
+      // §2026-08-04 골드 틱 명시 — 분당 적립 속도 + 다음 스테이지 도달 시 증가분(항상 +5,
+      // stageGoldPerMin이 스테이지에 선형 비례하므로 스테이지가 몇이든 증가폭은 동일)
+      const rate = stageGoldPerMin(this.stage);
+      this.goldRateText.setText(`골드 자동 획득 분당 ${rate.toLocaleString()} · 다음 스테이지 +${STAGE_GOLD_PER_MIN}`);
     } else if (this.mode === "tower") {
       this.stageText.setText(`무한의 탑 · ${save.towerFloor}층`);
+      this.goldRateText.setText("");
     } else if (this.mode === "raid") {
       const req = requiredFaction();
       const nextFloor = Math.min(raidFloor() + 1, RAID_MAX_FLOOR);
       this.stageText.setText(`요일던전 · ${raidBossName()} ${nextFloor}/${RAID_MAX_FLOOR}층${req ? ` (${req}만 출전)` : " (전 진영)"}`);
+      this.goldRateText.setText("");
     } else {
       this.stageText.setText(`아레나 · ${save.arenaRank}위`);
+      this.goldRateText.setText("");
     }
   }
 
