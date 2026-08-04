@@ -34,6 +34,7 @@ import { toast, modal, closeModal } from "./shell";
 import { emit } from "../state/bus";
 import { playSfx } from "../systems/audio";
 import { isReversedFacing } from "../data/facing";
+import { REWARDED_AD_DAILY_CAP, REWARDED_AD_REWARD, rewardedAdsRemainingToday, watchRewardedAd } from "../systems/ads";
 
 function el(tag: string, cls?: string, text?: string): HTMLElement {
   const n = document.createElement(tag);
@@ -2018,6 +2019,32 @@ export function renderShop(root: HTMLElement) {
 
   // §2026-08-03 "상점에 보석패키지 삭제" — 결제 연동 미정 상태로 "준비 중" 카드만 띄워두던
   // 자리표시자를 제거. 실결제 상품을 붙일 때 다시 넣는다
+
+  // §2026-08-03 "선택형 보상형 광고 준비, 상점에 상품 추가" — 실제 광고 SDK 전이라
+  // watchRewardedAd()는 즉시완료 스텁이지만, 버튼·일일횟수·보상지급 배선은 전부 진짜로 동작한다
+  const adCard = el("div", "list-card");
+  adCard.appendChild(liIcon("shop-gems.png"));
+  const adGrow = el("div", "grow");
+  adGrow.appendChild(el("div", "t", "광고 보고 보상 받기"));
+  const adRemain = rewardedAdsRemainingToday();
+  adGrow.appendChild(
+    el("div", "s", `🪙${REWARDED_AD_REWARD.gold.toLocaleString()} · 💎${REWARDED_AD_REWARD.gems} · 오늘 ${adRemain}/${REWARDED_AD_DAILY_CAP}회 남음`)
+  );
+  adCard.appendChild(adGrow);
+  const adBtn = el("button", "btn primary", "광고 보기") as HTMLButtonElement;
+  adBtn.disabled = adRemain <= 0;
+  adBtn.onclick = async () => {
+    adBtn.disabled = true;
+    const ok = await watchRewardedAd();
+    if (ok) {
+      toast(`🪙+${REWARDED_AD_REWARD.gold.toLocaleString()} 💎+${REWARDED_AD_REWARD.gems}`);
+    } else {
+      toast("오늘 시청 횟수를 다 썼습니다");
+    }
+    renderShop(root);
+  };
+  adCard.appendChild(adBtn);
+  root.appendChild(adCard);
 
   // §2026-08-02 "장비를 얻는 곳은 한곳" — 장비 상자는 여기(상점)에서 소환 탭의 "장비뽑기"
   // 배너로 이전했다(renderSummon 참고). 상점엔 장비 획득 경로를 남겨두지 않는다.

@@ -12,6 +12,10 @@
   --amber: #f5ac3d;
   --amber-dark: #d88a1f;
   --red: #e8384a;
+  /* §2026-08-03 상시 배너광고 영역의 총 높이(세이프에어리어 포함) — 표준 모바일 배너 유닛
+     (320×50) + 노치/펀치홀 여백. #ad-banner의 height와 #topbar-bg의 top 오프셋이 반드시
+     같은 값이어야 하므로 여기 한 곳에서만 관리한다 */
+  --ad-banner-h: calc(50px + env(safe-area-inset-top));
 }
 
 #ui {
@@ -28,10 +32,30 @@
 #ui * { box-sizing: border-box; }
 #ui button { font-family: inherit; }
 
-/* 전투 탭이 아닐 때 상단(HUD+코너 아이콘 영역) 뒤로 캔버스 배경이 비치지 않도록 막는 백드롭 */
+/* §2026-08-03 상시 배너광고 자리 — #ui의 첫 flex 자식이라 이 높이만큼 아래(topbar-bg 제외 전부)가
+ * 자동으로 밀려 내려간다. 실제 AdSense 태그로 교체하기 전까지는 라벨만 있는 플레이스홀더 */
+#ad-banner {
+  flex: none;
+  height: var(--ad-banner-h);
+  padding-top: env(safe-area-inset-top);
+  box-sizing: border-box;
+  background: #d9c49a;
+  border-bottom: 1px dashed var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--ink3);
+  pointer-events: auto;
+}
+
+/* 전투 탭이 아닐 때 상단(HUD+코너 아이콘 영역) 뒤로 캔버스 배경이 비치지 않도록 막는 백드롭 —
+ * §2026-08-03 광고 배너가 그 위에 새로 생겨서, 원래 inset:0이던 시작점을 배너 높이만큼 내림 */
 #topbar-bg {
   position: absolute;
-  inset: 0 0 auto 0;
+  top: var(--ad-banner-h);
+  left: 0;
+  right: 0;
   height: calc(max(10px, env(safe-area-inset-top)) + 52px);
   background: var(--bg);
   z-index: 4;
