@@ -13,6 +13,7 @@ import { isMuted, setMuted } from "../systems/audio";
 import { RAID_DUNGEONS, WEEKDAY_LABELS, isRaidWeekend, selectRaidDungeon, requiredFaction } from "../systems/raid";
 import { anyFreeSummonAvailable } from "../systems/gacha";
 import { anyMissionRewardClaimable, dailyRewardClaimable, weeklyRewardClaimable, achievementRewardClaimable } from "../systems/missions";
+import { mountBannerAd } from "../systems/ads";
 import {
   generateArenaCandidates, selectArenaOpponent, type ArenaOpponent,
   arenaFreeChallengesRemaining, arenaNextChallengeCost, consumeArenaChallenge,
@@ -734,15 +735,16 @@ export function buildShell() {
   const ui = h("div");
   ui.id = "ui";
 
-  // §2026-08-03 "웹/APK에 상시 배너광고 영역 준비" — 실제 AdSense/AdMob 계정·광고단위 ID가
-  // 나오기 전까지는 자리만 잡아두는 플레이스홀더. #ui의 맨 첫 자식(다른 모든 요소보다 위)이라
+  // §2026-08-03 "웹/APK에 상시 배너광고 영역 준비" — #ui의 맨 첫 자식(다른 모든 요소보다 위)이라
   // flex column 순서상 그 아래 전부(topbar/screens/tabbar)가 자동으로 이만큼 밀려 내려간다.
-  // 실제 광고 붙일 땐 이 div 내부를 AdSense `<ins class="adsbygoogle">` 태그로 교체하면 됨
-  // (자리 높이는 ui.css의 --ad-banner-h 하나로 관리 — topbar-bg 오프셋도 같은 변수를 씀)
+  // mountBannerAd()가 AdSense 계정·광고단위 ID(systems/ads.ts)가 둘 다 채워졌을 때만 실제
+  // <ins class="adsbygoogle"> 광고로 내부를 바꿔치기하고, 그 전엔 이 플레이스홀더 라벨이 그대로
+  // 남는다(자리 높이는 ui.css의 --ad-banner-h 하나로 관리 — topbar-bg 오프셋도 같은 변수를 씀)
   const adBanner = h("div");
   adBanner.id = "ad-banner";
   adBanner.textContent = "광고 배너 영역";
   ui.appendChild(adBanner);
+  mountBannerAd(adBanner);
 
   // 전투 캔버스가 최상단(HUD·코너 아이콘 뒤)까지 그려지므로, 전투 탭이 아닐 때는
   // 이 백드롭이 그 부분을 가려서 다른 화면에 배경 이미지가 비치지 않게 한다
