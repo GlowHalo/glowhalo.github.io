@@ -1,3 +1,288 @@
+## 콘텐츠별 배경/몬스터 차별화 프롬프트 — 탑·아레나·요일던전 (2026-08-04, ART_CATALOG.md 백로그 25장)
+
+`ART_CATALOG.md` "콘텐츠별 배경/몬스터 차별화" 섹션(2026-08-03 코드 세션이 배선)의 프롬프트화.
+배경은 기존 "스테이지 지역 전환 아트" 섹션과 같은 톤(Vertical portrait 9:16, painterly anime
+style, top quarter는 UI에 가려지므로 단순하게, 살짝 desaturate), 몬스터도 같은 톤(simple
+mobile game monster design, anime game style, 투명 배경, facing right)으로 통일. 참조 이미지
+불필요(전부 신규 컨셉이라 `--ref` 없이 `--raw-prompt`로 텍스트→이미지). 배경은 Phoenix 최대
+높이(1536) 제약으로 864×1536 생성 후 1080×1920으로 업스케일(PIL LANCZOS) — 기존 스플래시/
+스테이지 배경과 동일 절차.
+
+파일명은 `BattleScene.ts`(`TOWER_TIERS`/`RAID_FACTION_SLUG`/`RAID_BG_KEY`/`ARENA_BG_KEY`)가
+이미 참조하고 있는 실제 키 그대로 — 파일만 도착하면 코드 수정 없이 자동 반영됨.
+
+### 무한의 탑 배경 10종 (1080×1920)
+
+`battle-tower-entrance.png`
+```
+Vertical portrait mobile game battle background, 9:16, painterly anime style.
+A grand stone tower entrance hall, weathered stone steps leading up, flickering
+torches mounted on the walls, a massive arched doorway in the distance, a flat
+open stone floor across the middle where characters stand, warm torchlight
+ambient lighting with cool shadows. Top quarter is a vaulted stone ceiling (UI
+covers it). Slightly desaturated so characters pop.
+No characters, no text, no watermark, no UI elements.
+```
+
+`battle-tower-corridor.png`
+```
+Vertical portrait mobile game battle background, 9:16, painterly anime style.
+A dim stone corridor deep inside a tower, narrow ancient hallway lined with
+crumbling stone walls, creeping dark vines and moss, a flat open corridor
+floor across the middle where characters stand, faint cool blue-gray ambient
+lighting with deep shadows. Top quarter is a low stone arch ceiling (UI
+covers it). Slightly desaturated so characters pop.
+No characters, no text, no watermark, no UI elements.
+```
+
+`battle-tower-crypt.png`
+```
+Vertical portrait mobile game battle background, 9:16, painterly anime style.
+An underground crypt chamber, rows of ancient stone sarcophagi and cracked
+broken statues, cobweb-draped alcoves, a flat open crypt floor across the
+middle where characters stand, dim greenish-gray torchlight ambient lighting.
+Top quarter is a dark vaulted ceiling (UI covers it). Slightly desaturated so
+characters pop.
+No characters, no text, no watermark, no UI elements.
+```
+
+`battle-tower-forge.png`
+```
+Vertical portrait mobile game battle background, 9:16, painterly anime style.
+A tower forge level, glowing molten magma channels cut into a dark stone
+floor, blacksmith anvils and hanging chains, a flat open forge floor across
+the middle where characters stand, intense warm orange-red ambient lighting
+from the magma. Top quarter is a smoky industrial ceiling with hanging
+chains (UI covers it). Slightly desaturated so characters pop.
+No characters, no text, no watermark, no UI elements.
+```
+
+`battle-tower-frost.png`
+```
+Vertical portrait mobile game battle background, 9:16, painterly anime style.
+A frost-covered tower spire interior, sharp hanging ice crystal formations,
+frosted stone walls, a flat open icy floor across the middle where
+characters stand, pale cold blue-white ambient lighting, light snow
+drifting in through open archways. Top quarter is an icy vaulted ceiling
+(UI covers it). Slightly desaturated so characters pop.
+No characters, no text, no watermark, no UI elements.
+```
+
+`battle-tower-garden.png`
+```
+Vertical portrait mobile game battle background, 9:16, painterly anime style.
+A floating greenhouse garden atop the tower, tall glass ceiling panels
+letting in soft light, massive overgrown vines and exotic flowering plants
+coiling around stone pillars, a flat open garden floor across the middle
+where characters stand, soft warm green-gold ambient lighting filtering
+through glass. Top quarter is a glass greenhouse ceiling (UI covers it).
+Slightly desaturated so characters pop.
+No characters, no text, no watermark, no UI elements.
+```
+
+`battle-tower-storm.png`
+```
+Vertical portrait mobile game battle background, 9:16, painterly anime style.
+A stormy thundercloud corridor high in the tower, floating broken stone
+platforms drifting among dark storm clouds, crackling bolts of lightning in
+the background, a flat open stone platform across the middle where
+characters stand, dramatic blue-white lightning ambient lighting. Top
+quarter is a churning dark storm cloud sky (UI covers it). Slightly
+desaturated so characters pop.
+No characters, no text, no watermark, no UI elements.
+```
+
+`battle-tower-archive.png`
+```
+Vertical portrait mobile game battle background, 9:16, painterly anime style.
+An ancient library archive chamber, towering shelves stacked with old
+spellbooks and scrolls, magical candles floating and flickering in midair,
+a flat open library floor across the middle where characters stand, warm
+dim amber candlelight ambient lighting. Top quarter is a shelf-lined
+vaulted ceiling with drifting candles (UI covers it). Slightly desaturated
+so characters pop.
+No characters, no text, no watermark, no UI elements.
+```
+
+`battle-tower-abyss.png`
+```
+Vertical portrait mobile game battle background, 9:16, painterly anime style.
+A tower abyss corridor, a crumbling stone walkway suspended over a
+bottomless dark void, glowing violet-red energy cracks splitting the stone,
+a flat open dark walkway across the middle where characters stand, ominous
+violet ambient lighting. Top quarter is a starless void sky glimpsed
+through broken tower walls (UI covers it). Slightly desaturated so
+characters pop.
+No characters, no text, no watermark, no UI elements.
+```
+
+`battle-tower-summit.png`
+```
+Vertical portrait mobile game battle background, 9:16, painterly anime style.
+A grand throne room at the tower summit, an imposing dark stone throne on a
+raised dais, tall shattered windows revealing a stormy dark sky, glowing
+arcane magic circles etched into the floor, a flat open throne room floor
+across the middle where characters stand, dramatic violet-blue ambient
+lighting from the magic circles. Top quarter is a high vaulted ceiling with
+broken windows (UI covers it). Slightly desaturated so characters pop.
+No characters, no text, no watermark, no UI elements.
+```
+
+### 무한의 탑 신규 몬스터 4쌍 (온실/뇌운/서고/정상)
+
+`tower_thorn_001.png` (가시덩굴, 일반, 512×512)
+```
+A thorny vine creature monster, tangled woody vines and thorns forming a
+serpentine body, small clusters of carnivorous flower buds, glowing pale
+green eyes peeking from the foliage, simple mobile game monster design (not
+overly detailed), anime game style.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+`tower_treant_001.png` (정원의 파수목, 보스, 768×768)
+```
+A giant garden guardian boss monster, a hulking humanoid figure made of
+ancient gnarled wood and thick bark armor, moss and blooming flowers
+growing across its shoulders, glowing golden-green eyes, thick wooden
+fists wrapped in thorny vines.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+`tower_wisp_001.png` (뇌운의 도깨비불, 일반, 512×512)
+```
+A small crackling thunder will-o'-the-wisp monster, a floating orb of
+swirling electric blue-white energy with jagged lightning tendrils, glowing
+bright core, simple mobile game monster design (not overly detailed), anime
+game style.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+`tower_thunderbird_001.png` (뇌조, 보스, 768×768)
+```
+A giant thunder bird boss monster, a majestic raptor with feathers
+crackling with electric blue-white energy, sharp lightning-charged talons,
+glowing storm-cloud-colored plumage, fierce glowing eyes.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+`tower_specter_001.png` (서고의 망령, 일반, 512×512)
+```
+A ghostly archive spirit monster, a translucent pale blue robed figure
+surrounded by floating spectral book pages, glowing faint white eyes
+beneath a hood, simple mobile game monster design (not overly detailed),
+anime game style.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+`tower_archmage_001.png` (탑의 대마도사, 보스, 768×768)
+```
+A powerful tower archmage boss monster, an imposing robed spellcaster
+wrapped in a tattered dark purple-blue mage robe, a glowing arcane staff,
+faintly glowing runes floating around its hooded head, piercing glowing
+eyes beneath the hood.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+`tower_sentinel_001.png` (정상의 파수병, 일반, 512×512)
+```
+An armored summit sentinel monster, a spectral knight in cracked dark
+violet armor, faint arcane glow leaking from the joints of its armor, a
+jagged ceremonial halberd, glowing violet eyes beneath its helm, simple
+mobile game monster design (not overly detailed), anime game style.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+`tower_lord_001.png` (탑의 군주, 보스, 768×768)
+```
+A menacing tower lord boss monster, a towering dark armored overlord
+wrapped in a tattered violet-black cape, an ornate crown fused with cracked
+stone, a massive glowing violet greatsword, intense glowing violet eyes.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+### 아레나 배경 1종 (1080×1920)
+
+`battle-arena.png`
+```
+Vertical portrait mobile game battle background, 9:16, painterly anime style.
+A grand dueling arena colosseum, an empty sandy combat floor across the
+middle where characters stand, distant tiered stone spectator stands with a
+small cheering crowd silhouette in the far background, banners hanging
+from the upper walls, warm bright daylight ambient lighting. Top quarter is
+simple sky above the stands (UI covers it). Slightly desaturated so
+characters pop.
+No characters in the foreground/combat area, no text, no watermark, no UI
+elements.
+```
+
+### 요일던전 진영별 몬스터 5종 (768×768) + 던전 배경 1종 (1080×1920)
+
+`raid_boss_fire.png`
+```
+A fierce elemental fire beast boss monster, a wolf-like creature made of
+molten rock and flickering orange-red flame, glowing ember eyes, flame
+wisps trailing from its back, anime game style.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+`raid_boss_water.png`
+```
+A fierce elemental water beast boss monster, a serpentine creature made of
+flowing translucent deep blue water with a jagged crystalline spine,
+glowing cyan eyes, water droplets trailing off its body, anime game style.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+`raid_boss_wind.png`
+```
+A fierce elemental wind beast boss monster, a swift avian-feline hybrid
+creature wrapped in swirling pale green-white wind currents, glowing bright
+green eyes, wind-torn fur and feathers, anime game style.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+`raid_boss_light.png`
+```
+A fierce elemental light beast boss monster, a radiant deer-like creature
+with a body of glowing golden light and crystalline antlers, glowing warm
+gold eyes, soft golden light particles trailing off its body, anime game
+style.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+`raid_boss_dark.png`
+```
+A fierce elemental dark beast boss monster, a shadowy panther-like creature
+made of swirling black smoke and violet void energy, glowing purple eyes,
+tattered shadow wisps trailing off its body, anime game style.
+Single creature only, facing right, centered, small margin.
+Transparent background (alpha PNG). No text, no watermark. Square 1:1.
+```
+
+`battle-raid-dungeon.png` — 진영색 틴트를 코드가 입히므로 거의 무채색/데사츄레이트로
+```
+Vertical portrait mobile game battle background, 9:16, painterly anime style.
+A grim monster den dungeon lair, rough cave-like stone walls with scattered
+bones and claw marks, a flat open dungeon floor across the middle where
+characters stand, muted neutral gray-brown ambient lighting, nearly
+desaturated toward grayscale (this will be color-tinted per faction in
+code, so keep it close to monochrome). Top quarter is a dark cave ceiling
+(UI covers it).
+No characters, no text, no watermark, no UI elements.
+```
+
 ## 영웅 공격 포즈 71종 전원 완료 (2026-08-02, 나머지 45종 검수 통과·반영)
 
 제우스 재생성으로 확정한 템플릿(아래 섹션, `--strength High` + 포즈 문구는 톤다운 금지)을
