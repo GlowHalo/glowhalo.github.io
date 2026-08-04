@@ -981,6 +981,11 @@ function render() {
     ? realTrailingEvents.reduce((s, e) => s + (e.certain ? e.net : e.gross), 0)
     : trailing12Total;
   const rangeLabel = `${trailingMonths[0].month} ~ ${trailingMonths[11].month} 실제 · ${trailingMonths[12].month} 예정`;
+
+  // 전체 기간 누적: 지금까지 넣은 원금 대비 지금까지 실제 받은 배당 총액 (둘 다 세전 기준으로 통일)
+  const totalDividendsAllTime = paidEvents.reduce((s, e) => s + e.gross, 0);
+  const overallYieldPct = costGroups.total > 0 ? (totalDividendsAllTime / costGroups.total) * 100 : null;
+
   const monthGroups = mergeEventsByTicker(selectedMonthData.events);
   const monthListHtml = monthGroups.length === 0
     ? `<p class="muted mt2" style="font-size:12px;">이 달은 배당 내역이 없어요.</p>`
@@ -1009,13 +1014,32 @@ function render() {
         <div class="muted" style="font-size:11px;">배당금 (최근 12개월)</div>
         <div class="serif mono ink mt1" style="font-size:24px; font-weight:700;">${won(headlineAmount)}</div>
         <div class="muted mt1" style="font-size:9px;">${rangeLabel}</div>
-        ${costGroups.total > 0 && trailing12Total > 0 ? `<div class="muted mt1" style="font-size:10px;">투자배당률 ${((trailing12Total / costGroups.total) * 100).toFixed(2)}%</div>` : ""}
+        ${costGroups.total > 0 && trailing12Total > 0 ? `<div class="muted mt1" style="font-size:10px;">최근 12개월 배당률 ${((trailing12Total / costGroups.total) * 100).toFixed(2)}%</div>` : ""}
       </div>
       <div class="row-between mt2">
         <button class="subtoggle-btn ${dividendShowNet ? "active" : ""}" style="flex:none; padding:4px 10px;" onclick="toggleDividendNet()">실수령액 ${dividendShowNet ? "✓" : ""}</button>
         <button class="subtoggle-btn ${dividendShowForeign ? "active" : ""}" style="flex:none; padding:4px 10px;" onclick="toggleDividendForeign()">외화보기 ${dividendShowForeign ? "✓" : ""}</button>
       </div>
       <div class="mt3">${trailingBarChart(trailingMonths, selectedMonthKey)}</div>
+    </div>
+
+    <div class="card mt3">
+      <span class="muted" style="font-size:12px; font-weight:500;">누적 투자 대비 배당 (전체 기간, 세전 기준)</span>
+      <div class="mt2" style="display:flex; justify-content:space-between; text-align:center;">
+        <div style="flex:1;">
+          <div class="muted" style="font-size:10px;">총 투자원금</div>
+          <div class="mono ink mt1" style="font-size:15px; font-weight:700;">${won(costGroups.total)}</div>
+        </div>
+        <div style="flex:1;">
+          <div class="muted" style="font-size:10px;">누적 배당 수령액</div>
+          <div class="mono brass mt1" style="font-size:15px; font-weight:700;">${won(totalDividendsAllTime)}</div>
+        </div>
+        <div style="flex:1;">
+          <div class="muted" style="font-size:10px;">배당수익률</div>
+          <div class="mono ink mt1" style="font-size:15px; font-weight:700;">${overallYieldPct === null ? "—" : overallYieldPct.toFixed(2) + "%"}</div>
+        </div>
+      </div>
+      ${costGroups.uncosted > 0 ? `<p class="muted mt2" style="font-size:10px;">매입단가 미입력 ${costGroups.uncosted}건은 투자원금·수익률 계산에서 제외됐어요.</p>` : ""}
     </div>
 
     <div class="card mt3">
