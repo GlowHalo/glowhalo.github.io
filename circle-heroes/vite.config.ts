@@ -26,7 +26,7 @@ const SERVED_ASSET_DIRS = ["characters", "monsters", "backgrounds", "icons", "ef
 const CSS_URL_REFERENCED_ASSETS = [
   "btn-primary-bg.png",
   "btn-danger-bg.png",
-  "splash.png",
+  "splash.webp",
   "banner-raid.png",
   "banner-arena.png",
   "banner-tower.png",

@@ -21,7 +21,7 @@ export function renderSplash(onDismiss: () => void) {
   // 도착하면 자동 반영되도록 onerror로 숨긴다(다른 선택적 이미지들과 동일한 폴백 관례)
   const michael = document.createElement("img");
   michael.id = "splash-michael";
-  michael.src = "michael-splash.png";
+  michael.src = "michael-splash.webp";
   michael.alt = "";
   michael.onerror = () => michael.remove();
   overlay.appendChild(michael);
