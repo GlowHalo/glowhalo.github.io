@@ -201,28 +201,28 @@ R/N/Unknown 급의 "컨셉 메모"는 아직 고유 서사가 없는 플레이�
 
 | 파일 | 층 구간 | 상태 |
 |---|---|---|
-| `battle-tower-entrance.png` | 1~10 | ✅ (2026-08-04) |
-| `battle-tower-corridor.png` | 11~20 | ✅ (2026-08-04) |
-| `battle-tower-crypt.png` | 21~30 | ✅ (2026-08-04) |
-| `battle-tower-forge.png` | 31~40 | ✅ (2026-08-04) |
-| `battle-tower-frost.png` | 41~50 | ✅ (2026-08-04) |
-| `battle-tower-garden.png` | 51~60 | ✅ (2026-08-04) |
-| `battle-tower-storm.png` | 61~70 | ✅ (2026-08-04) |
-| `battle-tower-archive.png` | 71~80 | ✅ (2026-08-04) |
-| `battle-tower-abyss.png` | 81~90 | ✅ (2026-08-04) |
-| `battle-tower-summit.png` | 91~100(순환) | ✅ (2026-08-04) |
+| `battle-tower-entrance.webp` | 1~10 | ✅ (2026-08-04) |
+| `battle-tower-corridor.webp` | 11~20 | ✅ (2026-08-04) |
+| `battle-tower-crypt.webp` | 21~30 | ✅ (2026-08-04) |
+| `battle-tower-forge.webp` | 31~40 | ✅ (2026-08-04) |
+| `battle-tower-frost.webp` | 41~50 | ✅ (2026-08-04) |
+| `battle-tower-garden.webp` | 51~60 | ✅ (2026-08-04) |
+| `battle-tower-storm.webp` | 61~70 | ✅ (2026-08-04) |
+| `battle-tower-archive.webp` | 71~80 | ✅ (2026-08-04) |
+| `battle-tower-abyss.webp` | 81~90 | ✅ (2026-08-04) |
+| `battle-tower-summit.webp` | 91~100(순환) | ✅ (2026-08-04) |
 
 ### 4-2. 아레나 전용 배경 1종 (신규)
 
 | 파일 | 상태 |
 |---|---|
-| `battle-arena.png` | ✅ (2026-08-04) — 관중석+모래바닥 결투 경기장, 순환 없이 고정 1종 |
+| `battle-arena.webp` | ✅ (2026-08-04) — 관중석+모래바닥 결투 경기장, 순환 없이 고정 1종 |
 
 ### 4-3. 요일던전 배경 1종 (신규, 진영색 코드 틴트로 5종 효과)
 
 | 파일 | 상태 |
 |---|---|
-| `battle-raid-dungeon.png` | ✅ (2026-08-04) — 5진영 공용, 무채색에 가깝게 그려야 코드 틴트가 자연스럽게 얹힘 |
+| `battle-raid-dungeon.webp` | ✅ (2026-08-04) — 5진영 공용, 무채색에 가깝게 그려야 코드 틴트가 자연스럽게 얹힘 |
 
 컨셉/코드 배선 상세는 `ASSETS.md` "콘텐츠별 배경/몬스터 차별화" 절 참고. **2026-08-04: 총
 25장(탑 배경 10+탑 신규 몬스터 8+아레나 배경 1+요일던전 몬스터 5+요일던전 배경 1) 전량 제작·

@@ -380,21 +380,23 @@ export class BattleScene extends Phaser.Scene {
    * STAGE_TIERS 재사용분)는 ensureModeAssets()가 존재 여부로 걸러내므로 중복 요청 걱정 없이
    * 그냥 전부 나열해도 된다 */
   private modeAssetManifest(m: BattleMode): { key: string; file: string }[] {
+    // §2026-08-04 배경은 전부 WebP(품질 82, PNG 대비 평균 94% 감량) — 몬스터는 투명배경이
+    // 필요해 PNG 유지(스테이지 배경과 동일한 규칙, ART_CATALOG.md 참고)
     if (m === "tower") {
       const list: { key: string; file: string }[] = [];
       for (const tier of TOWER_TIERS) {
-        list.push({ key: `bg-${tier.bgKey}`, file: `${tier.bgKey}.png` });
+        list.push({ key: `bg-${tier.bgKey}`, file: `${tier.bgKey}.webp` });
         list.push({ key: `monster-${tier.normalKey}`, file: `${tier.normalKey}.png` });
         list.push({ key: `monster-${tier.bossKey}`, file: `${tier.bossKey}.png` });
       }
       return list;
     }
     if (m === "arena") {
-      return [{ key: `bg-${ARENA_BG_KEY}`, file: `${ARENA_BG_KEY}.png` }];
+      return [{ key: `bg-${ARENA_BG_KEY}`, file: `${ARENA_BG_KEY}.webp` }];
     }
     if (m === "raid") {
       const list: { key: string; file: string }[] = [
-        { key: `bg-${RAID_BG_KEY}`, file: `${RAID_BG_KEY}.png` },
+        { key: `bg-${RAID_BG_KEY}`, file: `${RAID_BG_KEY}.webp` },
         { key: "monster-raid_boss_001", file: "raid_boss_001.png" },
       ];
       for (const slug of Object.values(RAID_FACTION_SLUG)) {
