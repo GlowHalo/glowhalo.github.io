@@ -150,6 +150,10 @@ function emitModeChanged(mode: BattleMode) {
 export class BattleScene extends Phaser.Scene {
   private mode: BattleMode = "stage";
   private gen = 0; // 모드 전환 시 이전 모드의 지연 콜백 무효화
+  // §2026-08-04 "초기 로딩 속도 개선(2차)" — stage는 preload()가 항상 미리 불러오므로 처음부터
+  // 로드된 것으로 취급. tower/arena/raid는 setMode()가 그 모드에 처음 진입하는 순간 딱 한 번만
+  // ensureModeAssets()로 채워 넣는다(재진입 시 재요청 방지)
+  private modeAssetsLoaded = new Set<BattleMode>(["stage"]);
   private heroes: Unit[] = [];
   private enemies: Unit[] = [];
   private views = new Map<Unit, UnitView>();
@@ -204,19 +208,6 @@ export class BattleScene extends Phaser.Scene {
       // 그 히어로만 정지 초상화로 조용히 폴백하므로 안전하다. 파일이 도착하는 대로 자동 활성화
       this.load.image(`portrait-attack-${h.id}`, `${h.id}-attack.png`);
     }
-    this.load.image("monster-tower_soldier_001", "tower_soldier_001.png");
-    this.load.image("monster-tower_guardian_001", "tower_guardian_001.png");
-    // §2026-08-03 탑 10티어 확장분 — 신규 4개 구간(온실/뇌운/서고/정상) 전용 몬스터. 나머지 티어는
-    // STAGE_TIERS 로스터를 재사용해 그쪽 로더에서 이미 로드되므로 여기선 신규분만 추가
-    this.load.image("monster-tower_thorn_001", "tower_thorn_001.png");
-    this.load.image("monster-tower_treant_001", "tower_treant_001.png");
-    this.load.image("monster-tower_wisp_001", "tower_wisp_001.png");
-    this.load.image("monster-tower_thunderbird_001", "tower_thunderbird_001.png");
-    this.load.image("monster-tower_specter_001", "tower_specter_001.png");
-    this.load.image("monster-tower_archmage_001", "tower_archmage_001.png");
-    this.load.image("monster-tower_sentinel_001", "tower_sentinel_001.png");
-    this.load.image("monster-tower_lord_001", "tower_lord_001.png");
-    this.load.image("monster-raid_boss_001", "raid_boss_001.png");
     // 스테이지 지역 전환(§4)용 티어별 배경·몬스터(1티어=초원이 기존 bg-battle 역할도 겸함) —
     // 1티어 외엔 아직 실제 파일이 없어
     // 개별 404가 나지만 Phaser 로더는 그 파일만 건너뛰고 계속 진행되고(다른 텍스처는 정상 로드),
@@ -230,16 +221,12 @@ export class BattleScene extends Phaser.Scene {
       this.load.image(`monster-${tier.normalKey}`, `${tier.normalKey}.png`);
       this.load.image(`monster-${tier.bossKey}`, `${tier.bossKey}.png`);
     }
-    // §2026-08-03 콘텐츠별 배경/몬스터 차별화 백로그 — 위와 같은 "파일 없으면 조용히 폴백" 규칙.
-    // 탑 전용 배경 6장(층 구간별), 아레나 전용 배경 1장, 요일던전 진영별 몬스터 5장+던전 배경 1장
-    for (const tier of TOWER_TIERS) {
-      this.load.image(`bg-${tier.bgKey}`, `${tier.bgKey}.png`);
-    }
-    this.load.image(`bg-${ARENA_BG_KEY}`, `${ARENA_BG_KEY}.png`);
-    this.load.image(`bg-${RAID_BG_KEY}`, `${RAID_BG_KEY}.png`);
-    for (const slug of Object.values(RAID_FACTION_SLUG)) {
-      this.load.image(`monster-raid_boss_${slug}`, `raid_boss_${slug}.png`);
-    }
+    // §2026-08-04 "초기 로딩 속도 개선(2차)" — 탑/아레나/요일던전 전용 에셋(탑 몬스터 10종+배경
+    // 10장, 아레나 배경 1장, 요일던전 진영별 몬스터 5종+배경 1장, 총 27개 텍스처)은 여기서 더 이상
+    // 미리 로드하지 않는다. 스테이지(캠페인)만 플레이하고 그 세 모드는 한 번도 안 들어가 본
+    // 플레이어에게도 무조건 물려 있던 짐이었음 — ensureModeAssets()가 setMode()에서 그 모드에
+    // 실제로 진입하는 순간에만 필요한 만큼만 불러온다(§콘텐츠별 배경/몬스터 차별화 백로그와
+    // 동일한 "파일 없으면 조용히 폴백" 규칙은 그대로 유지)
 
     this.load.image("fx-cast-aura", "cast-aura.png");
     this.load.image("fx-hit-crit", "hit-crit.png");
@@ -389,14 +376,71 @@ export class BattleScene extends Phaser.Scene {
     return boss ? tier.bossKey : tier.normalKey;
   }
 
+  /** tower/arena/raid 모드가 쓰는 텍스처 키·파일명 목록 — stage가 이미 로드해둔 키(늑대/박쥐 등
+   * STAGE_TIERS 재사용분)는 ensureModeAssets()가 존재 여부로 걸러내므로 중복 요청 걱정 없이
+   * 그냥 전부 나열해도 된다 */
+  private modeAssetManifest(m: BattleMode): { key: string; file: string }[] {
+    if (m === "tower") {
+      const list: { key: string; file: string }[] = [];
+      for (const tier of TOWER_TIERS) {
+        list.push({ key: `bg-${tier.bgKey}`, file: `${tier.bgKey}.png` });
+        list.push({ key: `monster-${tier.normalKey}`, file: `${tier.normalKey}.png` });
+        list.push({ key: `monster-${tier.bossKey}`, file: `${tier.bossKey}.png` });
+      }
+      return list;
+    }
+    if (m === "arena") {
+      return [{ key: `bg-${ARENA_BG_KEY}`, file: `${ARENA_BG_KEY}.png` }];
+    }
+    if (m === "raid") {
+      const list: { key: string; file: string }[] = [
+        { key: `bg-${RAID_BG_KEY}`, file: `${RAID_BG_KEY}.png` },
+        { key: "monster-raid_boss_001", file: "raid_boss_001.png" },
+      ];
+      for (const slug of Object.values(RAID_FACTION_SLUG)) {
+        list.push({ key: `monster-raid_boss_${slug}`, file: `raid_boss_${slug}.png` });
+      }
+      return list;
+    }
+    return [];
+  }
+
+  /** §2026-08-04 "초기 로딩 속도 개선(2차)" — 해당 모드에 처음 진입할 때만 그 모드 전용 텍스처를
+   * 불러온다. 이미 로드된 적 있으면(재진입) 즉시 콜백, 없으면 필요한 키만 골라 로드하고 완료
+   * 후 콜백 — 어느 경로든 콜백은 "이 모드로의 전환이 여전히 최신일 때만" 실행돼야 하므로 호출부
+   * (setMode)가 gen 가드를 씌운다 */
+  private ensureModeAssets(m: BattleMode, then: () => void) {
+    if (this.modeAssetsLoaded.has(m)) {
+      then();
+      return;
+    }
+    this.modeAssetsLoaded.add(m);
+    const missing = this.modeAssetManifest(m).filter((a) => !this.textures.exists(a.key));
+    if (missing.length === 0) {
+      then();
+      return;
+    }
+    for (const a of missing) this.load.image(a.key, a.file);
+    this.load.once(Phaser.Loader.Events.COMPLETE, then);
+    this.load.start();
+  }
+
   private setMode(m: BattleMode) {
     if (this.mode === m) return;
     this.mode = m;
     this.gen++;
-    if (m === "stage") this.startStage(save.stage);
-    else if (m === "tower") this.startTower();
-    else if (m === "arena") this.startArena();
-    else this.startRaid();
+    const g = this.gen;
+    const proceed = () => {
+      // 로딩 중에 유저가 또 다른 모드로 넘어갔으면(연타 등) 이 콜백은 무시 — delayed()와 동일한
+      // 세대 가드 패턴
+      if (g !== this.gen) return;
+      if (m === "stage") this.startStage(save.stage);
+      else if (m === "tower") this.startTower();
+      else if (m === "arena") this.startArena();
+      else this.startRaid();
+    };
+    if (m === "stage") proceed();
+    else this.ensureModeAssets(m, proceed);
   }
 
   /** 지연 콜백에 세대 가드를 씌워 모드 전환 후 유령 실행을 막는다 */
