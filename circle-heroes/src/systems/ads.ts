@@ -7,16 +7,12 @@ import { persist, addGold, addGems } from "../state/save";
  * 계속 눌러야 함)가 있어서, 이 게임 경제 안에서는 문제 되지 않는다는 판단 */
 export const REWARDED_AD_REWARD: { gold: number; gems: number } = { gold: 5000, gems: 500 };
 
-/** §2026-08-03 AdSense H5 Games Ads(Ad Placement API) 연동 자리 — 계정 승인·광고단위 발급
- * 전까지는 빈 문자열로 둬서 아래 watchRewardedAd()가 조용히 스텁(즉시 보상)으로 폴백한다.
- * 실제로 켜는 절차:
- *   1) https://www.google.com/adsense 에서 이 사이트로 계정 개설 → 심사 승인
- *   2) AdSense 대시보드에서 "H5 Games Ads" 활성화 → 게시자 ID(ca-pub-XXXX) 확인
- *   3) index.html 상단의 주석 처리된 adsbygoogle 스크립트 태그 주석 해제 + ca-pub-XXXX를
- *      실제 ID로 교체
- *   4) 아래 ADSENSE_CLIENT_ID에도 같은 ID를 채우면 그 순간부터 watchRewardedAd()가 실제
- *      adBreak() 광고를 호출한다(코드 추가 수정 불필요) */
-const ADSENSE_CLIENT_ID = "";
+/** §2026-08-04 AdSense H5 Games Ads(Ad Placement API) 연동 — 게시자 ID 발급받아 실제로 켬
+ * (index.html의 스크립트 태그도 같은 ID로 이미 반영). 단, AdSense 심사(사이트 검토)가 아직
+ * "검토 필요" 단계라 완전 승인 전까지는 실제 광고 재고가 없어 watchRewardedAd()가 adBreak()을
+ * 호출해도 대부분 no-fill(adBreakDone만 오고 보상 없음)로 끝날 수 있다 — 심사 완료되면 코드
+ * 수정 없이 자동으로 정상 작동한다 */
+const ADSENSE_CLIENT_ID = "ca-pub-1632899465320365";
 /** 상시 배너 광고 단위 ID — AdSense 대시보드에서 디스플레이 광고 단위를 새로 만들면 발급되는
  * data-ad-slot 값(ADSENSE_CLIENT_ID와는 별개, 광고 "종류"마다 따로 발급받는 슬롯 ID). 이것도
  * 비어있는 동안은 mountBannerAd()가 아무것도 안 해서 shell.ts가 만들어둔 플레이스홀더 텍스트가
