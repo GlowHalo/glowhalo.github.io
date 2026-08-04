@@ -639,6 +639,10 @@ export default function DividendPassbook() {
   // 비중·추이 탭: 매입단가(price) 기반 원금 계산
   const costGroups = useMemo(() => costBasisGroups(holdings), [holdings]);
   const costTrendData = useMemo(() => costBasisTrend(holdings), [holdings]);
+
+  // 배당 탭: 전체 기간 누적 — 지금까지 넣은 원금 대비 지금까지 실제 받은 배당 총액 (둘 다 세전 기준)
+  const totalDividendsAllTime = paidEvents.reduce((s, e) => s + e.gross, 0);
+  const overallYieldPct = costGroups.total > 0 ? (totalDividendsAllTime / costGroups.total) * 100 : null;
   const ALLOCATION_VIEWS = [
     { key: "ticker", label: "종목별", data: costGroups.ticker },
     { key: "market", label: "시장별", data: costGroups.market },
@@ -1049,7 +1053,7 @@ export default function DividendPassbook() {
                   <div className="serif text-2xl font-bold mono mt-1" style={{ color: "#1F2A44" }}>{won(headlineAmount)}</div>
                   <div className="text-[9px] mt-1" style={{ color: "#8B93A8" }}>{rangeLabel}</div>
                   {costGroups.total > 0 && trailing12Total > 0 && (
-                    <div className="text-[10px] mt-1" style={{ color: "#8B93A8" }}>투자배당률 {((trailing12Total / costGroups.total) * 100).toFixed(2)}%</div>
+                    <div className="text-[10px] mt-1" style={{ color: "#8B93A8" }}>최근 12개월 배당률 {((trailing12Total / costGroups.total) * 100).toFixed(2)}%</div>
                   )}
                 </div>
                 <div className="flex justify-between mt-2">
@@ -1079,6 +1083,27 @@ export default function DividendPassbook() {
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
+              </div>
+
+              <div className="rounded-2xl p-4 mt-3" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
+                <span className="text-xs font-medium" style={{ color: "#4B5670" }}>누적 투자 대비 배당 (전체 기간, 세전 기준)</span>
+                <div className="flex justify-between text-center mt-2">
+                  <div className="flex-1">
+                    <div className="text-[10px]" style={{ color: "#8B93A8" }}>총 투자원금</div>
+                    <div className="mono font-bold mt-1" style={{ fontSize: 15, color: "#1F2A44" }}>{won(costGroups.total)}</div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[10px]" style={{ color: "#8B93A8" }}>누적 배당 수령액</div>
+                    <div className="mono font-bold mt-1" style={{ fontSize: 15, color: "#9C7A3C" }}>{won(totalDividendsAllTime)}</div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[10px]" style={{ color: "#8B93A8" }}>배당수익률</div>
+                    <div className="mono font-bold mt-1" style={{ fontSize: 15, color: "#1F2A44" }}>{overallYieldPct === null ? "—" : overallYieldPct.toFixed(2) + "%"}</div>
+                  </div>
+                </div>
+                {costGroups.uncosted > 0 && (
+                  <p className="text-[10px] mt-2" style={{ color: "#8B93A8" }}>매입단가 미입력 {costGroups.uncosted}건은 투자원금·수익률 계산에서 제외됐어요.</p>
+                )}
               </div>
 
               <div className="rounded-2xl p-4 mt-3" style={{ background: "#FFFDF8", border: "1px solid #E4DCC5" }}>
