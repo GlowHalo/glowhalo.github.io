@@ -337,20 +337,20 @@
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
 }
-/* 실제 디자인 세션 산출물(캡슐형 9-slice, 800×256, 좌우 약 130px 캡)을 적용 — 배경은 그대로 두고
- * 테두리(border-image)만 이미지로 대체해 어떤 버튼 너비에서도 둥근 끝은 안 뭉개지고 가운데만
- * 늘어나게 한다. slice/width를 좌우만 지정(0 = 상하 없음)해 캡슐 세로 형태가 그대로 유지됨 */
+/* §2026-08-04 "골드 버튼(열기/구매/광고보기)이 여백에 비해 너무 작고 안 어울림" — 기존
+ * btn-primary-bg.png(광택나는 3D 웹버튼 캡슐 이미지)를 뺐다. ASSETS.md가 못박은 "선명한 색+
+ * 굵은 외곽선의 플랫한 SD 아이콘" 톤과 어긋나 있던 게 실체였음. 순수 CSS 3안(그림자형/아웃라인형/
+ * 아웃라인+각진형) 승인 절차를 거쳐 "A. 그림자형 캡슐"로 확정 — 아웃라인 없이 --amber 단색 +
+ * 아래쪽 그림자만으로 입체감을 주는 플랫 스타일. 크기도 9px→11px 패딩, 13px→14px 폰트로 키움 */
 .btn.primary {
-  background: none;
+  background: var(--amber);
   color: #10131c;
   font-weight: 700;
-  border-style: solid;
-  border-color: transparent;
-  border-width: 0 20px;
-  border-image-source: url("btn-primary-bg.png");
-  border-image-slice: 0 130 fill;
-  border-image-width: 0 20px;
-  border-image-repeat: stretch;
+  border: none;
+  border-radius: 999px;
+  box-shadow: 0 3px 0 var(--amber-dark);
+  padding: 11px 22px;
+  font-size: 14px;
 }
 .btn.danger {
   background: none;
