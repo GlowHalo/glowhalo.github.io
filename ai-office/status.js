@@ -20,7 +20,7 @@ window.OFFICE_STATUS = {
       color: "#D9A441",
       icon: "💼",
       deskId: "desk-ceo",
-      task: "A1 노션 템플릿 실제 완성 — 실사용 테스트 전, 회장 확인 대기"
+      task: "A1 실사용 테스트 사장이 직접 수행 완료 — Gumroad 업로드 준비 단계"
     },
     {
       id: "cso",
@@ -63,6 +63,11 @@ window.OFFICE_STATUS = {
   ],
 
   recentLog: [
+    {
+      date: "2026-08-05",
+      title: "A1 실사용 테스트 — 사장이 직접 새 아이디어로 프롬프트 실행",
+      summary: "회장 지시대로 사장이 직접 테스트. 데모와 무관한 새 아이디어(CoverLetterAI)로 Strategy/Tech/Growth 프롬프트 3개를 독립 실행 → 시장포화/유지보수부담/검색경쟁이라는 서로 다른 각도에서 KILL로 수렴, 핵심 가치 실증됨. 과정에서 '어떤 프롬프트 3개를 같이 돌려야 하는지 안내 없음'이라는 허점 발견해 Prompt Sets 페이지에 상황별 조합 가이드 즉시 추가."
+    },
     {
       date: "2026-08-05",
       title: "A1 노션 템플릿 실제 완성 — Start Here/Charter/Prompt Sets 3페이지 + DB 3개",
