@@ -20,7 +20,7 @@ window.OFFICE_STATUS = {
       color: "#D9A441",
       icon: "💼",
       deskId: "desk-ceo",
-      task: "A1 실사용 테스트 사장이 직접 수행 완료 — Gumroad 업로드 준비 단계"
+      task: "A1 Gumroad 리스팅 패키지 완성 — 회장 계정 개설 대기, 신정산원칙 수립"
     },
     {
       id: "cso",
@@ -63,6 +63,11 @@ window.OFFICE_STATUS = {
   ],
 
   recentLog: [
+    {
+      date: "2026-08-05",
+      title: "신정산원칙 수립 + A1 Gumroad 리스팅 패키지 완성",
+      summary: "회장 지시로 신사업 평가 원칙 5 추가: 정산은 현금 계좌직접입금 우선, 포인트/캐시 정산 후 별도 출금 신청이 필요한 구조는 사장(AI)이 정기 대행 가능 여부를 CTO가 필수 확인. candidates.md에 Tier A 5건 재검증 필요 표시(특히 A3). Gumroad는 계좌 직접입금 방식이라 신원칙 통과 확인. 리스팅 카피·태그·가격 전부 완성, 회장 몫(계정 개설, 정산계좌 연결, 노션 '웹에 공개' 토글)만 남음."
+    },
     {
       date: "2026-08-05",
       title: "A1 실사용 테스트 — 사장이 직접 새 아이디어로 프롬프트 실행",
