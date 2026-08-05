@@ -158,6 +158,11 @@
     transition: opacity .3s;
     z-index: 20;
   }
+  .bubble.below {
+    bottom: auto;
+    top: 100%;
+    transform: translate(-50%, 6px);
+  }
   .bubble.show { opacity: 1; }
   .bubble b { color: var(--c); }
 
@@ -312,8 +317,9 @@
     el.style.setProperty('--c', s.color);
     el.style.left = desk.x + '%';
     el.style.top = desk.y + '%';
+    const bubbleBelow = desk.y < 50;
     el.innerHTML = `
-      <div class="bubble"><b>${s.name}</b> — ${s.task}</div>
+      <div class="bubble${bubbleBelow ? ' below' : ''}"><b>${s.name}</b> — ${s.task}</div>
       <div class="rig">
         <div class="head">${s.icon}</div>
         <div class="body"></div>

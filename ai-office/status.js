@@ -20,7 +20,7 @@ window.OFFICE_STATUS = {
       color: "#D9A441",
       icon: "💼",
       deskId: "desk-ceo",
-      task: "A1(프롬프트팩·템플릿) 실행 총괄 — 1호 상품 '노션 템플릿' 초안 완성, 회장 검수 대기"
+      task: "A1 실행 총괄 — 노션 템플릿 1호 상품 초안 완성, 회장 검수 대기"
     },
     {
       id: "cso",
@@ -30,7 +30,7 @@ window.OFFICE_STATUS = {
       color: "#7C5CBF",
       icon: "🎯",
       deskId: "desk-cso",
-      task: "3라운드 신규 후보 탐색 완료 — 다음 사업 기회 리서치는 대기 중"
+      task: "3라운드 탐색 완료 — 다음 사업기회 리서치 대기 중"
     },
     {
       id: "cto",
@@ -40,7 +40,7 @@ window.OFFICE_STATUS = {
       color: "#3B82C4",
       icon: "⚙️",
       deskId: "desk-cto",
-      task: "A2(마이크로 SaaS/크롬 확장) 2순위 착수 대기 — A1 신호 확인되면 개발 시작"
+      task: "A2(마이크로 SaaS) 착수 대기 — A1 신호 확인되면 개발 시작"
     },
     {
       id: "cmo",
@@ -50,7 +50,7 @@ window.OFFICE_STATUS = {
       color: "#3FA66B",
       icon: "📈",
       deskId: "desk-cmo",
-      task: "A3(카카오 이모티콘) 시안 여러 세트 준비 중 — 승인 큐 대기시간이 길어 미리 착수"
+      task: "A3(카카오 이모티콘) 시안 준비 중 — 승인 큐가 길어 미리 착수"
     }
   ],
 
