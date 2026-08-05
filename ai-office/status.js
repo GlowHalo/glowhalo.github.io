@@ -20,7 +20,7 @@ window.OFFICE_STATUS = {
       color: "#D9A441",
       icon: "💼",
       deskId: "desk-ceo",
-      task: "A1 실행 총괄 — 노션 템플릿 1호 상품 초안 완성, 회장 검수 대기"
+      task: "A1 실행 총괄 — 시장조사 반영해 상품 v2 확정, 실사용 검증 전 단계"
     },
     {
       id: "cso",
@@ -50,7 +50,7 @@ window.OFFICE_STATUS = {
       color: "#3FA66B",
       icon: "📈",
       deskId: "desk-cmo",
-      task: "A3(카카오 이모티콘) 시안 준비 중 — 승인 큐가 길어 미리 착수"
+      task: "A1 시장조사 완료(경쟁상품·타겟·가격 확정) — 다음은 A3 시안 착수"
     }
   ],
 
@@ -63,6 +63,11 @@ window.OFFICE_STATUS = {
   ],
 
   recentLog: [
+    {
+      date: "2026-08-05",
+      title: "A1 상품 v2 — 시장조사 기반 전면 개정 + 실제 콘텐츠 초안",
+      summary: "CMO(윤슬) 시장조사로 경쟁상품(AgentOS $89)·타겟(AI-네이티브 인디해커)·가격($11→$18)을 데이터로 확정. 회장 질문('SaaS창업자 수준 퀄리티 되냐')에 답하려 실제 프롬프트·데모 콘텐츠 초안까지 작성. 실사용 검증 전 단계."
+    },
     {
       date: "2026-08-05",
       title: "A1 실행 착수 + 조직 확장 권한 위임",
