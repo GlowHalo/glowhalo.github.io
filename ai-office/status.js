@@ -1,0 +1,87 @@
+/*
+  이 파일은 "작업실 컴퍼니"의 현재 상태 스냅샷이다 (registry.js와 같은 패턴).
+  사장(정연)이 회사에 의미있는 변화가 있을 때마다 이 파일을 갱신한다 —
+  실시간 중계가 아니라, 작업이 있을 때마다 손으로 남기는 상태판이다.
+
+  전체 논의 기록의 정본은 ../company/ 폴더 (헌장, 회의록, 제안서, 실행플랜).
+  이 파일은 그중 "지금 화면에 보여줄 요약"만 담는다.
+*/
+window.OFFICE_STATUS = {
+  updatedAt: "2026-08-05",
+  companyName: "작업실 컴퍼니",
+  tagline: "회장 1인 + AI 임원진이 백지상태에서 새 사업을 탐색하는 벤처스튜디오",
+
+  staff: [
+    {
+      id: "ceo",
+      role: "CEO",
+      roleLabel: "사장",
+      name: "정연",
+      color: "#D9A441",
+      icon: "💼",
+      deskId: "desk-ceo",
+      task: "A1(프롬프트팩·템플릿) 실행 총괄 — 1호 상품 '노션 템플릿' 초안 완성, 회장 검수 대기"
+    },
+    {
+      id: "cso",
+      role: "CSO",
+      roleLabel: "전략담당",
+      name: "혜안",
+      color: "#7C5CBF",
+      icon: "🎯",
+      deskId: "desk-cso",
+      task: "3라운드 신규 후보 탐색 완료 — 다음 사업 기회 리서치는 대기 중"
+    },
+    {
+      id: "cto",
+      role: "CTO",
+      roleLabel: "기술담당",
+      name: "재현",
+      color: "#3B82C4",
+      icon: "⚙️",
+      deskId: "desk-cto",
+      task: "A2(마이크로 SaaS/크롬 확장) 2순위 착수 대기 — A1 신호 확인되면 개발 시작"
+    },
+    {
+      id: "cmo",
+      role: "CMO",
+      roleLabel: "그로스담당",
+      name: "윤슬",
+      color: "#3FA66B",
+      icon: "📈",
+      deskId: "desk-cmo",
+      task: "A3(카카오 이모티콘) 시안 여러 세트 준비 중 — 승인 큐 대기시간이 길어 미리 착수"
+    }
+  ],
+
+  candidates: [
+    { name: "A1 · AI 프롬프트팩/노션 템플릿", status: "실행중", statusColor: "#2E7D32" },
+    { name: "A3 · 카카오톡 이모티콘", status: "착수 예정", statusColor: "#B98B4E" },
+    { name: "A2 · 마이크로 SaaS/크롬 확장", status: "대기", statusColor: "#6B7280" },
+    { name: "A5 · 니치 유료 뉴스레터", status: "대기 (A1과 연계)", statusColor: "#6B7280" },
+    { name: "A4 · 앱스토어 유틸 앱", status: "보류", statusColor: "#9CA3AF" }
+  ],
+
+  recentLog: [
+    {
+      date: "2026-08-05",
+      title: "A1 실행 착수 + 조직 확장 권한 위임",
+      summary: "회장이 A1(프롬프트팩/템플릿) 실행을 사장에게 위임하고, 필요시 조직을 확장할 권한도 함께 부여. 사장이 1호 상품 '노션 템플릿' 초안 완성."
+    },
+    {
+      date: "2026-08-05",
+      title: "Tier B 완전자동화 재검증 — 니치뉴스레터 KEEP, 웹소설/유튜브숏폼 PASS",
+      summary: "CSO-CTO 판정이 갈린 니치뉴스레터는 사장이 직접 팩트체크해 KEEP 확정(Tier A 승격). 웹소설·유튜브숏폼은 플랫폼 정책 리스크로 최종 제외."
+    },
+    {
+      date: "2026-08-05",
+      title: "겸업 제약 반영 신사업 재탐색",
+      summary: "회장의 리소스 제약(평일 직장근무, 사업자등록 불가)을 헌장에 명문화하고, 그 조건으로 임원 3인이 재탐색해 Tier A 4건을 확정."
+    },
+    {
+      date: "2026-08-05",
+      title: "회사 설립 — 개인 프로젝트와 분리",
+      summary: "기존 사이드 프로젝트(circle-heroes 등)와 무관한 백지상태 벤처스튜디오로 미션 재정의. 예산 원칙(건당 30만원 캡) 확정."
+    }
+  ]
+};
