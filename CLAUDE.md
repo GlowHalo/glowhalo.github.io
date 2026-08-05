@@ -14,6 +14,14 @@
 - `.gitignore` 는 **인라인 주석을 지원하지 않는다.** 주석은 별도 줄에 쓴다.
 - 브라우저에서 실행되는 코드에 API 키를 넣지 않는다. Notion/Drive 같은 서버용 키는 노출된다.
 
+## 가상회사 운영
+
+이 저장소의 사업화 의사결정은 "회장(사람) + AI 임원진(사장/CSO/CTO/CMO)" 구조로 진행한다. 조직도·운영 원칙·회의록·상신 안건은 `company/` 폴더가 단일 소스다 (`company/README.md`부터 시작). 새 사업 안건은 임원진이 독립적으로 검토한 뒤 사장이 종합해 `company/proposals/`에 상신하고, 예산 지출·외부 공개 등은 회장 승인을 거친다.
+
+## 병합(merge) 권한
+
+가상회사(`company/`, `ai-office/`) 관련 작업 브랜치는 **PR 없이 Claude 판단으로 master에 바로 병합**해도 된다 (회장 승인, 2026-08-05). `README.md`의 "원격 push는 매번 확인받고 진행" 원칙의 예외다. 다만 깨진 상태·완성 전 코드는 병합하지 않는다.
+
 ## 자동 백업
 
 Windows 작업 스케줄러 `SideProjects-Weekly-Backup` 이 **매주 일요일 09:00** 에 `~/.claude/scripts/backup-side-projects.ps1` 실행 → 변경분 자동 커밋 후 push. 로그는 `~/.claude/scripts/backup.log`.
