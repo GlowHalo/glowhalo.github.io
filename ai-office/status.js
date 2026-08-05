@@ -20,7 +20,7 @@ window.OFFICE_STATUS = {
       color: "#D9A441",
       icon: "💼",
       deskId: "desk-ceo",
-      task: "A1 노션 빌드 스펙 완성 — Notion 연동 승인 대기 (회장 액션 필요)"
+      task: "A1 노션 템플릿 실제 완성 — 실사용 테스트 전, 회장 확인 대기"
     },
     {
       id: "cso",
@@ -63,6 +63,11 @@ window.OFFICE_STATUS = {
   ],
 
   recentLog: [
+    {
+      date: "2026-08-05",
+      title: "A1 노션 템플릿 실제 완성 — Start Here/Charter/Prompt Sets 3페이지 + DB 3개",
+      summary: "회장이 Notion 연동 승인 후 실제 페이지·DB 생성 완료: Board Minutes(데모 3행)·Proposals(relation 연결)·Candidate Tracker(칸반 뷰). 루트: notion.com/p/3b3fc7dfab7a811e98c3c816e6b1b7d2. 남은 건 실사용 테스트와 Gumroad 업로드."
+    },
     {
       date: "2026-08-05",
       title: "A1 판매페이지 목업 제작 + 노션 빌드 스펙 완성 — 회장 액션 대기",
