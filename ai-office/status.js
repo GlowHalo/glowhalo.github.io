@@ -20,7 +20,7 @@ window.OFFICE_STATUS = {
       color: "#D9A441",
       icon: "💼",
       deskId: "desk-ceo",
-      task: "6시간 자율 생산 마무리 정리 중 — 회장 액션 6건 목록 정리, 곧 종합 보고"
+      task: "종합 보고 완료 — 회장 액션 6건 대기, 처리되는 대로 이어서 완결 예정"
     },
     {
       id: "cso",
