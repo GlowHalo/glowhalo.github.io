@@ -20,7 +20,7 @@ window.OFFICE_STATUS = {
       color: "#D9A441",
       icon: "💼",
       deskId: "desk-ceo",
-      task: "A1 Gumroad 런칭 완료 — 6시간 자율 생산 모드로 다음 상품 착수 중"
+      task: "A2 PromptDeck(Chrome 확장) 코드 완성 — Gumroad 라이선스 상품 생성만 남음"
     },
     {
       id: "cso",
@@ -40,7 +40,7 @@ window.OFFICE_STATUS = {
       color: "#3B82C4",
       icon: "⚙️",
       deskId: "desk-cto",
-      task: "A2(마이크로 SaaS) 착수 대기 — A1 신호 확인되면 개발 시작"
+      task: "A2 PromptDeck 코드 완성 — 크롬 웹스토어 등록은 회장 결제 필요"
     },
     {
       id: "cmo",
@@ -57,12 +57,17 @@ window.OFFICE_STATUS = {
   candidates: [
     { name: "A1 · AI 프롬프트팩/노션 템플릿", status: "런칭 완료", statusColor: "#2E7D32" },
     { name: "A3 · 카카오톡 이모티콘", status: "착수 예정", statusColor: "#B98B4E" },
-    { name: "A2 · 마이크로 SaaS/크롬 확장", status: "대기", statusColor: "#6B7280" },
+    { name: "A2 · 마이크로 SaaS/크롬 확장", status: "코드 완성", statusColor: "#B98B4E" },
     { name: "A5 · 니치 유료 뉴스레터", status: "대기 (A1과 연계)", statusColor: "#6B7280" },
     { name: "A4 · 앱스토어 유틸 앱", status: "보류", statusColor: "#9CA3AF" }
   ],
 
   recentLog: [
+    {
+      date: "2026-08-06",
+      title: "A2 PromptDeck(Chrome 확장) 코드 완성 — 6시간 자율 생산 모드 1번째 상품",
+      summary: "이미지 생성 도구 없이 AI가 끝까지 만들 수 있는 카테고리(코드형)로 A2 착수. Chrome 웹스토어가 2020년부터 네이티브 유료 확장을 지원 안 해서, 확장은 무료 배포하고 Gumroad 라이선스 키로 프리미엄(무제한 저장+A1 프롬프트팩 임포트)을 잠그는 모델로 설계 — 신규 결제 인프라 없이 기존 Gumroad 계정 재사용. manifest V3 전체 코드(popup/options/content script/background), 아이콘 3종(헤드리스 브라우저로 HTML을 직접 렌더링해 생성), 개인정보처리방침까지 완성. 다만 Gumroad에 라이선스 상품(promptdeck-pro)을 만들려니 하네스가 3연속 차단 — 더 우회 시도 안 하고 회장 액션(Bash 권한 허용 또는 직접 생성) 대기로 기록."
+    },
     {
       date: "2026-08-06",
       title: "A1 Gumroad 실제 런칭 + 상시 할인코드 신설, 신규 원칙 2건 확정",

@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>PromptDeck</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { width: 360px; max-height: 560px; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #fff; color: #1a1a1a; }
+  @media (prefers-color-scheme: dark) { body { background: #1c1c1e; color: #f2f2f2; } }
+  header { padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e5e5; }
+  @media (prefers-color-scheme: dark) { header { border-color: #333; } }
+  header h1 { font-size: 15px; margin: 0; font-weight: 700; }
+  header .badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #eee; color: #555; }
+  @media (prefers-color-scheme: dark) { header .badge { background: #333; color: #ccc; } }
+  header .badge.pro { background: #ffd60a; color: #1a1a1a; }
+  #search { width: calc(100% - 24px); margin: 10px 12px 4px; padding: 7px 10px; border-radius: 8px; border: 1px solid #ddd; font-size: 13px; }
+  @media (prefers-color-scheme: dark) { #search { background: #2c2c2e; border-color: #444; color: #f2f2f2; } }
+  #list { max-height: 340px; overflow-y: auto; padding: 4px 8px; }
+  .item { padding: 8px 10px; border-radius: 8px; margin-bottom: 4px; cursor: pointer; border: 1px solid transparent; }
+  .item:hover { background: #f2f2f2; }
+  @media (prefers-color-scheme: dark) { .item:hover { background: #2c2c2e; } }
+  .item .title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .item .body { font-size: 11px; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item .actions { margin-top: 4px; display: flex; gap: 6px; }
+  .item .actions button { font-size: 11px; padding: 3px 8px; border-radius: 6px; border: 1px solid #ddd; background: #fff; cursor: pointer; }
+  @media (prefers-color-scheme: dark) { .item .actions button { background: #1c1c1e; border-color: #444; color: #f2f2f2; } }
+  footer { padding: 10px 12px; border-top: 1px solid #e5e5e5; display: flex; gap: 8px; }
+  @media (prefers-color-scheme: dark) { footer { border-color: #333; } }
+  footer button { flex: 1; padding: 8px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+  #addBtn { background: #1a1a1a; color: #fff; }
+  @media (prefers-color-scheme: dark) { #addBtn { background: #ffd60a; color: #1a1a1a; } }
+  #optionsBtn { background: #f2f2f2; color: #1a1a1a; }
+  @media (prefers-color-scheme: dark) { #optionsBtn { background: #2c2c2e; color: #f2f2f2; } }
+  #empty { padding: 24px 16px; text-align: center; font-size: 12px; color: #999; }
+  #editForm { display: none; padding: 12px; }
+  #editForm input, #editForm textarea { width: calc(100% - 16px); margin-bottom: 8px; padding: 7px 8px; border-radius: 8px; border: 1px solid #ddd; font-size: 12px; font-family: inherit; }
+  @media (prefers-color-scheme: dark) { #editForm input, #editForm textarea { background: #2c2c2e; border-color: #444; color: #f2f2f2; } }
+  #editForm textarea { min-height: 90px; resize: vertical; }
+  #editForm .row { display: flex; gap: 8px; }
+  #editForm .row button { flex: 1; padding: 7px; border-radius: 8px; border: none; font-size: 12px; cursor: pointer; }
+  #saveBtn { background: #1a1a1a; color: #fff; }
+  @media (prefers-color-scheme: dark) { #saveBtn { background: #ffd60a; color: #1a1a1a; } }
+  #cancelBtn { background: #f2f2f2; }
+  @media (prefers-color-scheme: dark) { #cancelBtn { background: #2c2c2e; color: #f2f2f2; } }
+  .hint { font-size: 10px; color: #999; padding: 0 12px 8px; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>💬 PromptDeck</h1>
+    <span class="badge" id="tierBadge">Free</span>
+  </header>
+  <input id="search" placeholder="Search your prompts..." />
+  <div id="list"></div>
+  <div id="empty" style="display:none">
+    No prompts yet. <a href="#" id="importPresetLink">Import starter prompts</a> or add your own below 👇
+  </div>
+  <p class="hint">Tip: click a prompt to insert it into the focused text box on the current page. [Bracketed] parts are yours to fill in.</p>
+
+  <div id="editForm">
+    <input id="editTitle" placeholder="Title (e.g. Steelman the Case Against This)" />
+    <textarea id="editBody" placeholder="Prompt text. Use [bracketed] parts for things to fill in later."></textarea>
+    <div class="row">
+      <button id="saveBtn">Save</button>
+      <button id="cancelBtn">Cancel</button>
+    </div>
+  </div>
+
+  <footer>
+    <button id="addBtn">+ New prompt</button>
+    <button id="optionsBtn">⚙ License</button>
+  </footer>
+  <script src="storage.js"></script>
+  <script src="presets.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
