@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>PromptDeck — License</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 480px; margin: 40px auto; padding: 0 20px; background: #fff; color: #1a1a1a; }
+  @media (prefers-color-scheme: dark) { body { background: #1c1c1e; color: #f2f2f2; } }
+  h1 { font-size: 20px; }
+  p { font-size: 13px; line-height: 1.6; color: #555; }
+  @media (prefers-color-scheme: dark) { p { color: #aaa; } }
+  .status { padding: 10px 14px; border-radius: 10px; margin: 16px 0; font-size: 13px; font-weight: 600; }
+  .status.free { background: #f2f2f2; color: #555; }
+  .status.pro { background: #ffd60a; color: #1a1a1a; }
+  @media (prefers-color-scheme: dark) { .status.free { background: #2c2c2e; color: #ccc; } }
+  input { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 13px; margin-bottom: 10px; }
+  @media (prefers-color-scheme: dark) { input { background: #2c2c2e; border-color: #444; color: #f2f2f2; } }
+  button { width: 100%; padding: 10px; border-radius: 8px; border: none; background: #1a1a1a; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+  @media (prefers-color-scheme: dark) { button { background: #ffd60a; color: #1a1a1a; } }
+  a { color: inherit; }
+  #msg { font-size: 12px; margin-top: 10px; }
+</style>
+</head>
+<body>
+  <h1>💬 PromptDeck License</h1>
+  <div id="statusBox" class="status free">Free plan — up to 3 saved prompts</div>
+  <p>Get PromptDeck Pro for unlimited saved prompts and one-click import of the full AI Board of Directors prompt pack. One-time purchase, no subscription.</p>
+  <p><a href="https://tossneon.gumroad.com/l/promptdeck-pro" target="_blank">Buy PromptDeck Pro on Gumroad →</a></p>
+  <input id="keyInput" placeholder="Paste your license key here" />
+  <button id="activateBtn">Activate</button>
+  <div id="msg"></div>
+  <script src="storage.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
