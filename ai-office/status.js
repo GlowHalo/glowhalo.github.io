@@ -20,7 +20,7 @@ window.OFFICE_STATUS = {
       color: "#D9A441",
       icon: "💼",
       deskId: "desk-ceo",
-      task: "A1 Gumroad 리스팅 패키지 완성 — 회장 계정 개설 대기, 신정산원칙 수립"
+      task: "A1 노션 템플릿 공개 게시 완료 — Gumroad 정산계좌 연결 진행 중"
     },
     {
       id: "cso",
@@ -63,6 +63,11 @@ window.OFFICE_STATUS = {
   ],
 
   recentLog: [
+    {
+      date: "2026-08-05",
+      title: "A1 노션 템플릿 공개 게시 완료 — Duplicate 링크 확정",
+      summary: "회장이 노션 루트 페이지 Publish + '템플릿으로 복제' 토글 완료. 공개 링크: fearless-frog-802.notion.site/AI-Board-of-Directors. Gumroad 쪽은 정산계좌(SWIFT코드) 연결 단계 진행 중 — 둘 다 끝나면 리스팅 등록."
+    },
     {
       date: "2026-08-05",
       title: "신정산원칙 수립 + A1 Gumroad 리스팅 패키지 완성",
