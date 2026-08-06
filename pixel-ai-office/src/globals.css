@@ -5,8 +5,10 @@
 :root {
   --pink: #ff8fc0;
   --pink-deep: #ff5fa8;
-  --pink-bg: #ffe6f2;
-  --pink-line: #ffb9d9;
+  /* 이름은 그대로 --pink-*지만(다른 곳 다 이 변수를 참조해서 리네임은 안 함) 값은
+     세련된 남색으로 바꿈 — 페이지 배경 + 카드 테두리·점무늬 등 "은은한 바탕" 톤 전부 여기서 나옴 */
+  --pink-bg: #141a33;
+  --pink-line: #2c3766;
   --ink: #4a2b3c;
   --ink-soft: #8a6076;
   --ink-faint: #b98aa4;
