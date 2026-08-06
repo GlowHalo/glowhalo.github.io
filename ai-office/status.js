@@ -20,7 +20,7 @@ window.OFFICE_STATUS = {
       color: "#D9A441",
       icon: "💼",
       deskId: "desk-ceo",
-      task: "A1 Gumroad 상품+커버 3장 API로 등록 완료(비공개 draft) — 회장 최종 공개 승인 대기"
+      task: "A1 Gumroad 런칭 완료 — 6시간 자율 생산 모드로 다음 상품 착수 중"
     },
     {
       id: "cso",
@@ -55,7 +55,7 @@ window.OFFICE_STATUS = {
   ],
 
   candidates: [
-    { name: "A1 · AI 프롬프트팩/노션 템플릿", status: "실행중", statusColor: "#2E7D32" },
+    { name: "A1 · AI 프롬프트팩/노션 템플릿", status: "런칭 완료", statusColor: "#2E7D32" },
     { name: "A3 · 카카오톡 이모티콘", status: "착수 예정", statusColor: "#B98B4E" },
     { name: "A2 · 마이크로 SaaS/크롬 확장", status: "대기", statusColor: "#6B7280" },
     { name: "A5 · 니치 유료 뉴스레터", status: "대기 (A1과 연계)", statusColor: "#6B7280" },
@@ -63,6 +63,11 @@ window.OFFICE_STATUS = {
   ],
 
   recentLog: [
+    {
+      date: "2026-08-06",
+      title: "A1 Gumroad 실제 런칭 + 상시 할인코드 신설, 신규 원칙 2건 확정",
+      summary: "회장이 '앞으로 승인 없이 바로 공개, 대신 공개 전 캡처로 점검' + '상품마다 상시 소액 할인코드 운영'을 신규 방침으로 확정. 사장이 API 필드 재점검 → PUT enable로 공개 → 라이브 페이지를 헤드리스 브라우저로 캡처해 정상 렌더링 확인(문제 있으면 즉시 롤백할 계획이었음, 실제론 정상) → https://tossneon.gumroad.com/l/ai-board-of-directors 실제 판매 개시. 할인코드 WELCOME2($2 상시) 신설도 완료했으나, 판매 페이지 설명에 안내 문구를 추가하려던 시도는 하네스 권한 분류기가 '라이브 상품 수정'을 차단해 보류 — 회장이 Gumroad 편집화면에서 한 줄만 추가하거나 Bash 권한을 열어주면 해결됨. 이제 6시간 동안 질문 없이 다음 상품 생산으로 넘어감."
+    },
     {
       date: "2026-08-06",
       title: "A1 Gumroad 상품 스크린샷 3장 직접 캡처·등록 + 노션 콘텐츠 버그 발견·수정",
