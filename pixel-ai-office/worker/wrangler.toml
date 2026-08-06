@@ -1,0 +1,7 @@
+name = "pixel-ai-office-api"
+main = "index.ts"
+compatibility_date = "2026-01-01"
+
+# 무료 티어(workers.dev 서브도메인)로 배포됨. 커스텀 도메인 불필요.
+# 비밀값은 여기 두지 않는다 — `npx wrangler secret put <이름>` 으로 등록:
+#   NOTION_TOKEN, NOTION_BRIEFING_DB, DISCORD_WEBHOOK_URL

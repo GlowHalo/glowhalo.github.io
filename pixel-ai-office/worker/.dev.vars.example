@@ -1,0 +1,14 @@
+# 로컬 개발용 비밀값 — 복사해서 `.dev.vars` 로 저장하고 값을 채우세요.
+# `.dev.vars` 는 절대 커밋하지 않습니다 (.gitignore에 이미 포함).
+# 배포용은 파일이 아니라 `npx wrangler secret put <이름>` 으로 넣습니다.
+
+# ── Notion ─────────────────────────────────────────────
+# 1) https://www.notion.so/my-integrations 에서 내부 통합 생성 → Secret 복사 (ntn_ 로 시작)
+# 2) 보고서를 받을 Notion 페이지(데이터베이스) 열기 → 우측 상단 ⋯ → 연결 → 만든 통합 추가
+NOTION_TOKEN=
+# 보고서를 저장할 데이터베이스 ID (Notion DB 주소의 32자리 문자열)
+NOTION_BRIEFING_DB=
+
+# ── Discord (선택) ─────────────────────────────────────
+# 채널 편집 → 연동 → 웹후크 → 새 웹후크 → URL 복사
+DISCORD_WEBHOOK_URL=

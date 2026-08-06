@@ -1,11 +1,10 @@
-// 라이브 오피스의 하루 결과 → 보고서로 변환하고 서버(/api/report)로 발행한다
+// 라이브 오피스의 하루 결과 → 보고서로 변환하고 발행 서버로 보낸다.
 //
-// 이 폴더는 GitHub Pages 정적 호스팅용이라 원본(Cloudflare Workers)에 있던
-// /api/report, /api/integrations 백엔드가 없다. 대신 원본 워커가 "연동 미설정"일 때
-// 반환하던 것과 똑같은 모양의 결과를 로컬에서 그대로 돌려줘서, 화면은 "연동 안 붙은
-// 상태"로 정상 표시된다 (원본 README의 설계 원칙: 연결 안 된 걸 연결됐다고 표시하지 않는다).
-// 진짜로 Notion·Discord 연동을 쓰고 싶다면 원본 저장소(vinext + Cloudflare Workers 버전)를
-// 그대로 실행해야 한다 — 이 정적 버전은 연동을 수행하지 않는다.
+// 이 폴더(GitHub Pages, 정적)에는 서버가 없어서, 발행 기능은 별도로 배포한 작은
+// Cloudflare Worker(../worker/, 자세한 건 그 폴더의 README 참고)를 크로스오리진으로 호출한다.
+// WORKER_URL이 비어 있으면(=아직 그 Worker를 배포 안 했으면) 원본 워커가 "연동 미설정"일 때
+// 반환하던 것과 똑같은 모양의 결과를 로컬에서 그대로 돌려줘서, 화면은 "연동 안 붙은 상태"로
+// 정상 표시된다 (원본 README의 설계 원칙: 연결 안 된 걸 연결됐다고 표시하지 않는다).
 import type { Snapshot } from "./sim";
 import { BLOCK_NEED, DEPT_BRIEF } from "./staff";
 import { roomOf } from "./world";
@@ -75,22 +74,41 @@ export function buildReport(snap: Snapshot): DayReport {
   };
 }
 
-const UNCONFIGURED = "정적 사이트에는 발행 서버가 없어요";
+// pixel-ai-office/worker 를 배포하고 나면 여기에 그 주소를 채워 넣는다.
+// 예: "https://pixel-ai-office-api.<your-subdomain>.workers.dev"
+// 빈 문자열이면 아래 두 함수는 네트워크 요청 없이 "미설정"을 바로 돌려준다.
+const WORKER_URL = "";
 
-export async function publish(_report: DayReport): Promise<PublishResult> {
-  return {
-    notion: { ok: false, status: "unconfigured", detail: UNCONFIGURED },
-    discord: { ok: false, status: "unconfigured", detail: UNCONFIGURED },
-    publishedAt: new Date().toISOString(),
-  };
+const NOT_DEPLOYED = "발행 서버(Cloudflare Worker)가 아직 배포되지 않았어요";
+
+export async function publish(report: DayReport): Promise<PublishResult> {
+  if (!WORKER_URL) {
+    return {
+      notion: { ok: false, status: "unconfigured", detail: NOT_DEPLOYED },
+      discord: { ok: false, status: "unconfigured", detail: NOT_DEPLOYED },
+      publishedAt: new Date().toISOString(),
+    };
+  }
+  const response = await fetch(`${WORKER_URL}/report`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(report),
+  });
+  if (!response.ok) throw new Error(`발행 실패 (HTTP ${response.status})`);
+  return (await response.json()) as PublishResult;
 }
 
 export async function fetchIntegrations(): Promise<IntegrationStatus> {
-  return {
-    notion: { configured: false, label: "Notion 저장", need: "정적 배포에는 없는 기능" },
-    discord: { configured: false, label: "Discord 전송", need: "정적 배포에는 없는 기능" },
-    instagram: { configured: false, label: "Instagram 지표", need: "Meta 비즈니스 앱 + 장기 액세스 토큰" },
-    gmail: { configured: false, label: "Gmail 읽기", need: "Google OAuth 클라이언트 + 리프레시 토큰" },
-    finance: { configured: false, label: "재무 파일", need: "대표가 현황 파일 업로드" },
-  };
+  if (!WORKER_URL) {
+    return {
+      notion: { configured: false, label: "Notion 저장", need: NOT_DEPLOYED },
+      discord: { configured: false, label: "Discord 전송", need: NOT_DEPLOYED },
+      instagram: { configured: false, label: "Instagram 지표", need: "Meta 비즈니스 앱 + 장기 액세스 토큰" },
+      gmail: { configured: false, label: "Gmail 읽기", need: "Google OAuth 클라이언트 + 리프레시 토큰" },
+      finance: { configured: false, label: "재무 파일", need: "대표가 현황 파일 업로드" },
+    };
+  }
+  const response = await fetch(`${WORKER_URL}/integrations`);
+  if (!response.ok) throw new Error("연동 상태 조회 실패");
+  return (await response.json()) as IntegrationStatus;
 }
