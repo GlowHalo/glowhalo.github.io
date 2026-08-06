@@ -9,6 +9,10 @@ AI 직원들이 출근하고, 자리에 앉아 일하고, 회의실에 모이고
 
 라이브 주소: **https://tossneon.github.io/pixel-ai-office/play/**
 
+Notion/Discord 발행 기능을 실제로 쓰려면 `worker/` 폴더의 Cloudflare Worker를 별도로 배포해야
+합니다 — 자세한 건 [`worker/README.md`](worker/README.md) 참고. 배포 전에는 화면에
+"미설정"으로 정상 표시됩니다.
+
 ---
 
 ## 로컬에서 돌려보기
@@ -62,7 +66,8 @@ npm run build   # play/ 에 정적 산출물 생성 (base: './', circle-heroes�
   (`sim.ts`, `staff.ts`, `world.ts`, `pathfinding.ts`, `OfficeWorld.tsx`, `App.tsx`)은 원본과 동일합니다.
 - Tailwind는 원본 스타터의 보일러플레이트였고 실제로 쓰이지 않아 뺐습니다 — 스타일은 전부
   `src/globals.css` / `src/office.css`의 손으로 짠 CSS입니다.
-- 정말로 Notion·Discord 연동까지 쓰고 싶다면 이 폴더가 아니라 원본(vinext + Cloudflare Workers 버전)을
-  그대로 받아서 실행하세요.
+- Notion·Discord 발행은 `worker/`(별도의 초소형 Cloudflare Worker)로 다시 살렸습니다.
+  화면(GitHub Pages)과 발행 서버(Cloudflare)를 분리해서, 기존 정적 배포 구조는 그대로 두고
+  비밀키가 필요한 기능만 최소 범위로 얹었습니다.
 
 자유롭게 쓰고 고치되, 무단 재판매는 하지 말아주세요. (원본 제작자 안내 그대로)
