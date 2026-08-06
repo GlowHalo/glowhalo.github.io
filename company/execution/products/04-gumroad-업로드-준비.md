@@ -1,4 +1,4 @@
-# Gumroad 업로드 준비 — **2026-08-06: API로 상품 생성 완료, 회장 최종 공개 승인만 남음**
+# Gumroad 업로드 준비 — **2026-08-06: API로 상품 생성+커버 3장 등록 완료, 회장 최종 공개 승인만 남음**
 
 ## 정산 방식 체크 (신규 원칙 5 적용, [README](../../README.md#회장-리소스-제약-2026-08-05-확정-모든-안건에-항상-적용))
 
@@ -25,7 +25,9 @@
 
 **첨부/링크**:
 - **Notion Duplicate 링크 (확정, 회장이 게시 완료 2026-08-05)**: https://fearless-frog-802.notion.site/AI-Board-of-Directors-3b3fc7dfab7a811e98c3c816e6b1b7d2 — "템플릿으로 복제" 토글 켜짐 확인됨. **등록 시 공개 `description`에는 넣지 않고 `custom_receipt`(구매 후에만 노출)에만 넣었다** — 공개 설명에 넣으면 결제 없이 링크만으로 무료 복제가 가능해지기 때문.
-- 스크린샷 3~4장 — Board Minutes 데모 라운드, Prompt Sets, Candidate Tracker 칸반 뷰 (**아직 미캡처, 남은 단계 4번 참고**)
+- **스크린샷 3장 — ✅ 캡처 완료 + Gumroad 커버로 등록 완료 (2026-08-06)**: Board Minutes 데모 라운드, Prompt Sets, Candidate Tracker. 헤드리스 브라우저로 공개 노션 페이지를 직접 캡처 → `company/execution/products/gumroad-exhibits/`에 커밋 → raw.githubusercontent.com URL을 `POST /v2/products/:id/covers`에 `url` 파라미터로 넘겨 Gumroad 자체 CDN(public-files.gumroad.com)으로 임포트. 3장 모두 상품에 반영됨(`GET` 응답 `covers` 배열 길이 3으로 확인).
+  - **캡처 중 실제 콘텐츠 버그 발견·수정**: Prompt Sets 페이지 상단 콜아웃("Not sure which 3 to run together?")이 줄바꿈이 리터럴 `\n` 문자로 깨져서 그대로 노출되고 있었음(예: `...Growth #1n- Already have an idea...`). Notion API(`notion-update-page`, `update_content`)로 직접 수정해 정상적인 불릿 리스트로 교체하고 아이콘도 깨진 `\` → 💡로 정리. 유료 상품으로 나가기 전에 발견해서 다행 — 캡처 작업이 아니었으면 놓쳤을 결함.
+  - Gumroad 커버 업로드 API는 파일 직접 첨부(`multipart`)가 아니라 `signed_blob_id` 또는 `url`만 받는다 — 공개 저장소의 raw URL을 활용해 우회. 캡처 이미지 자체는 민감정보가 아니라 커밋해도 무방하다고 판단.
 
 **환불 정책**: 7일 무조건 환불 (판매페이지에 이미 명시됨)
 
@@ -47,7 +49,7 @@
    - 채워 넣은 필드: name, price($11), custom_summary(짧은 설명), description(훅·구성·3단계 사용법·비교·FAQ·가격/환불 — 소셜프루프 섹션은 아직 실제 후기가 없어 의도적으로 제외), tags(8개), custom_permalink(`ai-board-of-directors`)
    - `custom_receipt`(구매 확인 시에만 노출되는 안내문)에 **노션 Duplicate 링크와 3단계 시작 가이드**를 넣었다 — 그 링크를 공개 `description`에 넣으면 결제 없이도 노션 링크만으로 무료 복제가 가능해지므로, 의도적으로 구매자 전용 영역에만 배치.
    - `refund_policy`는 API 응답상 `"inherit"`(계정 기본값 상속)로만 조회되고 상품별 개별 설정은 이번 API 필드에서 확인 안 됨 — Gumroad 계정 설정(Settings → Payments/Checkout)에서 7일 환불 정책이 기본값으로 잡혀 있는지 **회장이 한 번 확인 필요**.
-   - **`published: false`(비공개/초안) 상태로 의도적으로 남겨둠.** 스토어 외부 공개는 [운영 원칙 2](../../README.md#운영-원칙)상 회장 승인 사항이라 사장이 임의로 켜지 않았다. 아래 순서로 마무리하면 됨:
-     1. 스크린샷 3~4장 캡처해 Gumroad 상품 편집 화면에서 커버 이미지로 추가 (API로는 이미지 업로드 미검증 — Gumroad 웹 편집기 사용 권장)
-     2. 계정 환불 정책 7일로 되어 있는지 확인
+   - **`published: false`(비공개/초안) 상태로 의도적으로 남겨둠.** 스토어 외부 공개는 [운영 원칙 2](../../README.md#운영-원칙)상 회장 승인 사항이라 사장이 임의로 켜지 않았다. 스크린샷 3장도 API로 등록 완료(위 참고). 남은 건:
+     1. ~~스크린샷 캡처·등록~~ ✅ (2026-08-06)
+     2. 계정 환불 정책 7일로 되어 있는지 확인 — **회장 재확인 필요**
      3. 내용 확인 후 **회장이 Gumroad 편집 화면에서 Publish(공개) 버튼만 누르면 런칭** — 또는 승인해주면 사장이 `PUT .../enable`로 바로 공개 처리 가능
