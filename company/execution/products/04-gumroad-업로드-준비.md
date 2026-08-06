@@ -24,7 +24,7 @@
 **전체 상세 설명(카피)**: `01-ai임원진-노션템플릿.md`의 "상세페이지 구성" 그대로 사용 — 판매페이지 목업(artifact)이 실제 문구 원본.
 
 **첨부/링크**:
-- Notion Duplicate 링크 — [노션 실물 루트 페이지](https://app.notion.com/p/3b3fc7dfab7a811e98c3c816e6b1b7d2)를 "웹에 공개" 설정 후 그 링크를 사용 (이 설정은 사장이 다음에 처리)
+- **Notion Duplicate 링크 (확정, 회장이 게시 완료 2026-08-05)**: https://fearless-frog-802.notion.site/AI-Board-of-Directors-3b3fc7dfab7a811e98c3c816e6b1b7d2 — "템플릿으로 복제" 토글 켜짐 확인됨
 - 스크린샷 3~4장 — Board Minutes 데모 라운드, Prompt Sets, Candidate Tracker 칸반 뷰 (다음 단계에서 캡처)
 
 **환불 정책**: 7일 무조건 환불 (판매페이지에 이미 명시됨)
@@ -33,7 +33,7 @@
 
 1. ~~노션 실물 제작~~ ✅
 2. ~~실사용 테스트~~ ✅
-3. 노션 루트 페이지 "웹에 공개(Publish to web)" 설정 + Duplicate 허용 확인 — **이건 Notion API로 노출 안 되는 UI 전용 토글이라 사장이 대신 못 함.** 회장님이 노션 앱에서 루트 페이지 우측 상단 Share → "Publish" 켜고 "Allow duplicate as template" 체크만 해주시면 끝 (1분)
+3. ~~노션 루트 페이지 웹에 공개 + 템플릿 복제 허용~~ ✅ (2026-08-05, 회장 완료 — 링크 위에 반영)
 4. 스크린샷 캡처 → 판매페이지 Exhibit A 교체
-5. 회장님 Gumroad 계정·정산계좌 연결 (위 1~2번)
-6. 사장이 리스팅 등록
+5. 회장님 Gumroad 계정·정산계좌 연결 — 진행 중 (계좌/SWIFT 코드 입력 단계 확인됨)
+6. 사장이 리스팅 등록 (계정·정산계좌 완료되면 바로 진행)
