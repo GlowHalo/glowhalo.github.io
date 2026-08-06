@@ -13,6 +13,9 @@
 - 이 저장소는 **공개**다. 비밀키·로그인 세션·고객 개인정보·진단 결과 PDF 는 **커밋 금지** — `data/` 등 gitignore 대상 폴더에 둔다.
 - `.gitignore` 는 **인라인 주석을 지원하지 않는다.** 주석은 별도 줄에 쓴다.
 - 브라우저에서 실행되는 코드에 API 키를 넣지 않는다. Notion/Drive 같은 서버용 키는 노출된다.
+- 서버용 비밀값(Notion 토큰, 웹훅 URL 등)은 프로젝트마다 따로 관리하지 않고 Cloudflare 계정의
+  공용 금고(Secrets Store) 하나에 모은다. 세션에 `CLOUDFLARE_API_TOKEN`이 있으면 회장에게 값을
+  다시 묻지 않고 그 금고를 먼저 확인한다 — 자세한 절차는 `.claude/rules/cloudflare-vault.md`.
 
 ## 가상회사 운영
 

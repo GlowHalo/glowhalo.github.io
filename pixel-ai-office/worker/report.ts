@@ -1,7 +1,9 @@
 /**
  * 완료 보고 발행 — 같은 내용을 Notion(김비서 일일 브리핑)과 Discord로 동시에 보낸다.
  *
- * 비밀값은 코드에 두지 않는다. 로컬은 `.dev.vars`, 배포는 `wrangler secret put`.
+ * 비밀값은 코드에 두지 않는다. 등록은 계정 단위 Cloudflare Secrets Store("금고")에 한 번만 하고,
+ * 이 Worker는 wrangler.toml의 `[[secrets_store_secrets]]` 바인딩으로 참조만 한다.
+ * 자세한 등록/동기화 방법은 `worker/scripts/sync-vault.sh`와 `.claude/rules/cloudflare-vault.md` 참고.
  *   NOTION_TOKEN          Notion 내부 통합 토큰 (ntn_…)
  *   NOTION_BRIEFING_DB    김비서 일일 브리핑 데이터베이스 ID
  *   DISCORD_WEBHOOK_URL   보고를 받을 채널의 웹훅 URL
@@ -23,15 +25,24 @@ export type DayReport = {
   log: { time: string; text: string }[];
 };
 
+/** Secrets Store 바인딩은 문자열이 아니라 `.get()`으로 값을 꺼내는 객체로 온다 (`wrangler secret put`으로
+ *  등록한 옛 방식은 그대로 문자열). 두 방식을 다 받아서, 금고로 옮길 때 이 파일을 또 고칠 필요가 없게 한다. */
+type SecretValue = string | { get(): Promise<string> };
+
 export type PublishEnv = {
-  NOTION_TOKEN?: string;
-  NOTION_BRIEFING_DB?: string;
-  DISCORD_WEBHOOK_URL?: string;
+  NOTION_TOKEN?: SecretValue;
+  NOTION_BRIEFING_DB?: SecretValue;
+  DISCORD_WEBHOOK_URL?: SecretValue;
 };
 
 type TargetResult = { ok: boolean; status: "sent" | "unconfigured" | "failed"; detail?: string; url?: string };
 
 const NOTION_VERSION = "2022-06-28";
+
+async function resolveSecret(value?: SecretValue): Promise<string | undefined> {
+  if (!value) return undefined;
+  return typeof value === "string" ? value : value.get();
+}
 
 export function integrationStatus(env: PublishEnv) {
   return {
@@ -67,9 +78,11 @@ async function sendNotion(report: DayReport, env: PublishEnv): Promise<TargetRes
   if (!env.NOTION_TOKEN || !env.NOTION_BRIEFING_DB) {
     return { ok: false, status: "unconfigured", detail: "NOTION_TOKEN / NOTION_BRIEFING_DB 미설정" };
   }
+  const notionToken = await resolveSecret(env.NOTION_TOKEN);
+  const briefingDb = await resolveSecret(env.NOTION_BRIEFING_DB);
 
   const body = {
-    parent: { database_id: env.NOTION_BRIEFING_DB },
+    parent: { database_id: briefingDb },
     properties: {
       "브리핑명": { title: richText(report.title) },
       "구분": { select: { name: "저녁 브리핑" } },
@@ -102,7 +115,7 @@ async function sendNotion(report: DayReport, env: PublishEnv): Promise<TargetRes
   const response = await fetch("https://api.notion.com/v1/pages", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${env.NOTION_TOKEN}`,
+      Authorization: `Bearer ${notionToken}`,
       "Notion-Version": NOTION_VERSION,
       "Content-Type": "application/json",
     },
@@ -124,6 +137,7 @@ async function sendDiscord(report: DayReport, env: PublishEnv, notionUrl?: strin
   if (!env.DISCORD_WEBHOOK_URL) {
     return { ok: false, status: "unconfigured", detail: "DISCORD_WEBHOOK_URL 미설정" };
   }
+  const webhookUrl = await resolveSecret(env.DISCORD_WEBHOOK_URL);
 
   const embed = {
     title: report.title,
@@ -144,7 +158,7 @@ async function sendDiscord(report: DayReport, env: PublishEnv, notionUrl?: strin
     timestamp: new Date().toISOString(),
   };
 
-  const response = await fetch(env.DISCORD_WEBHOOK_URL, {
+  const response = await fetch(webhookUrl!, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username: "김비서", content: "📋 오늘 전사 브리핑입니다.", embeds: [embed] }),

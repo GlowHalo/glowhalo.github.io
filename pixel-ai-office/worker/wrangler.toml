@@ -3,5 +3,16 @@ main = "index.ts"
 compatibility_date = "2026-01-01"
 
 # 무료 티어(workers.dev 서브도메인)로 배포됨. 커스텀 도메인 불필요.
-# 비밀값은 여기 두지 않는다 — `npx wrangler secret put <이름>` 으로 등록:
-#   NOTION_TOKEN, NOTION_BRIEFING_DB, DISCORD_WEBHOOK_URL
+#
+# 비밀값은 여기 두지 않는다. 두 가지 방법이 있다:
+#   1) 계정 공용 금고(Secrets Store) — 권장. `scripts/sync-vault.sh` 가 스토어를 만들고
+#      NOTION_TOKEN / NOTION_BRIEFING_DB / DISCORD_WEBHOOK_URL 을 등록한 뒤, 아래처럼
+#      [[secrets_store_secrets]] 바인딩을 자동으로 추가한다. 자세한 배경은
+#      `.claude/rules/cloudflare-vault.md` 참고.
+#        [[secrets_store_secrets]]
+#        binding = "NOTION_TOKEN"
+#        store_id = "<sync-vault.sh 실행 후 채워짐>"
+#        secret_name = "NOTION_TOKEN"
+#   2) (금고를 아직 안 만들었다면) 옛 방식 — 이 Worker에만 개별 등록:
+#        npx wrangler secret put <이름>   # NOTION_TOKEN, NOTION_BRIEFING_DB, DISCORD_WEBHOOK_URL
+# 어느 쪽이든 report.ts는 둘 다 그대로 읽는다 — 나중에 방법을 바꿔도 코드는 안 고쳐도 된다.
