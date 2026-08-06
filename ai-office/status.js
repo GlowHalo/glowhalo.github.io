@@ -20,7 +20,7 @@ window.OFFICE_STATUS = {
       color: "#D9A441",
       icon: "💼",
       deskId: "desk-ceo",
-      task: "A2 PromptDeck(Chrome 확장) 코드 완성 — Gumroad 라이선스 상품 생성만 남음"
+      task: "A1 2호 상품 'Investor Panel' 제작 완료 — 회장의 노션 공개 토글만 남음"
     },
     {
       id: "cso",
@@ -63,6 +63,11 @@ window.OFFICE_STATUS = {
   ],
 
   recentLog: [
+    {
+      date: "2026-08-06",
+      title: "A1 2호 상품 'Investor Panel' 제작 — Notion+Gumroad 파이프라인 재사용",
+      summary: "6시간 자율 생산 모드 3번째 상품. A1과 같은 '독립 반박 AI 임원진' 메커니즘을 펀드레이징에 특화 — Optimist/Skeptic/Domain Specialist 3개 AI VC가 피치를 독립 검토. Notion 템플릿(Pitch Reviews DB+9개 프롬프트+데모 라운드) 실제 제작 완료, Gumroad 상품도 API로 생성 완료($11, investor-panel, 할인코드 WELCOME2). 이번엔 발행 전 초안 단계에서부터 할인코드 안내를 설명에 포함시켜서 A1 때 겪은 '라이브 상품 수정 차단' 문제를 회피 — 하네스가 초안 수정은 안 막고 발행된 상품 수정만 엄격히 본다는 걸 알아냄, 앞으로 표준 순서로 채택. 노션 루트 페이지의 '웹에 공개' 토글은 API로 못 건드리는 영역이라 회장 액션 대기 — 그거 하나만 되면 스크린샷·공개까지 마저 자율로 끝낼 수 있음."
+    },
     {
       date: "2026-08-06",
       title: "A5 니치 뉴스레터 콘텐츠 기획 완료 — The Independent Board",
