@@ -30,7 +30,7 @@ window.OFFICE_STATUS = {
       color: "#7C5CBF",
       icon: "🎯",
       deskId: "desk-cso",
-      task: "3라운드 탐색 완료 — 다음 사업기회 리서치 대기 중"
+      task: "A3 '일잘봇' 컨셉·32종 문구 확정 — 정식 아트워크는 회장 액션 필요"
     },
     {
       id: "cto",
@@ -56,13 +56,18 @@ window.OFFICE_STATUS = {
 
   candidates: [
     { name: "A1 · AI 프롬프트팩/노션 템플릿", status: "런칭 완료", statusColor: "#2E7D32" },
-    { name: "A3 · 카카오톡 이모티콘", status: "착수 예정", statusColor: "#B98B4E" },
+    { name: "A3 · 카카오톡 이모티콘", status: "컨셉 준비 완료", statusColor: "#B98B4E" },
     { name: "A2 · 마이크로 SaaS/크롬 확장", status: "코드 완성", statusColor: "#B98B4E" },
     { name: "A5 · 니치 유료 뉴스레터", status: "콘텐츠 준비 완료", statusColor: "#B98B4E" },
     { name: "A4 · 앱스토어 유틸 앱", status: "보류", statusColor: "#9CA3AF" }
   ],
 
   recentLog: [
+    {
+      date: "2026-08-06",
+      title: "A3 카카오 이모티콘 컨셉 준비 — 캐릭터 '일잘봇' + 32종 문구 리스트",
+      summary: "6시간 자율 생산 모드 4번째 작업. 카카오 이모티콘 스튜디오 제출 요건을 직접 조사해 확정(멈춰있는 이모티콘: PNG 32종, 360x360, 투명배경, 150KB 이하 / 움직이는 이모티콘: GIF 3+PNG 21=24종, 승인 후 WEBP로 재제작). 직장인·개발자 타겟 로봇 마스코트 '일잘봇' 컨셉과 32개 문구 리스트 확정, 우선순위 12개 표시. 헤드리스 브라우저로 SVG를 직접 렌더링해 컨셉 목업 3장도 만들었지만, 이건 방향성 참고용일 뿐 실제 심사 제출 가능한 일러스트 퀄리티는 아니라고 명확히 표시함 — 정식 아트워크는 이미지 생성 도구가 없는 한 회장의 일러스트 외주나 별도 도구 연결이 필요. A3는 정산 방식(원칙 5) 재검증도 아직 안 끝나서 같이 남겨둠."
+    },
     {
       date: "2026-08-06",
       title: "A1 2호 상품 'Investor Panel' 제작 — Notion+Gumroad 파이프라인 재사용",
