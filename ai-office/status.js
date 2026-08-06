@@ -7,7 +7,7 @@
   이 파일은 그중 "지금 화면에 보여줄 요약"만 담는다.
 */
 window.OFFICE_STATUS = {
-  updatedAt: "2026-08-05",
+  updatedAt: "2026-08-06",
   companyName: "작업실 컴퍼니",
   tagline: "회장 1인 + AI 임원진이 백지상태에서 새 사업을 탐색하는 벤처스튜디오",
 
@@ -20,7 +20,7 @@ window.OFFICE_STATUS = {
       color: "#D9A441",
       icon: "💼",
       deskId: "desk-ceo",
-      task: "A1 Gumroad API 자동화 불가 확인(세션 네트워크 정책) — 회장 직접 업로드로 폴백"
+      task: "A1 Gumroad 상품 API로 실제 등록 완료(비공개 draft) — 회장 최종 공개 승인 대기"
     },
     {
       id: "cso",
@@ -63,6 +63,11 @@ window.OFFICE_STATUS = {
   ],
 
   recentLog: [
+    {
+      date: "2026-08-06",
+      title: "A1 Gumroad API 자동화 성공 — 실제 상품 등록 완료 (비공개 draft)",
+      summary: "회장이 클라우드 환경 네트워크 접근을 '전체(Full)'로 변경한 뒤 새 세션에서 access_token을 재전달, api.gumroad.com 호출이 이번엔 정상 동작(직전 세션의 CONNECT 403 차단이 해소됨). 사장이 POST/PUT /v2/products로 상품명·가격($11)·설명·태그·구매 후 안내(custom_receipt에 노션 링크)까지 API로 직접 등록 완료 — https://tossneon.gumroad.com/l/ai-board-of-directors. 스토어 외부 공개는 회장 승인 사항이라 published=false(비공개) 상태로 남겨두고, 스크린샷 추가 + 환불정책 확인 후 회장이 Publish만 누르면 되는 상태로 만들어둠. 토큰은 세션 스크래치패드에만 두고 저장소엔 커밋하지 않음."
+    },
     {
       date: "2026-08-05",
       title: "A1 Gumroad API 자동화 시도 — 세션 네트워크 정책으로 불가 확인",
