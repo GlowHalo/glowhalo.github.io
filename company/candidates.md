@@ -12,7 +12,7 @@
 |---|---|---|---|---|---|
 | A1 | AI 프롬프트팩/노션·시트 템플릿 스토어 | Gumroad/Etsy (개인판매, 사업자등록 불요) | 0원 | CSO | 🟢 **런칭 완료 + 2호 상품 준비 중** — 1호: https://tossneon.gumroad.com/l/ai-board-of-directors ($11, 할인코드 WELCOME2) 판매중. 2호 "Investor Panel"(피치덱 검토용, 같은 메커니즘) Notion+Gumroad 상품 생성까지 완료, 회장의 노션 "웹에 공개" 토글만 있으면 발행 가능 ([2호 기록](execution/products/05-investor-panel.md)) |
 | A2 | AI 마이크로 SaaS / 크롬 확장 프로그램 | 앱스토어/확장프로그램 스토어 개인 등록 | ~7천원 | CTO | 🟡 **코드 완성** — PromptDeck(Chrome 확장) 전체 코드+아이콘+개인정보처리방침 작성 완료. Gumroad 라이선스 상품 생성이 하네스 차단으로 보류, 회장 액션 필요 (상세: [execution/A2-promptdeck.md](execution/A2-promptdeck.md)) |
-| A3 | 카카오톡 이모티콘 | 카카오 이모티콘 스튜디오 (개인 창작자, 정산 직접) | ~10만원 | CMO | ⚪ 대기 (승인 큐가 기니 조만간 병행 착수 권장) |
+| A3 | 카카오톡 이모티콘 | 카카오 이모티콘 스튜디오 (개인 창작자, 정산 직접) | ~10만원 | CMO | 🟡 **컨셉 준비 완료** — 캐릭터 "일잘봇"·32종 문구 리스트·제출요건·CSS 컨셉목업 완료. **정식 아트워크는 이미지 생성 도구 없이는 못 만듦** — 회장이 일러스트 외주/도구 연결 필요 ([execution/A3-kakao-emoticon.md](execution/A3-kakao-emoticon.md)). 정산 방식(원칙 5) 재검증도 아직 남음 |
 | A4 | 앱스토어/플레이스토어 니치 유틸 앱 | Apple/Google 개인 개발자 계정 | ~17만원(+연회비) | CMO | ⚪ 보류 (연회비 반복 발생 — 후순위) |
 | A5 | 니치 유료 뉴스레터 | **스티비(Stibee) 유료구독 기능** — PG 대행 자체 내장, 비사업자는 기타/사업소득으로 신고 | 0원 | CSO 제안 → CTO 검증(KEEP), CSO 초안(카카오페이/토스 직접결제)은 기각·대체 | 🟡 **콘텐츠 준비 완료** — "The Independent Board" 컨셉·가격·창간호 초안 작성 완료(A1과 같은 세계관, 크로스셀 설계). 스티비 계정 생성만 회장 액션 대기 ([execution/A5-newsletter.md](execution/A5-newsletter.md)) |
 
