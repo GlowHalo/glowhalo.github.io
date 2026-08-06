@@ -14,7 +14,7 @@
 | A2 | AI 마이크로 SaaS / 크롬 확장 프로그램 | 앱스토어/확장프로그램 스토어 개인 등록 | ~7천원 | CTO | 🟡 **코드 완성** — PromptDeck(Chrome 확장) 전체 코드+아이콘+개인정보처리방침 작성 완료. Gumroad 라이선스 상품 생성이 하네스 차단으로 보류, 회장 액션 필요 (상세: [execution/A2-promptdeck.md](execution/A2-promptdeck.md)) |
 | A3 | 카카오톡 이모티콘 | 카카오 이모티콘 스튜디오 (개인 창작자, 정산 직접) | ~10만원 | CMO | ⚪ 대기 (승인 큐가 기니 조만간 병행 착수 권장) |
 | A4 | 앱스토어/플레이스토어 니치 유틸 앱 | Apple/Google 개인 개발자 계정 | ~17만원(+연회비) | CMO | ⚪ 보류 (연회비 반복 발생 — 후순위) |
-| A5 | 니치 유료 뉴스레터 | **스티비(Stibee) 유료구독 기능** — PG 대행 자체 내장, 비사업자는 기타/사업소득으로 신고 | 0원 | CSO 제안 → CTO 검증(KEEP), CSO 초안(카카오페이/토스 직접결제)은 기각·대체 | ⚪ 대기 (A1과 묶어서 시드 구독자 확보 후 착수) |
+| A5 | 니치 유료 뉴스레터 | **스티비(Stibee) 유료구독 기능** — PG 대행 자체 내장, 비사업자는 기타/사업소득으로 신고 | 0원 | CSO 제안 → CTO 검증(KEEP), CSO 초안(카카오페이/토스 직접결제)은 기각·대체 | 🟡 **콘텐츠 준비 완료** — "The Independent Board" 컨셉·가격·창간호 초안 작성 완료(A1과 같은 세계관, 크로스셀 설계). 스티비 계정 생성만 회장 액션 대기 ([execution/A5-newsletter.md](execution/A5-newsletter.md)) |
 
 **A5 정정 이력**: 2라운드에서 "카카오페이/토스 개인결제 링크"를 전제로 냈다가 3라운드에서 CSO 스스로 "결제확인을 사람이 해야 함(PASS)"으로 재검증했으나, CTO가 스티비의 자체 유료구독 결제 기능(정기결제 자동화 내장)을 근거로 KEEP 반박 → 사장이 직접 팩트체크([스티비 도움말](https://help.stibee.com/paid-newsletter/billing/tax-filing-procedure), [세무 신고 안내](https://help.stibee.com/paid-newsletter/billing/tax-filing-procedure))해 CTO 판정 확정. 결제 수단만 스티비 자체 구독기능으로 교체하면 A5는 유효.
 

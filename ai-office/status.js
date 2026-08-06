@@ -50,7 +50,7 @@ window.OFFICE_STATUS = {
       color: "#3FA66B",
       icon: "📈",
       deskId: "desk-cmo",
-      task: "A1 시장조사 완료(경쟁상품·타겟·가격 확정) — 다음은 A3 시안 착수"
+      task: "A5 뉴스레터 컨셉·창간호 초안 완성 — 스티비 계정 생성 대기"
     }
   ],
 
@@ -58,11 +58,16 @@ window.OFFICE_STATUS = {
     { name: "A1 · AI 프롬프트팩/노션 템플릿", status: "런칭 완료", statusColor: "#2E7D32" },
     { name: "A3 · 카카오톡 이모티콘", status: "착수 예정", statusColor: "#B98B4E" },
     { name: "A2 · 마이크로 SaaS/크롬 확장", status: "코드 완성", statusColor: "#B98B4E" },
-    { name: "A5 · 니치 유료 뉴스레터", status: "대기 (A1과 연계)", statusColor: "#6B7280" },
+    { name: "A5 · 니치 유료 뉴스레터", status: "콘텐츠 준비 완료", statusColor: "#B98B4E" },
     { name: "A4 · 앱스토어 유틸 앱", status: "보류", statusColor: "#9CA3AF" }
   ],
 
   recentLog: [
+    {
+      date: "2026-08-06",
+      title: "A5 니치 뉴스레터 콘텐츠 기획 완료 — The Independent Board",
+      summary: "6시간 자율 생산 모드 2번째 상품. A1의 '독립 반박 AI 임원진' 메커니즘을 뉴스레터로 확장 — 매주 공개 창업 사례를 3관점으로 테어다운하는 무료 섹션 + 월간 프롬프트 플레이북 유료 섹션. 우리 회사 자체 재무정보는 상시 공개 콘텐츠화하지 않기로 결정(별도 신중 검토 필요 영역으로 판단, 회장이 원하면 피봇 가능하다고 기록해둠). 가격·창간호 3섹션 초안까지 완성. 스티비 계정 생성만 회장 액션 대기."
+    },
     {
       date: "2026-08-06",
       title: "A2 PromptDeck(Chrome 확장) 코드 완성 — 6시간 자율 생산 모드 1번째 상품",
