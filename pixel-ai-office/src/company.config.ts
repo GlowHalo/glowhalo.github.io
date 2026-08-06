@@ -17,36 +17,36 @@
 /** 회사 기본 정보 */
 export const COMPANY = {
   /** 좌측 상단 헤더에 뜨는 회사 이름 */
-  name: "MY AI COMPANY",
+  name: "새사업 스튜디오",
   /** 헤더 로고 배지에 들어갈 글자 1개 (이모지도 됩니다) */
-  logoLetter: "M",
+  logoLetter: "🌱",
   /** 화면 상단 큰 제목 (앞부분) */
   titlePrefix: "나의",
   /** 화면 상단 큰 제목 (강조되는 뒷부분) */
-  titleAccent: "AI Office",
+  titleAccent: "새사업 스튜디오",
   /** 브라우저 탭 제목 */
-  pageTitle: "My AI Company — 나의 AI 사무실",
+  pageTitle: "새사업 스튜디오 — 대표님의 탐색형 벤처 오피스",
   /** 검색·공유될 때 뜨는 설명 */
-  description: "12개 AI 팀이 조사·기획·제작·보고까지 돌아가는 1인 크리에이터용 AI 오피스",
+  description: "사업 기회를 리서치·검증해서 다음 계열사로 키우는 1인 대표의 AI 오피스",
   /** 창 하단 파일명 느낌의 라벨 */
-  windowLabel: "my_ai_company.exe — 대표실",
+  windowLabel: "new_venture_studio.exe — 대표실",
   /** 일일 브리핑 제목에 들어갈 이름 */
-  reportName: "AI Office",
+  reportName: "새사업 스튜디오",
 } as const;
 
 /** 대표(나) — 사무실 대표실에 앉아 있는 캐릭터 */
 export const CEO_PROFILE = {
-  name: "김대표",
+  name: "대표님",
   callsign: "대표님",
-  role: "대표 · 최종 의사결정",
+  role: "대표 · 최종 의사결정 · 다음 계열사 준비",
   hair: "#42283a",
   shirt: "#ff8fc0",
   accent: "#fff3b0",
   skin: "#ffdcc4",
   thoughts: [
-    "AI는 비서, 최종 결정은 내가 해요.",
-    "오늘 결정할 건 딱 1개만 남기자.",
-    "저장될 만한 콘텐츠인지부터 본다.",
+    "이 사업이 검증되면 AI 대표를 세우고, 나는 다음 회사로 간다.",
+    "오늘 리서치가 다음 계열사의 시작점이 될 수도 있어.",
+    "숫자로 증명 안 되면 그냥 아이디어일 뿐이다.",
   ],
 };
 
