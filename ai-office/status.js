@@ -20,7 +20,7 @@ window.OFFICE_STATUS = {
       color: "#D9A441",
       icon: "💼",
       deskId: "desk-ceo",
-      task: "A1 노션 템플릿 공개 게시 완료 — Gumroad 정산계좌 연결 진행 중"
+      task: "A1 Gumroad API 자동화 불가 확인(세션 네트워크 정책) — 회장 직접 업로드로 폴백"
     },
     {
       id: "cso",
@@ -63,6 +63,11 @@ window.OFFICE_STATUS = {
   ],
 
   recentLog: [
+    {
+      date: "2026-08-05",
+      title: "A1 Gumroad API 자동화 시도 — 세션 네트워크 정책으로 불가 확인",
+      summary: "회장이 Gumroad access token 발급 후 전달, 사장이 API 직접 호출 시도했으나 이 세션의 egress 정책이 api.gumroad.com을 차단(CONNECT 403, 조직 정책 우회 안 함). Gumroad 자체는 API 자동화 지원(원칙 6 통과)하나 현재 실행 환경 제약으로 실행 불가 — 결과를 명확히 기록하고, 이번 리스팅은 회장 직접 업로드로 폴백. 토큰은 사용 후 즉시 폐기."
+    },
     {
       date: "2026-08-05",
       title: "A1 노션 템플릿 공개 게시 완료 — Duplicate 링크 확정",
