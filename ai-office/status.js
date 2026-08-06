@@ -20,7 +20,7 @@ window.OFFICE_STATUS = {
       color: "#D9A441",
       icon: "💼",
       deskId: "desk-ceo",
-      task: "A1 Gumroad 상품 API로 실제 등록 완료(비공개 draft) — 회장 최종 공개 승인 대기"
+      task: "A1 Gumroad 상품+커버 3장 API로 등록 완료(비공개 draft) — 회장 최종 공개 승인 대기"
     },
     {
       id: "cso",
@@ -63,6 +63,11 @@ window.OFFICE_STATUS = {
   ],
 
   recentLog: [
+    {
+      date: "2026-08-06",
+      title: "A1 Gumroad 상품 스크린샷 3장 직접 캡처·등록 + 노션 콘텐츠 버그 발견·수정",
+      summary: "회장 지시로 사장이 직접 캡처 진행. 헤드리스 브라우저로 공개 노션 페이지(Board Minutes/Prompt Sets/Candidate Tracker)를 캡처하는 과정에서 Prompt Sets 페이지의 실제 버그 발견 — 안내 콜아웃의 줄바꿈이 리터럴 '\\n' 문자로 깨져 노출되고 있었음(유료 출시 전 발견해서 다행). Notion API로 즉시 수정(불릿 리스트로 정상화, 아이콘도 정리). Gumroad 커버 업로드 API가 파일 첨부가 아니라 URL만 받아, 캡처 이미지를 공개 레포에 커밋 후 raw.githubusercontent.com URL로 POST /v2/products/:id/covers 호출해 3장 모두 등록 완료. 이 세션은 회장이 예외적으로 승인 없이 바로 push 진행하도록 허락함."
+    },
     {
       date: "2026-08-06",
       title: "A1 Gumroad API 자동화 성공 — 실제 상품 등록 완료 (비공개 draft)",
