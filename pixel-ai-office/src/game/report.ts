@@ -45,14 +45,14 @@ export function buildReport(snap: Snapshot): DayReport {
     .map(([dept]) => `${roomOf(dept).name} — ${BLOCK_NEED[dept] ?? "외부 연동"} 대기로 오늘 진행 불가`);
 
   const decisions = snap.approved
-    ? ["TOP 1 콘텐츠 제작 승인 — 대본·제작까지 진행 완료"]
+    ? ["TOP 1 사업 아이디어 승인 — 실행안 설계·검증 실험까지 진행 완료"]
     : snap.approvalPending
-      ? ["TOP 1 콘텐츠 승인 여부 (결재 대기 중)"]
+      ? ["TOP 1 사업 아이디어 승인 여부 (결재 대기 중)"]
       : ["오늘 대표 결재 안건 없음"];
 
   const next = [
     ...risks.map((risk) => `${risk.split(" — ")[0]}: 연동 완료되면 즉시 재가동`),
-    snap.approved ? "제작된 콘텐츠 업로드 및 성과 기록" : "TOP 3 재검토",
+    snap.approved ? "검증 실험 결과 반영 및 회고 기록" : "TOP 3 재검토",
   ];
 
   return {
@@ -103,7 +103,7 @@ export async function fetchIntegrations(): Promise<IntegrationStatus> {
     return {
       notion: { configured: false, label: "Notion 저장", need: NOT_DEPLOYED },
       discord: { configured: false, label: "Discord 전송", need: NOT_DEPLOYED },
-      instagram: { configured: false, label: "Instagram 지표", need: "Meta 비즈니스 앱 + 장기 액세스 토큰" },
+      instagram: { configured: false, label: "경쟁사 지표", need: "경쟁사 분석 툴 API 연동" },
       gmail: { configured: false, label: "Gmail 읽기", need: "Google OAuth 클라이언트 + 리프레시 토큰" },
       finance: { configured: false, label: "재무 파일", need: "대표가 현황 파일 업로드" },
     };

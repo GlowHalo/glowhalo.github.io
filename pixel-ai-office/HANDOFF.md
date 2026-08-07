@@ -33,7 +33,22 @@
 - 배포 후 나오는 workers.dev 주소를 `src/game/report.ts`의 `WORKER_URL` 상수에 넣고
   `npm run build` 다시 → `play/` 재커밋해야 화면에서 실제로 그 Worker를 호출함.
 
-## 미완료 작업 2 — sim.ts 시뮬레이션 서사를 "사업기회 발굴"에 맞게 다시 쓰기
+## 완료됨 — sim.ts 시뮬레이션 서사를 "사업기회 발굴"에 맞게 다시 쓰기 (2026-08-07)
+
+부서 12개 매핑, `sim.ts`(PHASES/BLOCK_REASON/DEPT_KEYWORDS/dayScript/conveneScene/briefScene),
+`company.config.ts`(DEPARTMENTS/STAFF_LIST/PENDING_INTEGRATIONS), `report.ts`,
+`App.tsx`(승인 카드·대시보드 카피·결과물창고·footer·placeholder), `index.html`(제목/설명),
+`worker/report.ts`(라벨·footer)까지 전부 "사업기회 발굴 → 검증 실험(랜딩/인터뷰)" 흐름으로
+교체 완료. Playwright로 승인 흐름·CEO 콘솔 질의응답·대시보드·최종 브리핑까지 실제 확인함.
+
+**남은 잔가지**: `public/og.png`(소셜 공유 미리보기 이미지)에 원본 제작자 브랜딩
+("GODSENG AI COMPANY")이 픽셀아트로 박혀 있음 — 이미지 파일이라 텍스트 치환이 아니라
+재생성이 필요해서 이번 작업 범위에서 제외함. 다음에 손볼 것.
+
+사업이 여러 개로 늘어날 때 조직을 어떻게 키울지는 `GROWTH-STRUCTURE.md`에 별도로 정리함
+(스튜디오 체계 / 신사업팀→사업부서 승격 / 관계사 오피스 복제 3단계 로드맵).
+
+## (참고, 아래는 작업 시작 전 남겼던 원래 메모) sim.ts 시뮬레이션 서사를 "사업기회 발굴"에 맞게 다시 쓰기
 
 ### 왜 필요한가
 `company.config.ts`로 바꿀 수 있는 건 부서 12개의 `name`/`icon`/`short`/`task`/`report`뿐이다.
