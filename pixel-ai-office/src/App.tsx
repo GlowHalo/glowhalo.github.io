@@ -162,7 +162,7 @@ export default function Home() {
 
   const approve = () => {
     engine.approve();
-    showToast("승인 완료! 제작팀이 바로 움직여요");
+    showToast("승인 완료! 실행팀이 바로 움직여요");
   };
 
   const teams = useMemo(
@@ -249,12 +249,8 @@ export default function Home() {
         )}
 
         <footer>
-          이 툴은 갓생맘 🎀이 만들었어요
-          <br />
-          <a href="https://www.instagram.com/godseng.mom/" target="_blank" rel="noreferrer">
-            📷 @godseng.mom — 더 많은 크리에이터 툴 보러가기 →
-          </a>
-          <br />© godseng.mom · 자유롭게 쓰되 무단 재판매 금지
+          이 오피스는 대표님의 신규 사업 탐색을 돕는 AI 시뮬레이션이에요.
+          <br />© {COMPANY.name} · 사업 기회는 검증된 뒤에만 다음 계열사로 키웁니다.
         </footer>
       </div>
 
@@ -399,15 +395,15 @@ function LiveView({
                     <span className="mini-badge yellow">TOP 1 제안 · 92점</span>
                     <span className="score blink">결재 대기</span>
                   </div>
-                  <h3>AI 회사가 매일 아침 나 대신 출근한다면?</h3>
+                  <h3>무자본으로 시작하는 B2B 구독형 서비스?</h3>
                   <p>회의실에서 최아름·한도빈·김세리가 대표님을 기다리고 있어요.</p>
                   <div className="reason-list">
-                    <span>① 실제 구축 과정</span>
-                    <span>② 저장할 운영 구조</span>
-                    <span>③ 날것의 시행착오</span>
+                    <span>① 시장 검증된 수요</span>
+                    <span>② 무자본으로 실행 가능</span>
+                    <span>③ 다음 계열사로 확장 가능한 구조</span>
                   </div>
                   <button className="btn approve-button" onClick={onApprove}>
-                    이 콘텐츠 승인하기
+                    이 사업 아이디어 승인하기
                   </button>
                 </>
               ) : (
@@ -415,11 +411,11 @@ function LiveView({
                   <div className="approval-top">
                     <span className="mini-badge mint">{snap.approved ? "오늘 결재 완료" : "결재 대기 없음"}</span>
                   </div>
-                  <h3>{snap.approved ? "승인하신 안으로 제작 중이에요" : "아직 올라온 안건이 없어요"}</h3>
+                  <h3>{snap.approved ? "승인하신 안으로 검증 중이에요" : "아직 올라온 안건이 없어요"}</h3>
                   <p>
                     {snap.approved
-                      ? "대표 승인 이후 원고 → 제작 → 보관까지 이어집니다."
-                      : "업무를 시작하면 콘텐츠 전략팀이 TOP 3를 회의실로 올려요."}
+                      ? "대표 승인 이후 실행안 설계 → 검증 실험 → 결과 저장까지 이어집니다."
+                      : "업무를 시작하면 기회 기획팀이 TOP 3를 회의실로 올려요."}
                   </p>
                 </>
               )}
@@ -553,7 +549,7 @@ function CeoConsole({ engine, snap }: { engine: Company; snap: Snapshot }) {
           <input
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder="예: 캐러셀팀 지금 뭐해? / 왜 늦어져?"
+            placeholder="예: 고객인터뷰팀 지금 뭐해? / 왜 늦어져?"
             aria-label="대표 지시 입력"
           />
           <button type="submit">지시</button>
@@ -648,11 +644,11 @@ function BriefingModal({ snap, onClose }: { snap: Snapshot; onClose: () => void 
           <ul>
             <li>
               <span className="dot green" />
-              완료 {snap.stats.done}팀 — 조사·기획·QA·대본·제작·저장까지 마쳤어요
+              완료 {snap.stats.done}팀 — 스캔·기획·리스크점검·실행안·검증실험·저장까지 마쳤어요
             </li>
             <li>
               <span className="dot green" />
-              대표 승인 1건 반영 — TOP 1 콘텐츠 제작 완료
+              대표 승인 1건 반영 — TOP 1 사업 아이디어 검증 실험 완료
             </li>
             <li>
               <span className="dot gray" />
@@ -729,7 +725,7 @@ function DashboardView({
           tone: publishResult?.discord.ok ? "mint" : integrations.discord?.configured ? "yellow" : "lav",
           href: "",
         },
-        { name: "Instagram", status: integrations.instagram?.need ?? "연동 대기", tone: "lav", href: "" },
+        { name: "경쟁사 지표", status: integrations.instagram?.need ?? "연동 대기", tone: "lav", href: "" },
         { name: "Gmail", status: integrations.gmail?.need ?? "연동 대기", tone: "lav", href: "" },
         { name: "재무 파일", status: integrations.finance?.need ?? "자료 대기", tone: "lav", href: "" },
       ]
@@ -751,7 +747,7 @@ function DashboardView({
             <h1>
               오늘 회사가 어떻게 움직이는지 <em className="highlight">한눈에</em> 보여드려요
             </h1>
-            <p>AI는 비서, 결정은 대표님. 12개 팀 32명의 조사부터 제작·저장·브리핑까지 한 흐름으로 관리해요.</p>
+            <p>AI는 비서, 결정은 대표님. 12개 팀 32명의 시장 스캔부터 검증 실험·저장·브리핑까지 한 흐름으로 관리해요.</p>
           </div>
           <div className="hero-actions">
             <button className="btn btn-primary" onClick={onStart} disabled={snap.running}>
@@ -893,17 +889,17 @@ function DashboardView({
                   <span className="score">92점</span>
                 </div>
                 <h3>
-                  AI 회사가 매일 아침
+                  무자본으로 시작하는
                   <br />
-                  나 대신 출근한다면?
+                  B2B 구독형 서비스?
                 </h3>
-                <p>지금 만들고 있는 시스템 자체를 날것의 성장기로 공개하는 크리에이터 아이덴티티 콘텐츠예요.</p>
+                <p>오늘 검증된 사업기회 후보 중 리스크 점검을 통과한 TOP 1 아이디어예요. 랜딩·인터뷰 실험으로 실제 수요를 확인합니다.</p>
                 <button
                   className={`btn approve-button ${snap.approved ? "approved" : ""}`}
                   onClick={onApprove}
                   disabled={!snap.approvalPending}
                 >
-                  {snap.approved ? "승인 완료 · 제작팀 전달됨" : snap.approvalPending ? "이 콘텐츠 승인하기" : "대기 중인 안건 없음"}
+                  {snap.approved ? "승인 완료 · 실행팀 전달됨" : snap.approvalPending ? "이 사업 아이디어 승인하기" : "대기 중인 안건 없음"}
                 </button>
               </div>
             </section>
@@ -914,7 +910,7 @@ function DashboardView({
                 <span className="window-controls">—　▢　✕</span>
               </div>
               <div className="win-body">
-                <p className="brief-date">2026.07.26 · {snap.clock} 현재</p>
+                <p className="brief-date">오늘 · {snap.clock} 현재</p>
                 <h3>{snap.dayComplete ? "대표님, 오늘 업무가 정리됐어요." : "대표님, 현재 진행 상황이에요."}</h3>
                 <ul>
                   <li>
@@ -934,9 +930,9 @@ function DashboardView({
                   <span className="tiny-label">대표님이 오늘 결정할 1개</span>
                   <strong>
                     {snap.approvalPending
-                      ? "TOP 1 콘텐츠를 제작할지 승인해주세요."
+                      ? "TOP 1 사업 아이디어를 검증 실험으로 진행할지 승인해주세요."
                       : snap.approved
-                        ? "결정 완료! 제작팀이 다음 업무를 진행해요."
+                        ? "결정 완료! 실행팀이 다음 업무를 진행해요."
                         : "아직 올라온 안건이 없어요."}
                   </strong>
                 </div>
@@ -971,14 +967,14 @@ function DashboardView({
               <span>바로가기</span>
             </div>
             <div className="result-row">
-              <b>이번 주 콘텐츠 캘린더 정리</b>
-              <span>기획 1팀</span>
+              <b>무자본 B2B 구독형 서비스 · 랜딩 검증 실험</b>
+              <span>랜딩검증팀</span>
               <span className="status-pill done">최종 완료</span>
               <span>—</span>
             </div>
             <div className="result-row">
-              <b>브랜드 템플릿 세팅</b>
-              <span>이미지 제작팀</span>
+              <b>잠재고객 인터뷰 8건 · 결과 정리</b>
+              <span>고객인터뷰팀</span>
               <span className="status-pill done">최종 완료</span>
               <span>—</span>
             </div>

@@ -38,7 +38,7 @@ export function integrationStatus(env: PublishEnv) {
     notion: { configured: Boolean(env.NOTION_TOKEN && env.NOTION_BRIEFING_DB), label: "Notion 저장" },
     discord: { configured: Boolean(env.DISCORD_WEBHOOK_URL), label: "Discord 전송" },
     // 아래 3개는 자격증명을 받는 즉시 같은 방식으로 붙는다
-    instagram: { configured: false, label: "Instagram 지표", need: "Meta 비즈니스 앱 + 장기 액세스 토큰" },
+    instagram: { configured: false, label: "경쟁사 지표", need: "경쟁사 분석 툴 API 연동" },
     gmail: { configured: false, label: "Gmail 읽기", need: "Google OAuth 클라이언트 + 리프레시 토큰" },
     finance: { configured: false, label: "재무 파일", need: "대표가 현황 파일 업로드" },
   };
@@ -140,7 +140,7 @@ async function sendDiscord(report: DayReport, env: PublishEnv, notionUrl?: strin
       { name: "문제·위험", value: joinLines(report.risks).slice(0, 1000) },
       { name: "다음 우선순위", value: joinLines(report.next).slice(0, 1000) },
     ],
-    footer: { text: notionUrl ? "Notion에도 저장됨 · 갓생맘 AI Office" : "갓생맘 AI Office" },
+    footer: { text: notionUrl ? "Notion에도 저장됨 · 새사업 스튜디오" : "새사업 스튜디오" },
     timestamp: new Date().toISOString(),
   };
 
