@@ -20,7 +20,7 @@ window.OFFICE_STATUS = {
       color: "#D9A441",
       icon: "💼",
       deskId: "desk-ceo",
-      task: "종합 보고 완료 — 회장 액션 6건 대기, 처리되는 대로 이어서 완결 예정"
+      task: "Investor Panel 런칭 완료 — 노션 상품 허브 구조로 앞으로 발행 자동화됨"
     },
     {
       id: "cso",
@@ -63,6 +63,11 @@ window.OFFICE_STATUS = {
   ],
 
   recentLog: [
+    {
+      date: "2026-08-07",
+      title: "Investor Panel 실제 런칭 + 노션 상품 허브 구조 도입",
+      summary: "회장이 '작업실 컴퍼니 — 상품 허브' 페이지를 웹에 공개해줌 → 그 하위의 Investor Panel과 모든 서브페이지가 자동으로 공개 상태를 상속받는 것 확인(Notion 공식 사양). 사장이 이어서 스크린샷 캡처(Pitch Reviews·Prompt Sets) → Gumroad 커버 등록 → 발행 전 점검 → enable로 공개까지 전부 자율 완료 — https://tossneon.gumroad.com/l/investor-panel. 이제부터 신상품은 이 허브 아래 만들기만 하면 노션 발행 토글이 필요 없어짐. Gumroad 라이브 상품 수정 권한(.claude/settings.json)도 회장이 커밋해주면 마지막 남은 반복 병목까지 해소될 예정."
+    },
     {
       date: "2026-08-06",
       title: "6시간 자율 생산 마무리 — 회장 액션 대기 목록 정리",
