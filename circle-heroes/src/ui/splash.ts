@@ -31,19 +31,34 @@ export function renderSplash(onDismiss: () => void) {
   overlay.appendChild(tap);
 
   let ready = battleAssetsReady;
+  // §2026-08-07 "웹버전 무한로딩" 버그 수정 — 게임 엔진(Phaser+BattleScene) 동적 import가
+  // 네트워크 문제로 재시도까지 다 실패하면 main.ts가 이 신호를 보낸다. 그 전까지는 "로딩 중..."이
+  // 무한정 이어져 사용자가 뭘 해야 할지 알 방법이 없었음 — 실패 상태에서는 문구를 바꾸고 탭하면
+  // 새로고침(재시도)하도록 오버레이 자체를 재활용한다
+  let failed = false;
   const renderTapState = () => {
-    tap.textContent = ready ? "Tap to continue" : "로딩 중...";
-    overlay.classList.toggle("loading", !ready);
+    tap.textContent = failed ? "불러오기 실패 — 눌러서 다시 시도" : ready ? "Tap to continue" : "로딩 중...";
+    overlay.classList.toggle("loading", !ready && !failed);
+    overlay.classList.toggle("load-failed", failed);
   };
   renderTapState();
   if (!ready) {
     on("battle-load-complete", () => {
       ready = true;
+      failed = false;
+      renderTapState();
+    });
+    on("battle-load-failed", () => {
+      failed = true;
       renderTapState();
     });
   }
 
   overlay.onclick = () => {
+    if (failed) {
+      location.reload();
+      return;
+    }
     if (!ready) return;
     overlay.remove();
     onDismiss();

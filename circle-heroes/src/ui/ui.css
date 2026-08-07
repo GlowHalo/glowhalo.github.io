@@ -1889,6 +1889,13 @@ img.face-corner-badge.badge-faction {
 /* §2026-07-31 로딩 완료 전엔 탭해도 안 닫히므로 클릭 가능한 느낌을 빼둔다 */
 #splash.loading { cursor: default; }
 #splash.loading #splash-tap { animation: none; opacity: 0.55; }
+/* §2026-08-07 "웹버전 무한로딩" 버그 수정 — 게임 엔진 로드가 몇 차례 재시도 후에도 끝내 실패하면
+ * 이 상태로 전환. 다시 클릭 가능(누르면 새로고침)하다는 걸 알리기 위해 blink는 유지하되 경고
+ * 톤(붉은기)으로 바꾼다 */
+#splash.load-failed #splash-tap {
+  color: #ffd6d6;
+  animation: splashBlink 1.4s ease-in-out infinite;
+}
 /* §2026-07-31(5차) "여전히 흐릿한 회색 글씨, 중앙정렬 대신 상단 1/3로" — 그라디언트로 채운
  * 글자(color:transparent + background-clip:text)는 밝은 파스텔 배경 위에서 실사용시 여전히
  * 흐릿한 회색조로 보인다는 피드백. background-clip:text를 완전히 버리고 단색 크림색 + 두꺼운
