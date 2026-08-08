@@ -41,20 +41,42 @@ export function hasToken(): boolean {
   return getToken().length > 0;
 }
 
-/** 접속 링크에 #wt=<토큰>이 붙어있으면 자동으로 localStorage에 저장하고 주소창에서 지운다.
+/** 접속 링크에 토큰이 붙어있으면 자동으로 localStorage에 저장하고 주소창에서 지운다.
  *  Claude가 토큰 값을 대신 채워 넣어줄 때 쓰는 경로 — 회장이 값을 직접 복사·붙여넣기
- *  하지 않아도 되게 한다. fragment(#)를 쓰는 이유: 서버(GitHub Pages) 접근 로그에는
- *  절대 남지 않는다(브라우저가 서버로 안 보내는 부분) — query string(?wt=)보다 노출이 적다.
+ *  하지 않아도 되게 한다.
+ *
+ *  query string(?wt=)을 우선 확인한다 — fragment(#wt=)만 썼던 첫 버전은 카카오톡 등
+ *  메신저의 링크 미리보기/리다이렉트 과정에서 fragment가 잘려나가는 경우가 있어 실패했다
+ *  (2026-08-08). query string은 그런 손실이 없고, 값이 바뀌면 브라우저가 항상 완전히
+ *  새로고침하므로 이미 열려있던 탭에서도 확실히 잡힌다. fragment 지원은 하위 호환으로 남긴다.
+ *
  *  main.tsx에서 React 렌더 전에 호출해야 SyncPanel의 초기 상태가 이미 반영된 값으로 뜬다. */
 export function consumeTokenFromLocation() {
   if (typeof window === "undefined") return;
-  const hash = window.location.hash;
-  const match = hash.match(/(?:^#|&)wt=([^&]+)/);
-  if (!match) return;
-  setToken(decodeURIComponent(match[1]));
-  const cleaned = hash.replace(/(?:^#|&)wt=[^&]+/, "").replace(/^&/, "#");
-  const rest = cleaned && cleaned !== "#" ? cleaned : "";
-  window.history.replaceState(null, "", window.location.pathname + window.location.search + rest);
+
+  const url = new URL(window.location.href);
+  let token = url.searchParams.get("wt");
+  let fromHash = false;
+
+  if (!token) {
+    const match = window.location.hash.match(/(?:^#|&)wt=([^&]+)/);
+    if (match) {
+      token = decodeURIComponent(match[1]);
+      fromHash = true;
+    }
+  }
+  if (!token) return;
+
+  setToken(token);
+
+  url.searchParams.delete("wt");
+  let hash = window.location.hash;
+  if (fromHash) {
+    hash = hash.replace(/(?:^#|&)wt=[^&]+/, "").replace(/^&/, "#");
+    if (hash === "#") hash = "";
+  }
+  const search = url.searchParams.toString();
+  window.history.replaceState(null, "", url.pathname + (search ? `?${search}` : "") + hash);
 }
 
 export async function fetchState(): Promise<SyncState | null> {
