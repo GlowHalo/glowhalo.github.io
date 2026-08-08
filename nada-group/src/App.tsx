@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import CharacterDefs from "./characters/CharacterDefs";
 import CharacterSprite from "./characters/CharacterSprite";
 import {
@@ -12,9 +12,17 @@ import {
   STAFF,
   type ApprovalItem,
   type InstructionItem,
+  type Room,
   type Staff,
 } from "./data/holdco.config";
 import "./app.css";
+
+/** 사람마다 애니메이션 시작 타이밍을 어긋나게 — 다들 똑같이 움직이면 오히려 기계적으로 보인다. */
+function staggerDelay(seed: string): string {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  return `${(h % 2000) / 1000}s`;
+}
 
 function PersonTag({ staff }: { staff: Staff }) {
   const main = staff.name ?? staff.roleLabel;
@@ -27,14 +35,15 @@ function PersonTag({ staff }: { staff: Staff }) {
   );
 }
 
-function DeskPerson({ staff }: { staff: Staff }) {
+function DeskPerson({ staff, bare }: { staff: Staff; bare?: boolean }) {
+  const style = { "--stagger": staggerDelay(staff.id) } as CSSProperties;
   return (
     <div className="desk">
-      <div className="person">
+      <div className="person" style={style}>
         <PersonTag staff={staff} />
         <CharacterSprite seed={staff.id} wearsBadge={staff.rank !== "ceo"} />
       </div>
-      <div className="surface2" />
+      {bare ? null : <div className="surface2" />}
     </div>
   );
 }
@@ -51,11 +60,10 @@ function EmptyDesk({ label }: { label: string }) {
   );
 }
 
-function RoomCard({ roomId, staff, headCount }: { roomId: string; staff: Staff[]; headCount: string }) {
-  const room = ROOMS.find((r) => r.id === roomId)!;
-  const empties = OPEN_SEATS.filter((s) => s.roomId === roomId);
+function RoomCard({ room, staff, headCount }: { room: Room; staff: Staff[]; headCount: string }) {
+  const empties = OPEN_SEATS.filter((s) => s.roomId === room.id);
   return (
-    <div className="room">
+    <div className="room" data-kind={room.kind}>
       <div className="room-head">
         <b>{room.name}</b>
         <small>{headCount}</small>
@@ -70,6 +78,15 @@ function RoomCard({ roomId, staff, headCount }: { roomId: string; staff: Staff[]
       </div>
     </div>
   );
+}
+
+function headCountLabel(staff: Staff[]) {
+  const leads = staff.filter((s) => s.rank === "ceo" || s.rank === "lead").length;
+  const members = staff.filter((s) => s.rank === "member").length;
+  const parts = [];
+  if (leads) parts.push(`팀장 ${leads}`);
+  if (members) parts.push(`팀원 ${members}`);
+  return parts.join(" · ") || "구성 전";
 }
 
 function ApprovalPanel({
@@ -180,7 +197,7 @@ function BusinessLinesPanel({ companyId }: { companyId: string }) {
 }
 
 export default function App() {
-  const [companyId, setCompanyId] = useState("hq");
+  const [companyId, setCompanyId] = useState("holdco");
   const company = COMPANIES.find((c) => c.id === companyId)!;
   const [approvals, setApprovals] = useState<ApprovalItem[]>(INITIAL_APPROVALS);
   const [instructions, setInstructions] = useState<InstructionItem[]>(INITIAL_INSTRUCTIONS);
@@ -195,9 +212,13 @@ export default function App() {
     return map;
   }, [companyId]);
 
+  const rooms = ROOMS.filter((r) => r.companyId === companyId);
+  const regularRooms = rooms.filter((r) => r.kind !== "meeting");
+  const meetingRoom = rooms.find((r) => r.kind === "meeting");
+
   const meetingStaff = STAFF.filter((s) => s.companyId === companyId && s.inMeeting);
   const onDuty = STAFF.filter((s) => s.companyId === companyId).length;
-  const openCount = OPEN_SEATS.length;
+  const openCount = OPEN_SEATS.filter((s) => rooms.some((r) => r.id === s.roomId)).length;
   const decide = (id: string) => setApprovals((prev) => prev.filter((a) => a.id !== id));
   const addInstruction = (text: string) =>
     setInstructions((prev) => [{ id: `local-${Date.now()}`, companyId, text, status: "queued" }, ...prev]);
@@ -215,7 +236,7 @@ export default function App() {
           {COMPANIES.map((c) => (
             <button
               key={c.id}
-              className={`nav-item ${c.id === companyId ? "on" : ""}`}
+              className={`nav-item ${c.isHq ? "top" : ""} ${c.id === companyId ? "on" : ""}`}
               onClick={() => setCompanyId(c.id)}
             >
               <span className="nav-dot" />
@@ -242,11 +263,11 @@ export default function App() {
                 </div>
                 <div className="kpi">
                   <span>승인 대기</span>
-                  <b>{approvals.length}</b>
+                  <b>{approvals.filter((a) => a.companyId === companyId).length}</b>
                 </div>
                 <div className="kpi">
                   <span>지시 접수함</span>
-                  <b>{instructions.filter((i) => i.status !== "done").length}</b>
+                  <b>{instructions.filter((i) => i.companyId === companyId && i.status !== "done").length}</b>
                 </div>
                 <div className="kpi">
                   <span>충원 대기</span>
@@ -255,31 +276,28 @@ export default function App() {
               </div>
 
               <div className="floor">
-                <RoomCard roomId="ceo-room" staff={staffByRoom.get("ceo-room") ?? []} headCount="CEO OFFICE" />
-                <RoomCard
-                  roomId="strategy-room"
-                  staff={staffByRoom.get("strategy-room") ?? []}
-                  headCount="팀장 1 · 팀원 2"
-                />
-                <RoomCard roomId="tech-room" staff={staffByRoom.get("tech-room") ?? []} headCount="팀장 1 · 팀원 1" />
-                <RoomCard roomId="growth-room" staff={staffByRoom.get("growth-room") ?? []} headCount="팀장 1" />
+                {regularRooms.map((room) => (
+                  <RoomCard
+                    key={room.id}
+                    room={room}
+                    staff={staffByRoom.get(room.id) ?? []}
+                    headCount={room.kind === "ceo" ? "CEO OFFICE" : headCountLabel(staffByRoom.get(room.id) ?? [])}
+                  />
+                ))}
 
-                <div className="room meeting-room">
-                  <div className="room-head">
-                    <b>회의실</b>
-                    <small>MEETING ROOM</small>
+                {meetingRoom ? (
+                  <div className="room meeting-room" data-kind="meeting">
+                    <div className="room-head">
+                      <b>{meetingRoom.name}</b>
+                      <small>MEETING ROOM</small>
+                    </div>
+                    <div className="table" data-topic={MEETING_TOPIC}>
+                      {meetingStaff.map((s) => (
+                        <DeskPerson key={s.id} staff={s} bare />
+                      ))}
+                    </div>
                   </div>
-                  <div className="table" data-topic={MEETING_TOPIC}>
-                    {meetingStaff.map((s) => (
-                      <div className="desk" key={s.id}>
-                        <div className="person">
-                          <PersonTag staff={s} />
-                          <CharacterSprite seed={s.id} wearsBadge={s.rank !== "ceo"} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                ) : null}
               </div>
 
               <BusinessLinesPanel companyId={companyId} />
