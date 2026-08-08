@@ -1,27 +1,35 @@
-# pixel-ai-office 진행 상황 핸드오프
+# nada-group 진행 상황 핸드오프
 
-새 세션에서 이어서 작업할 때 이 파일부터 읽으세요. (`git log --oneline -- pixel-ai-office`로
+새 세션에서 이어서 작업할 때 이 파일부터 읽으세요. (`git log --oneline -- nada-group`로
 지금까지의 실제 변경 이력도 같이 훑어보면 좋습니다.)
 
 ## 지금 상태 (완료됨)
 
+- **(2026-08-08) 폴더를 `pixel-ai-office/` → `nada-group/`으로 개명하고 HQ 구조로 재편.**
+  더 이상 "회장님이 직접 뛰는, company/와 완전히 별개인 사업"이 아니라 —
+  **이 앱 자체가 나다그룹(지주회사) HQ**가 되고, 기존 "새사업 스튜디오"/"대표님" 오피스는
+  `company/`의 정연 사장 체제와 통합되어 **나다컴퍼니1(신사업)**으로 개명됨
+  (`company.config.ts`의 `COMPANY.name`/`CEO_PROFILE.name` 참고 — CEO는 이제 "정연").
+  `src/HqApp.tsx`가 새 진입점(관계사 카드 목록) — 지금은 나다컴퍼니1 하나뿐이고,
+  클릭하면 기존 `App.tsx`(= 예전의 유일한 화면)가 그대로 뜬다. 기존 게임 로직(`src/game/`)은
+  건드리지 않았음 — 아래 "미완료 작업 2"가 여전히 유효한 이유이기도 함(서사가 아직
+  "콘텐츠 제작" 흐름 그대로라 정연/나다컴퍼니1 서사와 안 맞음).
+  구 `ai-office/`(저장소 루트, `company/`가 손으로 갱신하던 상태 스냅샷 페이지)는
+  이 HQ로 개념이 흡수되어 폐기됨.
 - 구글드라이브 zip("갓생맘 AI OFFICE", 원본 Next.js+Cloudflare Workers 템플릿)을
-  GitHub Pages 정적 SPA로 이식 완료. 라이브: **https://tossneon.github.io/pixel-ai-office/play/**
+  GitHub Pages 정적 SPA로 이식 완료. 라이브: **https://tossneon.github.io/nada-group/play/**
 - `src/game/` 안의 시뮬레이션 로직(sim.ts/staff.ts/world.ts/pathfinding.ts/OfficeWorld.tsx)은
   원본 그대로 옮김. `worker/`, `db/`, `.dev.vars` 등 서버 전용 코드는 제외.
 - 배경을 세련된 남색으로 변경 (`src/globals.css`의 `--pink-bg`/`--pink-line` 값만 교체,
   변수명은 그대로 — 다른 곳에서 다 참조 중이라 리네임 안 함).
-- `company.config.ts`의 `COMPANY`/`CEO_PROFILE`만 커스터마이즈:
-  - 회사 이름 "새사업 스튜디오", 대표 캐릭터 이름 "대표님"
-  - 이 회사는 **회장님이 직접 CEO로 뛰는, `company/`(A1 등 AI 사장 정연이 이끄는 사업)와는
-    완전히 별개인 신규 탐색형 사업**이라는 게 확정된 맥락. 사업 내용은 아직 미정 —
-    "사업기회 발굴부터 시작" 단계.
 - Notion/Discord 발행용 소형 Cloudflare Worker(`worker/`) 코드는 작성 완료했지만
-  **아직 배포 전** (아래 "미완료 작업 1" 참고).
+  **아직 배포 전** (아래 "미완료 작업 1" 참고). Worker 자체의 배포명(`pixel-ai-office-api`,
+  `worker/wrangler.toml`)은 이번 개명에서 안 건드림 — 실제 배포된 적이 없어서 지금 바꿔도
+  안전하지만, 이미 배포된 이후에 이름을 바꾸려면 재배포가 필요하니 그때 같이 정리할 것.
 
 ## 미완료 작업 1 — Cloudflare Worker 배포
 
-- 코드는 `pixel-ai-office/worker/`에 이미 있음. 절차는 `worker/README.md` 참고.
+- 코드는 `nada-group/worker/`에 이미 있음. 절차는 `worker/README.md` 참고.
 - 이 세션(원격 실행 환경)의 네트워크 정책이 `api.cloudflare.com`을 막고 있어서
   `wrangler deploy`가 여기선 안 됨 (403 policy denial, 프록시 설정 문제 아님).
 - 회장님이 API 토큰까지 한 번 주셨었는데(`cfat_...`), 배포에 못 써서 그 자리에서 환경변수만
@@ -29,7 +37,7 @@
 - 진행하려면 둘 중 하나:
   1. 이 원격 환경의 네트워크 정책에 `api.cloudflare.com` 허용 추가 후 새 세션 시작
      (claude.ai/code → 환경 설정 → 네트워크 정책)
-  2. 회장님 로컬 PC에서 `cd pixel-ai-office/worker && npm install && npx wrangler deploy` 직접 실행
+  2. 회장님 로컬 PC에서 `cd nada-group/worker && npm install && npx wrangler deploy` 직접 실행
 - 배포 후 나오는 workers.dev 주소를 `src/game/report.ts`의 `WORKER_URL` 상수에 넣고
   `npm run build` 다시 → `play/` 재커밋해야 화면에서 실제로 그 Worker를 호출함.
 
