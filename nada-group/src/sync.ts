@@ -41,6 +41,22 @@ export function hasToken(): boolean {
   return getToken().length > 0;
 }
 
+/** 접속 링크에 #wt=<토큰>이 붙어있으면 자동으로 localStorage에 저장하고 주소창에서 지운다.
+ *  Claude가 토큰 값을 대신 채워 넣어줄 때 쓰는 경로 — 회장이 값을 직접 복사·붙여넣기
+ *  하지 않아도 되게 한다. fragment(#)를 쓰는 이유: 서버(GitHub Pages) 접근 로그에는
+ *  절대 남지 않는다(브라우저가 서버로 안 보내는 부분) — query string(?wt=)보다 노출이 적다.
+ *  main.tsx에서 React 렌더 전에 호출해야 SyncPanel의 초기 상태가 이미 반영된 값으로 뜬다. */
+export function consumeTokenFromLocation() {
+  if (typeof window === "undefined") return;
+  const hash = window.location.hash;
+  const match = hash.match(/(?:^#|&)wt=([^&]+)/);
+  if (!match) return;
+  setToken(decodeURIComponent(match[1]));
+  const cleaned = hash.replace(/(?:^#|&)wt=[^&]+/, "").replace(/^&/, "#");
+  const rest = cleaned && cleaned !== "#" ? cleaned : "";
+  window.history.replaceState(null, "", window.location.pathname + window.location.search + rest);
+}
+
 export async function fetchState(): Promise<SyncState | null> {
   try {
     const res = await fetch(`${WORKER_URL}/state`);
