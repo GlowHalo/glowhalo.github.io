@@ -19,7 +19,18 @@ export const HAIR_COLORS = [
   "#1c2029",
 ] as const;
 
-export const TOP_COLORS = ["#35b592", "#4f6fd6", "#e4614f", "#8992a6", "#c9b8ff", "#d9a441"] as const;
+// 색 6개는 인원이 6~8명만 돼도 (생일 역설로) 같은 색이 자주 겹친다 — 9개로 늘려 여유를 둠.
+export const TOP_COLORS = [
+  "#35b592",
+  "#4f6fd6",
+  "#e4614f",
+  "#8992a6",
+  "#c9b8ff",
+  "#d9a441",
+  "#e08fc0",
+  "#6fb3d9",
+  "#a86a3f",
+] as const;
 
 export const HAIR_STYLES = ["short", "long", "pony", "buzz"] as const;
 export const TOP_SHAPES = ["tee", "collar"] as const;
@@ -44,18 +55,19 @@ function hash(seed: string): number {
   return h;
 }
 
-function pick<T>(arr: readonly T[], n: number, salt: number): T {
-  return arr[(n + salt) % arr.length];
+/** 트레잇마다 독립된 해시를 써서 뽑는다 — 한 시드에 오프셋만 다르게 쓰면(예전 방식)
+ *  비슷한 id(예: "cto-lead"/"tech-member-1")끼리 여러 트레잇이 한꺼번에 겹치는 편중이 생긴다. */
+function pick<T>(arr: readonly T[], seed: string, dimension: string): T {
+  return arr[hash(`${seed}#${dimension}`) % arr.length];
 }
 
 /** 직원 ID를 시드로 트레잇 조합을 결정론적으로 생성한다. */
 export function traitsFromSeed(seed: string): Traits {
-  const n = hash(seed);
   return {
-    skin: pick(SKIN_TONES, n, 0),
-    hair: pick(HAIR_COLORS, n, 3),
-    top: pick(TOP_COLORS, n, 7),
-    hairStyle: pick(HAIR_STYLES, n, 11),
-    topShape: pick(TOP_SHAPES, n, 13),
+    skin: pick(SKIN_TONES, seed, "skin"),
+    hair: pick(HAIR_COLORS, seed, "hair"),
+    top: pick(TOP_COLORS, seed, "top"),
+    hairStyle: pick(HAIR_STYLES, seed, "hairStyle"),
+    topShape: pick(TOP_SHAPES, seed, "topShape"),
   };
 }
