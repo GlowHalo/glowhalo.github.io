@@ -49,6 +49,7 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `kakao_maps_js_key` | 아기랑 갈곳 |
 | `adsense_circleheroes_banner_slot` | circle-heroes 광고 |
 | `firebase_circleheroes_web_config` | circle-heroes |
+| `nada_group_dashboard_write_token` | nada-group/worker — 승인/지시/실행로그 상태 쓰기(PUT /state) 인증 |
 
 **아직 금고에 없는 것**: pixel-ai-office/worker가 필요로 하는 `NOTION_BRIEFING_DB`,
 `DISCORD_WEBHOOK_URL`은 아직 금고에 등록 안 됨 — 실제로 그 Worker를 배포해 쓰려면
