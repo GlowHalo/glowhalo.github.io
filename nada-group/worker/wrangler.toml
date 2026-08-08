@@ -4,13 +4,10 @@ compatibility_date = "2026-01-01"
 
 # 무료 티어(workers.dev 서브도메인)로 배포됨.
 #
-# KV 네임스페이스 ID는 아직 비어있음 — "Workers KV Storage: Edit" 권한이 있는
-# CLOUDFLARE_API_TOKEN으로 아래 명령 실행해서 채워야 배포 가능:
-#   npx wrangler kv namespace create nada_group_state
-# 나온 id를 아래 자리에 넣는다. (KV 네임스페이스 ID는 비밀 아님 — 계정 API 토큰 없이는
-# 무용지물이라 커밋해도 안전. cloudflare-api-vault/wrangler.toml과 같은 이유.)
+# KV 네임스페이스 ID는 비밀 아님 — 계정 API 토큰 없이는 무용지물이라 커밋해도 안전
+# (cloudflare-api-vault/wrangler.toml과 같은 이유). 2026-08-08 생성됨.
 kv_namespaces = [
-  { binding = "STATE_KV", id = "TODO-run-wrangler-kv-namespace-create-first" }
+  { binding = "STATE_KV", id = "7c01fe4a0d0e4508a1794f3e5ec8c4ff" }
 ]
 
 # WRITE_TOKEN은 여기 두지 않는다 — 값은 계정 공용 금고(tossneon-api-vault)의
