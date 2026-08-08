@@ -17,7 +17,7 @@ const ADSENSE_CLIENT_ID = "ca-pub-1632899465320365";
  * data-ad-slot 값(ADSENSE_CLIENT_ID와는 별개, 광고 "종류"마다 따로 발급받는 슬롯 ID). 이것도
  * 비어있는 동안은 mountBannerAd()가 아무것도 안 해서 shell.ts가 만들어둔 플레이스홀더 텍스트가
  * 그대로 보인다 */
-const AD_BANNER_SLOT_ID = "";
+const AD_BANNER_SLOT_ID = "5638367269";
 
 declare global {
   interface Window {
