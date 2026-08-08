@@ -1,0 +1,13 @@
+name = "tossneon-api-vault"
+main = "src/worker.js"
+compatibility_date = "2024-01-01"
+
+# KV namespace id is not a secret (it's an opaque resource id, useless without
+# the account's API token / the VAULT_TOKEN secret), so it's safe to commit.
+kv_namespaces = [
+  { binding = "VAULT_KV", id = "0ce91f19b05948d48bcd3eeebb34b9c4" }
+]
+
+# VAULT_TOKEN is set as a Worker secret (`wrangler secret put VAULT_TOKEN`
+# or via the Cloudflare API's secret_text binding at deploy time) and is
+# never stored in this repo.

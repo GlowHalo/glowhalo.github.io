@@ -25,18 +25,15 @@ CLOUDFLARE_API_TOKEN=<위에서 복사한 토큰> npx wrangler deploy
 이 주소를 `pixel-ai-office/src/game/report.ts` 상단 `WORKER_URL` 상수에 넣고 다시 빌드해야
 화면에서 실제로 이 Worker를 호출한다 (배포 전엔 빈 문자열이라 자동으로 "미설정"으로 표시됨).
 
-### 4. 비밀값 등록 — 계정 공용 금고(Secrets Store) 권장
-이 저장소의 여러 프로젝트가 비밀값을 쓰게 되더라도 프로젝트마다 따로 등록하지 않도록,
-**Secrets Store: Edit** 권한의 토큰으로 한 번에 등록/바인딩하는 스크립트가 있다:
+### 4. 비밀값 등록 — `tossneon-api-vault`가 유일한 정본
+이 저장소 전체가 비밀값을 하나의 금고(`tossneon-api-vault`, `VAULT_URL`/`VAULT_TOKEN`으로
+접근하는 작은 Worker+KV)에서만 관리한다 — 값을 회장에게 채팅으로 다시 묻지 않는다.
+절차는 [`.claude/rules/cloudflare-vault.md`](../../.claude/rules/cloudflare-vault.md) 참고,
+요약하면:
 ```bash
-CLOUDFLARE_API_TOKEN=<Secrets Store 권한 토큰> ./scripts/sync-vault.sh
-```
-이미 금고에 있는 이름은 값을 다시 묻지 않고 건너뛰고, 없는 이름만 값을 물어서(또는 로컬
-`.dev.vars`에서 읽어서) 등록한 뒤 `wrangler.toml`에 바인딩을 자동으로 추가한다. 배경은
-[`.claude/rules/cloudflare-vault.md`](../../.claude/rules/cloudflare-vault.md) 참고.
-
-(이 Worker 하나만 쓰고 금고를 안 만들고 싶다면 옛 방식도 그대로 동작한다:)
-```bash
+# 1) 금고에서 값 조회
+curl -s "$VAULT_URL/secrets/notion_token" -H "Authorization: Bearer $VAULT_TOKEN"
+# 2) 이 Worker에 등록 (Worker 배포에 쓰는 CLOUDFLARE_API_TOKEN 그대로 씀)
 CLOUDFLARE_API_TOKEN=<토큰> npx wrangler secret put NOTION_TOKEN
 CLOUDFLARE_API_TOKEN=<토큰> npx wrangler secret put NOTION_BRIEFING_DB
 CLOUDFLARE_API_TOKEN=<토큰> npx wrangler secret put DISCORD_WEBHOOK_URL   # 선택
