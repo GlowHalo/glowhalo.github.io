@@ -1,0 +1,8 @@
+{
+  "autoMode": {
+    "allow": [
+      "$defaults",
+      "Creating new Claude Code Remote sessions in this environment (mcp__Claude_Code_Remote__create_session) for repo tossneon/tossneon.github.io — used to delegate 나다그룹 subsidiary/HQ management tasks"
+    ]
+  }
+}
