@@ -49,17 +49,6 @@
   .history-card p { font-size:12px; color:#9A9CA5; margin:4px 0 0; }
   .empty-hint { padding:16px 20px; font-size:12px; color:#B7B8C0; }
 
-  .memo-wrap { padding:36px 20px 40px; }
-  .memo-card { border-radius:16px; overflow:hidden; border:1px solid #E4E4E9; background:#FFFFFF; }
-  .memo-head { padding:20px 20px 12px; }
-  .memo-head-row { display:flex; align-items:center; justify-content:space-between; }
-  .memo-head h3 { font-size:20px; margin:0; color:#14151A; }
-  .memo-count { font-family:'IBM Plex Mono',monospace; font-size:11px; color:#A2A3AB; }
-  .memo-sub { font-size:12px; color:#A2A3AB; margin:4px 0 0; }
-  .memo-list { padding:0 12px 12px; display:flex; flex-direction:column; gap:6px; max-height:288px; overflow-y:auto; }
-  .memo-item { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:12px; background:#F7F7F9; }
-  .memo-item span { font-size:14px; color:#2A2B31; }
-
   .footer { padding:32px 24px; background:#0E0F13; }
   .footer .display { font-size:20px; color:#F5F5F7; margin:0; }
   .footer p.c { font-family:'IBM Plex Mono',monospace; font-size:10px; color:#63656F; margin-top:8px; }
@@ -76,7 +65,7 @@
     <div class="hero-inner">
       <p class="hero-tag mono">MAKER'S JOURNAL · SIDE PROJECT LOG</p>
       <h1 class="display"><span class="mark">Ted Lee</span></h1>
-      <p class="desc">틈틈이 쌓아온 것들. 아이디어부터 프로토타입, 그리고 언젠가 실제로 쓰이는 것까지 — 여기 전부 기록됩니다.</p>
+      <p class="desc">틈틈이 쌓아온 것들. 프로토타입부터, 그리고 언젠가 실제로 쓰이는 것까지 — 여기 전부 기록됩니다.</p>
       <div class="stats" id="hero-stats"></div>
     </div>
   </div>
@@ -90,19 +79,6 @@
       <summary><span>써봤지만 계속 안 하기로 한 것들</span><span id="history-count" class="mono">0개</span></summary>
       <div class="history-items" id="history-projects"></div>
     </details>
-  </div>
-
-  <div class="memo-wrap">
-    <div class="memo-card">
-      <div class="memo-head">
-        <div class="memo-head-row">
-          <h3 class="display">아이디어 메모</h3>
-          <span class="memo-count mono" id="idea-count">0개</span>
-        </div>
-        <p class="memo-sub">아직 목업 없는 것들. Notion "프로젝트 목록"에서 관리 — 여긴 읽기 전용</p>
-      </div>
-      <div class="memo-list" id="idea-list"></div>
-    </div>
   </div>
 
   <div class="footer">
@@ -127,7 +103,6 @@ function renderProjects(){
     .filter(p => STATUS_MAP[p.status]?.group === "active")
     .sort((a, b) => ORDER.indexOf(a.status) - ORDER.indexOf(b.status));
   const history = REGISTRY.projects.filter(p => STATUS_MAP[p.status]?.group === "history");
-  const ideas = REGISTRY.projects.filter(p => STATUS_MAP[p.status]?.group === "idea");
 
   document.getElementById("active-projects").innerHTML = active.map((p, i) => {
     const st = STATUS_MAP[p.status] || { label: p.status, color: "#6B7280" };
@@ -157,14 +132,8 @@ function renderProjects(){
 
   document.getElementById("hero-stats").innerHTML = `
     <div><div class="num">${String(active.length).padStart(2,"0")}</div>PROJECTS</div>
-    <div><div class="num">${String(ideas.length).padStart(2,"0")}</div>IDEAS</div>
     <div><div class="num">'26</div>SINCE</div>`;
   document.getElementById("hero-bignum").textContent = String(active.length).padStart(3, "0");
-
-  document.getElementById("idea-count").textContent = ideas.length + "개";
-  document.getElementById("idea-list").innerHTML = ideas.length
-    ? ideas.map(p => `<div class="memo-item"><span>${esc(p.title)}</span></div>`).join("")
-    : `<p class="empty-hint">없음</p>`;
 }
 
 renderProjects();
