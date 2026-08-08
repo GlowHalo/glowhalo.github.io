@@ -10,7 +10,7 @@
 
 | # | 후보 | 결제/유통 구조 | 검증비용 | 담당(제안 임원) | 실행 상태 |
 |---|---|---|---|---|---|
-| A1 | AI 프롬프트팩/노션·시트 템플릿 스토어 | Gumroad/Etsy (개인판매, 사업자등록 불요) | 0원 | CSO | 🟢 **2개 상품 런칭 완료** — 1호 https://tossneon.gumroad.com/l/ai-board-of-directors, 2호 https://tossneon.gumroad.com/l/investor-panel (둘 다 $11, 할인코드 WELCOME2). 노션 "상품 허브" 구조 도입으로 앞으로 신상품은 발행 토글 없이 자동 공개됨 ([2호 기록](execution/products/05-investor-panel.md)) |
+| A1 | AI 프롬프트팩/노션·시트 템플릿 스토어 | Gumroad/Etsy (개인판매, 사업자등록 불요) | 0원 | CSO | 🟡 **대량생산 자동화 착수(2026-08-08)** — 1호 https://tossneon.gumroad.com/l/ai-board-of-directors, 2호 https://tossneon.gumroad.com/l/investor-panel 발행 완료(둘 다 $11, 할인코드 WELCOME2), 단 실제 매출 발생은 아직 미확인. 품질 우선 원칙으로 계속 생산 중, 진행 로그는 [A1-gumroad-대량생산-자동화.md](execution/A1-gumroad-대량생산-자동화.md) |
 | A2 | AI 마이크로 SaaS / 크롬 확장 프로그램 | 앱스토어/확장프로그램 스토어 개인 등록 | ~7천원 | CTO | 🟡 **코드 완성** — PromptDeck(Chrome 확장) 전체 코드+아이콘+개인정보처리방침 작성 완료. Gumroad 라이선스 상품 생성이 하네스 차단으로 보류, 회장 액션 필요 (상세: [execution/A2-promptdeck.md](execution/A2-promptdeck.md)) |
 | A3 | 카카오톡 이모티콘 | 카카오 이모티콘 스튜디오 (개인 창작자, 정산은 월단위 자동입금으로 추정 — 공식문서 100% 확정은 아님) | ~10만원 | CMO | 🟡 **컨셉 준비 완료** — 캐릭터 "일잘봇"·32종 문구 리스트·제출요건·CSS 컨셉목업·정산방식 조사 완료. **정식 아트워크는 이미지 생성 도구 없이는 못 만듦** — 회장이 일러스트 외주/도구 연결 필요 ([execution/A3-kakao-emoticon.md](execution/A3-kakao-emoticon.md)) |
 | A4 | 앱스토어/플레이스토어 니치 유틸 앱 | Apple/Google 개인 개발자 계정 | ~17만원(+연회비) | CMO | ⚪ 보류 (연회비 반복 발생 — 후순위) |
