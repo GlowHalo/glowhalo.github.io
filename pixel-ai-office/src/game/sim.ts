@@ -128,15 +128,15 @@ export type Snapshot = {
 const PHASES = [
   "출근 대기",
   "07:00 전사 출근",
-  "시장조사",
-  "브랜드 분석",
-  "아이디어 10개",
-  "브랜드 QA",
+  "시장 기회 스캔",
+  "포지셔닝 분석",
+  "사업 아이디어 10개",
+  "리스크 점검",
   "TOP 3 선정",
   "대표 승인 대기",
-  "대본 작성",
-  "릴스·캐러셀 제작",
-  "Notion 저장",
+  "실행안 설계",
+  "검증 실험 A/B 진행",
+  "결과 저장·회고",
   "김비서 브리핑",
   "업무 종료",
 ];
@@ -145,23 +145,23 @@ const BLOCKED_DEPTS = new Set(["brand", "partner", "finance"]);
 
 /** 연동 대기 부서가 멈춰 있는 진짜 이유 */
 const BLOCK_REASON: Record<string, string> = {
-  brand: "Instagram 계정이 아직 연동 전이라 지표를 읽을 수 없어요. 없는 숫자를 만들지는 않습니다. 연동만 되면 바로 돌려요.",
-  partner: "Gmail 연동 전이라 협업 메일을 못 읽어요. 연결되면 답장 초안까지 준비해둡니다.",
+  brand: "경쟁사 지표 툴이 아직 연동 전이라 정량 비교를 할 수 없어요. 없는 숫자를 만들지는 않습니다. 연동만 되면 바로 돌려요.",
+  partner: "Gmail 연동 전이라 제휴 후보 메일을 못 읽어요. 연결되면 답장 초안까지 준비해둡니다.",
   finance: "재무 현황 파일이 아직 안 왔어요. 대표님이 파일만 주시면 그날 안에 정리합니다.",
 };
 
 /** 지시창에서 부서를 찾을 때 쓰는 키워드 — 구체적인 것부터 검사한다 */
 const DEPT_KEYWORDS: [string, string[]][] = [
-  ["qa", ["qa", "큐아", "검수", "금칙어", "윤규아"]],
-  ["brand", ["인텔", "페르소나", "박보라", "브랜드 인텔"]],
+  ["qa", ["qa", "큐아", "검수", "리스크", "금칙어", "윤규아"]],
+  ["brand", ["포지셔닝", "경쟁사", "브랜드", "박보라"]],
   ["strategy1", ["전략 1", "전략1", "기획", "아이디어", "최아름", "톱3", "top 3"]],
-  ["strategy2", ["전략 2", "전략2", "대본", "한도빈", "스크립트"]],
-  ["research", ["시장조사", "리서치", "조사팀", "뉴스", "김서연"]],
-  ["reels", ["릴스", "영상", "편집", "송리원"]],
-  ["carousel", ["캐러셀", "카드뉴스", "canva", "칸바", "이가림"]],
-  ["partner", ["파트너", "협찬", "광고 제안", "메일", "정파랑"]],
-  ["finance", ["재무", "정산", "입금", "돈", "오재민"]],
-  ["review", ["성과", "리뷰", "지표", "강성아"]],
+  ["strategy2", ["전략 2", "전략2", "실행안", "한도빈", "검증 실험"]],
+  ["research", ["시장조사", "리서치", "조사팀", "기회 스캔", "뉴스", "김서연"]],
+  ["reels", ["랜딩검증", "랜딩", "실행a", "실행 a", "송리원"]],
+  ["carousel", ["고객인터뷰", "인터뷰", "실행b", "실행 b", "이가림"]],
+  ["partner", ["파트너", "협찬", "제휴", "메일", "정파랑"]],
+  ["finance", ["재무", "정산", "예산", "입금", "돈", "오재민"]],
+  ["review", ["회고", "리뷰", "지표", "강성아"]],
   ["ops", ["자동화", "운영팀", "스케줄", "안도현"]],
   ["secretary", ["비서", "김세리", "비서실"]],
 ];
@@ -385,47 +385,47 @@ export class Company {
     yield 1.6;
     this.sitAtDesk(seri);
 
-    // ② 시장조사
+    // ② 시장 기회 스캔
     this.phaseIndex = 2;
-    yield* this.runDept("research", "AI 뉴스·공식 출처 검증", 6.5, "오늘 검증된 후보 5개를 뽑았어요.");
+    yield* this.runDept("research", "업계 뉴스·커뮤니티 미충족 수요 스캔", 6.5, "오늘 검증된 사업기회 후보 5개를 뽑았어요.");
 
-    // ③ 브랜드 분석 — 연동 대기라 라운지로
+    // ③ 포지셔닝 분석 — 연동 대기라 라운지로
     this.phaseIndex = 3;
     const bora = this.agentById.get("brand-lead")!;
     this.stand(bora);
-    this.say(bora, "Instagram 미연동이라 수치는 못 만들어요.", 3);
-    this.pushLog("🧬", "브랜드 인텔리전스팀: Instagram 미연동 → 분석값을 만들지 않고 기록만 남김", "lav");
+    this.say(bora, "경쟁사 지표 미연동이라 정량 비교는 못 만들어요.", 3);
+    this.pushLog("🧬", "포지셔닝팀: 경쟁사 지표 툴 미연동 → 정성 비교만 기록하고 숫자는 만들지 않음", "lav");
     this.goto(bora, rand(LOUNGE_ROOM.loiter), "휴식");
     this.enqueue(bora, { k: "wait", dur: 4 }, { k: "fn", fn: () => this.say(bora, "연결되면 바로 돌립니다.", 2.4) });
     this.sitAtDesk(bora);
-    this.pushLog("💌", "파트너십·재무팀: Gmail·재무 파일 연동 전이라 오늘은 대기합니다.", "lav");
+    this.pushLog("💌", "제휴 후보팀·예산팀: Gmail·재무 파일 연동 전이라 오늘은 대기합니다.", "lav");
 
-    // ④ 회의 1 — 시장조사 → 전략1 → QA 인수인계
+    // ④ 회의 1 — 기회 스캔 → 기회 기획 → 리스크 점검 인수인계
     yield* this.meeting(
-      "오늘의 후보 인수인계",
+      "오늘의 사업기회 후보 인수인계",
       ["research-lead", "strategy1-lead", "qa-lead"],
       [
-        ["research-lead", "오늘 검증된 후보 5개예요. 전부 공식 출처 확인했어요."],
-        ["strategy1-lead", "좋아요. 콘텐츠 각도 10개로 풀게요."],
-        ["qa-lead", "DNA랑 최근 7일 중복부터 확인할게요."],
+        ["research-lead", "오늘 검증된 기회 후보 5개예요. 전부 공식 출처 확인했어요."],
+        ["strategy1-lead", "좋아요. 사업 아이디어 10개로 풀게요."],
+        ["qa-lead", "기존 유사 사업이랑 겹치는지부터 확인할게요."],
       ],
     );
 
-    // ⑤ 아이디어 10개
+    // ⑤ 사업 아이디어 10개
     this.phaseIndex = 4;
-    yield* this.runDept("strategy1", "아이디어 10개 · 100점 채점", 7, "10개 만들었고 평균 78점이에요.");
+    yield* this.runDept("strategy1", "사업 아이디어 10개 · 100점 채점", 7, "10개 만들었고 평균 78점이에요.");
 
-    // ⑥ 브랜드 QA
+    // ⑥ 리스크 점검
     this.phaseIndex = 5;
-    yield* this.runDept("qa", "금칙어·근거·중복 검사", 5.5, "3개 반려, 7개 통과예요.");
-    this.pushLog("🛡️", "QA 반려 3건: 근거 링크 없음 / 최근 7일 중복 / 오늘 행동 누락", "lav");
+    yield* this.runDept("qa", "법적 리스크·중복 사업·근거 검사", 5.5, "3개 반려, 7개 통과예요.");
+    this.pushLog("🛡️", "리스크 점검 반려 3건: 법적 이슈 소지 / 이미 있는 유사 서비스 / 지금 바로 실행할 액션 없음", "lav");
 
     // ⑦ TOP 3 선정
     this.phaseIndex = 6;
     const areum = this.agentById.get("strategy1-lead")!;
     this.stand(areum);
     this.say(areum, "TOP 3 정리했어요. 1위는 92점!", 3);
-    this.pushLog("💡", "콘텐츠 전략 1팀: TOP 3 확정 (1위 92점 · AI 회사 구축기)", "pink");
+    this.pushLog("💡", "기회 기획팀: TOP 3 확정 (1위 92점 · 무자본 B2B 구독형 서비스)", "pink");
     yield 1.8;
     this.sitAtDesk(areum);
 
@@ -457,7 +457,7 @@ export class Company {
     );
     yield this.allFree([...approvers, ceo]);
 
-    this.say(approvers[0], "TOP 1은 'AI 회사가 나 대신 출근한다면?' 92점이에요.", 3.4);
+    this.say(approvers[0], "TOP 1은 '무자본으로 시작하는 B2B 구독형 서비스' 92점이에요.", 3.4);
     yield 2.4;
     this.say(approvers[2], "대표님, 오늘 결정하실 건 이거 하나예요.", 3.2);
     yield 2.2;
@@ -469,7 +469,7 @@ export class Company {
     this.approvalPending = false;
     this.meetingTitle = null;
     this.say(ceo, "승인! 이대로 갑시다.", 2.8);
-    this.pushLog("✅", "대표 승인 완료 — TOP 1 콘텐츠 제작을 시작합니다.", "mint");
+    this.pushLog("✅", "대표 승인 완료 — TOP 1 사업 아이디어 검증 실험을 시작합니다.", "mint");
     yield 1.6;
     for (const agent of approvers) {
       this.releaseSeat(agent);
@@ -481,26 +481,26 @@ export class Company {
     yield this.allFree([...approvers, ceo]);
     this.unlock([...approvers, ceo]);
 
-    // ⑨ 대본 작성
+    // ⑨ 실행안 설계
     this.phaseIndex = 8;
-    yield* this.runDept("strategy2", "릴스·캐러셀 대본 집필", 7, "대본 2종 완성했어요. 결론까지 단정형으로 닫았어요.");
+    yield* this.runDept("strategy2", "검증 실험 설계", 7, "실행안 2종 완성했어요. 검증 지표까지 정했어요.");
 
-    // ⑩ 제작 인수인계 → 릴스·캐러셀 동시 작업
+    // ⑩ 검증 실험 인수인계 → 랜딩검증·고객인터뷰 동시 진행
     this.phaseIndex = 9;
-    yield* this.deliver("strategy2-lead", "reels", "릴스 대본 넘길게요. 30초 컷이에요.", "받았어요! 무음컷부터 칠게요.");
-    yield* this.deliver("strategy2-lead", "carousel", "캐러셀 원고예요. 9장 분량!", "표지 3안부터 뽑을게요.");
+    yield* this.deliver("strategy2-lead", "reels", "랜딩페이지 검증 넘길게요. 목표는 신청 전환율이에요.", "받았어요! 헤드라인 3안부터 뽑을게요.");
+    yield* this.deliver("strategy2-lead", "carousel", "인터뷰 대상자 리스트예요. 8명이에요!", "받았어요! 질문지부터 다듬을게요.");
 
-    this.startDept("reels", "Drive 원본 접수·초안 편집", 8);
-    this.startDept("carousel", "Canva 페이지 복제·텍스트 교체", 8);
+    this.startDept("reels", "랜딩페이지 제작·전환 측정 설계", 8);
+    this.startDept("carousel", "인터뷰 질문지 확정·섭외", 8);
     yield () => this.deptStatus.reels === "완료" && this.deptStatus.carousel === "완료";
-    this.pushLog("🎬", "릴스 초안 1건 · 캐러셀 9장 제작 완료 (원본 마스터는 그대로 보존)", "mint");
+    this.pushLog("🧪", "랜딩페이지 초안 1건 · 인터뷰 섭외 8명 완료 (실험 설계는 그대로 유지)", "mint");
 
-    // ⑪ 저장 + 성과 기록
+    // ⑪ 저장 + 회고 기록
     this.phaseIndex = 10;
     this.startDept("ops", "Notion 결과물 저장·자동화 로그", 5);
-    this.startDept("review", "성과·학습점 기록", 5);
+    this.startDept("review", "검증 실험 학습점 기록", 5);
     yield () => this.deptStatus.ops === "완료" && this.deptStatus.review === "완료";
-    this.pushLog("📦", "Notion 결과물 창고에 오늘 산출물 2건 저장 완료", "mint");
+    this.pushLog("📦", "Notion 결과물 창고에 오늘 검증 실험 결과 2건 저장 완료", "mint");
 
     // ⑫ 김비서 브리핑
     this.phaseIndex = 11;
@@ -693,7 +693,7 @@ export class Company {
     if (/브리핑|보고하러|올라와/.test(text)) return this.briefNow();
     if (/승인|오케이|고고|진행해/.test(text) && this.approvalPending) {
       this.approve();
-      this.pushChat("staff", "김세리", "승인 접수했습니다. 제작팀에 바로 넘길게요.");
+      this.pushChat("staff", "김세리", "승인 접수했습니다. 실행팀에 바로 넘길게요.");
       return;
     }
     if (/수고|칭찬|잘했|좋아요|고마/.test(text)) return this.cheer();

@@ -12,7 +12,7 @@
 
 - 이 저장소는 **공개**다. 비밀키·로그인 세션·고객 개인정보·진단 결과 PDF 는 **커밋 금지** — `data/` 등 gitignore 대상 폴더에 둔다.
 - `.gitignore` 는 **인라인 주석을 지원하지 않는다.** 주석은 별도 줄에 쓴다.
-- 브라우저에서 실행되는 코드에 API 키를 넣지 않는다. 외부 API 키가 필요한 프로젝트는 **Cloudflare Worker를 프록시로 두고 키는 Worker 환경변수에 보관한다** (예시: `nada-group/worker/`). Notion/Drive 같은 서버용 키도 저장소·클라이언트 코드엔 넣지 않는다.
+- 브라우저에서 실행되는 코드에 API 키를 넣지 않는다. 외부 API 키가 필요한 프로젝트는 **Cloudflare Worker를 프록시로 두고 키는 Worker 환경변수에 보관한다** (예시: `pixel-ai-office/worker/`). Notion/Drive 같은 서버용 키도 저장소·클라이언트 코드엔 넣지 않는다.
 
 ## 자율성과 확인 원칙
 
