@@ -13,6 +13,7 @@
 - 이 저장소는 **공개**다. 비밀키·로그인 세션·고객 개인정보·진단 결과 PDF 는 **커밋 금지** — `data/` 등 gitignore 대상 폴더에 둔다.
 - `.gitignore` 는 **인라인 주석을 지원하지 않는다.** 주석은 별도 줄에 쓴다.
 - 브라우저에서 실행되는 코드에 API 키를 넣지 않는다. 외부 API 키가 필요한 프로젝트는 **Cloudflare Worker를 프록시로 두고 키는 Worker 환경변수에 보관한다** (예시: `pixel-ai-office/worker/`). Notion/Drive 같은 서버용 키도 저장소·클라이언트 코드엔 넣지 않는다.
+- **API 키가 필요하면 회장에게 채팅으로 다시 묻기 전에 먼저 금고부터 확인한다.** 이 저장소 전체가 쓰는 비밀값 저장소는 `cloudflare-api-vault/`(라이브: `tossneon-api-vault`) 하나뿐이고, 접근용 `VAULT_URL`/`VAULT_TOKEN`은 모든 세션에 환경변수로 이미 등록돼 있다. 사용법·등록된 값 목록은 [`.claude/rules/cloudflare-vault.md`](.claude/rules/cloudflare-vault.md) 참고 — 이 규칙 파일은 `wrangler.toml`/`worker/**` 등 특정 경로를 건드릴 때만 자동 로드되므로, 그 경로 밖에서 API 키가 필요해지면 이 줄을 보고 직접 찾아가 읽을 것.
 
 ## 자율성과 확인 원칙
 
