@@ -185,11 +185,6 @@ export const STAFF: Staff[] = [
   },
 ];
 
-/** 아직 채용 전인 빈 자리 — 부서별로 몇 자리 비어있는지 */
-export const OPEN_SEATS: { roomId: string; label: string }[] = [
-  { roomId: "strategy-room", label: "충원 대기" },
-];
-
 export type BusinessLine = {
   id: string;
   companyId: string;
@@ -239,12 +234,16 @@ export type ApprovalItem = {
   companyId: string;
   title: string;
   detail: string;
+  /** true면 회장이 물리적으로만 할 수 있는 일(계정가입·본인인증·결제수단연결·API토큰발급 등).
+   *  false/미지정이면 사장(AI)이 판단해서 처리 가능한 항목 — 그래도 기록 삼아 승인 대기에
+   *  올려두되, "회장 액션 필요" 배지는 안 붙는다. (company/README.md 운영원칙 2 참고) */
+  needsChairman?: boolean;
 };
 
 export const INITIAL_APPROVALS: ApprovalItem[] = [
-  { id: "ap1", companyId: "company1", title: "A2 · 웹스토어 등록 결제", detail: "재현 · 회장 액션 필요" },
-  { id: "ap2", companyId: "company1", title: "A1 · 2호 상품(Investor Panel) 공개", detail: "정연 · Notion 웹공개 토글만 하면 됨" },
-  { id: "ap3", companyId: "company1", title: "A5 · 스티비 계정 생성", detail: "윤슬 · 발행 준비 끝, 계정만 필요" },
+  { id: "ap1", companyId: "company1", title: "A2 · 웹스토어 등록 결제", detail: "재현 · 회장 액션 필요", needsChairman: true },
+  { id: "ap2", companyId: "company1", title: "A1 · 2호 상품(Investor Panel) 공개", detail: "정연 · Notion 웹공개 토글만 하면 됨", needsChairman: false },
+  { id: "ap3", companyId: "company1", title: "A5 · 스티비 계정 생성", detail: "윤슬 · 발행 준비 끝, 계정만 필요", needsChairman: true },
 ];
 
 export type InstructionItem = {
@@ -258,5 +257,15 @@ export const INITIAL_INSTRUCTIONS: InstructionItem[] = [
   { id: "in1", companyId: "company1", text: "A3 아트워크 외주처 후보 3곳 비교해줘", status: "queued" },
   { id: "in2", companyId: "company1", text: "A1 이번 주 판매 현황 요약해줘", status: "done" },
 ];
+
+/** 나다컴퍼니2처럼 "판단"보다 "반복 실행"이 본업인 관계사를 위한 로그 — 승인 대기 형식이 안 맞는다. */
+export type ExecutionLogItem = {
+  id: string;
+  companyId: string;
+  at: string;
+  text: string;
+};
+
+export const INITIAL_EXECUTION_LOG: ExecutionLogItem[] = [];
 
 export const MEETING_TOPIC = "회의 중 · 6시간 자율 생산 마무리 종합 보고";

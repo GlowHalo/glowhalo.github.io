@@ -92,6 +92,20 @@
   background: var(--teal);
   animation: pulse-dot 1.8s ease-in-out infinite;
 }
+.nav-badge {
+  margin-left: auto;
+  background: var(--coral);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .main-col {
   display: flex;
@@ -102,7 +116,7 @@
 
 .kpis {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
 }
 @media (max-width: 560px) {
@@ -199,8 +213,8 @@
   border-radius: 3px;
   margin-top: 4px;
 }
-.desk:not(.empty) .surface2::before {
-  /* 모니터 화면 — 자리가 채워진 데스크에만, 은은한 발광 느낌 */
+.desk .surface2::before {
+  /* 모니터 화면 — 은은한 발광 느낌 */
   content: "";
   position: absolute;
   top: -6px;
@@ -211,21 +225,6 @@
   border-radius: 1px;
   background: var(--teal);
   opacity: 0.35;
-}
-.desk.empty .surface2 {
-  border-style: dashed;
-}
-.desk.empty .ghost {
-  width: 20px;
-  height: 26px;
-  border: 1.5px dashed var(--muted);
-  border-radius: 3px;
-  opacity: 0.5;
-}
-.desk.empty span.et {
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--muted);
 }
 
 .person {
@@ -343,8 +342,19 @@
   flex-wrap: wrap;
 }
 .appr-item b {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 7px;
   font-size: 13px;
+}
+.chairman-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--amber);
+  background: rgba(168, 112, 15, 0.12);
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 .appr-item small {
   color: var(--muted);

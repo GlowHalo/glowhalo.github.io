@@ -5,12 +5,13 @@ import {
   BUSINESS_LINES,
   COMPANIES,
   INITIAL_APPROVALS,
+  INITIAL_EXECUTION_LOG,
   INITIAL_INSTRUCTIONS,
   MEETING_TOPIC,
-  OPEN_SEATS,
   ROOMS,
   STAFF,
   type ApprovalItem,
+  type ExecutionLogItem,
   type InstructionItem,
   type Room,
   type Staff,
@@ -48,20 +49,7 @@ function DeskPerson({ staff, bare }: { staff: Staff; bare?: boolean }) {
   );
 }
 
-function EmptyDesk({ label }: { label: string }) {
-  return (
-    <div className="desk empty">
-      <div className="person">
-        <div className="ghost" />
-      </div>
-      <div className="surface2" />
-      <span className="et">{label}</span>
-    </div>
-  );
-}
-
 function RoomCard({ room, staff, headCount }: { room: Room; staff: Staff[]; headCount: string }) {
-  const empties = OPEN_SEATS.filter((s) => s.roomId === room.id);
   return (
     <div className="room" data-kind={room.kind}>
       <div className="room-head">
@@ -71,9 +59,6 @@ function RoomCard({ room, staff, headCount }: { room: Room; staff: Staff[]; head
       <div className="desks">
         {staff.map((s) => (
           <DeskPerson key={s.id} staff={s} />
-        ))}
-        {empties.map((e, i) => (
-          <EmptyDesk key={i} label={e.label} />
         ))}
       </div>
     </div>
@@ -107,7 +92,10 @@ function ApprovalPanel({
         items.map((a) => (
           <div className="appr-item" key={a.id}>
             <div>
-              <b>{a.title}</b>
+              <b>
+                {a.title}
+                {a.needsChairman ? <span className="chairman-badge">👑 회장 필요</span> : null}
+              </b>
               <small>{a.detail}</small>
             </div>
             <div className="btnrow">
@@ -196,11 +184,70 @@ function BusinessLinesPanel({ companyId }: { companyId: string }) {
   );
 }
 
+function ExecutionLogPanel({ items }: { items: ExecutionLogItem[] }) {
+  return (
+    <div className="panel">
+      <h3>
+        🧾 실행 로그 <small>판단이 아니라 반복 실행 — 승인 대기 아님</small>
+      </h3>
+      {items.length === 0 ? (
+        <p className="empty-note">아직 실행 이력 없음. 콘텐츠를 올리면 여기 쌓여요.</p>
+      ) : (
+        items.map((it) => (
+          <div className="inbox-item" key={it.id}>
+            <span>{it.text}</span>
+            <span className="chip done">{it.at}</span>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
+/** 지주사 통합 뷰 — HQ 화면에서 모든 관계사(op 모드) 현황을 한눈에. */
+function GroupOverviewPanel({
+  approvals,
+  instructions,
+}: {
+  approvals: ApprovalItem[];
+  instructions: InstructionItem[];
+}) {
+  const subsidiaries = COMPANIES.filter((c) => c.mode === "op" && !c.isHq);
+  return (
+    <div className="panel">
+      <h3>
+        🗂️ 관계사 통합 현황 <small>계열사가 늘어도 여기서 한 번에</small>
+      </h3>
+      <div className="biz-table">
+        {subsidiaries.map((c) => {
+          const staffCount = STAFF.filter((s) => s.companyId === c.id).length;
+          const pending = approvals.filter((a) => a.companyId === c.id).length;
+          const chairmanPending = approvals.filter((a) => a.companyId === c.id && a.needsChairman).length;
+          const inboxOpen = instructions.filter((i) => i.companyId === c.id && i.status !== "done").length;
+          return (
+            <div className="biz-row overview-row" key={c.id}>
+              <div>
+                <b>{c.name}</b>
+                <small>{c.tagline}</small>
+              </div>
+              <span className="status-pill">인원 {staffCount}</span>
+              <small>
+                승인대기 {pending}{chairmanPending ? ` (👑${chairmanPending})` : ""} · 지시함 {inboxOpen}
+              </small>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [companyId, setCompanyId] = useState("holdco");
   const company = COMPANIES.find((c) => c.id === companyId)!;
   const [approvals, setApprovals] = useState<ApprovalItem[]>(INITIAL_APPROVALS);
   const [instructions, setInstructions] = useState<InstructionItem[]>(INITIAL_INSTRUCTIONS);
+  const [executionLog] = useState<ExecutionLogItem[]>(INITIAL_EXECUTION_LOG);
 
   const staffByRoom = useMemo(() => {
     const map = new Map<string, Staff[]>();
@@ -218,10 +265,11 @@ export default function App() {
 
   const meetingStaff = STAFF.filter((s) => s.companyId === companyId && s.inMeeting);
   const onDuty = STAFF.filter((s) => s.companyId === companyId).length;
-  const openCount = OPEN_SEATS.filter((s) => rooms.some((r) => r.id === s.roomId)).length;
   const decide = (id: string) => setApprovals((prev) => prev.filter((a) => a.id !== id));
   const addInstruction = (text: string) =>
     setInstructions((prev) => [{ id: `local-${Date.now()}`, companyId, text, status: "queued" }, ...prev]);
+
+  const chairmanActionTotal = approvals.filter((a) => a.needsChairman).length;
 
   return (
     <main className="shell">
@@ -241,6 +289,7 @@ export default function App() {
             >
               <span className="nav-dot" />
               {c.name}
+              {c.isHq && chairmanActionTotal > 0 ? <span className="nav-badge">{chairmanActionTotal}</span> : null}
             </button>
           ))}
         </nav>
@@ -269,10 +318,6 @@ export default function App() {
                   <span>지시 접수함</span>
                   <b>{instructions.filter((i) => i.companyId === companyId && i.status !== "done").length}</b>
                 </div>
-                <div className="kpi">
-                  <span>충원 대기</span>
-                  <b>{openCount}</b>
-                </div>
               </div>
 
               <div className="floor">
@@ -300,7 +345,12 @@ export default function App() {
                 ) : null}
               </div>
 
+              {company.isHq ? <GroupOverviewPanel approvals={approvals} instructions={instructions} /> : null}
+
               <BusinessLinesPanel companyId={companyId} />
+              {companyId === "company2" ? (
+                <ExecutionLogPanel items={executionLog.filter((e) => e.companyId === companyId)} />
+              ) : null}
 
               <div className="two-col">
                 <ApprovalPanel items={approvals.filter((a) => a.companyId === companyId)} onDecide={decide} />
