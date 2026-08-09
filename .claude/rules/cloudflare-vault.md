@@ -58,6 +58,7 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `google_login_password` | 위와 동일 용도 |
 | `browserbase_api_key` | Browserbase(클라우드 원격 브라우저) — 이 세션 프록시를 안 거치는 헤드리스 브라우저 자동화용 (무료 플랜) |
 | `whop_api_key` | Whop API — 템플릿류(A1)·앱류(A2) 공용 채널, 회장이 가입 완료(2026-08-09) |
+| `chairman_payout_account_kakaobank` | 회장 개인 정산 계좌(카카오뱅크) — 각종 플랫폼 "정산 계좌 등록" 폼 자동입력용. JSON({bank, accountNumber, accountHolder}) |
 
 **자동화 전용 계정 vs 개인 계정 (2026-08-09)**: `kakao_login_*`/`google_login_*`은 회장이 자동화 목적으로
 **새로 만든** 계정이다 — 회장 개인 카카오톡·구글 계정이 아니다. 회장 개인 계정은 앞으로도 회장이 직접
@@ -89,6 +90,11 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
    금고 접근용 `VAULT_TOKEN`과는 별개.
 3. 새 값이 필요하면: `PUT /secrets/:name`으로 금고에 먼저 등록하고, 위 표에 이름·용도 한 줄을 추가한다.
 4. 이미 등록된 이름의 값을 다시 채팅으로 요청하지 않는다 — 그게 이 문서의 존재 이유다.
+
+**`chairman_payout_account_*`류(정산 계좌 정보)는 예외 취급 (2026-08-09)**: 로그인 계정과 달리
+실제 자금이 흘러가는 목적지라, 폼에 자동입력하는 것까지는 자유롭게 하되 **"등록/저장" 버튼을
+최종 제출하는 건 회장이 직접 클릭**하게 한다(CLAUDE.md 되돌릴 수 없는 결정 원칙과 동일선상).
+Claude in Chrome으로 도와줄 때도 이 필드가 있는 폼은 채우기까지만 하고 제출은 회장 몫으로 남긴다.
 
 ## 세션에 `VAULT_URL`/`VAULT_TOKEN`이 없을 때
 
