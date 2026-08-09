@@ -77,7 +77,7 @@ export function buildReport(snap: Snapshot): DayReport {
 // pixel-ai-office/worker 를 배포하고 나면 여기에 그 주소를 채워 넣는다.
 // 예: "https://pixel-ai-office-api.<your-subdomain>.workers.dev"
 // 빈 문자열이면 아래 두 함수는 네트워크 요청 없이 "미설정"을 바로 돌려준다.
-const WORKER_URL = "";
+const WORKER_URL = "https://pixel-ai-office-api.tossneon.workers.dev";
 
 const NOT_DEPLOYED = "발행 서버(Cloudflare Worker)가 아직 배포되지 않았어요";
 

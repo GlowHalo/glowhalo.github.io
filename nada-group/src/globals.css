@@ -6,15 +6,16 @@
   --gal-line: #d8dadf;
   --gal-accent: #46536b;
 
-  --bg: #12151b;
-  --surface: #191d25;
-  --surface2: #1f2430;
-  --ink: #eef0f4;
-  --muted: #8992a6;
-  --line: #262c38;
-  --teal: #35b592;
-  --amber: #d9a441;
-  --coral: #e4614f;
+  /* (2026-08-08) 다크 → 라이트 톤으로 변경. 눈 편하고 깔끔하게, 대비는 유지. */
+  --bg: #f3f4f7;
+  --surface: #ffffff;
+  --surface2: #eef0f4;
+  --ink: #1c2029;
+  --muted: #676c78;
+  --line: #e2e4ea;
+  --teal: #0e8f6c;
+  --amber: #a8700f;
+  --coral: #c23f30;
 }
 
 * {
