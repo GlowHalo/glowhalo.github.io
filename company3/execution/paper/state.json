@@ -1,0 +1,19 @@
+{
+  "capital_start": 300000,
+  "strategy": "v2: MA20 filter + vol-breakout k=0.5, stop -3%",
+  "markets": {
+    "KRW-BTC": {
+      "equity": 1.0,
+      "trades": 0,
+      "wins": 0,
+      "settled_until": "2026-08-08"
+    },
+    "KRW-ETH": {
+      "equity": 1.0,
+      "trades": 0,
+      "wins": 0,
+      "settled_until": "2026-08-08"
+    }
+  },
+  "last_settled": null
+}
