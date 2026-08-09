@@ -41,6 +41,12 @@ export const COMPANIES: Company[] = [
     mode: "op",
   },
   {
+    id: "company3",
+    name: "나다컴퍼니3",
+    tagline: "은성 대표 · 코인/주식 중 택일해 30만원으로 시작하는 자산운용 실험 — 실거래는 회장 확인 후 개시",
+    mode: "op",
+  },
+  {
     id: "newventure",
     name: "pixel-ai-office (프로토타입)",
     tagline: "이 대시보드를 만들기 전 먼저 시도했던 오피스 시뮬레이션 — 별도 사업체 아니고, 자리잡으면 정리 예정",
@@ -67,6 +73,8 @@ export const ROOMS: Room[] = [
   { id: "meeting-room", name: "회의실", companyId: "company1", kind: "meeting" },
 
   { id: "c2-exec-room", name: "실행팀", companyId: "company2", kind: "team" },
+
+  { id: "c3-desk-room", name: "트레이딩 데스크", companyId: "company3", kind: "ceo" },
 ];
 
 export type StaffRank = "ceo" | "lead" | "member";
@@ -183,6 +191,19 @@ export const STAFF: Staff[] = [
     companyId: "company2",
     roomId: "c2-exec-room",
     task: "나다컴퍼니1이 검증한 콘텐츠를 Gumroad에 대량 업로드",
+  },
+
+  // 나다컴퍼니3 — 자산운용 실험(2026-08-09 신설). 코인/주식 중 택일, 초기자본 30만원.
+  // 조사·전략 수립은 자율 진행하되, 실제 매매 실행은 회장이 실거래 계좌를 열고
+  // 매매 권한 범위를 확정하기 전까지 보류(company/README.md 참고).
+  {
+    id: "c3-ceo",
+    name: "은성",
+    roleLabel: "CEO",
+    rank: "ceo",
+    companyId: "company3",
+    roomId: "c3-desk-room",
+    task: "코인/주식 자산군 선택 + 전략 수립 중 — 실거래는 회장 계좌 개설·권한 확정 후 개시",
   },
 ];
 
