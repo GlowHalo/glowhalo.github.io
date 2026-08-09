@@ -1,0 +1,13 @@
+name = "nada-company2-link-preview"
+main = "src/worker.js"
+compatibility_date = "2026-01-01"
+
+# 무료 티어(workers.dev 서브도메인)로 배포. KV 네임스페이스 ID는 비밀 아님
+# (계정 API 토큰 없이는 무용지물) — nada-group/worker/wrangler.toml과 같은 이유로 커밋해도 안전.
+kv_namespaces = [
+  { binding = "PREVIEW_KV", id = "1aaedcd76f924028828ec4106b582d57" }
+]
+
+# RAPIDAPI_PROXY_SECRET은 여기 두지 않는다 — RapidAPI Hub 등록 후 발급받는 값을
+# 금고(tossneon-api-vault)에 등록하고 `npx wrangler secret put RAPIDAPI_PROXY_SECRET`으로 주입한다.
+# 이 시크릿이 설정되기 전까지는 엔드포인트가 인증 없이 열려있다(프로토타입 테스트 목적).

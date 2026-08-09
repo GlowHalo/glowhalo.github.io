@@ -173,7 +173,7 @@ export const STAFF: Staff[] = [
     rank: "ceo",
     companyId: "company2",
     roomId: "c2-exec-room",
-    task: "1라운드 신사업 스캔 완료 — 니치 API 프로덕트(RapidAPI Hub) 1순위, MVP 착수 예정. 실행 트랙은 회장 지시로 당분간 대기",
+    task: "B1 MVP(Link Preview API) 완성·배포 — RapidAPI Hub 실등록 준비 중. 실행 트랙은 회장 지시로 당분간 대기",
   },
   {
     id: "c2-exec-1",
@@ -228,6 +228,14 @@ export const BUSINESS_LINES: BusinessLine[] = [
     status: "콘텐츠 준비 완료",
     detail: "스티비 계정 생성만 하면 발행 가능",
   },
+  {
+    id: "b1",
+    companyId: "company2",
+    name: "B1 · 니치 API 프로덕트(Link Preview API)",
+    channel: "RapidAPI Hub",
+    status: "MVP 배포 완료",
+    detail: "Cloudflare Worker로 구현·배포·테스트 완료, RapidAPI 실등록 준비 중",
+  },
 ];
 
 export type ApprovalItem = {
@@ -273,6 +281,12 @@ export const INITIAL_EXECUTION_LOG: ExecutionLogItem[] = [
     companyId: "company2",
     at: "2026-08-09",
     text: "신사업 1라운드 1인 스캔 완료 — 니치 API 프로덕트(RapidAPI Hub) 1순위 확정, MVP 착수 예정 (company2/candidates.md)",
+  },
+  {
+    id: "el2",
+    companyId: "company2",
+    at: "2026-08-09",
+    text: "B1 MVP 'Link Preview API' 완성·배포 — https://nada-company2-link-preview.tossneon.workers.dev, 기본 테스트 통과 (company2/products/link-preview-api/)",
   },
 ];
 

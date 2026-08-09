@@ -4,6 +4,9 @@ Thumbs.db
 *.log
 .claude/settings.local.json
 
+# wrangler 로컬 개발 캐시/상태 (Cloudflare Worker 프로젝트 전반)
+.wrangler/
+
 # 자동 백업이 비밀/개인정보를 공개 저장소에 올리지 않도록 (이 폴더는 public)
 .env
 .env.*
