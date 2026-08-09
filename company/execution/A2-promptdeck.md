@@ -41,3 +41,30 @@ A1과 똑같은 방식(`POST /v2/products`)으로 라이선스용 상품을 만�
 ## 정산 방식 체크 (원칙 5)
 
 A1과 동일 계정·동일 정산 구조(Gumroad 계좌 직접입금) 재사용 — 신규 검증 불필요, 자동 통과.
+
+## 2026-08-09 — Firefox Add-ons 게시 시도 (코드 이식 완료, API 제출은 금고 값 문제로 막힘)
+
+[09-앱류-유통채널-리서치.md](products/09-앱류-유통채널-리서치.md)의 "Firefox Add-ons" 1순위 채널 액션. 회장이 Mozilla 개발자 계정 + JWT API 키(`firefox_addons_jwt_issuer`/`firefox_addons_jwt_secret`)를 금고에 등록해줘서 진행.
+
+**완료**:
+- `promptdeck/manifest.json`에 `browser_specific_settings.gecko.id`(`promptdeck@nada-company.com`, `strict_min_version: 115.0`) 추가 — Firefox는 이 값이 없으면 `chrome.storage.sync`(확장 ID에 데이터가 묶임)가 아예 동작하지 않아 필수.
+- `background`에 Firefox용 `"scripts": ["storage.js", "background.js"]`를 Chrome용 `"service_worker"`와 나란히 추가(두 브라우저가 각자 지원하는 키만 읽는 표준 크로스브라우저 패턴 — Firefox는 아직 MV3 service worker를 지원하지 않고 non-persistent background script만 지원함, 2026-08-09 기준 재확인).
+- `background.js`의 `importScripts('storage.js')` 호출을 `typeof importScripts === 'function'`으로 감싸서 Chrome(서비스워커, `importScripts` 존재)에서만 실행되게 수정 — Firefox의 background script 컨텍스트에는 `importScripts`가 없고, 대신 `storage.js`가 `scripts` 배열에서 먼저 로드되며 `self.Storage`를 이미 걸어두므로 문제없음.
+- 그 외(`chrome.*` API 전반 — `storage`, `contextMenus`, `tabs`, `runtime`, `scripting`, `commands._execute_action`)는 Firefox가 `chrome` 네임스페이스를 프라미스 기반으로 그대로 지원해 별도 수정 불필요함을 MDN 문서로 확인(코드 수정 없이 호환).
+- `promptdeck/` 전체를 zip으로 패키징 완료(스크래치패드에 보관, 저장소엔 소스만 커밋 — 빌드 산출물이라 커밋 대상 아님).
+
+**⚠️ 막힌 것 — 금고의 `firefox_addons_jwt_secret` 값이 유효하지 않음(서명 검증 실패)**
+
+Mozilla 공식 문서(HS256, `iss`/`jti`/`iat`/`exp`, 5분 이내 만료) 그대로 JWT를 생성해 `GET /api/v5/accounts/profile/`에 `Authorization: JWT <token>`으로 인증 확인을 시도했으나, 매번 `{"detail":"Error decoding signature."}` (HTTP 401)로 거부됨.
+
+원인 조사:
+- 금고에서 `firefox_addons_jwt_issuer`(`user:20088702:149` 형식, 정상)와 `firefox_addons_jwt_secret`을 조회해 재확인 — **`firefox_addons_jwt_secret` 값이 63자리 16진수 문자열**이었음. Mozilla API 시크릿은 통상 64자리 16진수(32바이트)라, **1글자가 유실된 상태로 저장돼 있을 가능성이 높음**(등록 당시 복사·붙여넣기 과정에서 잘렸거나, 그사이 Mozilla 쪽에서 키를 재발급/폐기했을 가능성도 있음).
+- 앞자리에 `0`을 채워 64자로 만들어 재시도했으나(유실 위치를 알 수 없는 상태에서의 유일하게 근거 있는 가설 검증, 그 이상은 무차별 대입이라 시도하지 않음) 동일하게 서명 실패 — 단순 자릿수 보정으로는 복구 안 됨.
+- 신규 상품 생성 API 호출(`POST /api/v5/addons/addon/`) 자체는 시도하지 않음 — 인증 단계(`/accounts/profile/`)조차 통과 못 하는 상태라 의미 없음.
+
+**남은 것 — 회장 액션 필요**:
+1. https://addons.mozilla.org/en-US/developers/addon/api/key/ 에서 현재 API 키가 유효한지 확인. 유효하면 시크릿 값을 화면에서 그대로 다시 복사해서(중간에 잘리지 않도록) 금고에 재등록: `PUT $VAULT_URL/secrets/firefox_addons_jwt_secret`
+2. 만약 그 페이지에서 키가 보이지 않거나 만료됐다면 "Generate new credentials"로 재발급 후, `issuer`/`secret` 둘 다 금고에 갱신
+3. 값 갱신되면 사장이 바로 이어서 JWT 생성 → 인증 확인 → `POST /api/v5/addons/upload/`(zip 업로드) → `POST /api/v5/addons/addon/`(신규 addon 생성, `version.upload`=업로드 UUID, `version.license`, `categories`, `summary` 포함) 순서로 신규 제출까지 진행 가능. 코드/패키징은 이미 완료 상태라 회장이 시크릿만 고쳐주면 지연 없이 끝남.
+
+로그인/2FA 화면을 직접 열어야 하는 단계는 없었음(전 과정 API/curl만 사용, 브라우저 자동화 불필요) — 이 저장소의 스크린샷 커밋 금지 규칙과 무관.
