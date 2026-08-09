@@ -63,7 +63,7 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `firefox_addons_jwt_secret` | 위와 동일 용도 — JWT 시크릿 |
 | `paypal_business_email` / `paypal_business_password` | 나다컴퍼니용 PayPal **Business** 계정(tossneon0, 2026-08-09 신규 생성) — 자유롭게 활용(회장 지시). 예전 개인계정(`chairman_paypal_*`)은 폐기·삭제됨 |
 | `paypal_sandbox_client_id` / `paypal_sandbox_secret` | PayPal REST API 자격증명 — **Sandbox(테스트) 전용**, 실결제 처리 불가. Live 키는 아직 미등록(Business 전환 후 로그인이 hCaptcha에 막혀 대기 중 — Claude in Chrome으로 회장이 직접 로그인 필요) |
-| `mozilla_account_backup_codes` | Mozilla 계정 2단계 인증 백업코드 8개(줄바꿈 구분, 각 1회용) — **`firefox_addons_jwt_*`와 같은 Mozilla 개발자 계정일 가능성 높음(둘 다 2026-08-09 등록), 확인 필요** |
+| `mozilla_account_backup_codes` | Mozilla 계정(tossneon0@gmail.com) 패스키 백업코드 8개(줄바꿈 구분, 각 1회용) — 회장이 직접 확인해준 계정, `firefox_addons_jwt_*`와 같은 Mozilla 개발자 계정 |
 | `itchio_login_email` / `itchio_login_password` | itch.io 자동화 전용 계정(`tossneon0`, 표준 규칙 준수) — 앱류(A2 PromptDeck)·템플릿류 공용 채널, 회장이 가입 완료(2026-08-09) |
 | `itchio_api_key` | itch.io API 키 — Butler CLI로 업로드·버전관리 자동화용 |
 
