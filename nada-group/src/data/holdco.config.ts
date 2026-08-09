@@ -47,6 +47,12 @@ export const COMPANIES: Company[] = [
     mode: "op",
   },
   {
+    id: "company4",
+    name: "나다컴퍼니4",
+    tagline: "채원 대표 · 버크만 진단 상품화 + 향후 무자격 진단군 확장 — 초기 세팅은 회장과 긴밀히 협의",
+    mode: "op",
+  },
+  {
     id: "newventure",
     name: "pixel-ai-office (프로토타입)",
     tagline: "이 대시보드를 만들기 전 먼저 시도했던 오피스 시뮬레이션 — 별도 사업체 아니고, 자리잡으면 정리 예정",
@@ -75,6 +81,8 @@ export const ROOMS: Room[] = [
   { id: "c2-exec-room", name: "실행팀", companyId: "company2", kind: "team" },
 
   { id: "c3-desk-room", name: "트레이딩 데스크", companyId: "company3", kind: "ceo" },
+
+  { id: "c4-ceo-room", name: "대표실", companyId: "company4", kind: "ceo" },
 ];
 
 export type StaffRank = "ceo" | "lead" | "member";
@@ -204,6 +212,19 @@ export const STAFF: Staff[] = [
     companyId: "company3",
     roomId: "c3-desk-room",
     task: "코인 1차 확정, 스윙/알고리즘 전략 + 페이퍼 트레이딩 진행 중 — 실거래는 회장 계좌 개설·권한 확정 후 개시",
+  },
+
+  // 나다컴퍼니4 — 진단 상품화(2026-08-09 신설). 회장의 버크만 시그니처 디브리퍼 자격을 근간으로
+  // 시작, 이후 자격 불필요한 다른 진단군으로 상품 라인업 확장. 최종 목표는 회장 개입 0의 완전
+  // 자동화지만, 브랜딩·스토어 개설·플랫폼 확장·상품 컨셉 등 초기 세팅은 회장과 긴밀히 협의하며 진행.
+  {
+    id: "c4-ceo",
+    name: "채원",
+    roleLabel: "CEO",
+    rank: "ceo",
+    companyId: "company4",
+    roomId: "c4-ceo-room",
+    task: "버크만 진단 상품 브랜딩·스토어 개설 초기 설계 — 회장과 협의 중",
   },
 ];
 
