@@ -1,2 +1,5 @@
 {"date": "2026-08-08", "market": "KRW-BTC", "target": 92062500, "ma20": 92969400, "action": "filtered"}
 {"date": "2026-08-08", "market": "KRW-ETH", "target": 2724500, "ma20": 2733800, "action": "filtered"}
+{"date": "2026-08-08", "market": "KRW-XRP", "target": 1460, "ma20": 1564, "action": "filtered"}
+{"date": "2026-08-08", "market": "KRW-DOGE", "target": 99, "ma20": 102, "action": "filtered"}
+{"date": "2026-08-08", "market": "KRW-SOL", "target": 104800, "ma20": 107780, "action": "filtered"}
