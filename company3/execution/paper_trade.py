@@ -20,7 +20,9 @@ PAPER_DIR = os.path.join(BASE, "paper")
 STATE_PATH = os.path.join(PAPER_DIR, "state.json")
 LOG_PATH = os.path.join(PAPER_DIR, "log.jsonl")
 
-MARKETS = ["KRW-BTC", "KRW-ETH"]
+# 2026-08-09 확대: 백테스트 성적으로 종목을 고르는 체리피킹을 피하기 위해
+# 시총 상위 5종목 전부를 페이퍼로 추적하고, 실거래 배분은 전진 성과로 정한다.
+MARKETS = ["KRW-BTC", "KRW-ETH", "KRW-XRP", "KRW-DOGE", "KRW-SOL"]
 K = 0.5
 MA_WINDOW = 20
 FEE_ROUNDTRIP = 0.001   # 왕복 0.1% (보수적)
@@ -111,6 +113,8 @@ def settle_and_plan(market: str, state: dict) -> None:
 
 def main():
     state = load_state()
+    for m in MARKETS:  # 기존 state에 없는 신규 종목 초기화
+        state["markets"].setdefault(m, {"equity": 1.0, "trades": 0, "wins": 0})
     for market in MARKETS:
         settle_and_plan(market, state)
     save_state(state)
