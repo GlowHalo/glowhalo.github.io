@@ -127,3 +127,12 @@
 **참고**: `gumroad-exhibits/04-live-page-verify.png`(2026-08-06)는 실제로 같은 방식의 헤드리스 캡처가 성공했던 기록이다 — 그 시점 이후 에이전트 프록시의 TLS 종단 처리 방식이 바뀌었거나 NSS 신뢰 저장소 자동 설정이 깨졌을 가능성이 있다. 정확한 변경 시점은 이 세션에서 추적 불가.
 
 **다음 세션을 위한 결론**: 이 저장소에서 **헤드리스 Chromium 기반 픽셀 검증은 세션 종류·네트워크 정책("Full" 포함)과 무관하게 현재 구조적으로 불가능**하다. 다음에 픽셀 검증이 필요해지면 이 기록을 먼저 참고하고 같은 재현을 반복하지 말 것. 대안: (a) 회장이 직접 링크를 열어 육안 확인, (b) 그때까지는 API/curl 기반 데이터 레벨 검증(HTTP 200 + 필드 존재 확인)으로 갈음.
+
+## 부록 3 — Browserbase 도입으로 픽셀 검증 완전 해결 (2026-08-09)
+
+위 결론("구조적으로 불가능")을 회장이 인프라를 바꿔서 뒤집었다. **Browserbase**(클라우드 원격 브라우저 API, 무료 플랜)를 도입 — 이 세션이 로컬 Chromium을 띄우는 대신, Browserbase 인프라에서 실행 중인 진짜 Chrome을 API로 빌려서 원격 조종하는 방식이다.
+
+- **왜 되는지**: 부록 2에서 확인한 차단 지점은 "이 세션의 아웃바운드 에이전트 프록시 위에서 Chromium의 TLS ClientHello가 지문 차단당하는 것"이었다. Browserbase 방식은 실제 브라우저가 Browserbase 쪽 인프라에서 돌기 때문에 그 프록시를 아예 안 거친다 — 이 세션은 그냥 일반 HTTPS API 호출(`POST /v1/sessions` 등, curl과 동일한 방식)만 하고, 브라우저 조종은 CDP WebSocket(`chromium.connectOverCDP`)로 한다. 둘 다 이 세션에서 원래 잘 되던 방식이라 프록시 문제와 무관하다.
+- **실제 검증 완료**: `ai-board-of-directors`, `investor-panel` 두 라이브 페이지 모두 정상 렌더링 확인 — 제목/가격($11)/설명/"I want this!" 버튼/커버 이미지 캐러셀 전부 정상. 스크린샷: [`05-live-verify-ai-board-of-directors-browserbase.png`](gumroad-exhibits/05-live-verify-ai-board-of-directors-browserbase.png), [`06-live-verify-investor-panel-browserbase.png`](gumroad-exhibits/06-live-verify-investor-panel-browserbase.png)
+- **금고**: `browserbase_api_key`에 API 키 등록됨(`.claude/rules/cloudflare-vault.md` 참고). 무료 플랜은 월 1시간·동시 1개 — 세션 쓰고 나면 `POST /v1/sessions/:id` + `{"status":"REQUEST_RELEASE"}`로 바로 반납해서 아껴 쓸 것.
+- **앞으로 픽셀 검증이 필요하면**: 더 이상 로컬 Chromium을 시도하지 말고(부록 2 결론 그대로 유효 — 로컬은 여전히 안 됨) 바로 Browserbase로 간다. 흐름: `POST /v1/sessions`로 세션 생성 → `connectUrl`(wss)을 Playwright `chromium.connectOverCDP()`에 연결 → 평소처럼 `page.goto`/`page.screenshot` → 끝나면 세션 반납.
