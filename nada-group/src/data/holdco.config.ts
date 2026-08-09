@@ -37,7 +37,7 @@ export const COMPANIES: Company[] = [
   {
     id: "company2",
     name: "나다컴퍼니2",
-    tagline: "Gumroad 콘텐츠 업로드 등 실행을 전담 — 나다컴퍼니1이 논의한 신사업을 실제로 굴린다",
+    tagline: "하윤 대표 · 나다컴퍼니1과 별도로 신사업을 탐색하는 두 번째 트랙 — 실행(Gumroad 업로드 등)도 병행",
     mode: "op",
   },
   {
@@ -164,15 +164,16 @@ export const STAFF: Staff[] = [
     task: "A5 뉴스레터 컨셉·창간호 초안 완성 — 스티비 계정 생성 대기",
   },
 
-  // 나다컴퍼니2 — 실행 전담(2026-08-08 신설). 대표 이름은 회장이 지어줄 때까지 역할명만.
+  // 나다컴퍼니2 — 2026-08-08 신설(실행 전담) → 2026-08-09 대표 선임 + 신사업 탐색 병행으로 확장.
+  // 나다컴퍼니1(정연)과 별도로 독립적인 신사업 탐색 트랙을 하나 더 돌리기 위해 CEO 세션 신설.
   {
     id: "c2-ceo",
-    roleLabel: "대표",
-    subtitle: "이름 미정",
+    name: "하윤",
+    roleLabel: "CEO",
     rank: "ceo",
     companyId: "company2",
     roomId: "c2-exec-room",
-    task: "나다컴퍼니2 운영 총괄 — 회장 네이밍 대기",
+    task: "나다컴퍼니2 운영 총괄 — 독립 신사업 탐색 + 실행(Gumroad 업로드 등) 병행",
   },
   {
     id: "c2-exec-1",
