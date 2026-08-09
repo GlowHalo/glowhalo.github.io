@@ -57,7 +57,16 @@ npx wrangler secret put RAPIDAPI_PROXY_SECRET
 | `notaurl` (잘못된 URL) | ✅ 400 `invalid_url` |
 | URL 파라미터 누락 | ✅ 400 `missing_url` |
 | `169.254.169.254`(클라우드 메타데이터 IP) | ✅ 400 `forbidden_host` — SSRF 방어 확인 |
-| `github.com` | ⚠️ description/image/siteName/favicon은 정확한데 **title만 "Vodafone"으로 돌아옴** — 코드 버그가 아니라 실제 fetch 시점에 그렇게 응답받은 것으로 보임(캐시를 지우고 재요청해도 재현됨). 원인 미상(제3자 CDN/캐시 레이어 쪽 이슈로 추정) — MVP 검증 목적상 더 파고들지 않고 기록만 남김. RapidAPI 정식 등록 전 재확인 필요.
+| `github.com` | ✅ (버그 수정 후) title 정상. **최초 배포 때는 title이 "Vodafone"으로 잘못 나왔던 실제 버그가 있었음** — 아래 "발견된 버그" 참고, 원인 규명 후 수정·검증 완료. |
+
+### 발견된 버그 — `title` 셀렉터가 SVG 안의 접근성용 `<title>`까지 잡던 문제 (2026-08-09)
+
+최초 배포판은 github.com에서 `title`만 "Vodafone"으로 반환하고 나머지 필드는 전부 정상이었다. 처음엔 "CDN 캐시 이슈로 추정"이라고 원인 불명인 채 넘겼는데, 회장이 재확인을 요청해서 다시 파봤다.
+
+- 임시 디버그 엔드포인트로 원문 HTML을 그대로 떠보니 `<head><title>`은 처음부터 정확히 "GitHub · Change is constant. GitHub keeps you ahead. · GitHub"였다 — 네트워크/CDN 쪽 문제가 전혀 아니었음.
+- 원인은 우리 코드: `HTMLRewriter().on("title", collector)`가 문서 전체에서 태그 이름이 `title`인 요소를 **전부** 잡는데, github.com 홈페이지의 "고객사 로고" 캐러셀이 각 로고를 인라인 `<svg><title>회사명</title></svg>`(스크린리더용 접근성 텍스트)로 그리고 있었다. 문서를 순서대로 훑으면서 매 `<title>`마다 `titleBuffer`를 덮어썼기 때문에, 최종적으로 캐러셀의 **마지막 로고 이름("Vodafone")**이 진짜 페이지 제목을 덮어써버린 것.
+- 수정: 셀렉터를 `head > title`로 좁혀서 문서 head의 진짜 title만 잡도록 변경. 캐시에 남아있던 잘못된 값도 삭제하고 재검증 완료(위 표 참고).
+- **교훈**: "코드 버그가 아닐 것"이라는 판단을 실제 원문 확인 없이 내렸던 게 실수였다 — 다음부터는 근거 없는 추정으로 덮지 않고 원문/로그를 직접 까본다.
 
 ## 다음 단계
 
