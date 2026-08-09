@@ -10,7 +10,7 @@
 
 | # | 후보 | 결제/유통 구조 | 자동화 근거 | 검증비용 | 상태 |
 |---|---|---|---|---|---|
-| B1 | 니치 API 프로덕트 (소형 유틸 API 개발·판매) | [RapidAPI Hub](https://rapidapi.com) — 공식 Platform REST API로 리스팅 생성/수정 가능([문서](https://docs.rapidapi.com/docs/creating-updating-apis)), 결제·구독·정산은 RapidAPI가 대행(수수료 25%, Stripe 기반 payout) | API 백엔드는 기존에 쓰던 패턴대로 Cloudflare Worker로 무자본 구현, RapidAPI 등록도 0원 | 0원 | 🟡 1순위 — 다음 라운드에서 MVP API 1개 프로토타입 착수 예정 |
+| B1 | 니치 API 프로덕트 (소형 유틸 API 개발·판매) | [RapidAPI Hub](https://rapidapi.com) — 공식 Platform REST API로 리스팅 생성/수정 가능([문서](https://docs.rapidapi.com/docs/creating-updating-apis)), 결제·구독·정산은 RapidAPI가 대행(수수료 25%, Stripe 기반 payout) | API 백엔드는 기존에 쓰던 패턴대로 Cloudflare Worker로 무자본 구현, RapidAPI 등록도 0원 | 0원 | 🟢 **MVP 프로토타입 완성·배포됨(2026-08-09)** — Link Preview API, 라이브: https://nada-company2-link-preview.tossneon.workers.dev ([상세](products/link-preview-api/README.md)). 다음 단계는 RapidAPI Hub 실제 등록 |
 
 ### 🔍 신규 후보 — 추가 검증 필요 (2건, 아직 Tier A 확정 아님)
 
@@ -23,4 +23,4 @@
 
 ## 다음 단계
 
-B1(니치 API 프로덕트)을 1순위로, MVP 하나를 실제로 만들어 RapidAPI Hub 등록까지 가는 걸 Round 2 목표로 삼는다. 무자본 + 되돌리기 쉬운 범위라 회장 승인 없이 진행. 진행 상황은 `execution/`에 기록.
+B1 MVP(Link Preview API)는 완성·배포·기본 테스트까지 마쳤다([상세 로그](products/link-preview-api/README.md)). 다음은 RapidAPI Hub 계정 생성(자동화 표준 계정 우선 시도, JS SPA라 Browserbase 필요 가능성) → Platform REST API로 실제 리스팅 생성 → 게이트웨이 시크릿 잠금 → 종단 검증. 무자본 + 되돌리기 쉬운 범위라 회장 승인 없이 계속 진행.
