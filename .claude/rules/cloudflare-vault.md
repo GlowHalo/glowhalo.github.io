@@ -83,6 +83,12 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 페이지가 자동으로 공개 상속받는 구조라서). 새 자동화 계정을 만들 때마다 이 금고 표와 그 Notion
 페이지 양쪽에 한 줄씩 추가한다.
 
+**로그인 필요한데 그 서비스 계정이 금고에 없을 때 — 항상 표준 계정부터 시도 (2026-08-09, 회장 확정)**:
+회장에게 먼저 묻지 말고 `tossneon0@gmail.com` + 표준 비밀번호로 로그인을 **일단 시도**한다. 되면
+그 계정으로 그대로 진행하고 금고에 등록(이름은 `<서비스명>_login_email`/`_login_password`).
+안 되면(가입 자체가 안 돼 있는 등) 그때 회장에게 물어본다 — 순서가 "시도 → 안 되면 질문"이지
+"질문부터"가 아니다.
+
 **아직 금고에 없는 것**: pixel-ai-office/worker가 필요로 하는 `NOTION_BRIEFING_DB`,
 `DISCORD_WEBHOOK_URL`은 아직 금고에 등록 안 됨 — 실제로 그 Worker를 배포해 쓰려면
 먼저 이 두 값을 금고에 `PUT`으로 등록해야 한다. 이름 표기는 금고 쪽이 `snake_case`
