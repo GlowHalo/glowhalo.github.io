@@ -143,7 +143,12 @@ async function handlePreview(targetUrl, env) {
   }
 
   const collector = new MetaCollector();
-  const rewriter = new HTMLRewriter().on("title", collector).on("meta", collector).on("link", collector);
+  // "title" 셀렉터만 쓰면 인라인 SVG 안의 접근성용 <title>(아이콘/로고 이름 등)까지 걸려서
+  // 문서 전체를 훑는 동안 진짜 <head><title>이 마지막 SVG 타이틀로 덮어써진다
+  // (예: github.com이 고객사 로고 캐러셀을 SVG+<title>로 그리는데, 그 목록의 마지막 항목
+  // "Vodafone"이 페이지 제목을 덮어써버린 실제 사례 — 2026-08-09 발견). head 안의
+  // title만 정확히 골라야 한다.
+  const rewriter = new HTMLRewriter().on("head > title", collector).on("meta", collector).on("link", collector);
   const limitedStream = res.body.pipeThrough(limitBytesTransform(MAX_BYTES));
   const transformed = rewriter.transform(new Response(limitedStream));
   await transformed.text(); // 스트림을 소비해야 콜백이 실행된다 (MAX_BYTES에서 조기 종료될 수 있음)
