@@ -203,7 +203,7 @@ export const STAFF: Staff[] = [
     rank: "ceo",
     companyId: "company3",
     roomId: "c3-desk-room",
-    task: "코인/주식 자산군 선택 + 전략 수립 중 — 실거래는 회장 계좌 개설·권한 확정 후 개시",
+    task: "코인 1차 확정, 스윙/알고리즘 전략 + 페이퍼 트레이딩 진행 중 — 실거래는 회장 계좌 개설·권한 확정 후 개시",
   },
 ];
 
