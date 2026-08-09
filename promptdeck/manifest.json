@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "PromptDeck — Save & Insert AI Prompts Anywhere",
+  "name": "PromptDeck — Save & Insert AI Prompts",
   "version": "1.0.0",
   "description": "Save your favorite AI prompts with fill-in variables and insert them into ChatGPT, Claude, Gemini, or any text box in one click.",
   "icons": {
@@ -23,7 +23,11 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "promptdeck@nada-company.com",
-      "strict_min_version": "115.0"
+      "strict_min_version": "115.0",
+      "data_collection_permissions": {
+        "required": ["authenticationInfo"],
+        "optional": []
+      }
     }
   },
   "permissions": ["storage", "contextMenus", "activeTab", "scripting"],
