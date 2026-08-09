@@ -1,6 +1,8 @@
-# A1 스토어 3호 상품 — Code Review Board (기획, 2026-08-08)
+# A1 스토어 3호 상품 — Code Review Board (기획 2026-08-08, 🟢 런칭 완료 2026-08-09)
 
-> 착수 배경: [A1-gumroad-대량생산-자동화.md](../A1-gumroad-대량생산-자동화.md)의 "품질 우선 원칙"에 따라 타겟 리서치 → 차별화 포인트 확정 → 상세 기획 순서로 진행. 실제 노션 페이지 제작·Gumroad 발행은 다음 단계(아직 미착수).
+> 착수 배경: [A1-gumroad-대량생산-자동화.md](../A1-gumroad-대량생산-자동화.md)의 "품질 우선 원칙"에 따라 타겟 리서치 → 차별화 포인트 확정 → 상세 기획 순서로 진행. **2026-08-09 실제 노션 페이지 제작 + Gumroad 발행까지 전부 완료.** 아래 "9. 실행 로그 (2026-08-09, 런칭 완료)" 참고.
+>
+> **라이브 링크**: https://tossneon.gumroad.com/l/code-review-board (Notion 템플릿: https://fearless-frog-802.notion.site/Code-Review-Board-3b7fc7dfab7a819785aac30328f161ca )
 
 ## 1. 왜 "코드리뷰"인가 — 리서치 요약
 
@@ -93,13 +95,27 @@
   - 이 세 지적은 실제로 Stripe 웹훅 구현 시 가장 흔한 3대 실수(서명 미검증/중복 처리/비대한 분기문)를 그대로 재현한 것 — 콘텐츠 신뢰도를 위해 지어낸 버그가 아니라 실제로 자주 나오는 패턴을 사용.
 - **Prompt Set**: 페르소나별 5개씩, 변수(`[paste your diff/code]`, `[stack/language]`, `[what this code is supposed to do]`) 채워넣기만 하면 되는 완성형. 프롬프트 안에 "동의하지 말고 문제점부터 찾아라"는 안티-사이코팬시 지시문 기본 내장(1호와 동일한 핵심 후킹 기능).
 
-## 8. 다음 액션 (미착수, 다음 단계)
+## 8. 다음 액션 (2026-08-09 기준 전부 완료 — 기록으로 남김)
 
-1. 위 확정안으로 실제 노션 페이지 제작(영문, 데모 콘텐츠 포함) — Review Log + Prompt Sets + Start Here
-2. 실사용 검증: 페이지 공개 전 헤드리스 브라우저로 렌더링 확인, 줄바꿈 깨짐 등 콘텐츠 결함 재점검(1호에서 실제 발견됐던 사례 — 표준 프로세스로 정착)
-3. Gumroad 리스팅 등록(API) — 단, [A1-gumroad-대량생산-자동화.md](../A1-gumroad-대량생산-자동화.md)에 기록된 "회장 액션 필요" 3건(Gumroad API 자동승인 규칙, 정산계좌 확인, 환불정책 확인)이 이 상품에도 동일하게 적용됨. 추가로 이번 회차에 새로 확인된 사항: **이 세션의 자동승인 분류기는 Gumroad API 호출뿐 아니라 헤드리스 브라우저로 `tossneon.gumroad.com` 라이브 페이지를 여는 것도 간헐적으로 차단함** — 발행 전 스크린샷 검증 단계에서도 재확인 필요(아래 "부록" 참고)
-4. 커버 이미지 3장 캡처(Review Log 데모, Prompt Sets, Start Here)
-5. 할인코드 WELCOME2($2 상시) — 2호에서 확립한 표준대로 **발행 전 설명에 미리 포함**시켜 발행 후 수정이 막히는 문제 회피
+1. ~~위 확정안으로 실제 노션 페이지 제작(영문, 데모 콘텐츠 포함) — Review Log + Prompt Sets + Start Here~~ ✅
+2. ~~실사용 검증: 페이지 공개 전 헤드리스 브라우저로 렌더링 확인, 줄바꿈 깨짐 등 콘텐츠 결함 재점검~~ ✅ Browserbase로 노션 3페이지 + Gumroad 라이브 페이지 전부 렌더링 확인, 콘텐츠 결함 없음
+3. ~~Gumroad 리스팅 등록(API)~~ ✅ — 이번 회차엔 API 호출이 자동승인 분류기에 막히지 않고 정상 통과함(회장이 이전에 조치한 환경이 그대로 유효)
+4. ~~커버 이미지 3장 캡처(Review Log 데모, Prompt Sets, Start Here)~~ ✅ Browserbase로 캡처 → 저장소 커밋 → raw.githubusercontent.com URL로 Gumroad에 임포트 완료
+5. ~~할인코드 WELCOME2($2 상시) — 발행 전 설명에 미리 포함~~ ✅ 신규 offer_code 생성 + 발행 전 description에 안내 문구 포함 완료 (2호에서 확립한 표준 그대로 재사용)
+
+## 9. 실행 로그 (2026-08-09, 런칭 완료)
+
+- **Notion**: 루트 페이지 "Code Review Board"(🔍) 하위에 Start Here / Review Log(Database) / Prompt Sets 3개 생성. 상위 허브(`작업실 컴퍼니 — 상품 허브`)의 공개 상속 확인(퍼블릭 notion.site URL HTTP 200). Review Log에 데모 1행("Stripe subscription webhook handler", 06번 문서 섹션7의 3개 지적 그대로) 채움. Prompt Sets에 15개 프롬프트(페르소나별 5개, 안티사이코팬시 지시문 전부 내장) 채움.
+  - 루트: https://app.notion.com/p/3b7fc7dfab7a819785aac30328f161ca (퍼블릭: https://fearless-frog-802.notion.site/Code-Review-Board-3b7fc7dfab7a819785aac30328f161ca )
+  - 상품 허브 페이지("작업실 컴퍼니 — 상품 허브")에 3호 링크 추가 완료.
+  - **미검증 항목**: "템플릿으로 복제" 토글 자체는 (2호 때와 동일한 이유로) 로그인 세션이 있어야 눌러볼 수 있어 API로는 확인 불가 — 페이지가 정상 공개된 것은 확실하므로 우선 런칭, 복제가 실제로 안 되는 경우가 발견되면 즉시 보고.
+- **Gumroad**: `POST /v2/products`로 신규 생성 (id `pf6IEuwO0P5FBepk5xWcyw==`) → name/price($11)/description/tags(8개)/custom_permalink(`code-review-board`)/custom_summary/custom_receipt 전부 채움 → 커버 3장 URL 임포트(raw.githubusercontent.com → Gumroad 자체 CDN) → `WELCOME2` offer_code($2 상시) 신규 생성 → `PUT /enable`로 공개.
+  - 라이브: https://tossneon.gumroad.com/l/code-review-board
+  - description에 `💸 Use code WELCOME2 at checkout for $2 off.` 문구를 **발행 전**에 이미 포함시켜, 1호 때 겪었던 "발행 후 라이브 상품 수정이 하네스에 막히는" 문제를 처음부터 회피(2호에서 확립한 표준 그대로).
+  - Notion duplicate 링크는 공개 `description`이 아니라 `custom_receipt`(구매 후에만 노출)에만 넣음 — 1·2호와 동일 원칙(결제 없이 무료 복제 방지).
+- **실사용 검증(Browserbase)**: Notion 3페이지(Review Log/Prompt Sets/Start Here) + Gumroad 라이브 페이지 전부 원격 Chrome으로 렌더링 확인. 라이브 페이지에서 제목/가격($11)/설명/WELCOME2 안내/"I want this!" 버튼/커버 캐러셀(Review Log 데모가 첫 화면)/환불 문구 전부 정상 노출 확인(`bodyText` 텍스트 검사 + 스크린샷 둘 다). 스크린샷: [`code-review-board-exhibits/`](code-review-board-exhibits/) (01~03: 노션 페이지, 07: 라이브 Gumroad 페이지).
+  - 세션 종료 후 두 Browserbase 세션 모두 `REQUEST_RELEASE`로 즉시 반납(무료 플랜 절약).
+- **회장 액션 필요한 것 — 현재 없음.** 정산계좌·자동승인 분류기·Notion 공개 토글 전부 1·2호 발행 시점에 이미 회장이 해결해둔 상태가 그대로 유효했고, 이번 회차엔 추가로 막힌 것이 없었다. 굳이 남기자면: "템플릿으로 복제" 토글의 실제 클릭 테스트(위 미검증 항목)만 회장이 직접 한 번 확인해주면 완전한 검증이 되지만, 급한 사안은 아님.
 
 ## 부록 — 이번 회차 라이브 상품 2개 점검 결과 (2026-08-08)
 
