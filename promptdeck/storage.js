@@ -1,9 +1,11 @@
 // Shared storage helpers — used by popup, options, and background.
 // Data model:
 //   prompts: [{ id, title, body, tags: [], createdAt }]
-//   license: { key, valid, verifiedAt, productPermalink }
+//   license: { key, valid, verifiedAt, productId }
 const FREE_PROMPT_LIMIT = 3;
-const GUMROAD_PRODUCT_PERMALINK = 'promptdeck-pro';
+// Gumroad requires product_id (not product_permalink) for license verification
+// on products created on/after 2023-01-09 — this product was created 2026-08-09.
+const GUMROAD_PRODUCT_ID = 'fMrJADLwfEA3j3A96sjaeA==';
 
 const Storage = {
   async getPrompts() {
@@ -42,7 +44,7 @@ const Storage = {
 
   async getLicense() {
     const { license } = await chrome.storage.sync.get({
-      license: { key: null, valid: false, verifiedAt: null, productPermalink: null },
+      license: { key: null, valid: false, verifiedAt: null, productId: null },
     });
     return license;
   },
@@ -55,7 +57,7 @@ const Storage = {
   // No seller auth needed — this endpoint is designed to be called from client code.
   async verifyLicense(key) {
     const body = new URLSearchParams({
-      product_permalink: GUMROAD_PRODUCT_PERMALINK,
+      product_id: GUMROAD_PRODUCT_ID,
       license_key: key.trim(),
       increment_uses_count: 'false',
     });
@@ -70,7 +72,7 @@ const Storage = {
       key: key.trim(),
       valid,
       verifiedAt: Date.now(),
-      productPermalink: GUMROAD_PRODUCT_PERMALINK,
+      productId: GUMROAD_PRODUCT_ID,
     };
     await this.setLicense(license);
     return license;
