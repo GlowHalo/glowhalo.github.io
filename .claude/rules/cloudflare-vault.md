@@ -65,6 +65,7 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `paypal_sandbox_client_id` / `paypal_sandbox_secret` | PayPal REST API 자격증명 — Business 계정("Default Application") 값, OAuth 토큰 발급 테스트 성공(HTTP 200) 확인됨. **Sandbox 전용이라 실결제 불가** |
 | `paypal_live_client_id` / `paypal_live_secret` | PayPal REST API **Live(실결제)** 자격증명 — "sendowl" 앱, 프로덕션 OAuth 토큰 발급 테스트 성공(HTTP 200) 확인됨. SendOwl 등 실연동에 사용 |
 | `mozilla_account_backup_codes` | Mozilla 계정(tossneon0@gmail.com) 패스키 백업코드 8개(줄바꿈 구분, 각 1회용) — 회장이 직접 확인해준 계정, `firefox_addons_jwt_*`와 같은 Mozilla 개발자 계정 |
+| `sendowl_login_email` / `sendowl_login_password` | SendOwl 계정(`tossneon0`, 표준 규칙) — 원래 Google 전용 가입이었으나 표준 비밀번호 로그인 확인 완료(2026-08-09). 대시보드 화면 진입 시 Cloudflare "사람 확인" 캡차가 뜰 수 있음(우회 안 함) — 상품 업로드는 API로 하는 걸 우선 고려 |
 | `itchio_login_email` / `itchio_login_password` | itch.io 자동화 전용 계정(`tossneon0`, 표준 규칙 준수) — 앱류(A2 PromptDeck)·템플릿류 공용 채널, 회장이 가입 완료(2026-08-09) |
 | `itchio_api_key` | itch.io API 키 — Butler CLI로 업로드·버전관리 자동화용 |
 
@@ -78,6 +79,11 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 이 아이디+공통 비밀번호로 로그인이 안 되면 (a) 회장 개인 계정이거나 (b) 아직 그 서비스에
 가입이 안 된 것 — 회장에게 확인해서 하나씩 해결한다. 사이트별로 비밀번호가 달라지면 그 계정만
 별도 값으로 금고에 등록하고 이 표에 그렇게 표시한다.
+**가입 방식은 "Continue with Google" 같은 소셜 로그인 대신 이메일+비밀번호 직접 가입을 우선한다
+(2026-08-09)** — 소셜 로그인은 리다이렉트가 여러 단계로 나뉘고 숨겨진 함정 필드도 있어 헤드리스
+브라우저 자동화가 훨씬 불안정하다(SendOwl 로그인 자동화 때 실제로 두 번 실패한 사례). 이미
+소셜 로그인으로만 가입된 계정은 계정 설정에서 "비밀번호 설정/변경" 옵션이 있는지 먼저 확인 —
+있으면 표준 비밀번호로 맞춰서 이메일+비밀번호 로그인도 같이 가능하게 만든다.
 **계정 카탈로그(사람이 보는 목록, 비밀번호는 안 적혀있음)**: Notion "🔐 나다그룹 — 자동화 계정 목록"
 (비공개 페이지, 워크스페이스 최상위 — "상품 허브" 같은 공개 페이지 하위에 절대 두지 말 것, 하위
 페이지가 자동으로 공개 상속받는 구조라서). 새 자동화 계정을 만들 때마다 이 금고 표와 그 Notion
