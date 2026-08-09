@@ -113,3 +113,17 @@
   1. **자동승인 분류기가 간헐적으로 차단** — `tossneon.gumroad.com`을 대상으로 한 헤드리스 브라우저 탐색이 API 호출과 마찬가지로 승인 대기 상태로 걸림(읽기 전용인데도). 지시문에서는 "API 호출만 막혀있고 읽기 전용 브라우저 캡처는 가능"이라고 가정했으나, 실제로는 브라우저 캡처도 막히는 경우가 있었음 — 이번 회차에 새로 확인된 사실.
   2. **분류기를 통과했을 때도 별도의 TLS 문제 발견**: 이 세션의 아웃바운드 프록시(에이전트 프록시)가 Chromium 기본 TLS 1.3 핸드셰이크와 호환되지 않아 `ERR_CONNECTION_RESET`이 발생함(`curl`·Node 기본 TLS 스택은 정상 동작 — Chromium만 실패). `--ssl-version-max=tls1.2`로 우회하면 example.com 등 일반 사이트는 정상 로드되지만, Gumroad는 Cloudflare 뒤에 있어 강제 다운그레이드된 TLS 1.2 핸드셰이크 자체를 봇으로 의심해 재차 연결을 끊는 것으로 추정(Cloudflare 봇 방어 특성상 흔한 패턴) — 이 부분은 이번 세션 프록시·Cloudflare 조합의 구조적 제약으로 보이며, 무리하게 더 우회 시도하지 않고 여기서 멈춤.
   - **회장 액션 필요 시**: 픽셀 단위 시각 확인이 꼭 필요하면 (a) 다른 세션/환경(예: 이전에 성공했던 "네트워크 전체 접근" 정책 세션)에서 재시도하거나 (b) 회장이 직접 두 링크를 열어 육안 확인하는 방법이 가장 빠름 — 링크: https://tossneon.gumroad.com/l/ai-board-of-directors , https://tossneon.gumroad.com/l/investor-panel
+
+## 부록 2 — "Full" 환경 세션에서 재검증 시도 결과 (2026-08-09)
+
+위 부록의 "다른 환경에서 재시도" 제안에 따라, 네트워크 정책이 "Full"(더 넓은 접근)인 별도 세션에서 헤드리스 브라우저 픽셀 검증을 재시도했다. **결론: 이 가설은 틀렸다 — "Full" 환경에서도 동일하게 실패한다.** 이 문제는 세션의 네트워크 정책과 무관하게, 이 저장소의 에이전트 프록시(모든 세션 공통 인프라) 구조 자체에서 비롯된다.
+
+**1단계 검증에서 실제 원인 하나를 찾아 직접 고침**: `/opt/pw-browsers/.../chrome --headless --dump-dom https://example.com`(Cloudflare·Gumroad와 무관한 대상)조차 `ERR_CONNECTION_RESET`으로 실패. netlog(`--log-net-log`)로 원인을 추적하니 `net_error -202`(`ERR_CERT_AUTHORITY_INVALID`) — Chromium의 NSS 인증서 저장소(`~/.pki/nssdb`)가 **완전히 비어 있었다.** `/root/.ccr/README.md`는 "browser NSS store already set up"이라고 명시하지만 실제로는 세팅이 안 되어 있었던 것 — 문서와 실제 상태가 어긋난 케이스. `apt-get install -y libnss3-tools` 후 `certutil -d sql:/root/.pki/nssdb -A -t "CT,c,c" -n ccr-agent-proxy -i /root/.ccr/agent-proxy-ca.crt`로 프록시 CA를 수동 임포트하니 이 에러는 사라짐.
+
+**하지만 그 다음 더 근본적인 2단계 차단이 남아있었다**: CA 신뢰 문제 해결 후에도 여전히 `ERR_CONNECTION_RESET`(`net_error -101`, `os_error 104` = ECONNRESET). netlog로 바이트 단위까지 추적한 결과 — 프록시로의 `CONNECT example.com:443` 터널 자체는 `200 Connection Established`로 정상 성립하지만, **Chromium이 TLS ClientHello(약 1.7~1.8KB, BoringSSL 특유의 GREASE/ECH-GREASE/포스트퀀텀 키 공유 확장 포함)를 보내자마자, 서버 쪽(egress gateway)이 어떤 TLS 응답도 없이 즉시 TCP 연결을 리셋**한다. 같은 세션의 `curl`은 (더 작고 평범한 OpenSSL 핑거프린트의 ClientHello로) 같은 대상에 정상 접속된다 — 즉 이전 부록의 "Cloudflare 봇 방어 + TLS1.2 다운그레이드 재차단" 가설은 틀렸다. Cloudflare가 전혀 관여하지 않는 `example.com`에서도 똑같이 막히므로, **원인은 이 세션 공통 아웃바운드 에이전트 프록시(또는 그 상류 egress gateway)가 Chromium 특유의 TLS ClientHello 크기/확장/핑거프린트(JA3/JA4류로 추정)를 범용적으로 차단하는 것**으로 결론지었다. `--disable-features=PostQuantumKyber,EncryptedClientHello,UseMLKEM` 등으로 ClientHello를 줄여보려 시도했으나 크기 변화가 미미했고 결과도 동일했다.
+
+**여기서 시도를 중단한 이유**: 이 이상의 우회(TLS 핑거프린트 위장 등)는 egress gateway의 의도된 보안 통제를 회피하는 방향일 수 있어, CLAUDE.md의 "의도된 안전장치는 우회 대상이 아니다" 원칙에 따라 더 파고들지 않았다.
+
+**참고**: `gumroad-exhibits/04-live-page-verify.png`(2026-08-06)는 실제로 같은 방식의 헤드리스 캡처가 성공했던 기록이다 — 그 시점 이후 에이전트 프록시의 TLS 종단 처리 방식이 바뀌었거나 NSS 신뢰 저장소 자동 설정이 깨졌을 가능성이 있다. 정확한 변경 시점은 이 세션에서 추적 불가.
+
+**다음 세션을 위한 결론**: 이 저장소에서 **헤드리스 Chromium 기반 픽셀 검증은 세션 종류·네트워크 정책("Full" 포함)과 무관하게 현재 구조적으로 불가능**하다. 다음에 픽셀 검증이 필요해지면 이 기록을 먼저 참고하고 같은 재현을 반복하지 말 것. 대안: (a) 회장이 직접 링크를 열어 육안 확인, (b) 그때까지는 API/curl 기반 데이터 레벨 검증(HTTP 200 + 필드 존재 확인)으로 갈음.
