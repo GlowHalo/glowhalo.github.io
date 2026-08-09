@@ -1,0 +1,194 @@
+[
+  {
+    "n": 1,
+    "phrase": "안녕하세요",
+    "slug": "01-annyeonghaseyo",
+    "expr": "simple black cartoon curved happy smiling eyes and a wide cheerful open smile, warm friendly greeting expression"
+  },
+  {
+    "n": 2,
+    "phrase": "넵!",
+    "slug": "02-nep",
+    "expr": "simple black cartoon wide open sparkling eager eyes and a big confident open smile, energetic eager expression, one small exclamation mark icon floating above the antenna"
+  },
+  {
+    "n": 3,
+    "phrase": "확인했습니다",
+    "slug": "03-hwaginhaessseumnida",
+    "expr": "simple black cartoon one eye winking and one eye open in a satisfied way, small confident smirk mouth, a small green check mark icon floating above the antenna"
+  },
+  {
+    "n": 4,
+    "phrase": "넵... (억지 대답)",
+    "slug": "04-nep-eogji",
+    "expr": "simple black cartoon half closed tired flat eyes with small shadows under them, small flat forced smile mouth, one tiny sweat drop icon beside the face"
+  },
+  {
+    "n": 5,
+    "phrase": "퇴근하고싶다",
+    "slug": "05-toegeun",
+    "expr": "simple black cartoon swirly dizzy exhausted spiral eyes, small wavy tired frown mouth, antenna drooping limply, one small tear drop icon beside the face"
+  },
+  {
+    "n": 6,
+    "phrase": "이거 제가 알아서 할게요",
+    "slug": "06-ijeo-jega",
+    "expr": "simple black cartoon confident half closed smug eyes, small smirking sideways smile mouth, self assured expression"
+  },
+  {
+    "n": 7,
+    "phrase": "회의 또 해요?",
+    "slug": "07-hoeui-tto",
+    "expr": "simple black cartoon flat unimpressed half lidded eyes, small flat straight line mouth, exasperated deadpan expression, one tiny sweat drop icon beside the face"
+  },
+  {
+    "n": 8,
+    "phrase": "넵 넵 넵",
+    "slug": "08-nep-nep-nep",
+    "expr": "simple black cartoon sparkly excited round eyes, wide open enthusiastic grin mouth, small motion lines beside the head showing eager nodding"
+  },
+  {
+    "n": 9,
+    "phrase": "고생하셨습니다",
+    "slug": "09-gosaeng",
+    "expr": "simple black cartoon warm closed crescent shaped happy eyes, gentle soft smile mouth, one small pink heart icon floating above the antenna"
+  },
+  {
+    "n": 10,
+    "phrase": "오늘도 무사히",
+    "slug": "10-oneuldo-musahi",
+    "expr": "simple black cartoon peaceful gently closed relieved eyes, soft content small smile mouth, one small sparkle icon floating above the antenna"
+  },
+  {
+    "n": 11,
+    "phrase": "잠깐만요",
+    "slug": "11-jamkkanmanyo",
+    "expr": "simple black cartoon wide open alert surprised round eyes, small open oh shaped mouth, startled alert expression, one tiny sweat drop icon beside the face"
+  },
+  {
+    "n": 12,
+    "phrase": "배포했습니다",
+    "slug": "12-baepohaessseumnida",
+    "expr": "simple black cartoon bright sparkling star shaped proud eyes, big proud open grin mouth, two small sparkle icons floating above the antenna, triumphant expression"
+  },
+  {
+    "n": 13,
+    "phrase": "버그 아니고 기능입니다",
+    "slug": "13-beogeu-anigo-gineung",
+    "expr": "simple black cartoon confidently narrowed eyes with a slight sly slant, small smug closed-lip smirk mouth, unbothered defiant expression, one small green check mark icon floating above the antenna"
+  },
+  {
+    "n": 14,
+    "phrase": "오늘은 여기까지",
+    "slug": "14-oneuleun-yeogikkaji",
+    "expr": "simple black cartoon half closed satisfied tired eyes, small relaxed flat smile mouth, one small crescent moon icon floating above the antenna, end of day expression"
+  },
+  {
+    "n": 15,
+    "phrase": "축하합니다 🎉",
+    "slug": "15-chukhahamnida",
+    "expr": "simple black cartoon bright sparkling star shaped joyful eyes, wide open cheerful open smile mouth, small colorful confetti icons floating around the antenna, festive celebratory expression"
+  },
+  {
+    "n": 16,
+    "phrase": "감사합니다",
+    "slug": "16-gamsahamnida",
+    "expr": "simple black cartoon warm gently closed grateful crescent shaped eyes, soft humble smile mouth, one small pink heart icon floating above the antenna, thankful expression"
+  },
+  {
+    "n": 17,
+    "phrase": "죄송합니다",
+    "slug": "17-joesonghamnida",
+    "expr": "simple black cartoon downturned worried eyes with a small furrowed brow line, small wavy apologetic frown mouth, one small sweat drop icon beside the face, sorry expression"
+  },
+  {
+    "n": 18,
+    "phrase": "다시 보겠습니다",
+    "slug": "18-dasi-bogessseumnida",
+    "expr": "simple black cartoon narrowed focused scrutinizing eyes, small flat pursed straight mouth, one small magnifying glass icon floating beside the face, attentive rechecking expression"
+  },
+  {
+    "n": 19,
+    "phrase": "월요일이라니",
+    "slug": "19-wolyoirirani",
+    "expr": "simple black cartoon half closed exhausted droopy eyes with small shadows under them, small wavy dismayed frown mouth, antenna drooping limply, one small dark rain cloud icon floating above the antenna"
+  },
+  {
+    "n": 20,
+    "phrase": "커피 마시고 올게요",
+    "slug": "20-keopi-masigo",
+    "expr": "simple black cartoon relaxed half closed content eyes, small satisfied smile mouth, one small coffee cup icon floating beside the face, taking a break expression"
+  },
+  {
+    "n": 21,
+    "phrase": "생각 좀 해볼게요",
+    "slug": "21-saenggak-jomhaebolgeyo",
+    "expr": "simple black cartoon eyes looking upward to one side in thought, small pursed thinking mouth, one small thought bubble icon floating above the antenna, pondering expression"
+  },
+  {
+    "n": 22,
+    "phrase": "알고 있었어요 (뻔뻔)",
+    "slug": "22-algoisseosseoyo",
+    "expr": "simple black cartoon smug half closed knowing eyes, small sly confident smirk mouth, cheeky shameless nonchalant expression, one small sparkle icon beside the face"
+  },
+  {
+    "n": 23,
+    "phrase": "잘 부탁드립니다",
+    "slug": "23-jal-butakdeurimnida",
+    "expr": "simple black cartoon warm friendly earnest wide open eyes, small polite gentle smile mouth, one small sparkle icon floating above the antenna, sincere respectful expression"
+  },
+  {
+    "n": 24,
+    "phrase": "화이팅",
+    "slug": "24-hwaiting",
+    "expr": "simple black cartoon determined fired up round eyes, wide open energetic cheering grin mouth, small motion lines beside the head, one small flame icon floating above the antenna, pumped up expression"
+  },
+  {
+    "n": 25,
+    "phrase": "반박시 내말이 맞음",
+    "slug": "25-banbaksi-naemal",
+    "expr": "simple black cartoon confident half closed unshakeable eyes, small flat firm closed-lip mouth, stubbornly certain expression, one small check mark icon floating above the antenna"
+  },
+  {
+    "n": 26,
+    "phrase": "일단 알겠습니다",
+    "slug": "26-ildan-algessseumnida",
+    "expr": "simple black cartoon flat reluctant half closed eyes, small tight flat mouth, resigned half hearted agreement expression, one tiny sweat drop icon beside the face"
+  },
+  {
+    "n": 27,
+    "phrase": "곧 보내드릴게요",
+    "slug": "27-got-bonaedeurilgeyo",
+    "expr": "simple black cartoon eager wide open earnest eyes, small confident smile mouth, one small paper airplane icon floating above the antenna, promising expression"
+  },
+  {
+    "n": 28,
+    "phrase": "잠수탑니다 (장난스럽게)",
+    "slug": "28-jamsutamnida",
+    "expr": "simple black cartoon playful mischievous half closed eyes, small sly cheeky grin mouth, one small blue wave icon floating beside the face, teasing playful expression"
+  },
+  {
+    "n": 29,
+    "phrase": "나이스",
+    "slug": "29-naiseu",
+    "expr": "simple black cartoon bright sparkling delighted round eyes, wide open big satisfied grin mouth, one small star icon floating beside the face, pleased expression"
+  },
+  {
+    "n": 30,
+    "phrase": "안 될 것 같은데요",
+    "slug": "30-andoelgeotgatneyo",
+    "expr": "simple black cartoon uneasy narrowed doubtful eyes, small wavy uncertain frown mouth, one tiny sweat drop icon beside the face, hesitant doubtful expression"
+  },
+  {
+    "n": 31,
+    "phrase": "넵 확인 후 회신드리겠습니다",
+    "slug": "31-hwaginhu-hoeshin",
+    "expr": "simple black cartoon attentive wide open eyes, small confident smile mouth, one small green check mark icon floating above the antenna, professional acknowledging expression"
+  },
+  {
+    "n": 32,
+    "phrase": "오늘 하루도 끝",
+    "slug": "32-oneul-harudo-kkeut",
+    "expr": "simple black cartoon peacefully closed relieved crescent eyes, soft content smile mouth, one small starry night sky icon floating above the antenna, day is over expression"
+  }
+]
