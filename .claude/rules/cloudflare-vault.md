@@ -52,6 +52,15 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `nada_group_dashboard_write_token` | nada-group/worker — 승인/지시/실행로그 상태 쓰기(PUT /state) 인증 |
 | `gumroad_login_email` | Gumroad 대시보드 브라우저 자동 로그인 (API로 안 되는 계정 설정, 예: 환불정책 활성화 스위치) |
 | `gumroad_login_password` | 위와 동일 용도 |
+| `kakao_login_email` | 카카오 자동화 전용 계정(회장 개인계정 아님) — 카카오 이모티콘 스튜디오 등 로그인 필요 작업 |
+| `kakao_login_password` | 위와 동일 용도 |
+| `google_login_email` | 구글 자동화 전용 계정(회장 개인계정 아님) — 구글 플레이 콘솔, 구글 계정 연동 로그인 등 |
+| `google_login_password` | 위와 동일 용도 |
+
+**자동화 전용 계정 vs 개인 계정 (2026-08-09)**: `kakao_login_*`/`google_login_*`은 회장이 자동화 목적으로
+**새로 만든** 계정이다 — 회장 개인 카카오톡·구글 계정이 아니다. 회장 개인 계정은 앞으로도 회장이 직접
+통제하길 원하며, 자동화가 필요한 시점이 오면 그때 회장이 따로 판단해서 넘길지 결정한다. **이 구분을
+넘어서서 개인 계정으로 추정되는 걸 임의로 요청하거나 등록하지 않는다.**
 
 **아직 금고에 없는 것**: pixel-ai-office/worker가 필요로 하는 `NOTION_BRIEFING_DB`,
 `DISCORD_WEBHOOK_URL`은 아직 금고에 등록 안 됨 — 실제로 그 Worker를 배포해 쓰려면
