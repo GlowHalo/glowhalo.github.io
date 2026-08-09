@@ -173,7 +173,7 @@ export const STAFF: Staff[] = [
     rank: "ceo",
     companyId: "company2",
     roomId: "c2-exec-room",
-    task: "나다컴퍼니2 운영 총괄 — 독립 신사업 탐색 + 실행(Gumroad 업로드 등) 병행",
+    task: "1라운드 신사업 스캔 완료 — 니치 API 프로덕트(RapidAPI Hub) 1순위, MVP 착수 예정. 실행 트랙은 회장 지시로 당분간 대기",
   },
   {
     id: "c2-exec-1",
@@ -267,6 +267,13 @@ export type ExecutionLogItem = {
   text: string;
 };
 
-export const INITIAL_EXECUTION_LOG: ExecutionLogItem[] = [];
+export const INITIAL_EXECUTION_LOG: ExecutionLogItem[] = [
+  {
+    id: "el1",
+    companyId: "company2",
+    at: "2026-08-09",
+    text: "신사업 1라운드 1인 스캔 완료 — 니치 API 프로덕트(RapidAPI Hub) 1순위 확정, MVP 착수 예정 (company2/candidates.md)",
+  },
+];
 
 export const MEETING_TOPIC = "회의 중 · 6시간 자율 생산 마무리 종합 보고";
