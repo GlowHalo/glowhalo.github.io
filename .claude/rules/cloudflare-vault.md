@@ -59,6 +59,8 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `browserbase_api_key` | Browserbase(클라우드 원격 브라우저) — 이 세션 프록시를 안 거치는 헤드리스 브라우저 자동화용 (무료 플랜) |
 | `whop_api_key` | Whop API — 템플릿류(A1)·앱류(A2) 공용 채널, 회장이 가입 완료(2026-08-09) |
 | `chairman_payout_account_kakaobank` | 회장 개인 정산 계좌(카카오뱅크) — 각종 플랫폼 "정산 계좌 등록" 폼 자동입력용. JSON({bank, accountNumber, accountHolder}) |
+| `chairman_paypal_email` / `chairman_paypal_password` | 회장 개인 PayPal 계정 로그인 |
+| `paypal_sandbox_client_id` / `paypal_sandbox_secret` | PayPal REST API 자격증명 — **Sandbox(테스트) 전용**, 실결제 처리 불가. Live 키는 아직 미등록 |
 
 **자동화 전용 계정 vs 개인 계정 (2026-08-09)**: `kakao_login_*`/`google_login_*`은 회장이 자동화 목적으로
 **새로 만든** 계정이다 — 회장 개인 카카오톡·구글 계정이 아니다. 회장 개인 계정은 앞으로도 회장이 직접
