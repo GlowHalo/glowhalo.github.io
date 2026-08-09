@@ -1,0 +1,2368 @@
+[
+  {
+    "market": "KRW-BTC",
+    "period_days": 365,
+    "num_trades": 148,
+    "win_rate_pct": 42.6,
+    "total_return_pct": -21.17,
+    "final_equity": 0.7883,
+    "max_drawdown_pct": 24.11,
+    "trades": [
+      {
+        "date": "2025-08-11",
+        "buy_price": 165732500,
+        "sell_price": 164210000,
+        "gross_return_pct": -0.919,
+        "net_return_pct": -1.019,
+        "equity_after": 0.9898
+      },
+      {
+        "date": "2025-08-13",
+        "buy_price": 165293000,
+        "sell_price": 168051000,
+        "gross_return_pct": 1.669,
+        "net_return_pct": 1.569,
+        "equity_after": 1.0053
+      },
+      {
+        "date": "2025-08-17",
+        "buy_price": 163902500,
+        "sell_price": 163110000,
+        "gross_return_pct": -0.484,
+        "net_return_pct": -0.584,
+        "equity_after": 0.9995
+      },
+      {
+        "date": "2025-08-22",
+        "buy_price": 159047000,
+        "sell_price": 161176000,
+        "gross_return_pct": 1.339,
+        "net_return_pct": 1.239,
+        "equity_after": 1.0119
+      },
+      {
+        "date": "2025-08-26",
+        "buy_price": 157214000,
+        "sell_price": 156660000,
+        "gross_return_pct": -0.352,
+        "net_return_pct": -0.452,
+        "equity_after": 1.0073
+      },
+      {
+        "date": "2025-08-28",
+        "buy_price": 156732000,
+        "sell_price": 156737000,
+        "gross_return_pct": 0.003,
+        "net_return_pct": -0.097,
+        "equity_after": 1.0063
+      },
+      {
+        "date": "2025-09-01",
+        "buy_price": 151956500,
+        "sell_price": 152419000,
+        "gross_return_pct": 0.304,
+        "net_return_pct": 0.204,
+        "equity_after": 1.0084
+      },
+      {
+        "date": "2025-09-02",
+        "buy_price": 154313500,
+        "sell_price": 154850000,
+        "gross_return_pct": 0.348,
+        "net_return_pct": 0.248,
+        "equity_after": 1.0109
+      },
+      {
+        "date": "2025-09-04",
+        "buy_price": 155874000,
+        "sell_price": 155337000,
+        "gross_return_pct": -0.345,
+        "net_return_pct": -0.445,
+        "equity_after": 1.0064
+      },
+      {
+        "date": "2025-09-05",
+        "buy_price": 157048000,
+        "sell_price": 154930000,
+        "gross_return_pct": -1.349,
+        "net_return_pct": -1.449,
+        "equity_after": 0.9918
+      },
+      {
+        "date": "2025-09-07",
+        "buy_price": 155024000,
+        "sell_price": 155001000,
+        "gross_return_pct": -0.015,
+        "net_return_pct": -0.115,
+        "equity_after": 0.9906
+      },
+      {
+        "date": "2025-09-08",
+        "buy_price": 155793000,
+        "sell_price": 156048000,
+        "gross_return_pct": 0.164,
+        "net_return_pct": 0.064,
+        "equity_after": 0.9913
+      },
+      {
+        "date": "2025-09-09",
+        "buy_price": 157171000,
+        "sell_price": 155451000,
+        "gross_return_pct": -1.094,
+        "net_return_pct": -1.194,
+        "equity_after": 0.9794
+      },
+      {
+        "date": "2025-09-10",
+        "buy_price": 156702500,
+        "sell_price": 158562000,
+        "gross_return_pct": 1.187,
+        "net_return_pct": 1.087,
+        "equity_after": 0.9901
+      },
+      {
+        "date": "2025-09-12",
+        "buy_price": 161706500,
+        "sell_price": 161110000,
+        "gross_return_pct": -0.369,
+        "net_return_pct": -0.469,
+        "equity_after": 0.9854
+      },
+      {
+        "date": "2025-09-15",
+        "buy_price": 160988500,
+        "sell_price": 160705000,
+        "gross_return_pct": -0.176,
+        "net_return_pct": -0.276,
+        "equity_after": 0.9827
+      },
+      {
+        "date": "2025-09-16",
+        "buy_price": 161850500,
+        "sell_price": 162200000,
+        "gross_return_pct": 0.216,
+        "net_return_pct": 0.116,
+        "equity_after": 0.9839
+      },
+      {
+        "date": "2025-09-18",
+        "buy_price": 162863000,
+        "sell_price": 162478000,
+        "gross_return_pct": -0.236,
+        "net_return_pct": -0.336,
+        "equity_after": 0.9805
+      },
+      {
+        "date": "2025-09-24",
+        "buy_price": 161021000,
+        "sell_price": 160700000,
+        "gross_return_pct": -0.199,
+        "net_return_pct": -0.299,
+        "equity_after": 0.9776
+      },
+      {
+        "date": "2025-09-28",
+        "buy_price": 158454000,
+        "sell_price": 160579000,
+        "gross_return_pct": 1.341,
+        "net_return_pct": 1.241,
+        "equity_after": 0.9897
+      },
+      {
+        "date": "2025-09-29",
+        "buy_price": 162199500,
+        "sell_price": 162976000,
+        "gross_return_pct": 0.479,
+        "net_return_pct": 0.379,
+        "equity_after": 0.9935
+      },
+      {
+        "date": "2025-10-01",
+        "buy_price": 164100000,
+        "sell_price": 168424000,
+        "gross_return_pct": 2.635,
+        "net_return_pct": 2.535,
+        "equity_after": 1.0187
+      },
+      {
+        "date": "2025-10-03",
+        "buy_price": 172346000,
+        "sell_price": 173460000,
+        "gross_return_pct": 0.646,
+        "net_return_pct": 0.546,
+        "equity_after": 1.0242
+      },
+      {
+        "date": "2025-10-05",
+        "buy_price": 176144500,
+        "sell_price": 177002000,
+        "gross_return_pct": 0.487,
+        "net_return_pct": 0.387,
+        "equity_after": 1.0282
+      },
+      {
+        "date": "2025-10-08",
+        "buy_price": 177497500,
+        "sell_price": 177853000,
+        "gross_return_pct": 0.2,
+        "net_return_pct": 0.1,
+        "equity_after": 1.0292
+      },
+      {
+        "date": "2025-10-09",
+        "buy_price": 179431500,
+        "sell_price": 177616000,
+        "gross_return_pct": -1.012,
+        "net_return_pct": -1.112,
+        "equity_after": 1.0178
+      },
+      {
+        "date": "2025-10-12",
+        "buy_price": 174108500,
+        "sell_price": 173833000,
+        "gross_return_pct": -0.158,
+        "net_return_pct": -0.258,
+        "equity_after": 1.0152
+      },
+      {
+        "date": "2025-10-16",
+        "buy_price": 170011500,
+        "sell_price": 165291000,
+        "gross_return_pct": -2.777,
+        "net_return_pct": -2.877,
+        "equity_after": 0.986
+      },
+      {
+        "date": "2025-10-19",
+        "buy_price": 164704000,
+        "sell_price": 164806000,
+        "gross_return_pct": 0.062,
+        "net_return_pct": -0.038,
+        "equity_after": 0.9856
+      },
+      {
+        "date": "2025-10-20",
+        "buy_price": 167179000,
+        "sell_price": 165911000,
+        "gross_return_pct": -0.758,
+        "net_return_pct": -0.858,
+        "equity_after": 0.9771
+      },
+      {
+        "date": "2025-10-21",
+        "buy_price": 167946000,
+        "sell_price": 163400000,
+        "gross_return_pct": -2.707,
+        "net_return_pct": -2.807,
+        "equity_after": 0.9497
+      },
+      {
+        "date": "2025-10-23",
+        "buy_price": 164106000,
+        "sell_price": 165546000,
+        "gross_return_pct": 0.877,
+        "net_return_pct": 0.777,
+        "equity_after": 0.9571
+      },
+      {
+        "date": "2025-10-24",
+        "buy_price": 167228500,
+        "sell_price": 165703000,
+        "gross_return_pct": -0.912,
+        "net_return_pct": -1.012,
+        "equity_after": 0.9474
+      },
+      {
+        "date": "2025-10-26",
+        "buy_price": 167089000,
+        "sell_price": 169514000,
+        "gross_return_pct": 1.451,
+        "net_return_pct": 1.351,
+        "equity_after": 0.9602
+      },
+      {
+        "date": "2025-10-27",
+        "buy_price": 171462000,
+        "sell_price": 168980000,
+        "gross_return_pct": -1.448,
+        "net_return_pct": -1.548,
+        "equity_after": 0.9453
+      },
+      {
+        "date": "2025-10-28",
+        "buy_price": 170333500,
+        "sell_price": 168263000,
+        "gross_return_pct": -1.216,
+        "net_return_pct": -1.316,
+        "equity_after": 0.9329
+      },
+      {
+        "date": "2025-11-02",
+        "buy_price": 164642000,
+        "sell_price": 164074000,
+        "gross_return_pct": -0.345,
+        "net_return_pct": -0.445,
+        "equity_after": 0.9287
+      },
+      {
+        "date": "2025-11-07",
+        "buy_price": 154225000,
+        "sell_price": 153850000,
+        "gross_return_pct": -0.243,
+        "net_return_pct": -0.343,
+        "equity_after": 0.9256
+      },
+      {
+        "date": "2025-11-09",
+        "buy_price": 154065500,
+        "sell_price": 155490000,
+        "gross_return_pct": 0.925,
+        "net_return_pct": 0.825,
+        "equity_after": 0.9332
+      },
+      {
+        "date": "2025-11-10",
+        "buy_price": 158000500,
+        "sell_price": 156802000,
+        "gross_return_pct": -0.759,
+        "net_return_pct": -0.859,
+        "equity_after": 0.9252
+      },
+      {
+        "date": "2025-11-11",
+        "buy_price": 158506000,
+        "sell_price": 154302000,
+        "gross_return_pct": -2.652,
+        "net_return_pct": -2.752,
+        "equity_after": 0.8997
+      },
+      {
+        "date": "2025-11-23",
+        "buy_price": 129068500,
+        "sell_price": 131998000,
+        "gross_return_pct": 2.27,
+        "net_return_pct": 2.17,
+        "equity_after": 0.9192
+      },
+      {
+        "date": "2025-11-26",
+        "buy_price": 132471500,
+        "sell_price": 135366000,
+        "gross_return_pct": 2.185,
+        "net_return_pct": 2.085,
+        "equity_after": 0.9384
+      },
+      {
+        "date": "2025-11-27",
+        "buy_price": 138308500,
+        "sell_price": 136989000,
+        "gross_return_pct": -0.954,
+        "net_return_pct": -1.054,
+        "equity_after": 0.9285
+      },
+      {
+        "date": "2025-11-28",
+        "buy_price": 138885000,
+        "sell_price": 136334000,
+        "gross_return_pct": -1.837,
+        "net_return_pct": -1.937,
+        "equity_after": 0.9105
+      },
+      {
+        "date": "2025-11-30",
+        "buy_price": 136735000,
+        "sell_price": 135752000,
+        "gross_return_pct": -0.719,
+        "net_return_pct": -0.819,
+        "equity_after": 0.9031
+      },
+      {
+        "date": "2025-12-02",
+        "buy_price": 134184000,
+        "sell_price": 135683000,
+        "gross_return_pct": 1.117,
+        "net_return_pct": 1.017,
+        "equity_after": 0.9123
+      },
+      {
+        "date": "2025-12-03",
+        "buy_price": 140023000,
+        "sell_price": 138998000,
+        "gross_return_pct": -0.732,
+        "net_return_pct": -0.832,
+        "equity_after": 0.9047
+      },
+      {
+        "date": "2025-12-07",
+        "buy_price": 134471000,
+        "sell_price": 135195000,
+        "gross_return_pct": 0.538,
+        "net_return_pct": 0.438,
+        "equity_after": 0.9086
+      },
+      {
+        "date": "2025-12-09",
+        "buy_price": 136744000,
+        "sell_price": 137254000,
+        "gross_return_pct": 0.373,
+        "net_return_pct": 0.273,
+        "equity_after": 0.9111
+      },
+      {
+        "date": "2025-12-11",
+        "buy_price": 138444500,
+        "sell_price": 137333000,
+        "gross_return_pct": -0.803,
+        "net_return_pct": -0.903,
+        "equity_after": 0.9029
+      },
+      {
+        "date": "2025-12-15",
+        "buy_price": 133705500,
+        "sell_price": 129132000,
+        "gross_return_pct": -3.421,
+        "net_return_pct": -3.521,
+        "equity_after": 0.8711
+      },
+      {
+        "date": "2025-12-17",
+        "buy_price": 132732000,
+        "sell_price": 128680000,
+        "gross_return_pct": -3.053,
+        "net_return_pct": -3.153,
+        "equity_after": 0.8436
+      },
+      {
+        "date": "2025-12-18",
+        "buy_price": 131913500,
+        "sell_price": 127233000,
+        "gross_return_pct": -3.548,
+        "net_return_pct": -3.648,
+        "equity_after": 0.8129
+      },
+      {
+        "date": "2025-12-19",
+        "buy_price": 130570000,
+        "sell_price": 131223000,
+        "gross_return_pct": 0.5,
+        "net_return_pct": 0.4,
+        "equity_after": 0.8161
+      },
+      {
+        "date": "2025-12-21",
+        "buy_price": 132237000,
+        "sell_price": 131859000,
+        "gross_return_pct": -0.286,
+        "net_return_pct": -0.386,
+        "equity_after": 0.813
+      },
+      {
+        "date": "2025-12-22",
+        "buy_price": 132902500,
+        "sell_price": 132201000,
+        "gross_return_pct": -0.528,
+        "net_return_pct": -0.628,
+        "equity_after": 0.8079
+      },
+      {
+        "date": "2025-12-26",
+        "buy_price": 129547000,
+        "sell_price": 128149000,
+        "gross_return_pct": -1.079,
+        "net_return_pct": -1.179,
+        "equity_after": 0.7983
+      },
+      {
+        "date": "2025-12-29",
+        "buy_price": 128345500,
+        "sell_price": 127161000,
+        "gross_return_pct": -0.923,
+        "net_return_pct": -1.023,
+        "equity_after": 0.7902
+      },
+      {
+        "date": "2025-12-30",
+        "buy_price": 129198500,
+        "sell_price": 128570000,
+        "gross_return_pct": -0.486,
+        "net_return_pct": -0.586,
+        "equity_after": 0.7855
+      },
+      {
+        "date": "2026-01-01",
+        "buy_price": 128855000,
+        "sell_price": 128830000,
+        "gross_return_pct": -0.019,
+        "net_return_pct": -0.119,
+        "equity_after": 0.7846
+      },
+      {
+        "date": "2026-01-02",
+        "buy_price": 129369500,
+        "sell_price": 130151000,
+        "gross_return_pct": 0.604,
+        "net_return_pct": 0.504,
+        "equity_after": 0.7886
+      },
+      {
+        "date": "2026-01-04",
+        "buy_price": 131983500,
+        "sell_price": 132386000,
+        "gross_return_pct": 0.305,
+        "net_return_pct": 0.205,
+        "equity_after": 0.7902
+      },
+      {
+        "date": "2026-01-05",
+        "buy_price": 133296000,
+        "sell_price": 136074000,
+        "gross_return_pct": 2.084,
+        "net_return_pct": 1.984,
+        "equity_after": 0.8058
+      },
+      {
+        "date": "2026-01-09",
+        "buy_price": 134686500,
+        "sell_price": 133449000,
+        "gross_return_pct": -0.919,
+        "net_return_pct": -1.019,
+        "equity_after": 0.7976
+      },
+      {
+        "date": "2026-01-11",
+        "buy_price": 133850500,
+        "sell_price": 133751000,
+        "gross_return_pct": -0.074,
+        "net_return_pct": -0.174,
+        "equity_after": 0.7962
+      },
+      {
+        "date": "2026-01-12",
+        "buy_price": 134323000,
+        "sell_price": 134602000,
+        "gross_return_pct": 0.208,
+        "net_return_pct": 0.108,
+        "equity_after": 0.7971
+      },
+      {
+        "date": "2026-01-13",
+        "buy_price": 136002000,
+        "sell_price": 139946000,
+        "gross_return_pct": 2.9,
+        "net_return_pct": 2.8,
+        "equity_after": 0.8194
+      },
+      {
+        "date": "2026-01-18",
+        "buy_price": 140946500,
+        "sell_price": 138944000,
+        "gross_return_pct": -1.421,
+        "net_return_pct": -1.521,
+        "equity_after": 0.807
+      },
+      {
+        "date": "2026-01-23",
+        "buy_price": 134005500,
+        "sell_price": 131906000,
+        "gross_return_pct": -1.567,
+        "net_return_pct": -1.667,
+        "equity_after": 0.7935
+      },
+      {
+        "date": "2026-01-28",
+        "buy_price": 130964500,
+        "sell_price": 129051000,
+        "gross_return_pct": -1.461,
+        "net_return_pct": -1.561,
+        "equity_after": 0.7811
+      },
+      {
+        "date": "2026-02-02",
+        "buy_price": 116666000,
+        "sell_price": 116932000,
+        "gross_return_pct": 0.228,
+        "net_return_pct": 0.128,
+        "equity_after": 0.7821
+      },
+      {
+        "date": "2026-02-06",
+        "buy_price": 101005500,
+        "sell_price": 104995000,
+        "gross_return_pct": 3.95,
+        "net_return_pct": 3.85,
+        "equity_after": 0.8122
+      },
+      {
+        "date": "2026-02-08",
+        "buy_price": 106052500,
+        "sell_price": 104597000,
+        "gross_return_pct": -1.372,
+        "net_return_pct": -1.472,
+        "equity_after": 0.8003
+      },
+      {
+        "date": "2026-02-13",
+        "buy_price": 99510500,
+        "sell_price": 100799000,
+        "gross_return_pct": 1.295,
+        "net_return_pct": 1.195,
+        "equity_after": 0.8098
+      },
+      {
+        "date": "2026-02-14",
+        "buy_price": 103280500,
+        "sell_price": 102864000,
+        "gross_return_pct": -0.403,
+        "net_return_pct": -0.503,
+        "equity_after": 0.8058
+      },
+      {
+        "date": "2026-02-15",
+        "buy_price": 104681500,
+        "sell_price": 102158000,
+        "gross_return_pct": -2.411,
+        "net_return_pct": -2.511,
+        "equity_after": 0.7855
+      },
+      {
+        "date": "2026-02-20",
+        "buy_price": 100017000,
+        "sell_price": 100066000,
+        "gross_return_pct": 0.049,
+        "net_return_pct": -0.051,
+        "equity_after": 0.7851
+      },
+      {
+        "date": "2026-02-25",
+        "buy_price": 95688000,
+        "sell_price": 97935000,
+        "gross_return_pct": 2.348,
+        "net_return_pct": 2.248,
+        "equity_after": 0.8028
+      },
+      {
+        "date": "2026-02-28",
+        "buy_price": 97889500,
+        "sell_price": 97626000,
+        "gross_return_pct": -0.269,
+        "net_return_pct": -0.369,
+        "equity_after": 0.7998
+      },
+      {
+        "date": "2026-03-02",
+        "buy_price": 97858500,
+        "sell_price": 100578000,
+        "gross_return_pct": 2.779,
+        "net_return_pct": 2.679,
+        "equity_after": 0.8212
+      },
+      {
+        "date": "2026-03-04",
+        "buy_price": 102338000,
+        "sell_price": 105374000,
+        "gross_return_pct": 2.967,
+        "net_return_pct": 2.867,
+        "equity_after": 0.8448
+      },
+      {
+        "date": "2026-03-08",
+        "buy_price": 100437500,
+        "sell_price": 97845000,
+        "gross_return_pct": -2.581,
+        "net_return_pct": -2.681,
+        "equity_after": 0.8221
+      },
+      {
+        "date": "2026-03-09",
+        "buy_price": 99551000,
+        "sell_price": 100499000,
+        "gross_return_pct": 0.952,
+        "net_return_pct": 0.852,
+        "equity_after": 0.8291
+      },
+      {
+        "date": "2026-03-10",
+        "buy_price": 102765000,
+        "sell_price": 102417000,
+        "gross_return_pct": -0.339,
+        "net_return_pct": -0.439,
+        "equity_after": 0.8255
+      },
+      {
+        "date": "2026-03-13",
+        "buy_price": 104155000,
+        "sell_price": 104477000,
+        "gross_return_pct": 0.309,
+        "net_return_pct": 0.209,
+        "equity_after": 0.8272
+      },
+      {
+        "date": "2026-03-15",
+        "buy_price": 105838500,
+        "sell_price": 106995000,
+        "gross_return_pct": 1.093,
+        "net_return_pct": 0.993,
+        "equity_after": 0.8354
+      },
+      {
+        "date": "2026-03-16",
+        "buy_price": 108353000,
+        "sell_price": 110062000,
+        "gross_return_pct": 1.577,
+        "net_return_pct": 1.477,
+        "equity_after": 0.8478
+      },
+      {
+        "date": "2026-03-17",
+        "buy_price": 112104000,
+        "sell_price": 109015000,
+        "gross_return_pct": -2.755,
+        "net_return_pct": -2.855,
+        "equity_after": 0.8236
+      },
+      {
+        "date": "2026-03-20",
+        "buy_price": 105984000,
+        "sell_price": 105399000,
+        "gross_return_pct": -0.552,
+        "net_return_pct": -0.652,
+        "equity_after": 0.8182
+      },
+      {
+        "date": "2026-03-23",
+        "buy_price": 103435500,
+        "sell_price": 105290000,
+        "gross_return_pct": 1.793,
+        "net_return_pct": 1.693,
+        "equity_after": 0.8321
+      },
+      {
+        "date": "2026-03-25",
+        "buy_price": 106634000,
+        "sell_price": 106524000,
+        "gross_return_pct": -0.103,
+        "net_return_pct": -0.203,
+        "equity_after": 0.8304
+      },
+      {
+        "date": "2026-03-30",
+        "buy_price": 101660500,
+        "sell_price": 101468000,
+        "gross_return_pct": -0.189,
+        "net_return_pct": -0.289,
+        "equity_after": 0.828
+      },
+      {
+        "date": "2026-03-31",
+        "buy_price": 102976000,
+        "sell_price": 103342000,
+        "gross_return_pct": 0.355,
+        "net_return_pct": 0.255,
+        "equity_after": 0.8301
+      },
+      {
+        "date": "2026-04-04",
+        "buy_price": 102243500,
+        "sell_price": 102131000,
+        "gross_return_pct": -0.11,
+        "net_return_pct": -0.21,
+        "equity_after": 0.8283
+      },
+      {
+        "date": "2026-04-05",
+        "buy_price": 102641000,
+        "sell_price": 104289000,
+        "gross_return_pct": 1.606,
+        "net_return_pct": 1.506,
+        "equity_after": 0.8408
+      },
+      {
+        "date": "2026-04-07",
+        "buy_price": 105144000,
+        "sell_price": 107295000,
+        "gross_return_pct": 2.046,
+        "net_return_pct": 1.946,
+        "equity_after": 0.8572
+      },
+      {
+        "date": "2026-04-09",
+        "buy_price": 107284500,
+        "sell_price": 106695000,
+        "gross_return_pct": -0.549,
+        "net_return_pct": -0.649,
+        "equity_after": 0.8516
+      },
+      {
+        "date": "2026-04-10",
+        "buy_price": 108186000,
+        "sell_price": 108308000,
+        "gross_return_pct": 0.113,
+        "net_return_pct": 0.013,
+        "equity_after": 0.8517
+      },
+      {
+        "date": "2026-04-13",
+        "buy_price": 107393000,
+        "sell_price": 109804000,
+        "gross_return_pct": 2.245,
+        "net_return_pct": 2.145,
+        "equity_after": 0.87
+      },
+      {
+        "date": "2026-04-17",
+        "buy_price": 112048500,
+        "sell_price": 113741000,
+        "gross_return_pct": 1.511,
+        "net_return_pct": 1.411,
+        "equity_after": 0.8823
+      },
+      {
+        "date": "2026-04-20",
+        "buy_price": 111688500,
+        "sell_price": 112455000,
+        "gross_return_pct": 0.686,
+        "net_return_pct": 0.586,
+        "equity_after": 0.8874
+      },
+      {
+        "date": "2026-04-22",
+        "buy_price": 114074000,
+        "sell_price": 115909000,
+        "gross_return_pct": 1.609,
+        "net_return_pct": 1.509,
+        "equity_after": 0.9008
+      },
+      {
+        "date": "2026-04-26",
+        "buy_price": 116162500,
+        "sell_price": 116692000,
+        "gross_return_pct": 0.456,
+        "net_return_pct": 0.356,
+        "equity_after": 0.904
+      },
+      {
+        "date": "2026-04-27",
+        "buy_price": 117660000,
+        "sell_price": 115304000,
+        "gross_return_pct": -2.002,
+        "net_return_pct": -2.102,
+        "equity_after": 0.885
+      },
+      {
+        "date": "2026-04-29",
+        "buy_price": 114786000,
+        "sell_price": 113394000,
+        "gross_return_pct": -1.213,
+        "net_return_pct": -1.313,
+        "equity_after": 0.8734
+      },
+      {
+        "date": "2026-05-01",
+        "buy_price": 114600500,
+        "sell_price": 115999000,
+        "gross_return_pct": 1.22,
+        "net_return_pct": 1.12,
+        "equity_after": 0.8832
+      },
+      {
+        "date": "2026-05-03",
+        "buy_price": 117162500,
+        "sell_price": 116590000,
+        "gross_return_pct": -0.489,
+        "net_return_pct": -0.589,
+        "equity_after": 0.878
+      },
+      {
+        "date": "2026-05-04",
+        "buy_price": 117256000,
+        "sell_price": 118620000,
+        "gross_return_pct": 1.163,
+        "net_return_pct": 1.063,
+        "equity_after": 0.8873
+      },
+      {
+        "date": "2026-05-05",
+        "buy_price": 120304500,
+        "sell_price": 119742000,
+        "gross_return_pct": -0.468,
+        "net_return_pct": -0.568,
+        "equity_after": 0.8823
+      },
+      {
+        "date": "2026-05-09",
+        "buy_price": 119120000,
+        "sell_price": 118992000,
+        "gross_return_pct": -0.107,
+        "net_return_pct": -0.207,
+        "equity_after": 0.8805
+      },
+      {
+        "date": "2026-05-10",
+        "buy_price": 119592000,
+        "sell_price": 120461000,
+        "gross_return_pct": 0.727,
+        "net_return_pct": 0.627,
+        "equity_after": 0.886
+      },
+      {
+        "date": "2026-05-13",
+        "buy_price": 120027500,
+        "sell_price": 117854000,
+        "gross_return_pct": -1.811,
+        "net_return_pct": -1.911,
+        "equity_after": 0.869
+      },
+      {
+        "date": "2026-05-14",
+        "buy_price": 119373500,
+        "sell_price": 119849000,
+        "gross_return_pct": 0.398,
+        "net_return_pct": 0.298,
+        "equity_after": 0.8716
+      },
+      {
+        "date": "2026-05-20",
+        "buy_price": 115176000,
+        "sell_price": 114949000,
+        "gross_return_pct": -0.197,
+        "net_return_pct": -0.297,
+        "equity_after": 0.869
+      },
+      {
+        "date": "2026-05-21",
+        "buy_price": 115805000,
+        "sell_price": 115159000,
+        "gross_return_pct": -0.558,
+        "net_return_pct": -0.658,
+        "equity_after": 0.8633
+      },
+      {
+        "date": "2026-05-23",
+        "buy_price": 114582500,
+        "sell_price": 114869000,
+        "gross_return_pct": 0.25,
+        "net_return_pct": 0.15,
+        "equity_after": 0.8646
+      },
+      {
+        "date": "2026-06-07",
+        "buy_price": 93912500,
+        "sell_price": 95502000,
+        "gross_return_pct": 1.693,
+        "net_return_pct": 1.593,
+        "equity_after": 0.8784
+      },
+      {
+        "date": "2026-06-10",
+        "buy_price": 94195000,
+        "sell_price": 92560000,
+        "gross_return_pct": -1.736,
+        "net_return_pct": -1.836,
+        "equity_after": 0.8623
+      },
+      {
+        "date": "2026-06-11",
+        "buy_price": 94045000,
+        "sell_price": 95623000,
+        "gross_return_pct": 1.678,
+        "net_return_pct": 1.578,
+        "equity_after": 0.8759
+      },
+      {
+        "date": "2026-06-13",
+        "buy_price": 97203500,
+        "sell_price": 97476000,
+        "gross_return_pct": 0.28,
+        "net_return_pct": 0.18,
+        "equity_after": 0.8774
+      },
+      {
+        "date": "2026-06-14",
+        "buy_price": 98432000,
+        "sell_price": 99200000,
+        "gross_return_pct": 0.78,
+        "net_return_pct": 0.68,
+        "equity_after": 0.8834
+      },
+      {
+        "date": "2026-06-15",
+        "buy_price": 100802500,
+        "sell_price": 99576000,
+        "gross_return_pct": -1.217,
+        "net_return_pct": -1.317,
+        "equity_after": 0.8718
+      },
+      {
+        "date": "2026-06-20",
+        "buy_price": 97153500,
+        "sell_price": 97261000,
+        "gross_return_pct": 0.111,
+        "net_return_pct": 0.011,
+        "equity_after": 0.8719
+      },
+      {
+        "date": "2026-06-22",
+        "buy_price": 96541500,
+        "sell_price": 96640000,
+        "gross_return_pct": 0.102,
+        "net_return_pct": 0.002,
+        "equity_after": 0.8719
+      },
+      {
+        "date": "2026-06-29",
+        "buy_price": 91315000,
+        "sell_price": 91135000,
+        "gross_return_pct": -0.197,
+        "net_return_pct": -0.297,
+        "equity_after": 0.8693
+      },
+      {
+        "date": "2026-07-01",
+        "buy_price": 90441500,
+        "sell_price": 91163000,
+        "gross_return_pct": 0.798,
+        "net_return_pct": 0.698,
+        "equity_after": 0.8754
+      },
+      {
+        "date": "2026-07-02",
+        "buy_price": 93223000,
+        "sell_price": 92950000,
+        "gross_return_pct": -0.293,
+        "net_return_pct": -0.393,
+        "equity_after": 0.8719
+      },
+      {
+        "date": "2026-07-03",
+        "buy_price": 94617500,
+        "sell_price": 94392000,
+        "gross_return_pct": -0.238,
+        "net_return_pct": -0.338,
+        "equity_after": 0.869
+      },
+      {
+        "date": "2026-07-04",
+        "buy_price": 95602000,
+        "sell_price": 95265000,
+        "gross_return_pct": -0.353,
+        "net_return_pct": -0.453,
+        "equity_after": 0.8651
+      },
+      {
+        "date": "2026-07-05",
+        "buy_price": 96061000,
+        "sell_price": 95673000,
+        "gross_return_pct": -0.404,
+        "net_return_pct": -0.504,
+        "equity_after": 0.8607
+      },
+      {
+        "date": "2026-07-06",
+        "buy_price": 96596000,
+        "sell_price": 96110000,
+        "gross_return_pct": -0.503,
+        "net_return_pct": -0.603,
+        "equity_after": 0.8555
+      },
+      {
+        "date": "2026-07-09",
+        "buy_price": 94567000,
+        "sell_price": 94317000,
+        "gross_return_pct": -0.264,
+        "net_return_pct": -0.364,
+        "equity_after": 0.8524
+      },
+      {
+        "date": "2026-07-10",
+        "buy_price": 95619500,
+        "sell_price": 95718000,
+        "gross_return_pct": 0.103,
+        "net_return_pct": 0.003,
+        "equity_after": 0.8524
+      },
+      {
+        "date": "2026-07-12",
+        "buy_price": 95743000,
+        "sell_price": 95087000,
+        "gross_return_pct": -0.685,
+        "net_return_pct": -0.785,
+        "equity_after": 0.8457
+      },
+      {
+        "date": "2026-07-13",
+        "buy_price": 95498000,
+        "sell_price": 92347000,
+        "gross_return_pct": -3.3,
+        "net_return_pct": -3.4,
+        "equity_after": 0.817
+      },
+      {
+        "date": "2026-07-14",
+        "buy_price": 94276000,
+        "sell_price": 95436000,
+        "gross_return_pct": 1.23,
+        "net_return_pct": 1.13,
+        "equity_after": 0.8262
+      },
+      {
+        "date": "2026-07-17",
+        "buy_price": 94666000,
+        "sell_price": 94300000,
+        "gross_return_pct": -0.387,
+        "net_return_pct": -0.487,
+        "equity_after": 0.8222
+      },
+      {
+        "date": "2026-07-18",
+        "buy_price": 95485500,
+        "sell_price": 95495000,
+        "gross_return_pct": 0.01,
+        "net_return_pct": -0.09,
+        "equity_after": 0.8214
+      },
+      {
+        "date": "2026-07-20",
+        "buy_price": 95527500,
+        "sell_price": 95250000,
+        "gross_return_pct": -0.29,
+        "net_return_pct": -0.39,
+        "equity_after": 0.8182
+      },
+      {
+        "date": "2026-07-21",
+        "buy_price": 96389500,
+        "sell_price": 97219000,
+        "gross_return_pct": 0.861,
+        "net_return_pct": 0.761,
+        "equity_after": 0.8245
+      },
+      {
+        "date": "2026-07-26",
+        "buy_price": 94692000,
+        "sell_price": 95016000,
+        "gross_return_pct": 0.342,
+        "net_return_pct": 0.242,
+        "equity_after": 0.8265
+      },
+      {
+        "date": "2026-07-30",
+        "buy_price": 92372000,
+        "sell_price": 91565000,
+        "gross_return_pct": -0.874,
+        "net_return_pct": -0.974,
+        "equity_after": 0.8184
+      },
+      {
+        "date": "2026-07-31",
+        "buy_price": 92351000,
+        "sell_price": 90363000,
+        "gross_return_pct": -2.153,
+        "net_return_pct": -2.253,
+        "equity_after": 0.8
+      },
+      {
+        "date": "2026-08-02",
+        "buy_price": 91066000,
+        "sell_price": 90938000,
+        "gross_return_pct": -0.141,
+        "net_return_pct": -0.241,
+        "equity_after": 0.798
+      },
+      {
+        "date": "2026-08-04",
+        "buy_price": 91429500,
+        "sell_price": 91238000,
+        "gross_return_pct": -0.209,
+        "net_return_pct": -0.309,
+        "equity_after": 0.7956
+      },
+      {
+        "date": "2026-08-05",
+        "buy_price": 92012500,
+        "sell_price": 91729000,
+        "gross_return_pct": -0.308,
+        "net_return_pct": -0.408,
+        "equity_after": 0.7923
+      },
+      {
+        "date": "2026-08-07",
+        "buy_price": 91717000,
+        "sell_price": 91338000,
+        "gross_return_pct": -0.413,
+        "net_return_pct": -0.513,
+        "equity_after": 0.7883
+      }
+    ]
+  },
+  {
+    "market": "KRW-ETH",
+    "period_days": 365,
+    "num_trades": 145,
+    "win_rate_pct": 47.6,
+    "total_return_pct": 7.45,
+    "final_equity": 1.0745,
+    "max_drawdown_pct": 27.92,
+    "trades": [
+      {
+        "date": "2025-08-12",
+        "buy_price": 5969500,
+        "sell_price": 6281000,
+        "gross_return_pct": 5.218,
+        "net_return_pct": 5.118,
+        "equity_after": 1.0512
+      },
+      {
+        "date": "2025-08-17",
+        "buy_price": 6243000,
+        "sell_price": 6219000,
+        "gross_return_pct": -0.384,
+        "net_return_pct": -0.484,
+        "equity_after": 1.0461
+      },
+      {
+        "date": "2025-08-20",
+        "buy_price": 5874500,
+        "sell_price": 6042000,
+        "gross_return_pct": 2.851,
+        "net_return_pct": 2.751,
+        "equity_after": 1.0749
+      },
+      {
+        "date": "2025-08-22",
+        "buy_price": 6006000,
+        "sell_price": 6664000,
+        "gross_return_pct": 10.956,
+        "net_return_pct": 10.856,
+        "equity_after": 1.1916
+      },
+      {
+        "date": "2025-08-24",
+        "buy_price": 6735500,
+        "sell_price": 6634000,
+        "gross_return_pct": -1.507,
+        "net_return_pct": -1.607,
+        "equity_after": 1.1724
+      },
+      {
+        "date": "2025-08-26",
+        "buy_price": 6452500,
+        "sell_price": 6443000,
+        "gross_return_pct": -0.147,
+        "net_return_pct": -0.247,
+        "equity_after": 1.1695
+      },
+      {
+        "date": "2025-08-28",
+        "buy_price": 6425000,
+        "sell_price": 6286000,
+        "gross_return_pct": -2.163,
+        "net_return_pct": -2.263,
+        "equity_after": 1.143
+      },
+      {
+        "date": "2025-08-31",
+        "buy_price": 6216000,
+        "sell_price": 6114000,
+        "gross_return_pct": -1.641,
+        "net_return_pct": -1.741,
+        "equity_after": 1.1231
+      },
+      {
+        "date": "2025-09-01",
+        "buy_price": 6190500,
+        "sell_price": 6026000,
+        "gross_return_pct": -2.657,
+        "net_return_pct": -2.757,
+        "equity_after": 1.0922
+      },
+      {
+        "date": "2025-09-03",
+        "buy_price": 6122000,
+        "sell_price": 6164000,
+        "gross_return_pct": 0.686,
+        "net_return_pct": 0.586,
+        "equity_after": 1.0986
+      },
+      {
+        "date": "2025-09-05",
+        "buy_price": 6146500,
+        "sell_price": 6029000,
+        "gross_return_pct": -1.912,
+        "net_return_pct": -2.012,
+        "equity_after": 1.0765
+      },
+      {
+        "date": "2025-09-07",
+        "buy_price": 6032000,
+        "sell_price": 6015000,
+        "gross_return_pct": -0.282,
+        "net_return_pct": -0.382,
+        "equity_after": 1.0724
+      },
+      {
+        "date": "2025-09-08",
+        "buy_price": 6042500,
+        "sell_price": 6000000,
+        "gross_return_pct": -0.703,
+        "net_return_pct": -0.803,
+        "equity_after": 1.0637
+      },
+      {
+        "date": "2025-09-09",
+        "buy_price": 6053500,
+        "sell_price": 6001000,
+        "gross_return_pct": -0.867,
+        "net_return_pct": -0.967,
+        "equity_after": 1.0535
+      },
+      {
+        "date": "2025-09-10",
+        "buy_price": 6054500,
+        "sell_price": 6056000,
+        "gross_return_pct": 0.025,
+        "net_return_pct": -0.075,
+        "equity_after": 1.0527
+      },
+      {
+        "date": "2025-09-11",
+        "buy_price": 6152500,
+        "sell_price": 6196000,
+        "gross_return_pct": 0.707,
+        "net_return_pct": 0.607,
+        "equity_after": 1.0591
+      },
+      {
+        "date": "2025-09-12",
+        "buy_price": 6290000,
+        "sell_price": 6538000,
+        "gross_return_pct": 3.943,
+        "net_return_pct": 3.843,
+        "equity_after": 1.0998
+      },
+      {
+        "date": "2025-09-17",
+        "buy_price": 6331500,
+        "sell_price": 6358000,
+        "gross_return_pct": 0.419,
+        "net_return_pct": 0.319,
+        "equity_after": 1.1033
+      },
+      {
+        "date": "2025-09-26",
+        "buy_price": 5788000,
+        "sell_price": 5817000,
+        "gross_return_pct": 0.501,
+        "net_return_pct": 0.401,
+        "equity_after": 1.1077
+      },
+      {
+        "date": "2025-09-28",
+        "buy_price": 5833000,
+        "sell_price": 5931000,
+        "gross_return_pct": 1.68,
+        "net_return_pct": 1.58,
+        "equity_after": 1.1252
+      },
+      {
+        "date": "2025-09-29",
+        "buy_price": 6033500,
+        "sell_price": 6009000,
+        "gross_return_pct": -0.406,
+        "net_return_pct": -0.506,
+        "equity_after": 1.1195
+      },
+      {
+        "date": "2025-10-01",
+        "buy_price": 6003000,
+        "sell_price": 6173000,
+        "gross_return_pct": 2.832,
+        "net_return_pct": 2.732,
+        "equity_after": 1.1501
+      },
+      {
+        "date": "2025-10-02",
+        "buy_price": 6313000,
+        "sell_price": 6349000,
+        "gross_return_pct": 0.57,
+        "net_return_pct": 0.47,
+        "equity_after": 1.1555
+      },
+      {
+        "date": "2025-10-03",
+        "buy_price": 6468000,
+        "sell_price": 6396000,
+        "gross_return_pct": -1.113,
+        "net_return_pct": -1.213,
+        "equity_after": 1.1415
+      },
+      {
+        "date": "2025-10-05",
+        "buy_price": 6457500,
+        "sell_price": 6471000,
+        "gross_return_pct": 0.209,
+        "net_return_pct": 0.109,
+        "equity_after": 1.1427
+      },
+      {
+        "date": "2025-10-06",
+        "buy_price": 6555500,
+        "sell_price": 6672000,
+        "gross_return_pct": 1.777,
+        "net_return_pct": 1.677,
+        "equity_after": 1.1619
+      },
+      {
+        "date": "2025-10-12",
+        "buy_price": 5951500,
+        "sell_price": 6275000,
+        "gross_return_pct": 5.436,
+        "net_return_pct": 5.336,
+        "equity_after": 1.2239
+      },
+      {
+        "date": "2025-10-19",
+        "buy_price": 5996500,
+        "sell_price": 6040000,
+        "gross_return_pct": 0.725,
+        "net_return_pct": 0.625,
+        "equity_after": 1.2315
+      },
+      {
+        "date": "2025-10-21",
+        "buy_price": 6089000,
+        "sell_price": 5838000,
+        "gross_return_pct": -4.122,
+        "net_return_pct": -4.222,
+        "equity_after": 1.1795
+      },
+      {
+        "date": "2025-10-23",
+        "buy_price": 5853500,
+        "sell_price": 5806000,
+        "gross_return_pct": -0.811,
+        "net_return_pct": -0.911,
+        "equity_after": 1.1688
+      },
+      {
+        "date": "2025-10-24",
+        "buy_price": 5880500,
+        "sell_price": 5869000,
+        "gross_return_pct": -0.196,
+        "net_return_pct": -0.296,
+        "equity_after": 1.1653
+      },
+      {
+        "date": "2025-10-26",
+        "buy_price": 5918500,
+        "sell_price": 6150000,
+        "gross_return_pct": 3.911,
+        "net_return_pct": 3.811,
+        "equity_after": 1.2097
+      },
+      {
+        "date": "2025-11-02",
+        "buy_price": 5808000,
+        "sell_price": 5792000,
+        "gross_return_pct": -0.275,
+        "net_return_pct": -0.375,
+        "equity_after": 1.2052
+      },
+      {
+        "date": "2025-11-07",
+        "buy_price": 5106000,
+        "sell_price": 5111000,
+        "gross_return_pct": 0.098,
+        "net_return_pct": -0.002,
+        "equity_after": 1.2052
+      },
+      {
+        "date": "2025-11-09",
+        "buy_price": 5162500,
+        "sell_price": 5320000,
+        "gross_return_pct": 3.051,
+        "net_return_pct": 2.951,
+        "equity_after": 1.2407
+      },
+      {
+        "date": "2025-11-11",
+        "buy_price": 5397500,
+        "sell_price": 5120000,
+        "gross_return_pct": -5.141,
+        "net_return_pct": -5.241,
+        "equity_after": 1.1757
+      },
+      {
+        "date": "2025-11-12",
+        "buy_price": 5274500,
+        "sell_price": 5148000,
+        "gross_return_pct": -2.398,
+        "net_return_pct": -2.498,
+        "equity_after": 1.1463
+      },
+      {
+        "date": "2025-11-13",
+        "buy_price": 5289500,
+        "sell_price": 4907000,
+        "gross_return_pct": -7.231,
+        "net_return_pct": -7.331,
+        "equity_after": 1.0623
+      },
+      {
+        "date": "2025-11-16",
+        "buy_price": 4857000,
+        "sell_price": 4613000,
+        "gross_return_pct": -5.024,
+        "net_return_pct": -5.124,
+        "equity_after": 1.0079
+      },
+      {
+        "date": "2025-11-23",
+        "buy_price": 4234000,
+        "sell_price": 4259000,
+        "gross_return_pct": 0.59,
+        "net_return_pct": 0.49,
+        "equity_after": 1.0128
+      },
+      {
+        "date": "2025-11-24",
+        "buy_price": 4341500,
+        "sell_price": 4431000,
+        "gross_return_pct": 2.061,
+        "net_return_pct": 1.961,
+        "equity_after": 1.0327
+      },
+      {
+        "date": "2025-11-26",
+        "buy_price": 4510500,
+        "sell_price": 4520000,
+        "gross_return_pct": 0.211,
+        "net_return_pct": 0.111,
+        "equity_after": 1.0338
+      },
+      {
+        "date": "2025-11-28",
+        "buy_price": 4574500,
+        "sell_price": 4539000,
+        "gross_return_pct": -0.776,
+        "net_return_pct": -0.876,
+        "equity_after": 1.0248
+      },
+      {
+        "date": "2025-11-30",
+        "buy_price": 4546000,
+        "sell_price": 4487000,
+        "gross_return_pct": -1.298,
+        "net_return_pct": -1.398,
+        "equity_after": 1.0104
+      },
+      {
+        "date": "2025-12-02",
+        "buy_price": 4402500,
+        "sell_price": 4453000,
+        "gross_return_pct": 1.147,
+        "net_return_pct": 1.047,
+        "equity_after": 1.021
+      },
+      {
+        "date": "2025-12-03",
+        "buy_price": 4634000,
+        "sell_price": 4736000,
+        "gross_return_pct": 2.201,
+        "net_return_pct": 2.101,
+        "equity_after": 1.0425
+      },
+      {
+        "date": "2025-12-07",
+        "buy_price": 4595000,
+        "sell_price": 4582000,
+        "gross_return_pct": -0.283,
+        "net_return_pct": -0.383,
+        "equity_after": 1.0385
+      },
+      {
+        "date": "2025-12-09",
+        "buy_price": 4742000,
+        "sell_price": 4912000,
+        "gross_return_pct": 3.585,
+        "net_return_pct": 3.485,
+        "equity_after": 1.0747
+      },
+      {
+        "date": "2025-12-15",
+        "buy_price": 4645500,
+        "sell_price": 4434000,
+        "gross_return_pct": -4.553,
+        "net_return_pct": -4.653,
+        "equity_after": 1.0247
+      },
+      {
+        "date": "2025-12-17",
+        "buy_price": 4484500,
+        "sell_price": 4229000,
+        "gross_return_pct": -5.697,
+        "net_return_pct": -5.797,
+        "equity_after": 0.9653
+      },
+      {
+        "date": "2025-12-18",
+        "buy_price": 4389500,
+        "sell_price": 4211000,
+        "gross_return_pct": -4.067,
+        "net_return_pct": -4.167,
+        "equity_after": 0.925
+      },
+      {
+        "date": "2025-12-19",
+        "buy_price": 4360500,
+        "sell_price": 4441000,
+        "gross_return_pct": 1.846,
+        "net_return_pct": 1.746,
+        "equity_after": 0.9412
+      },
+      {
+        "date": "2025-12-21",
+        "buy_price": 4460000,
+        "sell_price": 4468000,
+        "gross_return_pct": 0.179,
+        "net_return_pct": 0.079,
+        "equity_after": 0.9419
+      },
+      {
+        "date": "2025-12-22",
+        "buy_price": 4516500,
+        "sell_price": 4488000,
+        "gross_return_pct": -0.631,
+        "net_return_pct": -0.731,
+        "equity_after": 0.935
+      },
+      {
+        "date": "2025-12-26",
+        "buy_price": 4333000,
+        "sell_price": 4290000,
+        "gross_return_pct": -0.992,
+        "net_return_pct": -1.092,
+        "equity_after": 0.9248
+      },
+      {
+        "date": "2025-12-29",
+        "buy_price": 4315000,
+        "sell_price": 4278000,
+        "gross_return_pct": -0.857,
+        "net_return_pct": -0.957,
+        "equity_after": 0.916
+      },
+      {
+        "date": "2025-12-30",
+        "buy_price": 4367000,
+        "sell_price": 4317000,
+        "gross_return_pct": -1.145,
+        "net_return_pct": -1.245,
+        "equity_after": 0.9046
+      },
+      {
+        "date": "2025-12-31",
+        "buy_price": 4380500,
+        "sell_price": 4335000,
+        "gross_return_pct": -1.039,
+        "net_return_pct": -1.139,
+        "equity_after": 0.8943
+      },
+      {
+        "date": "2026-01-02",
+        "buy_price": 4378000,
+        "sell_price": 4515000,
+        "gross_return_pct": 3.129,
+        "net_return_pct": 3.029,
+        "equity_after": 0.9214
+      },
+      {
+        "date": "2026-01-04",
+        "buy_price": 4574500,
+        "sell_price": 4545000,
+        "gross_return_pct": -0.645,
+        "net_return_pct": -0.745,
+        "equity_after": 0.9145
+      },
+      {
+        "date": "2026-01-05",
+        "buy_price": 4575000,
+        "sell_price": 4674000,
+        "gross_return_pct": 2.164,
+        "net_return_pct": 2.064,
+        "equity_after": 0.9334
+      },
+      {
+        "date": "2026-01-06",
+        "buy_price": 4758000,
+        "sell_price": 4795000,
+        "gross_return_pct": 0.778,
+        "net_return_pct": 0.678,
+        "equity_after": 0.9397
+      },
+      {
+        "date": "2026-01-11",
+        "buy_price": 4577500,
+        "sell_price": 4593000,
+        "gross_return_pct": 0.339,
+        "net_return_pct": 0.239,
+        "equity_after": 0.9419
+      },
+      {
+        "date": "2026-01-12",
+        "buy_price": 4633000,
+        "sell_price": 4567000,
+        "gross_return_pct": -1.425,
+        "net_return_pct": -1.525,
+        "equity_after": 0.9276
+      },
+      {
+        "date": "2026-01-13",
+        "buy_price": 4633000,
+        "sell_price": 4871000,
+        "gross_return_pct": 5.137,
+        "net_return_pct": 5.037,
+        "equity_after": 0.9743
+      },
+      {
+        "date": "2026-01-17",
+        "buy_price": 4913000,
+        "sell_price": 4886000,
+        "gross_return_pct": -0.55,
+        "net_return_pct": -0.65,
+        "equity_after": 0.968
+      },
+      {
+        "date": "2026-01-18",
+        "buy_price": 4918000,
+        "sell_price": 4868000,
+        "gross_return_pct": -1.017,
+        "net_return_pct": -1.117,
+        "equity_after": 0.9572
+      },
+      {
+        "date": "2026-01-26",
+        "buy_price": 4298000,
+        "sell_price": 4295000,
+        "gross_return_pct": -0.07,
+        "net_return_pct": -0.17,
+        "equity_after": 0.9555
+      },
+      {
+        "date": "2026-01-27",
+        "buy_price": 4366000,
+        "sell_price": 4399000,
+        "gross_return_pct": 0.756,
+        "net_return_pct": 0.656,
+        "equity_after": 0.9618
+      },
+      {
+        "date": "2026-02-06",
+        "buy_price": 2965500,
+        "sell_price": 3068000,
+        "gross_return_pct": 3.456,
+        "net_return_pct": 3.356,
+        "equity_after": 0.9941
+      },
+      {
+        "date": "2026-02-13",
+        "buy_price": 2926500,
+        "sell_price": 2998000,
+        "gross_return_pct": 2.443,
+        "net_return_pct": 2.343,
+        "equity_after": 1.0174
+      },
+      {
+        "date": "2026-02-14",
+        "buy_price": 3100000,
+        "sell_price": 3071000,
+        "gross_return_pct": -0.935,
+        "net_return_pct": -1.035,
+        "equity_after": 1.0069
+      },
+      {
+        "date": "2026-02-18",
+        "buy_price": 2994000,
+        "sell_price": 2903000,
+        "gross_return_pct": -3.039,
+        "net_return_pct": -3.139,
+        "equity_after": 0.9752
+      },
+      {
+        "date": "2026-02-25",
+        "buy_price": 2764000,
+        "sell_price": 2961000,
+        "gross_return_pct": 7.127,
+        "net_return_pct": 7.027,
+        "equity_after": 1.0438
+      },
+      {
+        "date": "2026-03-01",
+        "buy_price": 2958000,
+        "sell_price": 2830000,
+        "gross_return_pct": -4.327,
+        "net_return_pct": -4.427,
+        "equity_after": 0.9976
+      },
+      {
+        "date": "2026-03-02",
+        "buy_price": 2928500,
+        "sell_price": 2962000,
+        "gross_return_pct": 1.144,
+        "net_return_pct": 1.044,
+        "equity_after": 1.008
+      },
+      {
+        "date": "2026-03-04",
+        "buy_price": 2984500,
+        "sell_price": 3084000,
+        "gross_return_pct": 3.334,
+        "net_return_pct": 3.234,
+        "equity_after": 1.0406
+      },
+      {
+        "date": "2026-03-09",
+        "buy_price": 2910500,
+        "sell_price": 2928000,
+        "gross_return_pct": 0.601,
+        "net_return_pct": 0.501,
+        "equity_after": 1.0458
+      },
+      {
+        "date": "2026-03-10",
+        "buy_price": 3001500,
+        "sell_price": 2982000,
+        "gross_return_pct": -0.65,
+        "net_return_pct": -0.75,
+        "equity_after": 1.038
+      },
+      {
+        "date": "2026-03-11",
+        "buy_price": 3038000,
+        "sell_price": 3001000,
+        "gross_return_pct": -1.218,
+        "net_return_pct": -1.318,
+        "equity_after": 1.0243
+      },
+      {
+        "date": "2026-03-12",
+        "buy_price": 3054500,
+        "sell_price": 3033000,
+        "gross_return_pct": -0.704,
+        "net_return_pct": -0.804,
+        "equity_after": 1.016
+      },
+      {
+        "date": "2026-03-13",
+        "buy_price": 3083000,
+        "sell_price": 3080000,
+        "gross_return_pct": -0.097,
+        "net_return_pct": -0.197,
+        "equity_after": 1.014
+      },
+      {
+        "date": "2026-03-15",
+        "buy_price": 3127500,
+        "sell_price": 3200000,
+        "gross_return_pct": 2.318,
+        "net_return_pct": 2.218,
+        "equity_after": 1.0365
+      },
+      {
+        "date": "2026-03-16",
+        "buy_price": 3277000,
+        "sell_price": 3462000,
+        "gross_return_pct": 5.645,
+        "net_return_pct": 5.545,
+        "equity_after": 1.094
+      },
+      {
+        "date": "2026-03-21",
+        "buy_price": 3245000,
+        "sell_price": 3142000,
+        "gross_return_pct": -3.174,
+        "net_return_pct": -3.274,
+        "equity_after": 1.0582
+      },
+      {
+        "date": "2026-03-23",
+        "buy_price": 3151000,
+        "sell_price": 3200000,
+        "gross_return_pct": 1.555,
+        "net_return_pct": 1.455,
+        "equity_after": 1.0736
+      },
+      {
+        "date": "2026-03-25",
+        "buy_price": 3259500,
+        "sell_price": 3241000,
+        "gross_return_pct": -0.568,
+        "net_return_pct": -0.668,
+        "equity_after": 1.0664
+      },
+      {
+        "date": "2026-03-30",
+        "buy_price": 3067500,
+        "sell_price": 3080000,
+        "gross_return_pct": 0.407,
+        "net_return_pct": 0.307,
+        "equity_after": 1.0697
+      },
+      {
+        "date": "2026-03-31",
+        "buy_price": 3151000,
+        "sell_price": 3185000,
+        "gross_return_pct": 1.079,
+        "net_return_pct": 0.979,
+        "equity_after": 1.0802
+      },
+      {
+        "date": "2026-04-01",
+        "buy_price": 3259000,
+        "sell_price": 3242000,
+        "gross_return_pct": -0.522,
+        "net_return_pct": -0.622,
+        "equity_after": 1.0735
+      },
+      {
+        "date": "2026-04-04",
+        "buy_price": 3146000,
+        "sell_price": 3133000,
+        "gross_return_pct": -0.413,
+        "net_return_pct": -0.513,
+        "equity_after": 1.0679
+      },
+      {
+        "date": "2026-04-05",
+        "buy_price": 3165000,
+        "sell_price": 3187000,
+        "gross_return_pct": 0.695,
+        "net_return_pct": 0.595,
+        "equity_after": 1.0743
+      },
+      {
+        "date": "2026-04-06",
+        "buy_price": 3249500,
+        "sell_price": 3184000,
+        "gross_return_pct": -2.016,
+        "net_return_pct": -2.116,
+        "equity_after": 1.0516
+      },
+      {
+        "date": "2026-04-07",
+        "buy_price": 3237000,
+        "sell_price": 3341000,
+        "gross_return_pct": 3.213,
+        "net_return_pct": 3.113,
+        "equity_after": 1.0843
+      },
+      {
+        "date": "2026-04-09",
+        "buy_price": 3321000,
+        "sell_price": 3255000,
+        "gross_return_pct": -1.987,
+        "net_return_pct": -2.087,
+        "equity_after": 1.0617
+      },
+      {
+        "date": "2026-04-10",
+        "buy_price": 3306000,
+        "sell_price": 3335000,
+        "gross_return_pct": 0.877,
+        "net_return_pct": 0.777,
+        "equity_after": 1.0699
+      },
+      {
+        "date": "2026-04-11",
+        "buy_price": 3388000,
+        "sell_price": 3395000,
+        "gross_return_pct": 0.207,
+        "net_return_pct": 0.107,
+        "equity_after": 1.0711
+      },
+      {
+        "date": "2026-04-13",
+        "buy_price": 3352000,
+        "sell_price": 3491000,
+        "gross_return_pct": 4.147,
+        "net_return_pct": 4.047,
+        "equity_after": 1.1144
+      },
+      {
+        "date": "2026-04-15",
+        "buy_price": 3512500,
+        "sell_price": 3485000,
+        "gross_return_pct": -0.783,
+        "net_return_pct": -0.883,
+        "equity_after": 1.1046
+      },
+      {
+        "date": "2026-04-17",
+        "buy_price": 3520000,
+        "sell_price": 3568000,
+        "gross_return_pct": 1.364,
+        "net_return_pct": 1.264,
+        "equity_after": 1.1185
+      },
+      {
+        "date": "2026-04-20",
+        "buy_price": 3440500,
+        "sell_price": 3431000,
+        "gross_return_pct": -0.276,
+        "net_return_pct": -0.376,
+        "equity_after": 1.1143
+      },
+      {
+        "date": "2026-04-22",
+        "buy_price": 3479000,
+        "sell_price": 3519000,
+        "gross_return_pct": 1.15,
+        "net_return_pct": 1.05,
+        "equity_after": 1.126
+      },
+      {
+        "date": "2026-04-26",
+        "buy_price": 3467500,
+        "sell_price": 3515000,
+        "gross_return_pct": 1.37,
+        "net_return_pct": 1.27,
+        "equity_after": 1.1403
+      },
+      {
+        "date": "2026-04-29",
+        "buy_price": 3439000,
+        "sell_price": 3372000,
+        "gross_return_pct": -1.948,
+        "net_return_pct": -2.048,
+        "equity_after": 1.117
+      },
+      {
+        "date": "2026-05-01",
+        "buy_price": 3402500,
+        "sell_price": 3406000,
+        "gross_return_pct": 0.103,
+        "net_return_pct": 0.003,
+        "equity_after": 1.117
+      },
+      {
+        "date": "2026-05-02",
+        "buy_price": 3444500,
+        "sell_price": 3433000,
+        "gross_return_pct": -0.334,
+        "net_return_pct": -0.434,
+        "equity_after": 1.1121
+      },
+      {
+        "date": "2026-05-03",
+        "buy_price": 3467000,
+        "sell_price": 3445000,
+        "gross_return_pct": -0.635,
+        "net_return_pct": -0.735,
+        "equity_after": 1.104
+      },
+      {
+        "date": "2026-05-04",
+        "buy_price": 3478500,
+        "sell_price": 3487000,
+        "gross_return_pct": 0.244,
+        "net_return_pct": 0.144,
+        "equity_after": 1.1056
+      },
+      {
+        "date": "2026-05-05",
+        "buy_price": 3542000,
+        "sell_price": 3493000,
+        "gross_return_pct": -1.383,
+        "net_return_pct": -1.483,
+        "equity_after": 1.0892
+      },
+      {
+        "date": "2026-05-06",
+        "buy_price": 3524000,
+        "sell_price": 3452000,
+        "gross_return_pct": -2.043,
+        "net_return_pct": -2.143,
+        "equity_after": 1.0658
+      },
+      {
+        "date": "2026-05-09",
+        "buy_price": 3434000,
+        "sell_price": 3429000,
+        "gross_return_pct": -0.146,
+        "net_return_pct": -0.246,
+        "equity_after": 1.0632
+      },
+      {
+        "date": "2026-05-10",
+        "buy_price": 3453500,
+        "sell_price": 3475000,
+        "gross_return_pct": 0.623,
+        "net_return_pct": 0.523,
+        "equity_after": 1.0688
+      },
+      {
+        "date": "2026-05-13",
+        "buy_price": 3420000,
+        "sell_price": 3355000,
+        "gross_return_pct": -1.901,
+        "net_return_pct": -2.001,
+        "equity_after": 1.0474
+      },
+      {
+        "date": "2026-05-14",
+        "buy_price": 3404000,
+        "sell_price": 3375000,
+        "gross_return_pct": -0.852,
+        "net_return_pct": -0.952,
+        "equity_after": 1.0374
+      },
+      {
+        "date": "2026-05-20",
+        "buy_price": 3178500,
+        "sell_price": 3156000,
+        "gross_return_pct": -0.708,
+        "net_return_pct": -0.808,
+        "equity_after": 1.029
+      },
+      {
+        "date": "2026-05-21",
+        "buy_price": 3183500,
+        "sell_price": 3166000,
+        "gross_return_pct": -0.55,
+        "net_return_pct": -0.65,
+        "equity_after": 1.0223
+      },
+      {
+        "date": "2026-05-23",
+        "buy_price": 3147500,
+        "sell_price": 3169000,
+        "gross_return_pct": 0.683,
+        "net_return_pct": 0.583,
+        "equity_after": 1.0283
+      },
+      {
+        "date": "2026-05-29",
+        "buy_price": 3007500,
+        "sell_price": 2984000,
+        "gross_return_pct": -0.781,
+        "net_return_pct": -0.881,
+        "equity_after": 1.0192
+      },
+      {
+        "date": "2026-05-31",
+        "buy_price": 3015500,
+        "sell_price": 2953000,
+        "gross_return_pct": -2.073,
+        "net_return_pct": -2.173,
+        "equity_after": 0.9971
+      },
+      {
+        "date": "2026-06-07",
+        "buy_price": 2454500,
+        "sell_price": 2548000,
+        "gross_return_pct": 3.809,
+        "net_return_pct": 3.709,
+        "equity_after": 1.0341
+      },
+      {
+        "date": "2026-06-11",
+        "buy_price": 2486500,
+        "sell_price": 2517000,
+        "gross_return_pct": 1.227,
+        "net_return_pct": 1.127,
+        "equity_after": 1.0457
+      },
+      {
+        "date": "2026-06-13",
+        "buy_price": 2544000,
+        "sell_price": 2544000,
+        "gross_return_pct": 0.0,
+        "net_return_pct": -0.1,
+        "equity_after": 1.0447
+      },
+      {
+        "date": "2026-06-14",
+        "buy_price": 2571000,
+        "sell_price": 2605000,
+        "gross_return_pct": 1.322,
+        "net_return_pct": 1.222,
+        "equity_after": 1.0575
+      },
+      {
+        "date": "2026-06-15",
+        "buy_price": 2661000,
+        "sell_price": 2697000,
+        "gross_return_pct": 1.353,
+        "net_return_pct": 1.253,
+        "equity_after": 1.0707
+      },
+      {
+        "date": "2026-06-20",
+        "buy_price": 2615000,
+        "sell_price": 2635000,
+        "gross_return_pct": 0.765,
+        "net_return_pct": 0.665,
+        "equity_after": 1.0778
+      },
+      {
+        "date": "2026-06-22",
+        "buy_price": 2605500,
+        "sell_price": 2610000,
+        "gross_return_pct": 0.173,
+        "net_return_pct": 0.073,
+        "equity_after": 1.0786
+      },
+      {
+        "date": "2026-06-29",
+        "buy_price": 2409000,
+        "sell_price": 2439000,
+        "gross_return_pct": 1.245,
+        "net_return_pct": 1.145,
+        "equity_after": 1.091
+      },
+      {
+        "date": "2026-07-01",
+        "buy_price": 2428000,
+        "sell_price": 2446000,
+        "gross_return_pct": 0.741,
+        "net_return_pct": 0.641,
+        "equity_after": 1.098
+      },
+      {
+        "date": "2026-07-02",
+        "buy_price": 2510000,
+        "sell_price": 2567000,
+        "gross_return_pct": 2.271,
+        "net_return_pct": 2.171,
+        "equity_after": 1.1218
+      },
+      {
+        "date": "2026-07-03",
+        "buy_price": 2656000,
+        "sell_price": 2651000,
+        "gross_return_pct": -0.188,
+        "net_return_pct": -0.288,
+        "equity_after": 1.1186
+      },
+      {
+        "date": "2026-07-04",
+        "buy_price": 2708500,
+        "sell_price": 2688000,
+        "gross_return_pct": -0.757,
+        "net_return_pct": -0.857,
+        "equity_after": 1.109
+      },
+      {
+        "date": "2026-07-06",
+        "buy_price": 2723000,
+        "sell_price": 2702000,
+        "gross_return_pct": -0.771,
+        "net_return_pct": -0.871,
+        "equity_after": 1.0993
+      },
+      {
+        "date": "2026-07-10",
+        "buy_price": 2636000,
+        "sell_price": 2680000,
+        "gross_return_pct": 1.669,
+        "net_return_pct": 1.569,
+        "equity_after": 1.1166
+      },
+      {
+        "date": "2026-07-12",
+        "buy_price": 2702000,
+        "sell_price": 2691000,
+        "gross_return_pct": -0.407,
+        "net_return_pct": -0.507,
+        "equity_after": 1.1109
+      },
+      {
+        "date": "2026-07-13",
+        "buy_price": 2723000,
+        "sell_price": 2633000,
+        "gross_return_pct": -3.305,
+        "net_return_pct": -3.405,
+        "equity_after": 1.0731
+      },
+      {
+        "date": "2026-07-14",
+        "buy_price": 2703500,
+        "sell_price": 2779000,
+        "gross_return_pct": 2.793,
+        "net_return_pct": 2.693,
+        "equity_after": 1.102
+      },
+      {
+        "date": "2026-07-15",
+        "buy_price": 2862500,
+        "sell_price": 2816000,
+        "gross_return_pct": -1.624,
+        "net_return_pct": -1.724,
+        "equity_after": 1.083
+      },
+      {
+        "date": "2026-07-19",
+        "buy_price": 2765000,
+        "sell_price": 2750000,
+        "gross_return_pct": -0.542,
+        "net_return_pct": -0.642,
+        "equity_after": 1.076
+      },
+      {
+        "date": "2026-07-20",
+        "buy_price": 2768000,
+        "sell_price": 2783000,
+        "gross_return_pct": 0.542,
+        "net_return_pct": 0.442,
+        "equity_after": 1.0808
+      },
+      {
+        "date": "2026-07-21",
+        "buy_price": 2830000,
+        "sell_price": 2818000,
+        "gross_return_pct": -0.424,
+        "net_return_pct": -0.524,
+        "equity_after": 1.0751
+      },
+      {
+        "date": "2026-07-26",
+        "buy_price": 2765000,
+        "sell_price": 2843000,
+        "gross_return_pct": 2.821,
+        "net_return_pct": 2.721,
+        "equity_after": 1.1044
+      },
+      {
+        "date": "2026-07-31",
+        "buy_price": 2736500,
+        "sell_price": 2677000,
+        "gross_return_pct": -2.174,
+        "net_return_pct": -2.274,
+        "equity_after": 1.0792
+      },
+      {
+        "date": "2026-08-02",
+        "buy_price": 2693500,
+        "sell_price": 2698000,
+        "gross_return_pct": 0.167,
+        "net_return_pct": 0.067,
+        "equity_after": 1.08
+      },
+      {
+        "date": "2026-08-05",
+        "buy_price": 2683500,
+        "sell_price": 2706000,
+        "gross_return_pct": 0.838,
+        "net_return_pct": 0.738,
+        "equity_after": 1.0879
+      },
+      {
+        "date": "2026-08-07",
+        "buy_price": 2724000,
+        "sell_price": 2693000,
+        "gross_return_pct": -1.138,
+        "net_return_pct": -1.238,
+        "equity_after": 1.0745
+      }
+    ]
+  }
+]
