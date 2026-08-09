@@ -1,6 +1,12 @@
-// MV3 service worker — classic script (not a module), so we use importScripts
-// to reuse the shared storage helpers.
-importScripts('storage.js');
+// MV3 background script. On Chrome this runs as a service worker (classic
+// script, not a module), so we use importScripts to reuse the shared storage
+// helpers. On Firefox, background.js runs as a non-persistent background
+// page loaded via manifest "background.scripts" — storage.js is already
+// loaded first in that array and importScripts doesn't exist there, so we
+// only call it when available (Chrome/Chromium service worker context).
+if (typeof importScripts === 'function') {
+  importScripts('storage.js');
+}
 
 const MENU_PARENT = 'promptdeck-parent';
 
