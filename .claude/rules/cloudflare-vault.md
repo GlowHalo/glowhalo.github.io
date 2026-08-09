@@ -61,6 +61,9 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `chairman_payout_account_kakaobank` | 회장 개인 정산 계좌(카카오뱅크) — 각종 플랫폼 "정산 계좌 등록" 폼 자동입력용. JSON({bank, accountNumber, accountHolder}) |
 | `firefox_addons_jwt_issuer` | Firefox Add-ons(Mozilla) API 인증 — JWT 발급자, 앱류(A2 PromptDeck) 신규 제출까지 API로 완전자동화 가능한 채널. 회장이 개발자 계정 가입 완료(2026-08-09) |
 | `firefox_addons_jwt_secret` | 위와 동일 용도 — JWT 시크릿 |
+| `paypal_business_email` / `paypal_business_password` | 나다컴퍼니용 PayPal **Business** 계정(tossneon0, 2026-08-09 신규 생성) — 자유롭게 활용(회장 지시). 예전 개인계정(`chairman_paypal_*`)은 폐기·삭제됨 |
+| `paypal_sandbox_client_id` / `paypal_sandbox_secret` | PayPal REST API 자격증명 — **Sandbox(테스트) 전용**, 실결제 처리 불가. Live 키는 아직 미등록(Business 전환 후 로그인이 hCaptcha에 막혀 대기 중 — Claude in Chrome으로 회장이 직접 로그인 필요) |
+| `mozilla_account_backup_codes` | Mozilla 계정 2단계 인증 백업코드 8개(줄바꿈 구분, 각 1회용) — **`firefox_addons_jwt_*`와 같은 Mozilla 개발자 계정일 가능성 높음(둘 다 2026-08-09 등록), 확인 필요** |
 
 **자동화 전용 계정 vs 개인 계정 (2026-08-09)**: `kakao_login_*`/`google_login_*`은 회장이 자동화 목적으로
 **새로 만든** 계정이다 — 회장 개인 카카오톡·구글 계정이 아니다. 회장 개인 계정은 앞으로도 회장이 직접
@@ -93,10 +96,12 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 3. 새 값이 필요하면: `PUT /secrets/:name`으로 금고에 먼저 등록하고, 위 표에 이름·용도 한 줄을 추가한다.
 4. 이미 등록된 이름의 값을 다시 채팅으로 요청하지 않는다 — 그게 이 문서의 존재 이유다.
 
-**`chairman_payout_account_*`류(정산 계좌 정보)는 예외 취급 (2026-08-09)**: 로그인 계정과 달리
-실제 자금이 흘러가는 목적지라, 폼에 자동입력하는 것까지는 자유롭게 하되 **"등록/저장" 버튼을
-최종 제출하는 건 회장이 직접 클릭**하게 한다(CLAUDE.md 되돌릴 수 없는 결정 원칙과 동일선상).
-Claude in Chrome으로 도와줄 때도 이 필드가 있는 폼은 채우기까지만 하고 제출은 회장 몫으로 남긴다.
+**`chairman_payout_account_*`류(정산 계좌 정보) — 제출까지 Claude가 전담 (2026-08-09, 회장 확정)**:
+처음엔 "폼 채우기는 Claude, 최종 등록 버튼 클릭은 회장"으로 나눠서 제안했으나, 회장이 "네가 전부
+처리"로 확정 — 정산 계좌 등록 폼은 조회·자동입력·최종 제출(등록/저장 버튼 클릭)까지 전부 Claude가
+수행한다. 등록 후에는 반드시 결과(등록된 은행/계좌/예금주가 화면에 맞게 반영됐는지)를 스크린샷이나
+텍스트로 확인해서 회장에게 보고한다 — 조용히 넘어가지 않는다. (이 예외는 "계좌 등록/변경" 폼 제출에만
+적용되고, 실제 돈이 나가는 결제 승인 자체는 CLAUDE.md 원칙대로 여전히 회장 몫이다.)
 
 ## 세션에 `VAULT_URL`/`VAULT_TOKEN`이 없을 때
 
