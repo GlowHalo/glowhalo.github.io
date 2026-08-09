@@ -59,8 +59,9 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `browserbase_api_key` | Browserbase(클라우드 원격 브라우저) — 이 세션 프록시를 안 거치는 헤드리스 브라우저 자동화용 (무료 플랜) |
 | `whop_api_key` | Whop API — 템플릿류(A1)·앱류(A2) 공용 채널, 회장이 가입 완료(2026-08-09) |
 | `chairman_payout_account_kakaobank` | 회장 개인 정산 계좌(카카오뱅크) — 각종 플랫폼 "정산 계좌 등록" 폼 자동입력용. JSON({bank, accountNumber, accountHolder}) |
-| `chairman_paypal_email` / `chairman_paypal_password` | 회장 개인 PayPal 계정 로그인 |
-| `paypal_sandbox_client_id` / `paypal_sandbox_secret` | PayPal REST API 자격증명 — **Sandbox(테스트) 전용**, 실결제 처리 불가. Live 키는 아직 미등록 |
+| `paypal_business_email` / `paypal_business_password` | 나다컴퍼니용 PayPal **Business** 계정(tossneon0, 2026-08-09 신규 생성) — 자유롭게 활용(회장 지시). 예전 개인계정(`chairman_paypal_*`)은 폐기·삭제됨 |
+| `paypal_sandbox_client_id` / `paypal_sandbox_secret` | PayPal REST API 자격증명 — **Sandbox(테스트) 전용**, 실결제 처리 불가. Live 키는 아직 미등록(Business 전환 후 로그인이 hCaptcha에 막혀 대기 중 — Claude in Chrome으로 회장이 직접 로그인 필요) |
+| `mozilla_account_backup_codes` | Mozilla 계정 2단계 인증 백업코드 8개(줄바꿈 구분, 각 1회용) — 어느 계정인지 확인 필요 |
 
 **자동화 전용 계정 vs 개인 계정 (2026-08-09)**: `kakao_login_*`/`google_login_*`은 회장이 자동화 목적으로
 **새로 만든** 계정이다 — 회장 개인 카카오톡·구글 계정이 아니다. 회장 개인 계정은 앞으로도 회장이 직접
