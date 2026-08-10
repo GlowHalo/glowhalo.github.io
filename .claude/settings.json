@@ -4,7 +4,8 @@
       "$defaults",
       "Creating new Claude Code Remote sessions in this environment (mcp__Claude_Code_Remote__create_session) for repo tossneon/tossneon.github.io — used to delegate 나다그룹 subsidiary/HQ management tasks",
       "Deploying Cloudflare Workers (wrangler deploy) and registering worker secrets (wrangler secret put) for repos/projects under tossneon/tossneon.github.io — pixel-ai-office/worker, cloudflare-api-vault, and future nada-group subsidiary workers",
-      "Calling Notion MCP tools (mcp__Notion__*, including write operations like notion-create-pages, notion-create-database, notion-update-page, notion-create-attachment, notion-create-file-upload, notion-move-pages) for nada-group/company product and documentation work under tossneon/tossneon.github.io — chairman has connected the Notion MCP server and explicitly asked these run without per-call approval"
+      "Calling Notion MCP tools (mcp__Notion__*, including write operations like notion-create-pages, notion-create-database, notion-update-page, notion-create-attachment, notion-create-file-upload, notion-move-pages) for nada-group/company product and documentation work under tossneon/tossneon.github.io — chairman has connected the Notion MCP server and explicitly asked these run without per-call approval",
+      "Managing Claude Code Remote Routines (mcp__Claude_Code_Remote__create_trigger, update_trigger, delete_trigger, fire_trigger) for repo tossneon/tossneon.github.io — used for recurring 나다그룹 관계사 브리핑/체크인 스케줄링"
     ]
   }
 }
