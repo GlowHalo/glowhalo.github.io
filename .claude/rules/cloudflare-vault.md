@@ -71,6 +71,10 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `upbit_access_key` / `upbit_secret_key` | 업비트 Open API (나다컴퍼니3 자산운용, **회장 실명 KYC 계좌** — 자동화 전용 계정 아님). 권한: 자산조회+주문조회+주문하기만, **출금 권한 없음**(보안 원칙). 등록 IP: 세션 출구 160.79.106.128~137. 키 유효 1년(2027-08 만료), 발급 2026-08-10. 인증 테스트 성공 확인 |
 | `lemonsqueezy_api_key` | Lemon Squeezy API 키(2026-08-09 대시보드에서 직접 발급) — 스토어가 아직 미활성화(신원인증 대기) 상태라 **테스트 모드 데이터에만 동작**, Activate Store 완료 후 라이브 키로 재발급 필요할 수 있음 |
 | `notion_login_email` / `notion_login_password` | 나다컴퍼니 전용 Notion 계정(`tossneon0`) — 나다컴퍼니 산출물 원본을 여기로 이관 중(2026-08-09). **비밀번호는 신버전**(아래 "표준 비밀번호 세대" 참고) |
+| `rapidapi_login_email` / `rapidapi_login_password` | RapidAPI Hub 계정(`tossneon0`, 표준 규칙) — 나다컴퍼니2 B1(Link Preview API) 리스팅용 |
+| `lemonsqueezy_login_email` / `lemonsqueezy_login_password` | Lemon Squeezy 대시보드 로그인 계정 — `lemonsqueezy_api_key`와 별도(API 키는 발급 완료, 대시보드 로그인은 브라우저 자동화용) |
+| `webshare_login_email` / `webshare_login_password` | 프록시 서비스(Webshare) 계정 — **2026-08-10 정정 완료**: 비표준 계정(`tossneon+webshare@gmail.com`)을 회장이 직접 탈퇴 처리하고 `tossneon0@gmail.com`(표준 규칙)으로 신규 가입, 비밀번호도 **신버전**(`notion_login_password`와 동일 세대) 적용 |
+| `upbit_access_key` / `upbit_secret_key` | 업비트(Upbit) 거래소 API 키(2026-08-10 회장 등록) — 나다컴퍼니3(은성) 자산운용용. **`company1/README.md`의 "나다컴퍼니3 — 실거래 확인 게이트" 적용 대상**: 키가 금고에 있다고 바로 실거래 시작 금지, 권한범위(주문 가능 여부·한도)는 은성이 회장과 별도 확인 필요 |
 
 **자동화 전용 계정 vs 개인 계정 (2026-08-09)**: `kakao_login_*`/`google_login_*`은 회장이 자동화 목적으로
 **새로 만든** 계정이다 — 회장 개인 카카오톡·구글 계정이 아니다. 회장 개인 계정은 앞으로도 회장이 직접
@@ -83,6 +87,12 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 가입이 안 된 것 — 회장에게 확인해서 하나씩 해결한다. 사이트별로 비밀번호가 달라지면 그 계정만
 별도 값으로 금고에 등록하고 이 표에 그렇게 표시한다.
 
+**⚠ 2026-08-10 강한 제한 — 이 두 표기 외에는 절대 생성 금지.** `tossneon0@gmail.com` /
+`tossneon0` 딱 이 두 값만 쓴다. `tossneon+webshare@gmail.com` 처럼 Gmail "+별칭"을 붙이거나
+`tossneon1@gmail.com` 처럼 변형하는 것도 전부 금지 — 실제로 `webshare_login_email`이 이 규칙을
+어기고 생성된 게 발견되어(아래 표에 "⚠ 비표준" 표시) CLAUDE.md에 이 항목을 강한 제한으로 올렸다.
+표준 형식으로 가입이 안 되면 즉흥적으로 변형을 만들지 말고 회장에게 먼저 보고한다.
+
 **표준 비밀번호 세대 — 2026-08-09 오후, 신버전으로 교체 (진행 중)**: 기존 공용 비밀번호가 일부
 사이트의 비밀번호 생성 조건(특수문자·길이 등)을 충족 못 해서 회장이 새 값으로 개편했다.
 - **신버전**(2026-08-09 오후 이후 새로 만드는 계정에 적용): `notion_login_password`에 등록된 값 참고.
@@ -92,6 +102,7 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
   시도하고, 실패하면 구버전(예: `kakao_login_password`)으로 재시도한 뒤에 회장에게 확인한다.
 - 사이트를 신버전으로 개별 이전했으면 그 계정의 `*_login_password` 값 자체를 갱신하고 이 문단에
   "○○ 이전 완료" 한 줄을 추가해 진행 상황을 추적한다.
+  - **Webshare 이전 완료(2026-08-10)** — 비표준 계정 탈퇴 후 `tossneon0@gmail.com` + 신버전으로 재가입.
 **가입 방식은 "Continue with Google" 같은 소셜 로그인 대신 이메일+비밀번호 직접 가입을 우선한다
 (2026-08-09)** — 소셜 로그인은 리다이렉트가 여러 단계로 나뉘고 숨겨진 함정 필드도 있어 헤드리스
 브라우저 자동화가 훨씬 불안정하다(SendOwl 로그인 자동화 때 실제로 두 번 실패한 사례). 이미
