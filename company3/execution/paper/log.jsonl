@@ -8,3 +8,4 @@
 {"date": "2026-08-09", "market": "KRW-XRP", "target": 1480, "ma20": 1556, "action": "filtered"}
 {"date": "2026-08-09", "market": "KRW-DOGE", "target": 101, "ma20": 102, "action": "filtered"}
 {"date": "2026-08-09", "market": "KRW-SOL", "target": 109100, "ma20": 107525, "action": "filtered"}
+{"date": "2026-08-10", "market": "KRW-SOL", "strategy": "v3", "action": "buy", "price": 107100.0, "streak_up": 3}
