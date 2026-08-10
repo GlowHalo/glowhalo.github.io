@@ -23,4 +23,4 @@
 
 ## 다음 단계
 
-B1 MVP(Link Preview API)는 완성·배포·기본 테스트까지 마쳤다([상세 로그](products/link-preview-api/README.md)). OpenAPI 스펙 작성 완료. RapidAPI 가입은 비밀번호 요건 미충족·이용약관 체크박스 미체크 두 버그를 찾아 해결하고 HQ가 확정한 Cloudflare Browser Rendering(메인)/Browserbase(백업) 이중화로 폼 제출까지 성공 — **현재는 이메일 매직링크 인증만 남아 회장 액션 대기**. 나머지(리스팅 생성 등)는 무자본 + 되돌리기 쉬운 범위라 회장 승인 없이 계속 진행.
+B1 MVP(Link Preview API)는 완성·배포·기본 테스트까지 마쳤다([상세 로그](products/link-preview-api/README.md)). OpenAPI 스펙 작성 완료. RapidAPI 가입은 비밀번호 요건 미충족·이용약관 체크박스 미체크 두 버그를 찾아 해결하고 HQ가 확정한 Cloudflare Browser Rendering(메인)/Browserbase(백업) 이중화로 폼 제출까지 성공. 이메일 매직링크 인증만 남았는데, 최초 링크는 회장의 `tossneon0→Gmail` 포워딩 설정 이전에 발송돼 놓쳤고, 재발송을 몇 차례 시도하다 RapidAPI 쪽 봇 탐지 우려 신호가 보여 중단 — **시간을 두고 재시도하거나 회장이 직접 로그인 확인** 예정. 나머지(리스팅 생성 등)는 무자본 + 되돌리기 쉬운 범위라 회장 승인 없이 계속 진행.
