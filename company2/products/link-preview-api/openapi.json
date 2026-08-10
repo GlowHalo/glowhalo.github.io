@@ -1,0 +1,92 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Link Preview API",
+    "description": "URL을 주면 title, description, og:image, favicon 등 링크 미리보기 메타데이터를 JSON으로 반환합니다. Slack/Discord 봇, 노코드 툴, 채팅 앱 등에서 링크 미리보기 카드를 만들 때 바로 쓸 수 있습니다.",
+    "version": "1.0.0",
+    "x-category": "Data"
+  },
+  "servers": [
+    { "url": "https://nada-company2-link-preview.tossneon.workers.dev" }
+  ],
+  "paths": {
+    "/v1/preview": {
+      "get": {
+        "summary": "URL 메타데이터 조회",
+        "description": "대상 URL을 가져와 title/description/og:image/favicon 등을 추출해 반환합니다. 결과는 1시간 캐싱됩니다.",
+        "operationId": "getPreview",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "description": "미리보기를 조회할 대상 URL (http/https만 지원)",
+            "schema": { "type": "string", "format": "uri" },
+            "example": "https://github.com"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "정상 조회",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": { "type": "string", "description": "리다이렉트를 따라간 최종 URL" },
+                    "title": { "type": "string", "nullable": true },
+                    "description": { "type": "string", "nullable": true },
+                    "image": { "type": "string", "nullable": true, "description": "og:image 등에서 추출한 대표 이미지 URL" },
+                    "siteName": { "type": "string", "nullable": true },
+                    "themeColor": { "type": "string", "nullable": true },
+                    "favicon": { "type": "string" },
+                    "canonical": { "type": "string" },
+                    "cached": { "type": "boolean", "description": "캐시에서 응답했으면 true" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 — url 파라미터 누락/형식 오류/사설 IP 대역 등",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string" },
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "415": { "description": "대상이 HTML 문서가 아님" },
+          "502": { "description": "대상 URL을 가져오지 못함(타임아웃/네트워크 오류/업스트림 오류)" }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "헬스체크",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "서비스 정상",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean" },
+                    "service": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

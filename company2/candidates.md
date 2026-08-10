@@ -23,4 +23,4 @@
 
 ## 다음 단계
 
-B1 MVP(Link Preview API)는 완성·배포·기본 테스트까지 마쳤다([상세 로그](products/link-preview-api/README.md)). 다음은 RapidAPI Hub 계정 생성(자동화 표준 계정 우선 시도, JS SPA라 Browserbase 필요 가능성) → Platform REST API로 실제 리스팅 생성 → 게이트웨이 시크릿 잠금 → 종단 검증. 무자본 + 되돌리기 쉬운 범위라 회장 승인 없이 계속 진행.
+B1 MVP(Link Preview API)는 완성·배포·기본 테스트까지 마쳤다([상세 로그](products/link-preview-api/README.md)). OpenAPI 스펙 작성 완료, RapidAPI 가입은 표준 비밀번호 요건 미충족 문제를 찾아 해결(사이트 전용 비밀번호 신규 등록)했으나 **Browserbase 무료 사용 시간 소진으로 일시 중단** — 재개 조건은 상세 로그 참고. 무자본 + 되돌리기 쉬운 범위라 회장 승인 없이 계속 진행.
