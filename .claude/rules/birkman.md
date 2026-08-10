@@ -40,7 +40,8 @@ paths:
 - `get_page_text` 는 되는데 `screenshot` 이 멈추면 `navigate` 로 리셋한다.
 - **2026-08-10 재확인 — 로컬 Playwright는 이 그룹 전체의 기존 이슈, birkman도 동일하게 막힘.** `birkman_login_*` 예외 승인 직후 직접 시도(`chromium.launch()`)했는데 `net::ERR_CONNECTION_RESET` — birkmankorea.co.kr뿐 아니라 example.com/google.com도 동일 실패. 이건 이미 그룹 차원에서 근본원인까지 규명·문서화된 기존 이슈였다: [`company1/execution/헤드리스브라우저-프록시-이슈.md`](../../company1/execution/헤드리스브라우저-프록시-이슈.md)(TLS ClientHello 지문 차단, 세션 프록시 구조적 제약 — 재시도 무의미) 참고. 로그인 폼 입력 전 단계에서 막혀서 자격증명 자체는 아직 한 번도 안 써봤다.
   - **Browserbase로 실제 시도함(2026-08-10).** `/login` 폼 셀렉터 확보: 아이디 `#id`, 비밀번호 `#password`, 로그인 버튼 `button:has-text("로그인")`(`onclick="doLogin()"`). `birkman_login_*`로 실제 제출까지 했으나, **세션이 5분 제한에 걸려 끊기면서 로그인 성공 여부를 확인하지 못했다** — 성공/실패 어느 쪽도 아직 검증 안 됨. 이 시도로 그룹 공용 Browserbase 월간 할당량이 거의 소진됨(`GET /v1/projects/:id/usage` 확인 결과 55/60분 사용, 잔여 ~5분) — 그룹 전체가 같이 쓰는 자원이라 여기서 추가 시도를 멈춤.
-  - 다음 재시도 전에 [`hq/decisions/2026-08-10-헤드리스브라우저-대안-검토.md`](../../hq/decisions/2026-08-10-헤드리스브라우저-대안-검토.md)(Cloudflare Browser Rendering 이원화, 회장 승인 대기)가 먼저 해결되는 게 낫다 — 승인되면 birkman 재정찰도 그 경로로 진행.
+  - **Cloudflare Browser Rendering으로 이어서 시도함(같은 날, 이원화 승인·검증 직후).** 같은 로그인 플로우를 `cloudflare_api_token`으로 재시도했으나 `429 Rate limit exceeded` — 같은 시각 다른 계열사 세션들이 같은 계정의 Browser Rendering을 동시에 검증 중이었던 것으로 보임(공유 자원 경합). 여기서 중단.
+  - **다음에 재시도할 때**: 로그인폼 셀렉터는 이미 확보돼 있으니 바로 제출 단계부터 갈 수 있다. Cloudflare 쪽이 붐빌 때는 잠깐 대기 후 재시도하거나 Browserbase 월간 할당량 리셋을 기다린다 — 둘 다 이 문서의 다른 계열사도 같이 쓰는 자원이라, birkman 재정찰만을 위해 반복 시도하며 소진시키지 않는다.
 
 ## 파이프라인 (`src/`)
 
