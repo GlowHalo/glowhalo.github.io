@@ -77,8 +77,9 @@ npx wrangler secret put RAPIDAPI_PROXY_SECRET
 1. **표준 공통 비밀번호가 RapidAPI 요건(대소문자 혼합) 미충족으로 가입 자체가 막혀 있었다** — 원인 규명 후 RapidAPI 전용 비밀번호를 새로 생성해 금고에 `rapidapi_login_email`/`rapidapi_login_password`로 등록 완료(이메일은 표준 `tossneon0@gmail.com` 그대로, 비밀번호만 사이트 전용값 — `cloudflare-vault.md`의 "사이트별로 비밀번호가 달라지면 별도 등록" 패턴).
 2. 새 비밀번호로 가입 폼 검증까지는 통과 확인, **제출 직전 Browserbase 무료 플랜의 월간 브라우저 사용 시간이 소진**(`402 Payment Required`)돼 막힘 — 오늘 나다컴퍼니1 쪽에서도 SendOwl·Lemon Squeezy 온보딩에 Browserbase를 많이 써서 계정 전체(그룹 공유 자원) 한도가 같이 소진된 것으로 보인다.
 
-**다음 단계**:
-1. ~~Browserbase 무료 한도 재설정 대기~~ → 브라우저 자동화 인프라를 그룹 공용 사안으로 보고 HQ로 이관함. 검토 내용·대안 비교는 [`hq/decisions/2026-08-10-헤드리스브라우저-대안-검토.md`](../../../hq/decisions/2026-08-10-헤드리스브라우저-대안-검토.md) 참고 — 회장 검토 후 확정되면 그 결과로 가입 재시도. 이메일 인증이 뜨면 `tossneon0` 계정 자체 메일함은 이 세션 Gmail MCP가 못 읽는 걸로 이미 확인된 한계라(SendOwl 사례 참고) 그 지점에서 다시 회장 액션이 필요할 수 있음.
-2. 가입 완료되면 Platform REST API로 `openapi.json` 업로드해 리스팅 생성.
-3. 리스팅 후 `RAPIDAPI_PROXY_SECRET` 발급받아 시크릿 등록, 게이트웨이 경유 호출만 허용하도록 잠금.
-4. 실제 RapidAPI 테스트 콘솔로 종단 검증.
+3. **가입 자체는 2026-08-10 완료** — HQ가 [Cloudflare Browser Rendering(메인)+Browserbase(백업) 이중화](../../../hq/decisions/2026-08-10-헤드리스브라우저-대안-검토.md)를 확정·구현해줘서 자동화 재개. 실행해보니 그날 Cloudflare 쪽 할당량이 이미 소진돼 있어(다른 관계사도 같이 씀) **자동 폴백으로 Browserbase가 즉시 이어받는 것까지 실전 검증**됐다.
+4. 가입 폼이 계속 비활성이던 진짜 원인은 따로 있었다 — **이용약관 동의 체크박스를 안 눌렀던 것.** 이 체크박스는 Radix UI 스타일이라 실제 `<input type=checkbox">`는 화면에 숨겨진 더미(`opacity:0`)이고, 진짜 상태는 형제 `<button role="checkbox">`가 갖고 있어서 일반적인 체크박스 클릭 방식으로는 안 먹혔다 — 그 버튼을 직접 클릭하도록 수정하니 바로 해결.
+5. **폼 제출 성공, 다음 블로커는 이메일 매직링크 인증** — `tossneon0@gmail.com`으로 매직링크 발송됨. 이 계정 자체 메일함은 이 세션 Gmail MCP(회장 실제 계정만 연결됨)가 못 읽는 구조적 한계(SendOwl 때와 동일)라 **회장이 직접 `tossneon0@gmail.com`으로 로그인해 메일함의 매직링크를 클릭**해줘야 함 — 매직링크는 보통 유효시간이 있으니 빠른 확인 필요.
+6. 가입 완료되면 Platform REST API로 `openapi.json` 업로드해 리스팅 생성.
+7. 리스팅 후 `RAPIDAPI_PROXY_SECRET` 발급받아 시크릿 등록, 게이트웨이 경유 호출만 허용하도록 잠금.
+8. 실제 RapidAPI 테스트 콘솔로 종단 검증.
