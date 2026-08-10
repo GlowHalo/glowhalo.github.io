@@ -9,7 +9,7 @@
 ```bash
 export LEONARDO_API_KEY="$(curl -s "$VAULT_URL/secrets/leonardo_api_key" -H "Authorization: Bearer $VAULT_TOKEN" | python3 -c 'import json,sys;print(json.load(sys.stdin)["value"])')"
 
-cd company/execution/products/kakao-emoticon-art/scripts
+cd company1/execution/products/kakao-emoticon-art/scripts
 
 # 새로 만들 표정만 담은 phrases 파일을 준비한다(예: phrases.json에서 n>=33만 추린 phrases-new.json).
 # --state/--raw-dir는 세션 스크래치패드 등 저장소 밖 임시 경로를 권장(생성 API 원본 캐시라 커밋 대상 아님).
