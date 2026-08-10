@@ -29,9 +29,12 @@ paths:
 
 ## 사이트 동작 (자동화 시 걸리는 지점)
 
-- 로그인 후 **마이페이지 진입 시 비밀번호를 한 번 더 요구**한다. `/mypage/*` 로 직접 URL 접근하면 매번 뜬다. 내부 JS 메뉴 이동(`goToMypageAssessment()` 등)으로 가면 덜 뜰 가능성이 있다.
-- 진단내역 관리: `/mypage/assessment` — 주문 목록. 수량 숫자 클릭 → 대상자 인원 리스트 모달. 행 액션: 진단결과 공유 / 전송 / 모바일 진단안내 / 알림톡 신청.
-- 결과 PDF 다운로드: 대상자 상세의 `a.download_file[data-member][data-file]` → 실제 URL 은 `/mypage/download/assessment/each?num={data-member}`.
+- **2026-08-10 실제 로그인으로 재검증 완료 (Browserbase 경유).**
+  - 로그인(`/login`): 아이디 `#id`, 비밀번호 `#password`, 버튼 `button:has-text("로그인")`(`onclick="doLogin()"`) — 정상 동작 확인.
+  - `/mypage/assessment`로 이동하면 `/mypage/intro?returnUrl=...`로 리다이렉트되며 **비밀번호 재확인 1회**가 뜬다(로그인 1회 + 이거 1회, 총 2회 맞음). 입력창은 `input[type=password]` 1개, 확인 버튼은 `#check_pw_btn`(`onclick="checkPassword()"`, 기본 `disabled`).
+    - ⚠️ **`fill()`/`type()`으로 값만 채워선 버튼이 활성화되지 않았다** — 사이트의 활성화 로직이 표준 input 이벤트만으론 안 걸리는 것으로 보임. **작동 확인된 우회**: 값을 채운 뒤 버튼 클릭 대신 페이지의 `checkPassword()` 함수를 `page.evaluate()`로 직접 호출하면 통과된다.
+  - 통과 후 `/mypage/assessment`의 실제 표 구조(로그인 계정 기준, 읽기 전용으로 확인 — 클릭 없음): 주문 목록 표 헤더 = `주문일자/주문번호 · 단체명 · 상품명 · 수량/인원 · 모바일 진단안내 · 진단결과 공유 · 결제수단 · 주문상태 · 결제금액`. 별도로 대상자 상세 모달용 표(현재는 빈 상태)의 헤더 = `대상자 이름 · 대상자 이메일 · 대상자 휴대폰번호 · 진단진행상태` — 대량업로드 양식 컬럼과 대응됨.
+- 결과 PDF 다운로드: 대상자 상세의 `a.download_file[data-member][data-file]` → 실제 URL 은 `/mypage/download/assessment/each?num={data-member}` (이번 재검증에선 다운로드까지는 안 눌러봄 — 읽기 전용 범위만 확인).
 - 다운로드 클릭 시 네이티브 저장 다이얼로그가 떠서 스크린샷이 멈출 수 있다(정상). 앱 내장 브라우저에서는 다이얼로그 제어가 안 되므로 사용자가 저장한 뒤 파일을 `data/` 로 옮긴다.
 
 ## 실행 환경
@@ -39,9 +42,8 @@ paths:
 - Claude 는 headed 브라우저를 띄우지 못한다 → 앱 내장 브라우저(`mcp__Claude_Browser__`)에 사용자가 로그인하고 Claude 가 조작한다.
 - `get_page_text` 는 되는데 `screenshot` 이 멈추면 `navigate` 로 리셋한다.
 - **2026-08-10 재확인 — 로컬 Playwright는 이 그룹 전체의 기존 이슈, birkman도 동일하게 막힘.** `birkman_login_*` 예외 승인 직후 직접 시도(`chromium.launch()`)했는데 `net::ERR_CONNECTION_RESET` — birkmankorea.co.kr뿐 아니라 example.com/google.com도 동일 실패. 이건 이미 그룹 차원에서 근본원인까지 규명·문서화된 기존 이슈였다: [`company1/execution/헤드리스브라우저-프록시-이슈.md`](../../company1/execution/헤드리스브라우저-프록시-이슈.md)(TLS ClientHello 지문 차단, 세션 프록시 구조적 제약 — 재시도 무의미) 참고. 로그인 폼 입력 전 단계에서 막혀서 자격증명 자체는 아직 한 번도 안 써봤다.
-  - **Browserbase로 실제 시도함(2026-08-10).** `/login` 폼 셀렉터 확보: 아이디 `#id`, 비밀번호 `#password`, 로그인 버튼 `button:has-text("로그인")`(`onclick="doLogin()"`). `birkman_login_*`로 실제 제출까지 했으나, **세션이 5분 제한에 걸려 끊기면서 로그인 성공 여부를 확인하지 못했다** — 성공/실패 어느 쪽도 아직 검증 안 됨. 이 시도로 그룹 공용 Browserbase 월간 할당량이 거의 소진됨(`GET /v1/projects/:id/usage` 확인 결과 55/60분 사용, 잔여 ~5분) — 그룹 전체가 같이 쓰는 자원이라 여기서 추가 시도를 멈춤.
-  - **Cloudflare Browser Rendering으로 이어서 시도함(같은 날, 이원화 승인·검증 직후).** 같은 로그인 플로우를 `cloudflare_api_token`으로 재시도했으나 `429 Rate limit exceeded` — 같은 시각 다른 계열사 세션들이 같은 계정의 Browser Rendering을 동시에 검증 중이었던 것으로 보임(공유 자원 경합). 여기서 중단.
-  - **다음에 재시도할 때**: 로그인폼 셀렉터는 이미 확보돼 있으니 바로 제출 단계부터 갈 수 있다. Cloudflare 쪽이 붐빌 때는 잠깐 대기 후 재시도하거나 Browserbase 월간 할당량 리셋을 기다린다 — 둘 다 이 문서의 다른 계열사도 같이 쓰는 자원이라, birkman 재정찰만을 위해 반복 시도하며 소진시키지 않는다.
+  - **✅ Browserbase 경유 로그인 성공 확인(2026-08-10, 재시도).** 1차 시도는 세션 5분 제한으로 결과 미확인, Cloudflare Browser Rendering 재시도는 다른 계열사 동시 사용으로 `429`. 30분 뒤 Browserbase로 다시 시도해 **로그인·2차 비밀번호 확인·`/mypage/assessment` 도달까지 전부 성공** — 위 "사이트 동작" 섹션의 검증된 셀렉터·우회법 참고. 이번 재검증은 매번 새 세션을 만들고 스크립트 하나로 끝까지 처리한 뒤 종료하는 방식으로 세션 수명 문제를 피했다.
+  - 계정당 세션이 있는 한 브라우저 자동화가 필요하니, 반복 작업(주문 여러 건 처리 등)은 매번 로그인부터 새로 하기보다 한 세션 안에서 여러 단계를 이어서 처리하는 스크립트로 짜는 게 할당량 절약에 유리하다.
 
 ## 파이프라인 (`src/`)
 
