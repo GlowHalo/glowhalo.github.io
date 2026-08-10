@@ -29,6 +29,11 @@ FEE_ROUNDTRIP = 0.001   # 왕복 0.1% (보수적)
 STOP_LOSS = -0.03       # 리스크 헌법: 포지션당 -3%
 CAPITAL_START = 300_000  # 원금(가상), 종목당 50%
 
+# 전략 v3 (회장 제안, 2026-08-10 병행 가동): 종가 기준 N연속 상승 시 다음날
+# 시가 매수, 보유 중 N연속 하락 시 다음날 시가 매도. 추세추종(시계열 모멘텀)형.
+# 백테스트 근거: execution/2026-08-09-backtest-N연속-및-종목확대.md
+V3_STREAK = 3
+
 
 def fetch_candles(market: str, count: int = 40) -> list:
     url = f"https://api.upbit.com/v1/candles/days?{urllib.parse.urlencode({'market': market, 'count': count})}"
@@ -111,21 +116,83 @@ def settle_and_plan(market: str, state: dict) -> None:
           f"목표가 {round(today_target)}, 필터 {'통과 — 돌파 시 진입' if allowed else '차단(하락추세) — 오늘 진입 없음'}")
 
 
+def streaks(closes):
+    """closes 마지막 값 기준 연속 상승/하락 캔들 수."""
+    up = down = 0
+    for i in range(len(closes) - 1, 0, -1):
+        if closes[i] > closes[i - 1] and down == 0:
+            up += 1
+        elif closes[i] < closes[i - 1] and up == 0:
+            down += 1
+        else:
+            break
+    return up, down
+
+
+def v3_settle(market: str, state: dict) -> None:
+    """전략 v3: 어제까지의 확정 종가로 신호 판정, 오늘 시가로 페이퍼 체결."""
+    candles = fetch_candles(market)
+    today = candles[-1]
+    yday_date = candles[-2]["candle_date_time_kst"][:10]
+    today_date = today["candle_date_time_kst"][:10]
+    v3 = state["v3"][market]
+    if v3.get("settled_until") == yday_date:
+        return
+    closes = [c["trade_price"] for c in candles[:-1]]  # 확정 캔들만
+    up, down = streaks(closes)
+    open_px = today["opening_price"]
+
+    if v3["pos"] is None and up >= V3_STREAK:
+        v3["pos"] = open_px
+        append_log({"date": today_date, "market": market, "strategy": "v3",
+                    "action": "buy", "price": round(open_px, 4), "streak_up": up})
+        print(f"[v3 {today_date}] {market}: {up}연속 상승 → 시가 {round(open_px)} 페이퍼 매수")
+    elif v3["pos"] is not None and down >= V3_STREAK:
+        net = (open_px - v3["pos"]) / v3["pos"] - FEE_ROUNDTRIP
+        v3["equity"] = round(v3["equity"] * (1 + net), 6)
+        v3["trades"] += 1
+        if net > 0:
+            v3["wins"] += 1
+        append_log({"date": today_date, "market": market, "strategy": "v3",
+                    "action": "sell", "entry": round(v3["pos"], 4), "exit": round(open_px, 4),
+                    "net_return_pct": round(net * 100, 3), "equity": v3["equity"],
+                    "streak_down": down})
+        print(f"[v3 {today_date}] {market}: {down}연속 하락 → 시가 {round(open_px)} 페이퍼 매도 "
+              f"(net {round(net * 100, 2)}%, equity {v3['equity']})")
+    elif v3["pos"] is not None:
+        print(f"[v3 {today_date}] {market}: 보유 유지 (진입가 {round(v3['pos'])}, "
+              f"현 시가 {round(open_px)}, 하락연속 {down}/{V3_STREAK})")
+    v3["settled_until"] = yday_date
+
+
 def main():
     state = load_state()
-    for m in MARKETS:  # 기존 state에 없는 신규 종목 초기화
+    for m in MARKETS:  # 기존 state에 없는 신규 종목/전략 초기화
         state["markets"].setdefault(m, {"equity": 1.0, "trades": 0, "wins": 0})
+    state.setdefault("v3", {})
+    for m in MARKETS:
+        state["v3"].setdefault(m, {"pos": None, "equity": 1.0, "trades": 0, "wins": 0})
     for market in MARKETS:
         settle_and_plan(market, state)
+        v3_settle(market, state)
     save_state(state)
-    total = sum(state["markets"][m]["equity"] for m in MARKETS) / len(MARKETS)
-    won = round(CAPITAL_START * total)
-    print(f"\n[포트폴리오] 가상 원금 {CAPITAL_START:,}원 → 현재 {won:,}원 "
-          f"(누적 {round((total - 1) * 100, 2)}%)")
+
+    def summary(label, per_market, mark_to_market=None):
+        total = sum(per_market(m) for m in MARKETS) / len(MARKETS)
+        won = round(CAPITAL_START * total)
+        print(f"[{label}] 가상 원금 {CAPITAL_START:,}원 → {won:,}원 (누적 {round((total - 1) * 100, 2)}%)")
+
+    print()
+    summary("v2 포트폴리오", lambda m: state["markets"][m]["equity"])
+    summary("v3 포트폴리오", lambda m: state["v3"][m]["equity"])
     for m in MARKETS:
         s = state["markets"][m]
-        wr = round(s["wins"] / s["trades"] * 100, 1) if s["trades"] else 0
-        print(f"  {m}: equity {s['equity']} | {s['trades']}회 거래, 승률 {wr}%")
+        v = state["v3"][m]
+        wr = round(s["wins"] / s["trades"] * 100) if s["trades"] else 0
+        wr3 = round(v["wins"] / v["trades"] * 100) if v["trades"] else 0
+        pos3 = f", 보유중(진입 {round(v['pos'])})" if v["pos"] else ""
+        print(f"  {m}: v2 eq {s['equity']} ({s['trades']}회/승률{wr}%) | "
+              f"v3 eq {v['equity']} ({v['trades']}회/승률{wr3}%{pos3})")
 
 
 if __name__ == "__main__":
