@@ -41,7 +41,7 @@
 
 **첨부/링크**:
 - **Notion Duplicate 링크 (확정, 회장이 게시 완료 2026-08-05)**: https://fearless-frog-802.notion.site/AI-Board-of-Directors-3b3fc7dfab7a811e98c3c816e6b1b7d2 — "템플릿으로 복제" 토글 켜짐 확인됨. **등록 시 공개 `description`에는 넣지 않고 `custom_receipt`(구매 후에만 노출)에만 넣었다** — 공개 설명에 넣으면 결제 없이 링크만으로 무료 복제가 가능해지기 때문.
-- **스크린샷 3장 — ✅ 캡처 완료 + Gumroad 커버로 등록 완료 (2026-08-06)**: Board Minutes 데모 라운드, Prompt Sets, Candidate Tracker. 헤드리스 브라우저로 공개 노션 페이지를 직접 캡처 → `company/execution/products/gumroad-exhibits/`에 커밋 → raw.githubusercontent.com URL을 `POST /v2/products/:id/covers`에 `url` 파라미터로 넘겨 Gumroad 자체 CDN(public-files.gumroad.com)으로 임포트. 3장 모두 상품에 반영됨(`GET` 응답 `covers` 배열 길이 3으로 확인).
+- **스크린샷 3장 — ✅ 캡처 완료 + Gumroad 커버로 등록 완료 (2026-08-06)**: Board Minutes 데모 라운드, Prompt Sets, Candidate Tracker. 헤드리스 브라우저로 공개 노션 페이지를 직접 캡처 → `company1/execution/products/gumroad-exhibits/`에 커밋 → raw.githubusercontent.com URL을 `POST /v2/products/:id/covers`에 `url` 파라미터로 넘겨 Gumroad 자체 CDN(public-files.gumroad.com)으로 임포트. 3장 모두 상품에 반영됨(`GET` 응답 `covers` 배열 길이 3으로 확인).
   - **캡처 중 실제 콘텐츠 버그 발견·수정**: Prompt Sets 페이지 상단 콜아웃("Not sure which 3 to run together?")이 줄바꿈이 리터럴 `\n` 문자로 깨져서 그대로 노출되고 있었음(예: `...Growth #1n- Already have an idea...`). Notion API(`notion-update-page`, `update_content`)로 직접 수정해 정상적인 불릿 리스트로 교체하고 아이콘도 깨진 `\` → 💡로 정리. 유료 상품으로 나가기 전에 발견해서 다행 — 캡처 작업이 아니었으면 놓쳤을 결함.
   - Gumroad 커버 업로드 API는 파일 직접 첨부(`multipart`)가 아니라 `signed_blob_id` 또는 `url`만 받는다 — 공개 저장소의 raw URL을 활용해 우회. 캡처 이미지 자체는 민감정보가 아니라 커밋해도 무방하다고 판단.
 

@@ -1,8 +1,8 @@
 // ============================================================
-//  지주사 콘솔 데이터 — company/ 폴더의 실제 내용을 반영한다.
+//  지주사 콘솔 데이터 — company1/ 폴더의 실제 내용을 반영한다.
 //  Notion(registry.js)이나 ai-office/status.js처럼, 회사에 의미 있는
 //  변화가 있을 때마다 이 파일을 갱신하는 스냅샷 패턴이다(실시간 연동 아님).
-//  정본은 항상 company/candidates.md · company/README.md.
+//  정본은 항상 company1/candidates.md · company1/README.md.
 //
 //  (2026-08-08) companyId "hq" → "company1"로 개명. 원래 "이 콘솔이 보여주는 유일한
 //  회사"라는 뜻으로 "hq"를 썼는데, 진짜 지주사(홀딩) 항목("holdco")이 새로 생기면서
@@ -203,7 +203,7 @@ export const STAFF: Staff[] = [
 
   // 나다컴퍼니3 — 자산운용 실험(2026-08-09 신설). 코인/주식 중 택일, 초기자본 30만원.
   // 조사·전략 수립은 자율 진행하되, 실제 매매 실행은 회장이 실거래 계좌를 열고
-  // 매매 권한 범위를 확정하기 전까지 보류(company/README.md 참고).
+  // 매매 권한 범위를 확정하기 전까지 보류(company1/README.md 참고).
   {
     id: "c3-ceo",
     name: "은성",
@@ -287,7 +287,7 @@ export type ApprovalItem = {
   detail: string;
   /** true면 회장이 물리적으로만 할 수 있는 일(계정가입·본인인증·결제수단연결·API토큰발급 등).
    *  false/미지정이면 사장(AI)이 판단해서 처리 가능한 항목 — 그래도 기록 삼아 승인 대기에
-   *  올려두되, "회장 액션 필요" 배지는 안 붙는다. (company/README.md 운영원칙 2 참고) */
+   *  올려두되, "회장 액션 필요" 배지는 안 붙는다. (company1/README.md 운영원칙 2 참고) */
   needsChairman?: boolean;
 };
 
