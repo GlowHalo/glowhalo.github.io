@@ -5,7 +5,7 @@
 
 ## 사전 준비 상태 (완료됨)
 
-- 파일 위치: `company/execution/products/kakao-emoticon-art/01-annyeonghaseyo.png` ~ `32-oneul-harudo-kkeut.png` (32개, 번호순 정렬됨)
+- 파일 위치: `company1/execution/products/kakao-emoticon-art/01-annyeonghaseyo.png` ~ `32-oneul-harudo-kkeut.png` (32개, 번호순 정렬됨)
 - 규격: 전량 360×360px, PNG(RGBA 투명배경), 72dpi, 90.7KB~111.8KB (카카오 요건 150KB 이하 충족)
 - 합본 미리보기: `00-contact-sheet-preview.png` (실제 제출 파일 아님, 육안 확인용)
 - 문구 리스트·순서는 `A3-kakao-emoticon.md`의 "정지형 32종 문구 리스트"와 동일
