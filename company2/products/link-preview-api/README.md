@@ -78,7 +78,7 @@ npx wrangler secret put RAPIDAPI_PROXY_SECRET
 2. 새 비밀번호로 가입 폼 검증까지는 통과 확인, **제출 직전 Browserbase 무료 플랜의 월간 브라우저 사용 시간이 소진**(`402 Payment Required`)돼 막힘 — 오늘 나다컴퍼니1 쪽에서도 SendOwl·Lemon Squeezy 온보딩에 Browserbase를 많이 써서 계정 전체(그룹 공유 자원) 한도가 같이 소진된 것으로 보인다.
 
 **다음 단계**:
-1. Browserbase 무료 한도가 재설정되거나(월 1시간) 회장이 유료 플랜으로 업그레이드하면 가입 재시도 → 이메일 인증이 뜨면 `tossneon0` 계정 자체 메일함은 이 세션 Gmail MCP가 못 읽는 걸로 이미 확인된 한계라(SendOwl 사례 참고) 그 지점에서 다시 회장 액션이 필요할 수 있음.
+1. ~~Browserbase 무료 한도 재설정 대기~~ → 브라우저 자동화 인프라를 그룹 공용 사안으로 보고 HQ로 이관함. 검토 내용·대안 비교는 [`hq/decisions/2026-08-10-헤드리스브라우저-대안-검토.md`](../../../hq/decisions/2026-08-10-헤드리스브라우저-대안-검토.md) 참고 — 회장 검토 후 확정되면 그 결과로 가입 재시도. 이메일 인증이 뜨면 `tossneon0` 계정 자체 메일함은 이 세션 Gmail MCP가 못 읽는 걸로 이미 확인된 한계라(SendOwl 사례 참고) 그 지점에서 다시 회장 액션이 필요할 수 있음.
 2. 가입 완료되면 Platform REST API로 `openapi.json` 업로드해 리스팅 생성.
 3. 리스팅 후 `RAPIDAPI_PROXY_SECRET` 발급받아 시크릿 등록, 게이트웨이 경유 호출만 허용하도록 잠금.
 4. 실제 RapidAPI 테스트 콘솔로 종단 검증.
