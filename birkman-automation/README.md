@@ -11,11 +11,20 @@
 | **2. AI 디브리핑** | 결과 PDF → 구조화 → Claude 해석 생성 → 자격자(사용자) 검수 → 전달 | **파이프라인 작동(v1)** |
 | **3. AI 챗봇** | 대상자 결과 기반 Q&A 챗봇 링크 제공 | 아이디어 |
 
+## 핵심 URL
+
+| 용도 | URL |
+|---|---|
+| 홈페이지 | https://www.birkmankorea.co.kr/ |
+| 진단지 종류 | https://birkmankorea.co.kr/assessment/intro |
+| 진단지 구매(베이직 리포트) | https://birkmankorea.co.kr/payment/order |
+| 진단지 발송·결과 다운로드 | https://birkmankorea.co.kr/mypage/assessment (추가 비밀번호 필요) |
+
 ## 주문 처리 런북 (주문 1건 처리 순서)
 
 1. **로그인** — 앱 내장 브라우저에서 사용자가 버크만 로그인(세션 유지). 비번은 사용자만 입력.
 2. **구매** — `/assessment/view?code=...` 에서 진단지 결제 (⚠ 실제 결제, 확인 후 진행).
-3. **대상자 발송** — `/mypage/assessment` → 해당 주문 **전송** → 대상자 이름·이메일 입력.
+3. **대상자 발송** — `/mypage/assessment` → 해당 주문 **전송** → 대상자 이름·이메일 입력. 다수 대상자를 한 번에 등록할 땐 `templates/대상자-대량업로드-양식.xlsx`(컬럼: 이름/이메일/휴대폰번호/버크만아이디/생년월일/성별/직업) 업로드 경로 우선 검토.
 4. **완료 대기** — 대상자가 검사 완료하면 상태가 "진단완료"로.
 5. **결과 다운로드** — 주문 클릭 → 대상자 상세 → 진단파일 **다운**.
    - 직접 주소: `/mypage/download/assessment/each?num={대상자ID}`
