@@ -1,0 +1,19 @@
+name = "nada-company2-coupang-dealbot"
+main = "src/worker.js"
+compatibility_date = "2026-01-01"
+
+# 무료 티어(workers.dev)로 배포. KV 네임스페이스 ID는 비밀 아님(계정 API 토큰 없이는 무용지물).
+kv_namespaces = [
+  { binding = "DEALBOT_KV", id = "523718dc4be346239037c3ab7da5f4bd" }
+]
+
+# 하루 4회(9시/13시/18시/21시, KST 기준 UTC-9 환산) — 실제 운영 시작할 때 빈도 재조정.
+[triggers]
+crons = ["0 0,4,9,12 * * *"]
+
+# 아래 값들은 여기 두지 않는다 — 채널 확정 후 secret으로 주입:
+#   TARGET_CHANNEL       ("telegram" 또는 "discord")
+#   TELEGRAM_BOT_TOKEN / TELEGRAM_CHANNEL_ID  (텔레그램으로 갈 경우)
+#   DISCORD_WEBHOOK_URL                        (디스코드로 갈 경우)
+#   (쿠팡파트너스 인증 정보는 승인 후 추가)
+# npx wrangler secret put <이름> 로 등록
