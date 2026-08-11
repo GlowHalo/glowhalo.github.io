@@ -58,7 +58,7 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `google_login_password` | 위와 동일 용도 |
 | `browserbase_api_key` | Browserbase(클라우드 원격 브라우저) — 이 세션 프록시를 안 거치는 헤드리스 브라우저 자동화용 (무료 플랜) |
 | `whop_api_key` | Whop API — 템플릿류(A1)·앱류(A2) 공용 채널, 회장이 가입 완료(2026-08-09) |
-| `chairman_payout_account_kakaobank` | 회장 개인 정산 계좌(카카오뱅크) — 각종 플랫폼 "정산 계좌 등록" 폼 자동입력용. JSON({bank, accountNumber, accountHolder}) |
+| `chairman_payout_account_kakaobank` | 회장 개인 정산 계좌(카카오뱅크) — 각종 플랫폼 "정산 계좌 등록" 폼 자동입력용. JSON({bank, bankEn, accountNumber, accountHolder, swiftCode}). **swiftCode는 `KAKOKR22XXX`**(2023-03-29 카카오뱅크가 변경한 현행 코드, 2026-08-11 등록·교차검증 완료) — 해외 플랫폼 정산(RapidAPI, Lemon Squeezy 등) 등록 폼에 그대로 씀 |
 | `firefox_addons_jwt_issuer` | Firefox Add-ons(Mozilla) API 인증 — JWT 발급자, 앱류(A2 PromptDeck) 신규 제출까지 API로 완전자동화 가능한 채널. 회장이 개발자 계정 가입 완료(2026-08-09) |
 | `firefox_addons_jwt_secret` | 위와 동일 용도 — JWT 시크릿 |
 | `paypal_business_email` / `paypal_business_password` | 나다컴퍼니용 PayPal **Business** 계정(tossneon0, 2026-08-09 신규 생성) — 자유롭게 활용(회장 지시). 예전 개인계정(`chairman_paypal_*`)은 폐기·삭제됨 |
