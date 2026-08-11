@@ -41,6 +41,7 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 
 | 이름 | 쓰는 곳 |
 |---|---|
+| `standard_login_password` | **표준 계정 공용 비밀번호 최신값(2026-08-12 회장이 채팅으로 갱신)** — 새 자동화 계정 만들 때 이 값을 최우선으로 시도한다. 기존 계정(notion/kakao/google/sendowl/itchio/paypal_business/webshare/rapidapi/lemonsqueezy 등)은 실제 사이트 비밀번호를 아직 이 값으로 안 바꿨으므로 각자의 `*_login_password`(신버전 `notion_login_password` 또는 구버전) 그대로 유효 — 로그인 실패 시 순서: `standard_login_password` → 그 계정의 `*_login_password`(신버전) → 구버전. 특정 계정을 실제로 이 새 값으로 바꾸면 그 계정의 `*_login_password`도 갱신하고 이 줄 아래 "○○ 이전 완료" 기록 추가 |
 | `notion_token` | pixel-ai-office/worker (Notion 저장) |
 | `gmail_app_password` | 버크만 디브리핑 발송 스크립트 등 |
 | `gumroad_access_token` | Gumroad 상품 등록/조회 |
@@ -96,7 +97,8 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 
 **표준 비밀번호 세대 — 2026-08-09 오후, 신버전으로 교체 (진행 중)**: 기존 공용 비밀번호가 일부
 사이트의 비밀번호 생성 조건(특수문자·길이 등)을 충족 못 해서 회장이 새 값으로 개편했다.
-- **신버전**(2026-08-09 오후 이후 새로 만드는 계정에 적용): `notion_login_password`에 등록된 값 참고.
+- **최신값(2026-08-12 갱신)**: `standard_login_password`에 등록된 값 참고 — 새 자동화 계정은 이 값부터 시도.
+- **신버전**(2026-08-09 오후~2026-08-12, 그 사이 만든 기존 계정들의 실제 비밀번호): `notion_login_password`에 등록된 값 참고.
 - **구버전**(그 이전에 만든 계정 — kakao/google/gumroad/sendowl/itchio/paypal_business 등): 기존 값
   그대로 유지, **회장이 "차차 수정"하기로 함 — 한꺼번에 일괄 변경하지 않는다.** 새 계정을 만들 때
   구버전으로 착각해서 만들지 않도록, 로그인 표준 시도는 항상 **신버전(`notion_login_password`)부터**
