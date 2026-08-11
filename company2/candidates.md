@@ -36,7 +36,7 @@ B1이 외부 인증 대기로 잠시 멈춘 사이 본업(신사업 발굴)으�
 
 ## 다음 단계
 
-1. **B1(RapidAPI) 재개** — 이메일 인증 재시도(시간이 지나 봇 탐지 우려가 가라앉았을 가능성 있음) → 성공하면 Platform REST API로 `openapi.json` 업로드해 리스팅 생성 → `RAPIDAPI_PROXY_SECRET` 발급·시크릿 등록·게이트웨이 잠금 → 테스트 콘솔 종단 검증까지 이어서 진행.
+1. **B1(RapidAPI) 재개** — 어제 "봇 탐지"로 오판했던 건 실제로는 셀렉터 버그였음을 재확인·정정([상세](products/link-preview-api/README.md)). Forgot Password로 재설정 메일 발송까지는 확인했으나 Gmail MCP 검색에 아직 안 잡힘(포워딩 지연이거나, RapidAPI가 계정 존재 여부와 무관하게 항상 "메일 보냈다" 문구만 보여주는 방어 패턴일 수도 있음) — 조금 더 기다렸다 재확인 예정. 인증 확인되면 Platform REST API로 `openapi.json` 업로드해 리스팅 생성 → `RAPIDAPI_PROXY_SECRET` 발급·시크릿 등록·게이트웨이 잠금 → 테스트 콘솔 종단 검증까지 이어서 진행.
 2. **Framer 마켓플레이스 재검증** — 등록 UI가 Browserbase 자동화로 실제 다룰 만한지 한 번 확인.
 
 무자본 + 되돌리기 쉬운 범위라 회장 승인 없이 계속 진행.
