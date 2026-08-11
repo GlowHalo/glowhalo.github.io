@@ -74,7 +74,7 @@ RapidAPI 인증메일은 회장이 저녁에 확인하기로 해서 대기, 그 
 ## 다음 단계
 
 1. **B1(RapidAPI) 재개** — 인증메일은 회장이 저녁에 확인 예정, 그 결과에 따라 이어서 Platform REST API로 `openapi.json` 업로드해 리스팅 생성 → `RAPIDAPI_PROXY_SECRET` 발급·시크릿 등록·게이트웨이 잠금 → 테스트 콘솔 종단 검증.
-2. **C1(쿠팡파트너스)** — 실행안 확정([상세](products/coupang-dealbot/README.md)). 회장님께 가입(본인인증) 요청 대기 중, 그 사이 텔레그램 채널·Cloudflare Worker 스켈레톤은 하윤이 자율로 준비.
+2. **C1(쿠팡파트너스)** — Cloudflare Worker 스켈레톤 배포 완료([상세](products/coupang-dealbot/README.md)). 회장님께 (1) 쿠팡파트너스 가입(본인인증) (2) 채널 선택(텔레그램 — 회장 계정 필요 / 디스코드 — 하윤 자체 처리 가능) 두 가지 확인 대기 중.
 3. B1 검증되면 API 2호 상품 기획 — 3라운드 관찰대로 이 카테고리에도 계속 투자.
 4. Framer·CrazyGames는 낮은 우선순위로 보류, 자동화 인프라가 더 성숙하면 재검토.
 
