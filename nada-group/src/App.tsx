@@ -16,6 +16,7 @@ import {
   type Room,
   type Staff,
 } from "./data/holdco.config";
+import { financeSummaryFor, HQ_SHARED_COSTS } from "./data/finance.config";
 import { fetchState, hasToken, pushState, setToken } from "./sync";
 import "./app.css";
 
@@ -243,6 +244,114 @@ function GroupOverviewPanel({
   );
 }
 
+function krw(n: number): string {
+  return `${n.toLocaleString("ko-KR")}원`;
+}
+
+/** HQ 화면 — 공용 툴 비용(HQ가 관리) + 계열사별 매출/경비 롤업. 정본은 hq/재무.md, 여기는 그 스냅샷. */
+function FinanceHqPanel() {
+  const subsidiaries = COMPANIES.filter((c) => c.mode === "op" && !c.isHq);
+  const rows = subsidiaries.map((c) => ({ company: c, ...financeSummaryFor(c.id) }));
+  const grandRevenue = rows.reduce((s, r) => s + r.confirmedRevenue, 0);
+  const grandCost = rows.reduce((s, r) => s + r.confirmedCost, 0);
+  const grandCapital = rows.reduce((s, r) => s + r.capital, 0);
+
+  return (
+    <div className="panel">
+      <h3>
+        💰 그룹 재무 <small>개인사업자 기준 · hq/재무.md 스냅샷</small>
+      </h3>
+      <div className="kpis">
+        <div className="kpi">
+          <span>확정 매출</span>
+          <b>{krw(grandRevenue)}</b>
+        </div>
+        <div className="kpi">
+          <span>확정 경비</span>
+          <b>{krw(grandCost)}</b>
+        </div>
+        <div className="kpi">
+          <span>출자 자본금</span>
+          <b>{krw(grandCapital)}</b>
+        </div>
+      </div>
+      <div className="biz-table">
+        {rows.map(({ company, confirmedRevenue, confirmedCost, pendingCosts }) => (
+          <div className="biz-row" key={company.id}>
+            <div>
+              <b>{company.name}</b>
+              <small>
+                매출 {krw(confirmedRevenue)} · 경비 {krw(confirmedCost)}
+              </small>
+            </div>
+            <span className="status-pill">{pendingCosts.length ? `승인대기 ${pendingCosts.length}건` : "대기 없음"}</span>
+            <small>{pendingCosts.map((p) => p.amountLabel).join(", ") || "-"}</small>
+          </div>
+        ))}
+      </div>
+      <h3 style={{ marginTop: "1.25rem" }}>
+        🔧 공용 툴 비용 <small>여러 계열사가 같이 씀 — HQ가 관리</small>
+      </h3>
+      <div className="biz-table">
+        {HQ_SHARED_COSTS.map((cost) => (
+          <div className="biz-row" key={cost.id}>
+            <div>
+              <b>{cost.item}</b>
+              <small>{cost.purpose}</small>
+            </div>
+            <span className="status-pill">{cost.amountLabel}</span>
+            <small>
+              {cost.cycle} · {cost.status}
+            </small>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** 계열사 화면 — 이 회사 매출/경비만. 정본은 company1~4/재무.md, 여기는 그 스냅샷. */
+function FinanceCompanyPanel({ companyId }: { companyId: string }) {
+  const { rows, confirmedRevenue, confirmedCost, capital, net } = financeSummaryFor(companyId);
+  if (!rows.length) return null;
+  return (
+    <div className="panel">
+      <h3>
+        💰 재무 <small>{companyId}/재무.md 스냅샷</small>
+      </h3>
+      <div className="kpis">
+        <div className="kpi">
+          <span>매출</span>
+          <b>{krw(confirmedRevenue)}</b>
+        </div>
+        <div className="kpi">
+          <span>경비</span>
+          <b>{krw(confirmedCost)}</b>
+        </div>
+        <div className="kpi">
+          <span>순손익</span>
+          <b>{krw(net)}</b>
+        </div>
+      </div>
+      <div className="biz-table">
+        {rows.map((r) => (
+          <div className="biz-row" key={r.id}>
+            <div>
+              <b>{r.item}</b>
+              <small>{r.note ?? ""}</small>
+            </div>
+            <span className="status-pill">
+              {r.kind} · {r.amountLabel}
+            </span>
+            <small>{r.status}</small>
+          </div>
+        ))}
+      </div>
+      {capital > 0 ? <p className="inbox-note">별도 출자 자본금(경비 아님): {krw(capital)}</p> : null}
+    </div>
+  );
+}
+
 /** 쓰기 토큰 입력/해제 — 기기당 한 번만 넣으면 되고, localStorage에만 남는다. */
 function SyncPanel({ synced }: { synced: boolean }) {
   const [open, setOpen] = useState(false);
@@ -435,6 +544,7 @@ export default function App() {
               </div>
 
               {company.isHq ? <GroupOverviewPanel approvals={approvals} instructions={instructions} /> : null}
+              {company.isHq ? <FinanceHqPanel /> : <FinanceCompanyPanel companyId={companyId} />}
 
               <BusinessLinesPanel companyId={companyId} />
               {companyId === "company2" ? (
