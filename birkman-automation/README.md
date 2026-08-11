@@ -18,6 +18,7 @@
 | 홈페이지 | https://www.birkmankorea.co.kr/ |
 | 진단지 종류 | https://birkmankorea.co.kr/assessment/intro |
 | 진단지 구매(베이직 리포트) | https://birkmankorea.co.kr/payment/order |
+| 진단지 발송·결과 다운로드 | https://birkmankorea.co.kr/mypage/assessment (추가 비밀번호 필요) |
 
 ## 진단지 가격 (2026-08-10 실사이트 확인, 공개 정가)
 
@@ -32,8 +33,7 @@
 | 팀분석 베이직/시그니처 | `TB`/`TS` | 100,000원/120,000원 | [팀활용] |
 | 트랜스\_(베이직/커리어/시그니처) | `TB-`/`TC_`/`TS-` | 16,000/16,000/26,000원 | 재검사 없이 기존 데이터로 리포트 변환 |
 
-**⚠️ 확인 필요 — 우리 파이프라인은 "시그니처" 데이터 구조 전제.** `src/parse-report.mjs`의 파싱 로직(흥미 10개 %, 컴포넌트 9개 평소행동/욕구)은 **시그니처 리포트**(26,000원) 포맷 기준으로 만들어져 있다. 회장이 준 구매 URL 라벨은 "베이직 리포트"(16,000원)였는데, 베이직 리포트에 컴포넌트 9개 데이터가 다 들어있는지 미확인 — 회장이 실제 샘플 리포트를 봐야 확정 가능. **1번 상품(AI 디브리핑 포함)의 원가는 시그니처(26,000원) 기준일 가능성이 높고, 2번(단순 대행)은 베이직(16,000원)으로 가는 게 자연스러울 수 있다.**
-| 진단지 발송·결과 다운로드 | https://birkmankorea.co.kr/mypage/assessment (추가 비밀번호 필요) |
+**✅ 2026-08-11 해결 — 4종 전부 디브리핑 가능 확인.** 회장이 제공한 셀프·베이직·커리어·시그니처 실제 샘플 리포트를 열어본 결과: 시그니처만 컴포넌트 9개를 **숫자쌍**으로 주고, 나머지 셋(셀프·베이직·커리어)은 "4색 사분면 위 점 + 서술형 불릿" 방식으로 흥미·평소행동·욕구·스트레스행동을 표현한다 — 데이터 자체는 셀프까지도 다 있다(셀프는 흥미 %점수·강점 리스트만 없음). `parse-report-map.mjs` + `templates/debriefing-prompt-map.md`로 셀프·베이직·커리어 3종을 공용 커버, 시그니처는 기존 `parse-report.mjs` + `templates/debriefing-prompt.md` 그대로.
 
 ## 주문 처리 런북 (주문 1건 처리 순서)
 
@@ -43,12 +43,19 @@
 4. **완료 대기** — 대상자가 검사 완료하면 상태가 "진단완료"로.
 5. **결과 다운로드** — 주문 클릭 → 대상자 상세 → 진단파일 **다운**.
    - 직접 주소: `/mypage/download/assessment/each?num={대상자ID}`
-6. **디브리핑 생성** —
+6. **디브리핑 생성** — 리포트 종류에 따라 파서·프롬프트가 갈린다.
    ```bash
-   node src/extract-pdf.mjs "결과.pdf" "out.txt"      # PDF→텍스트
-   node src/parse-report.mjs "out.txt" "out.json"      # 텍스트→구조화 JSON
+   node src/extract-pdf.mjs "결과.pdf" "out.txt"      # PDF→텍스트 (공통)
+
+   # 시그니처 리포트인 경우
+   node src/parse-report.mjs "out.txt" "out.json"
    # out.json + templates/debriefing-prompt.md → Claude로 디브리핑 생성(.md) → 자격자 검수
-   node src/make-debriefing-pdf.mjs "디브리핑.md" "디브리핑.pdf"   # 마크다운→첨부용 PDF
+
+   # 셀프·베이직·커리어인 경우
+   node src/parse-report-map.mjs "out.txt" "out.json"
+   # out.json + templates/debriefing-prompt-map.md → Claude로 디브리핑 생성(.md) → 자격자 검수
+
+   node src/make-debriefing-pdf.mjs "디브리핑.md" "디브리핑.pdf"   # 마크다운→첨부용 PDF (공통)
    ```
 7. **메일 발송** — 대상자에게 디브리핑 PDF 전달. (버크만 원본 리포트는 버크만이 대상자에게 자동 발송)
    - **미리보기(안전)**: `node src/send-debriefing.mjs --to <이메일> --name <이름> --pdf "디브리핑.pdf"`
