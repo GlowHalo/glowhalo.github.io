@@ -71,3 +71,21 @@
   - **더 근본적인 문제 발견·해소**: Firefox Add-ons(재확인 결과 여전히 Mozilla 심사중)·itch.io(회장 액션 대기)·Chrome 웹스토어(미착수) 전부 막혀 있어, **PromptDeck 라이선스를 사도 설치할 곳이 없는 상태**였음. 스토어 승인을 기다리지 않고 `promptdeck/promptdeck-extension.zip`(사이드로드 zip + INSTALL.txt)을 GitHub Pages로 직접 배포(`https://tossneon.github.io/promptdeck/promptdeck-extension.zip`)해 결제→설치까지 지금 바로 완결되도록 조치. Cloudflare Browser Rendering으로 라이브 페이지 렌더링 검증 완료(제목/가격/커버 3장/FAQ/구매버튼 전부 정상).
   - **부가 발견**: `investor-panel`만 커버가 2장(다른 상품은 3장) — 치명적이진 않으나 다음 백로그 항목으로 기록.
   - **매출 재확인 — 여전히 0건**(3개 상품 전부). 확인되는 즉시 최우선 보고 원칙 유지.
+- **2026-08-12 (같은 날 후속) — 회장 지시로 노션 템플릿 라인 3종→20종 확장 착수, 1차 배치(5종) 완료.**
+  - **회장 지시**: "노션템플릿도 3종은 부족해. 20종까지 매력적으로 빠르게 쌓을것." 신규 17종 기획, 배치 3개(5+6+6)로 나눠 진행 결정.
+  - **1차 배치 5종 전부 발행 완료**: Marketing Copy Board · Pricing Council · Hiring Panel · Feature Prioritization Board · Cold Outreach Board. 콘텐츠 초안은 5개 백그라운드 에이전트가 병렬 생성(06번 문서 스타일 가이드 제공), Notion 빌드(루트+DB+Start Here+Prompt Sets 15개, 데모 콘텐츠는 "Alex의 RoastLoop" 세계관 통일)와 Gumroad 발행은 분류기 리스크 회피를 위해 직접 순차 실행. 상세: [products/11-notion-line-3to20-배치1.md](products/11-notion-line-3to20-배치1.md).
+  - **커버 이미지 이슈**: Cloudflare Browser Rendering이 notion.site 로드에서 반복 타임아웃(연결 자체는 정상, notion.site 특정 문제로 추정), Browserbase는 무료 시간 소진(402) — 기존 3종처럼 실제 Notion 스크린샷을 못 써서 PromptDeck에서 검증된 헤드리스 브라우저 HTML/CSS 직접 렌더링 방식으로 15장 대체 제작. investor-panel의 미해결 3번째 커버도 같은 이유로 이번 회차에도 못 넣음(백로그 유지).
+  - **8개 상품 전체 매출 재확인 — 여전히 0건**. 확인되는 즉시 최우선 보고 원칙 유지. 2·3차 배치(11종)는 이어서 진행.
+- **2026-08-12 (같은 날 후속2) — 2차 배치(5종 발행), Gumroad "하루 10개 생성" 한도 신규 확인.**
+  - **2차 배치**: Churn Autopsy Board · Vendor Selection Board · Investor Update Board · Freelancer Rate Board · Cofounder Panel 전부 발행 완료(Notion 빌드+Gumroad 발행+커버 15장+검증까지 1차와 동일 절차). 상세: [products/12-notion-line-3to20-배치2.md](products/12-notion-line-3to20-배치2.md).
+  - **신규 제약 확인**: 6번째 상품(Brand Name & Domain Panel) 발행 시도에서 Gumroad가 `"Sorry, you can only create 10 products per day."` 응답 — 계정당 하루 상품 생성 10개 한도가 있다는 걸 이번에 처음 확인했다(과거의 자동승인 분류기 차단과는 별개의 플랫폼 자체 제약). 해당 상품은 Notion 콘텐츠까지 전부 완성해뒀고 다음 날 Gumroad 발행 1콜만 남은 상태로 대기.
+  - **13개 상품 전체 매출 재확인 — 여전히 0건**. 확인되는 즉시 최우선 보고 원칙 유지. 3차 배치(6종)는 하루 10개 한도를 감안해 다음 기회에 이어서 진행.
+- **2026-08-12 (같은 날 후속3) — 회장 지시로 니치마켓 확장 착수, 7종 콘텐츠 전부 완성.**
+  - **회장 지시**: "지금같은 니치마켓 사업 확장하자." 기존 인디해커 축 밖으로 오디언스 확장 — 에어비앤비 호스트/Etsy 셀러/구직자/임대인/코스 판매자/부동산 에이전트/웨딩 벤더 견적까지 7종 기획.
+  - **7종 전부 Notion 완성**: Airbnb Listing Board · Etsy Listing Board · Job Application Board · Tenant Screening Board · Course Sales Page Board · Real Estate Listing Board · Wedding Vendor Quote Board — 루트+DB+데모+Start Here+Prompt Sets(15개씩, 총 105개 프롬프트) 전부 직접 생성, 공개 상속 전수 확인(HTTP 200). Tenant Screening과 Real Estate 2종은 공정주거법 민감 영역이라 별도 가드레일 적용(객관적 기준만 평가, "not legal advice — flag for broker" 배너, Real Estate는 페르소나 자체를 Fair Housing Compliance Skeptic으로 설계). 상세: [products/13-니치마켓-확장.md](products/13-니치마켓-확장.md).
+  - **커버 21장(7종×3장)도 전부 제작·리포 커밋 완료** — 기존 배치와 동일한 HTML/CSS 목업 방식(notion.site 실캡처는 이번에도 CF Browser Rendering 타임아웃으로 불가).
+  - **Gumroad 발행은 하루 10개 한도로 여전히 대기** — 재확인 시도(`__quota_test_delete_me__`)도 동일 에러로 실패, 한도가 아직 리셋 안 됨. 니치 7종 + 대기 중이던 Brand Name & Domain Panel까지 총 8개가 한도 리셋을 기다리는 상태.
+  - **매출 재확인 — 여전히 0건**(13개 발행 상품 전부). 확인되는 즉시 최우선 보고 원칙 유지.
+- **2026-08-12 (같은 날 후속4) — SendOwl 채널 보류 결정 (회장 확인).**
+  - 회장이 SendOwl Settings → Billing 화면 스크린샷 공유 — API 키 발급받으려면 결제수단(카드) 등록이 선행되어야 한다는 걸 직접 확인. Etsy(최초 등록비 $19) 때와 같은 패턴으로, **지금은 이 채널 활용 안 하고 매출이 실제로 늘어나면 그때 카드 등록하고 확장하는 채널로 보류**하기로 결정.
+  - `.claude/rules/cloudflare-vault.md`의 `sendowl_login_*` 항목과 `candidates.md` A1 행에 반영. SendOwl API 키/시크릿은 금고에 등록하지 않음(카드 없이는 발급 자체가 안 됨).
