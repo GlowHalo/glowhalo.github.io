@@ -1,0 +1,22 @@
+name = "rhythmnote-intake"
+main = "src/worker.js"
+compatibility_date = "2026-01-01"
+
+# 나다컴퍼니9 E1 — 웨어러블 헬스데이터 업로드 인테이크. 무료 티어(workers.dev 서브도메인)로 배포.
+#
+# KV 네임스페이스/R2 버킷 ID는 비밀 아님 — 계정 API 토큰 없이는 무용지물이라 커밋해도 안전
+# (nada-group/worker/wrangler.toml과 같은 이유).
+kv_namespaces = [
+  { binding = "SUBMISSIONS_KV", id = "26c98d6ee5104447aefa1c477ce74545" }
+]
+
+# R2는 계정에서 별도 활성화(대시보드에서 약관 동의)가 필요해 지금은 막혀있다(2026-08-12 확인,
+# code 10042). 그래서 MVP는 R2 없이 업로드 파일을 base64로 인코딩해 KV 값 안에 직접 저장한다
+# (KV 값 상한 25MB, 우리 업로드 상한은 8MB라 base64 팽창(~33%)해도 여유 있음). 트래픽이 늘어서
+# R2가 필요해지면 그때 회장에게 대시보드 활성화만 요청하고 이 구조로 전환.
+
+# RESEND_API_KEY는 여기 두지 않는다 — 값은 계정 공용 금고(tossneon-api-vault)의
+# "resend_api_key"에 등록돼 있다. 배포 시:
+#   npx wrangler secret put RESEND_API_KEY   (금고에서 조회한 값 붙여넣기)
+# NOTIFY_EMAIL(다연이 알림 받을 주소)도 같은 방식으로 등록:
+#   npx wrangler secret put NOTIFY_EMAIL
