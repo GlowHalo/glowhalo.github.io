@@ -71,3 +71,8 @@
   - **더 근본적인 문제 발견·해소**: Firefox Add-ons(재확인 결과 여전히 Mozilla 심사중)·itch.io(회장 액션 대기)·Chrome 웹스토어(미착수) 전부 막혀 있어, **PromptDeck 라이선스를 사도 설치할 곳이 없는 상태**였음. 스토어 승인을 기다리지 않고 `promptdeck/promptdeck-extension.zip`(사이드로드 zip + INSTALL.txt)을 GitHub Pages로 직접 배포(`https://tossneon.github.io/promptdeck/promptdeck-extension.zip`)해 결제→설치까지 지금 바로 완결되도록 조치. Cloudflare Browser Rendering으로 라이브 페이지 렌더링 검증 완료(제목/가격/커버 3장/FAQ/구매버튼 전부 정상).
   - **부가 발견**: `investor-panel`만 커버가 2장(다른 상품은 3장) — 치명적이진 않으나 다음 백로그 항목으로 기록.
   - **매출 재확인 — 여전히 0건**(3개 상품 전부). 확인되는 즉시 최우선 보고 원칙 유지.
+- **2026-08-12 (같은 날 후속) — 회장 지시로 노션 템플릿 라인 3종→20종 확장 착수, 1차 배치(5종) 완료.**
+  - **회장 지시**: "노션템플릿도 3종은 부족해. 20종까지 매력적으로 빠르게 쌓을것." 신규 17종 기획, 배치 3개(5+6+6)로 나눠 진행 결정.
+  - **1차 배치 5종 전부 발행 완료**: Marketing Copy Board · Pricing Council · Hiring Panel · Feature Prioritization Board · Cold Outreach Board. 콘텐츠 초안은 5개 백그라운드 에이전트가 병렬 생성(06번 문서 스타일 가이드 제공), Notion 빌드(루트+DB+Start Here+Prompt Sets 15개, 데모 콘텐츠는 "Alex의 RoastLoop" 세계관 통일)와 Gumroad 발행은 분류기 리스크 회피를 위해 직접 순차 실행. 상세: [products/11-notion-line-3to20-배치1.md](products/11-notion-line-3to20-배치1.md).
+  - **커버 이미지 이슈**: Cloudflare Browser Rendering이 notion.site 로드에서 반복 타임아웃(연결 자체는 정상, notion.site 특정 문제로 추정), Browserbase는 무료 시간 소진(402) — 기존 3종처럼 실제 Notion 스크린샷을 못 써서 PromptDeck에서 검증된 헤드리스 브라우저 HTML/CSS 직접 렌더링 방식으로 15장 대체 제작. investor-panel의 미해결 3번째 커버도 같은 이유로 이번 회차에도 못 넣음(백로그 유지).
+  - **8개 상품 전체 매출 재확인 — 여전히 0건**. 확인되는 즉시 최우선 보고 원칙 유지. 2·3차 배치(11종)는 이어서 진행.
