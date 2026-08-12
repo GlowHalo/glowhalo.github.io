@@ -8,6 +8,15 @@
 
 나다컴퍼니1(정연)이 A1(템플릿)·A2(PromptDeck)·A3(카카오 이모티콘) 등을 병행하고 있었는데, 회장 지시(2026-08-12)로 **정연은 템플릿 라인(A1)에 집중**하고 **카카오 이모티콘은 신규 담당자 "예슬"에게 완전히 이관**한다. `company1/execution/A3-kakao-emoticon.md`, `company1/execution/products/kakao-emoticon-art/`, `company1/execution/products/kakao-mockups/`를 그대로 이동했다(git mv, 히스토리 보존).
 
+## 진행 중인 상품
+
+- **A3(일잘봇, 정지형 32종)**: 심사 중, 상세는 아래 "사업 현황".
+- **A4(새침냥이, 가칭)**: A3 심사 대기 기간을 활용한 두 번째 시리즈 기획 — 반려묘 집사 타겟, A3(직장인)와 겹치지 않는 포트폴리오 분산 목적. 아직 컨셉 단계, 회장 확인 후 착수. 상세: [`execution/A4-second-series.md`](execution/A4-second-series.md)
+
+## 업로드 자동화 재조사 (2026-08-12)
+
+회장 지시로 "기존 결론 무시하고 재조사" 진행. 결론: (1) **심사 결과 확인은 이제 로그인 없이 이메일로 예슬이 직접 처리 가능**(카카오 알림 메일 실증 확인됨), (2) 실제 제안 제출·로그인 자동화는 여전히 카카오 계정 보안(국가차단)이 막고 있지만, **회장의 30초짜리 1회 본인확인**(카카오톡 푸시 승인 또는 이메일 인증)만 통과하면 그 뒤로는 예슬이 완전자동으로 진행할 수 있는 경로가 있음을 확인 — 유료 한국 프록시가 필요하다던 기존 결론보다 훨씬 가벼운 조건. 상세: [`execution/A3-kakao-emoticon.md`](execution/A3-kakao-emoticon.md#업로드-자동화-재조사-2026-08-12-예슬--기존-결론-재검증)
+
 ## 사업 현황 (2026-08-12 인수 시점 기준)
 
 - **제작 완료**: 정지형 이모티콘 32종 전부 완성(Leonardo 생성 → 배경제거 → 360×360 크롭 → 72dpi RGB PNG 후처리), 재현 가능한 파이프라인 스크립트도 `execution/products/kakao-emoticon-art/scripts/`에 커밋돼 있음(`generate.py`/`poll_download.py`/`postprocess.py`/`make_contact_sheet.py`).
