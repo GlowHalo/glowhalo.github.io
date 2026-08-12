@@ -65,6 +65,24 @@ export const COMPANIES: Company[] = [
     mode: "op",
   },
   {
+    id: "company7",
+    name: "나다컴퍼니7",
+    tagline: "도현 대표 · 쿠팡파트너스 제휴 마케팅 — 나다컴퍼니2에서 분사, 누적매출 15만원 달성 후 API 완전자동 전환 목표",
+    mode: "op",
+  },
+  {
+    id: "company8",
+    name: "나다컴퍼니8",
+    tagline: "예슬 대표 · 카카오톡 이모티콘 — 나다컴퍼니1에서 분사, 정지형 32종 제작·제출 완료, 카카오 심사중",
+    mode: "op",
+  },
+  {
+    id: "company9",
+    name: "나다컴퍼니9",
+    tagline: "다연 대표 · 신사업 서칭 — 10인 분석가 패널이 시장크기·홍보채널접근성·자동화적합성 3단계 필터로 종합",
+    mode: "op",
+  },
+  {
     id: "newventure",
     name: "pixel-ai-office (프로토타입)",
     tagline: "이 대시보드를 만들기 전 먼저 시도했던 오피스 시뮬레이션 — 별도 사업체 아니고, 자리잡으면 정리 예정",
@@ -99,6 +117,12 @@ export const ROOMS: Room[] = [
   { id: "c5-ceo-room", name: "제작실", companyId: "company5", kind: "ceo" },
 
   { id: "c6-ceo-room", name: "개발실", companyId: "company6", kind: "ceo" },
+
+  { id: "c7-ceo-room", name: "대표실", companyId: "company7", kind: "ceo" },
+
+  { id: "c8-ceo-room", name: "대표실", companyId: "company8", kind: "ceo" },
+
+  { id: "c9-ceo-room", name: "패널실", companyId: "company9", kind: "ceo" },
 ];
 
 export type StaffRank = "ceo" | "lead" | "member";
@@ -265,6 +289,39 @@ export const STAFF: Staff[] = [
     companyId: "company6",
     roomId: "c6-ceo-room",
     task: "편입 앱 포트폴리오 현황 재점검 중",
+  },
+
+  // 나다컴퍼니7 — 쿠팡파트너스(2026-08-12 신설, 나다컴퍼니2에서 분사). 하윤은 니치API에 집중.
+  {
+    id: "c7-ceo",
+    name: "도현",
+    roleLabel: "CEO",
+    rank: "ceo",
+    companyId: "company7",
+    roomId: "c7-ceo-room",
+    task: "쿠팡파트너스 딥링크 수동 브릿지 운영 — 누적매출 15만원 달성 후 API 전환 목표",
+  },
+
+  // 나다컴퍼니8 — 카카오톡 이모티콘(2026-08-12 신설, 나다컴퍼니1에서 분사). 정연은 템플릿(A1)에 집중.
+  {
+    id: "c8-ceo",
+    name: "예슬",
+    roleLabel: "CEO",
+    rank: "ceo",
+    companyId: "company8",
+    roomId: "c8-ceo-room",
+    task: "정지형 이모티콘 32종 카카오 심사 결과 대기 중(2~4주 예상)",
+  },
+
+  // 나다컴퍼니9 — 신사업 서칭(2026-08-12 신설). 10인 분석가 패널 방법론.
+  {
+    id: "c9-ceo",
+    name: "다연",
+    roleLabel: "CEO",
+    rank: "ceo",
+    companyId: "company9",
+    roomId: "c9-ceo-room",
+    task: "Round 1 — 10인 분석가 패널 첫 스캔 착수 예정",
   },
 ];
 
