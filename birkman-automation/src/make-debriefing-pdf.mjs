@@ -30,7 +30,13 @@ const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8">
   hr { border:none; border-top:1px solid #e5e7eb; margin:18px 0; }
 </style></head><body><div class="page">${body}</div></body></html>`;
 
-const browser = await chromium.launch({ headless: true });
+// 이 실행환경엔 Playwright가 기대하는 버전의 브라우저가 아니라 시스템에 미리 설치된
+// Chromium이 있다 — 없으면 그 경로를 쓰고, 있으면(로컬 개발 등) 기본 탐색에 맡긴다.
+const PRESET_CHROMIUM = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const launchOpts = { headless: true };
+if (fs.existsSync(PRESET_CHROMIUM)) launchOpts.executablePath = PRESET_CHROMIUM;
+
+const browser = await chromium.launch(launchOpts);
 const page = await browser.newPage();
 await page.setContent(html, { waitUntil: 'networkidle' });
 await page.pdf({
