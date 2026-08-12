@@ -80,6 +80,27 @@ A1과 동일 계정·동일 정산 구조(Gumroad 계좌 직접입금) 재사용
 
 **남은 것**: 회장 액션 불필요, Mozilla 리뷰어 심사 대기(통상 며칠). 심사 결과는 다음 세션이 `GET /api/v5/addons/addon/promptdeck/`으로 확인 가능(`status`가 `"public"`으로 바뀌면 게시 완료).
 
+## 2026-08-11/12 — 결제 퍼널 감사, "빈 상품 페이지" 발견·즉시 수정, 설치 병목 자체 해소
+
+> 배경: 회장 지시("개입 없이 완성된 자동화 사이클은 상품기획→업로드를 쉬지 않고 진행, 품질개선·구매 퍼널 점검도 백로그로 자체 진행") — A1 4개 상품 전체를 API로 감사.
+
+**발견 1 — `promptdeck-pro` Gumroad 상품이 사실상 빈 페이지로 발행돼 있었음.** `GET /v2/products`로 4개 상품 전체를 점검한 결과, 다른 3개(AI Board of Directors/Investor Panel/Code Review Board)는 description·tags·covers·summary가 전부 채워져 있는데 `promptdeck-pro`만 **description `""`, tags `[]`, covers `[]`, custom_summary `null`** — 이름과 $9 가격만 있고 나머지는 텅 빈 상태로 몇 주째 라이브였다. 실제 구매 전환에 치명적인 결함.
+
+**발견 2 — 더 근본적인 문제: 라이선스를 사도 "설치할 곳"이 없었음.** Firefox Add-ons 심사 상태를 API로 재확인(`GET /api/v5/addons/addon/promptdeck/`) → 여전히 `status: nominated, file status: unreviewed`(미승인). itch.io는 A2 문서 위 섹션에 기록된 대로 회장이 프로젝트 페이지를 만들어야 진행 가능한 상태로 계속 대기 중. Chrome 웹스토어는 미착수. **즉 이 시점까지 PromptDeck 확장을 실제로 설치할 수 있는 공개 경로가 어디에도 없었다** — 상품을 완벽하게 꾸며도 "설치가 안 되는 라이선스"를 파는 셈이라 근본 수정이 필요했다.
+
+**조치 — 스토어 승인을 기다리지 않고 지금 바로 완결되는 경로로 우회:**
+- `promptdeck/promptdeck-extension.zip`(사이드로드용 zip) + `INSTALL.txt`(설치 안내: Chrome/Edge/Brave "개발자 모드 → 압축해제된 확장 프로그램 로드", Firefox 임시 로드 방법, 라이선스 잠금해제 방법)를 저장소에 커밋 → GitHub Pages로 `https://tossneon.github.io/promptdeck/promptdeck-extension.zip`에서 즉시 다운로드 가능하게 배포(배포 반영까지 약 30~40초 확인).
+- 이걸로 **심사·승인 대기 없이 결제→설치→사용까지 전 과정이 지금 당장 완결됨.** Firefox/itch.io/Chrome 스토어 승인이 나면 그건 추가 배포 채널이 되는 것이지, 더 이상 구매 가능 여부의 전제조건이 아님.
+- 커버 이미지 3장 신규 제작(`promptdeck-exhibits/01-hero.png`~`03-crosssell.png`) — 헤드리스 브라우저로 HTML/CSS 렌더링(Cloudflare Browser Rendering, `page.setContent()`+스크린샷). 실제 확장 스크린샷이 아니라 디자인한 목업(팝업 UI 재현 + Free/Pro 비교 + A1 크로스셀 유도)이지만, 이전 세션들의 카카오 목업·아이콘 제작과 동일한 "이미지 생성 도구 없이 헤드리스 브라우저로 그려서 만드는" 검증된 방식.
+- Gumroad `PUT /v2/products/:id`로 name("PromptDeck Pro — Save AI Prompts Once, Insert Them Anywhere")·description(다른 3개와 동일한 HTML 구조: 훅→Free/Pro 비교→3단계 사용법→"왜 사이드로드인가"→FAQ→가격/환불)·tags(8개)·custom_summary·custom_receipt(설치 zip 링크+단계별 안내) 전부 채움. `POST /v2/products/:id/covers`로 커버 3장 raw.githubusercontent.com URL 임포트.
+- **Gumroad 커스텀 영수증에 라이선스 키를 직접 삽입하는 머지태그가 있는지 확인 없이 지어내지 않음** — 검색으로 확인한 결과 Gumroad는 "Generate a unique license key per sale" 켠 상품의 경우 구매 확인 화면/영수증에 **네이티브로 라이선스 키를 자동 표시**하며, 별도 플레이스홀더 문법은 확인되지 않음 — 영수증 문구를 "키는 이 페이지/영수증에 자동으로 표시됩니다"로 정직하게 작성.
+
+**검증**: Cloudflare Browser Rendering으로 라이브 페이지(`https://tossneon.gumroad.com/l/promptdeck-pro`) 실제 렌더링 확인 — 제목/가격($9)/훅 문구/FAQ/커버 캐러셀(3장)/"I want this!" 버튼 전부 정상 노출. 스크린샷: [`promptdeck-exhibits/04-live-verify-promptdeck-pro.png`](products/promptdeck-exhibits/04-live-verify-promptdeck-pro.png).
+
+**4개 상품 전체 재감사 결과**: `promptdeck-pro`(desc 2603자·covers 3·tags 8·summary 426자) / `code-review-board`(2897·3·8·506) / `ai-board-of-directors`(2649·3·8·385) / `investor-panel`(1935·**2**·8·324) — investor-panel만 커버가 2장으로 다른 3개보다 적음(치명적이진 않으나 일관성 낮음). **다음 백로그 항목으로 기록**: investor-panel 커버 3번째 추가 검토.
+
+**회장 액션**: 현재 없음. Firefox/itch.io/Chrome 승인이 나면(itch.io는 회장의 프로젝트 페이지 생성 1회가 여전히 필요) 그때 이 사이드로드 zip과 나란히 공식 채널 링크를 추가하면 됨 — 급하지 않음.
+
 로그인/2FA 화면을 직접 열어야 하는 단계는 없었음(전 과정 API/curl만 사용, 브라우저 자동화 불필요) — 이 저장소의 스크린샷 커밋 금지 규칙과 무관.
 
 ## 2026-08-09 후속 — itch.io 시도 (Butler·업로드까지 준비 완료, 프로젝트 생성 단계에서 멈춤)
