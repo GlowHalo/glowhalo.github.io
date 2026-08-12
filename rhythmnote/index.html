@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>리듬노트 (RhythmNote) — 웨어러블 데이터 웰니스 인사이트 리포트</title>
+<meta name="description" content="오라링·애플워치·갤럭시워치·가민 데이터를 업로드하면, 수면·활동·심박변이 패턴을 정리한 AI 웰니스 인사이트 리포트를 보내드립니다." />
+<style>
+  :root {
+    --bg: #f7fbfa;
+    --card: #ffffff;
+    --ink: #0f172a;
+    --muted: #5b6472;
+    --brand: #0f766e;
+    --brand-light: #ccfbf1;
+    --warn-bg: #fffbeb;
+    --warn-border: #fde68a;
+    --warn-ink: #92400e;
+    --border: #e2e8f0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b1414;
+      --card: #10201f;
+      --ink: #e6f4f1;
+      --muted: #9db3ae;
+      --brand: #2dd4bf;
+      --brand-light: #123d38;
+      --warn-bg: #2a2110;
+      --warn-border: #55450f;
+      --warn-ink: #fcd34d;
+      --border: #1e3230;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Malgun Gothic", sans-serif;
+    line-height: 1.7;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 48px 20px 80px; }
+  header.hero { text-align: center; margin-bottom: 40px; }
+  .brand-badge {
+    display: inline-block; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--brand); background: var(--brand-light); padding: 4px 10px; border-radius: 999px;
+    margin-bottom: 14px;
+  }
+  h1 { font-size: 28px; margin: 0 0 12px; }
+  .lead { color: var(--muted); font-size: 16px; margin: 0 auto; max-width: 480px; }
+  .beta-tag { color: var(--brand); font-weight: 600; }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+  h2 { font-size: 18px; margin: 0 0 14px; }
+
+  .steps { display: grid; gap: 14px; }
+  .step { display: flex; gap: 12px; align-items: flex-start; }
+  .step-num {
+    flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; background: var(--brand);
+    color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  .step p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+  .step strong { display: block; font-size: 15px; }
+
+  form { display: grid; gap: 14px; }
+  label { font-size: 14px; font-weight: 600; display: block; margin-bottom: 6px; }
+  input[type="email"], input[type="text"], select {
+    width: 100%; padding: 11px 12px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--ink); font-size: 14px;
+  }
+  input[type="file"] { font-size: 13px; color: var(--muted); }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  button {
+    background: var(--brand); color: #fff; border: none; border-radius: 8px; padding: 13px 18px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  button:disabled { opacity: 0.6; cursor: not-allowed; }
+  #result { margin-top: 12px; font-size: 14px; }
+  #result.ok { color: var(--brand); }
+  #result.err { color: #dc2626; }
+
+  .disclaimer {
+    background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-ink);
+    border-radius: 10px; padding: 14px 16px; font-size: 13px;
+  }
+  .devices { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .devices span { font-size: 12px; background: var(--brand-light); color: var(--brand); padding: 4px 10px; border-radius: 999px; }
+
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 40px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="brand-badge">RhythmNote · 리듬노트</span>
+    <h1>내 웨어러블 데이터, 무슨 이야기를 하고 있을까요?</h1>
+    <p class="lead">
+      오라링·애플워치·갤럭시워치·가민 데이터를 업로드하면, 수면·활동·심박변이(HRV) 패턴을 정리한
+      웰니스 인사이트 리포트를 이메일로 보내드립니다.
+      <br /><span class="beta-tag">지금은 무료 베타 기간입니다.</span>
+    </p>
+  </header>
+
+  <div class="card">
+    <h2>어떻게 진행되나요</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div><strong>데이터 내보내기</strong><p>Apple 건강 앱 내보내기(zip), Oura/Garmin CSV 내보내기, 또는 앱 화면 스크린샷을 준비해주세요.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div><strong>업로드</strong><p>아래 양식에 이메일과 파일을 첨부해 제출해주세요.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div><strong>리포트 수신</strong><p>사람이 직접 읽고 작성한 리포트를 24~48시간 내 이메일로 보내드려요(자동 생성 후 무검수 발송이 아닙니다).</p></div>
+      </div>
+    </div>
+    <div class="devices">
+      <span>Oura Ring</span><span>Apple Watch</span><span>갤럭시 워치</span><span>Garmin</span><span>기타(스크린샷)</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>데이터 업로드</h2>
+    <form id="upload-form">
+      <div>
+        <label for="email">이메일 주소</label>
+        <input type="email" id="email" name="email" required placeholder="you@example.com" />
+      </div>
+      <div>
+        <label for="device">기기/앱</label>
+        <select id="device" name="device">
+          <option value="oura">Oura Ring</option>
+          <option value="apple_watch">Apple Watch (건강 앱)</option>
+          <option value="galaxy_watch">갤럭시 워치</option>
+          <option value="garmin">Garmin</option>
+          <option value="other">기타</option>
+        </select>
+      </div>
+      <div>
+        <label for="files">파일 첨부 (CSV / XML / ZIP / 스크린샷, 최대 5개, 총 8MB)</label>
+        <input type="file" id="files" name="files" multiple required accept=".csv,.xml,.zip,.json,.png,.jpg,.jpeg,.pdf" />
+      </div>
+      <div>
+        <label for="note">더 알고 싶은 점 (선택)</label>
+        <input type="text" id="note" name="note" placeholder="예: 요즘 잠을 설쳐요, 특정 요일 패턴이 궁금해요" />
+      </div>
+      <button type="submit" id="submit-btn">업로드 제출</button>
+      <div id="result"></div>
+    </form>
+  </div>
+
+  <div class="disclaimer">
+    <strong>안내:</strong> 리듬노트의 리포트는 회원님이 직접 업로드한 데이터를 바탕으로 한 <strong>자기이해용 참고 자료</strong>이며,
+    의학적 진단·처방·치료 조언이 아닙니다. 건강 상태가 걱정되시면 반드시 의료 전문가와 상담해주세요.
+    업로드하신 원본 데이터는 리포트 작성 목적으로만 쓰이며, 제3자에게 공유하지 않습니다.
+  </div>
+
+  <footer>RhythmNote · 나다그룹</footer>
+</div>
+
+<script>
+  const form = document.getElementById("upload-form");
+  const resultEl = document.getElementById("result");
+  const btn = document.getElementById("submit-btn");
+  const ENDPOINT = "https://rhythmnote-intake.tossneon.workers.dev/submit";
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    resultEl.textContent = "";
+    resultEl.className = "";
+    btn.disabled = true;
+    btn.textContent = "제출 중...";
+
+    const formData = new FormData();
+    formData.append("email", document.getElementById("email").value);
+    formData.append("device", document.getElementById("device").value);
+    formData.append("note", document.getElementById("note").value);
+    for (const f of document.getElementById("files").files) {
+      formData.append("files", f);
+    }
+
+    try {
+      const res = await fetch(ENDPOINT, { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "제출에 실패했습니다.");
+      resultEl.textContent = `✅ ${data.message}`;
+      resultEl.className = "ok";
+      form.reset();
+    } catch (err) {
+      resultEl.textContent = `❌ ${err.message}`;
+      resultEl.className = "err";
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "업로드 제출";
+    }
+  });
+</script>
+</body>
+</html>
