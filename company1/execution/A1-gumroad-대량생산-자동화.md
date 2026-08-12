@@ -80,3 +80,9 @@
   - **2차 배치**: Churn Autopsy Board · Vendor Selection Board · Investor Update Board · Freelancer Rate Board · Cofounder Panel 전부 발행 완료(Notion 빌드+Gumroad 발행+커버 15장+검증까지 1차와 동일 절차). 상세: [products/12-notion-line-3to20-배치2.md](products/12-notion-line-3to20-배치2.md).
   - **신규 제약 확인**: 6번째 상품(Brand Name & Domain Panel) 발행 시도에서 Gumroad가 `"Sorry, you can only create 10 products per day."` 응답 — 계정당 하루 상품 생성 10개 한도가 있다는 걸 이번에 처음 확인했다(과거의 자동승인 분류기 차단과는 별개의 플랫폼 자체 제약). 해당 상품은 Notion 콘텐츠까지 전부 완성해뒀고 다음 날 Gumroad 발행 1콜만 남은 상태로 대기.
   - **13개 상품 전체 매출 재확인 — 여전히 0건**. 확인되는 즉시 최우선 보고 원칙 유지. 3차 배치(6종)는 하루 10개 한도를 감안해 다음 기회에 이어서 진행.
+- **2026-08-12 (같은 날 후속3) — 회장 지시로 니치마켓 확장 착수, 7종 콘텐츠 전부 완성.**
+  - **회장 지시**: "지금같은 니치마켓 사업 확장하자." 기존 인디해커 축 밖으로 오디언스 확장 — 에어비앤비 호스트/Etsy 셀러/구직자/임대인/코스 판매자/부동산 에이전트/웨딩 벤더 견적까지 7종 기획.
+  - **7종 전부 Notion 완성**: Airbnb Listing Board · Etsy Listing Board · Job Application Board · Tenant Screening Board · Course Sales Page Board · Real Estate Listing Board · Wedding Vendor Quote Board — 루트+DB+데모+Start Here+Prompt Sets(15개씩, 총 105개 프롬프트) 전부 직접 생성, 공개 상속 전수 확인(HTTP 200). Tenant Screening과 Real Estate 2종은 공정주거법 민감 영역이라 별도 가드레일 적용(객관적 기준만 평가, "not legal advice — flag for broker" 배너, Real Estate는 페르소나 자체를 Fair Housing Compliance Skeptic으로 설계). 상세: [products/13-니치마켓-확장.md](products/13-니치마켓-확장.md).
+  - **커버 21장(7종×3장)도 전부 제작·리포 커밋 완료** — 기존 배치와 동일한 HTML/CSS 목업 방식(notion.site 실캡처는 이번에도 CF Browser Rendering 타임아웃으로 불가).
+  - **Gumroad 발행은 하루 10개 한도로 여전히 대기** — 재확인 시도(`__quota_test_delete_me__`)도 동일 에러로 실패, 한도가 아직 리셋 안 됨. 니치 7종 + 대기 중이던 Brand Name & Domain Panel까지 총 8개가 한도 리셋을 기다리는 상태.
+  - **매출 재확인 — 여전히 0건**(13개 발행 상품 전부). 확인되는 즉시 최우선 보고 원칙 유지.
