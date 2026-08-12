@@ -83,6 +83,18 @@ export const COMPANIES: Company[] = [
     mode: "op",
   },
   {
+    id: "company10",
+    name: "나다컴퍼니10",
+    tagline: "은우 대표 · 뉴스레터 자동화(Beehiiv) — 나다컴퍼니1 A5(스티비 뉴스레터)와의 관계 정리가 첫 과제",
+    mode: "op",
+  },
+  {
+    id: "company11",
+    name: "나다컴퍼니11",
+    tagline: "대표 선정 중 · 신사업 검토 — 20인 전문가가 기존 내역 무시하고 아이디어 제안·토론, 최다 지지 아이디어의 제안자가 대표로 취임",
+    mode: "op",
+  },
+  {
     id: "newventure",
     name: "pixel-ai-office (프로토타입)",
     tagline: "이 대시보드를 만들기 전 먼저 시도했던 오피스 시뮬레이션 — 별도 사업체 아니고, 자리잡으면 정리 예정",
@@ -123,6 +135,10 @@ export const ROOMS: Room[] = [
   { id: "c8-ceo-room", name: "대표실", companyId: "company8", kind: "ceo" },
 
   { id: "c9-ceo-room", name: "패널실", companyId: "company9", kind: "ceo" },
+
+  { id: "c10-ceo-room", name: "대표실", companyId: "company10", kind: "ceo" },
+
+  { id: "c11-panel-room", name: "토론실", companyId: "company11", kind: "meeting" },
 ];
 
 export type StaffRank = "ceo" | "lead" | "member";
@@ -323,6 +339,20 @@ export const STAFF: Staff[] = [
     roomId: "c9-ceo-room",
     task: "Round 1 — 10인 분석가 패널 첫 스캔 착수 예정",
   },
+
+  // 나다컴퍼니10 — 뉴스레터 자동화(Beehiiv, 2026-08-12 신설).
+  {
+    id: "c10-ceo",
+    name: "은우",
+    roleLabel: "CEO",
+    rank: "ceo",
+    companyId: "company10",
+    roomId: "c10-ceo-room",
+    task: "나다컴퍼니1 A5(스티비 뉴스레터)와의 관계 정리 중 — Beehiiv 승계 여부 회장 확인 대기",
+  },
+
+  // 나다컴퍼니11 — 신사업 검토(2026-08-12 신설). 대표는 Round 1 20인 토론 결과로 선정 예정 —
+  // 아직 미정이라 STAFF 항목 없음. 선정되면 대표 이름으로 STAFF 항목을 여기에 추가할 것.
 ];
 
 export type BusinessLine = {
