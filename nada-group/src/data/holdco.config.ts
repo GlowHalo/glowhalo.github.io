@@ -53,6 +53,18 @@ export const COMPANIES: Company[] = [
     mode: "op",
   },
   {
+    id: "company5",
+    name: "나다컴퍼니5",
+    tagline: "라온 대표 · 유튜브 콘텐츠 기획·제작·업로드 — 1호 사업 \"몬스터트럭 파닉스\"(유아 한글/알파벳 파닉스, 66회차 계획)",
+    mode: "op",
+  },
+  {
+    id: "company6",
+    name: "나다컴퍼니6",
+    tagline: "시우 대표 · 앱 개발·배포 — 기존 웹앱/유틸 포트폴리오 편입 + 신규 앱 개발",
+    mode: "op",
+  },
+  {
     id: "newventure",
     name: "pixel-ai-office (프로토타입)",
     tagline: "이 대시보드를 만들기 전 먼저 시도했던 오피스 시뮬레이션 — 별도 사업체 아니고, 자리잡으면 정리 예정",
@@ -83,6 +95,10 @@ export const ROOMS: Room[] = [
   { id: "c3-desk-room", name: "트레이딩 데스크", companyId: "company3", kind: "ceo" },
 
   { id: "c4-ceo-room", name: "대표실", companyId: "company4", kind: "ceo" },
+
+  { id: "c5-ceo-room", name: "제작실", companyId: "company5", kind: "ceo" },
+
+  { id: "c6-ceo-room", name: "개발실", companyId: "company6", kind: "ceo" },
 ];
 
 export type StaffRank = "ceo" | "lead" | "member";
@@ -225,6 +241,30 @@ export const STAFF: Staff[] = [
     companyId: "company4",
     roomId: "c4-ceo-room",
     task: "버크만 진단 상품 브랜딩·스토어 개설 초기 설계 — 회장과 협의 중",
+  },
+
+  // 나다컴퍼니5 — 유튜브 콘텐츠(2026-08-12 신설). 회장이 개인적으로 진행하던
+  // "몬스터트럭 파닉스"(유아 한글/알파벳 파닉스 시리즈, Notion에서 기획)를 승격 편입.
+  {
+    id: "c5-ceo",
+    name: "라온",
+    roleLabel: "CEO",
+    rank: "ceo",
+    companyId: "company5",
+    roomId: "c5-ceo-room",
+    task: "몬스터트럭 파닉스 ㅑ회차 대본/영상 제작 재개 — ㅏ회차는 업로드 완료",
+  },
+
+  // 나다컴퍼니6 — 앱 개발·배포(2026-08-12 신설). 회장이 개인적으로 만든 웹앱/유틸
+  // (아기랑 갈곳·체크노트·배당현황·KPC 코칭챗봇·Circle Heroes 등) 포트폴리오 편입 + 신규 앱 개발.
+  {
+    id: "c6-ceo",
+    name: "시우",
+    roleLabel: "CEO",
+    rank: "ceo",
+    companyId: "company6",
+    roomId: "c6-ceo-room",
+    task: "편입 앱 포트폴리오 현황 재점검 중",
   },
 ];
 
