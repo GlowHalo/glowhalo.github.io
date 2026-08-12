@@ -45,7 +45,19 @@
       "mcp__Claude_Code_Remote__list_sessions",
       "mcp__Claude_Code_Remote__get_session",
       "mcp__Claude_Code_Remote__list_environments",
-      "mcp__Claude_Code_Remote__create_session"
+      "mcp__Claude_Code_Remote__create_session",
+      "mcp__Notion__notion-search",
+      "mcp__Notion__notion-fetch",
+      "mcp__Notion__notion-create-pages",
+      "mcp__Notion__notion-update-page",
+      "mcp__Notion__notion-create-database",
+      "mcp__Notion__notion-create-attachment",
+      "mcp__Notion__notion-create-file-upload",
+      "mcp__Notion__notion-move-pages",
+      "mcp__Notion__notion-query-data-sources",
+      "mcp__Notion__notion-query-database-view",
+      "mcp__Notion__notion-get-comments",
+      "mcp__Notion__notion-create-comment"
     ]
   },
   "autoMode": {
