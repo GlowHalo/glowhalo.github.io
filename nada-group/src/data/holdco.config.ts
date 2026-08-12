@@ -95,6 +95,12 @@ export const COMPANIES: Company[] = [
     mode: "op",
   },
   {
+    id: "company12",
+    name: "나다컴퍼니12",
+    tagline: "지호 대표 · 사업 아이디어 상담 — 회장이 아이디어를 가져올 때 상의하는 상시 대기 창구, 능동 탐색은 안 함",
+    mode: "op",
+  },
+  {
     id: "newventure",
     name: "pixel-ai-office (프로토타입)",
     tagline: "이 대시보드를 만들기 전 먼저 시도했던 오피스 시뮬레이션 — 별도 사업체 아니고, 자리잡으면 정리 예정",
@@ -140,6 +146,8 @@ export const ROOMS: Room[] = [
   { id: "c10-ceo-room", name: "대표실", companyId: "company10", kind: "ceo" },
 
   { id: "c11-panel-room", name: "토론실", companyId: "company11", kind: "meeting" },
+
+  { id: "c12-ceo-room", name: "상담실", companyId: "company12", kind: "ceo" },
 ];
 
 export type StaffRank = "ceo" | "lead" | "member";
@@ -372,6 +380,17 @@ export const STAFF: Staff[] = [
     companyId: "company11",
     roomId: "c11-panel-room",
     task: "1호 사업 \"브리프AI\"(AI 회의록 자동정리·액션아이템 트래커 SaaS) 착수 준비 — 결제 계정 개설은 회장 확인 대기",
+  },
+
+  // 나다컴퍼니12 — 사업 아이디어 상담(2026-08-12 신설). 회장이 아이디어를 가져올 때만 움직임.
+  {
+    id: "c12-ceo",
+    name: "지호",
+    roleLabel: "CEO",
+    rank: "ceo",
+    companyId: "company12",
+    roomId: "c12-ceo-room",
+    task: "회장의 사업 아이디어 상담 대기 중",
   },
 ];
 
