@@ -12,20 +12,22 @@
 
 **나다컴퍼니1의 A2(PromptDeck, Gumroad·Firefox Add-ons·itch.io 등에서 실제 매출을 추구 중인 상품)처럼 이미 특정 계열사의 사업 라인으로 편입돼 실행 중인 앱은 원 소속 그대로 유지한다.** 나다컴퍼니6은 아직 특정 사업 트랙에 속하지 않은 개인 프로젝트형 앱 + 향후 신규 앱만 관리한다. 나중에 어떤 앱이 실제 매출을 내기 시작하면 `company1/README.md`의 "계열사 분리 판단 로직"(신설 vs 기존 편입)을 그대로 적용해서 판단한다.
 
-## 편입 앱 포트폴리오 (2026-08-12 기준)
+## 편입 앱 포트폴리오 (2026-08-12 실제 코드 재점검 반영)
 
-| 앱 | 폴더 | 설명 | 상태 |
-|---|---|---|---|
-| 아기랑 갈곳 | `baby-place-registry/` | 링크·텍스트를 붙여넣으면 놀곳/먹을곳/카페로 자동 분류해 등록하는 장소 등록 앱 | 프로토타입 |
-| 체크노트 | `checknote/` | 리스트·공유·완료 3탭뿐인 초단순 할일 메모 앱(PWA) | 발전중 |
-| 초간단 배당현황 | `dividend-passbook/` | 국내·해외 배당주를 계좌유형별로 세전 기준 정리하는 배당 관리 앱 | 프로토타입 |
-| KPC 코칭챗봇 | `kpc-coach-chat/` | ICF/KCA 역량 기반 셀프코칭 대화 상대 (Gemini API) | 프로토타입 |
-| Circle Heroes | `circle-heroes/` | SD 히어로 수집형 자동전투 방치형 모바일 게임(APK) | 웹 프로토타입 라이브, APK 목표 |
-| 나의 AI 회사 (Pixel AI Office) | `pixel-ai-office/` | 픽셀 아트 AI 직원 사무실 시뮬레이터(Next.js + Cloudflare Workers) | 진행중 |
-| Code Review Board | `code-review-board-action/` | PR을 3명의 독립 AI 리뷰어가 각자 검토하는 GitHub Action (개발자 도구) | 배포됨 |
-| 산출물 다운로드 허브 | `output-links-hub/` | 만든 앱들을 한곳에서 받을 수 있게 모아주는 배포 허브 — 나다컴퍼니6의 **공용 배포 채널**로 계속 활용 | 운영 중 |
-| Claude 자동허용 매크로 | `claude-auto-allow/` | Claude Desktop 권한 팝업 자동 클릭 매크로(Windows) | 소규모 유틸, 낮은 우선순위 |
-| Mindmap | `mindmap/` | 단일 페이지 마인드맵 도구 | 재확인 필요(README 없음) |
+기존 표는 옛 `meta.json`/README 스냅샷 기준이었다. 아래는 폴더를 직접 열어 코드까지 확인한 뒤 갱신한 상태 — 상세 근거는 [`candidates.md`](candidates.md) 참고.
+
+| 앱 | 폴더 | 설명 | 상태 (재점검 후) | 비고 |
+|---|---|---|---|---|
+| 아기랑 갈곳 | `baby-place-registry/` | 링크·텍스트를 붙여넣으면 놀곳/먹을곳/카페로 자동 분류해 등록하는 장소 등록 앱 | **발전중** (↑, 카카오맵+Firebase 연동까지 실제 동작) | ⚠️ 클라이언트 코드에 Kakao/Firebase 키 하드코딩 — Firestore 보안규칙 확인 필요 |
+| 체크노트 | `checknote/` | 리스트·완료 2탭 초단순 할일 메모 앱 | **프로토타입** (↓, PWA 아님·공유는 데모) | manifest/서비스워커 없음, "1:1 공유"는 버튼 하나로 흉내내는 목업 |
+| 초간단 배당현황 | `dividend-passbook/` | 국내·해외 배당주를 계좌유형별로 세전 기준 정리하는 배당 관리 앱 | 프로토타입 (유지) | 실제 계좌번호가 주석에 커밋돼 있던 걸 발견해 2026-08-12 삭제 완료 |
+| KPC 코칭챗봇 | `kpc-coach-chat/` | ICF/KCA 역량 기반 셀프코칭 대화 상대 | 프로토타입 (유지) | Gemini API 연동 자체가 아직 없음 — 5턴 고정 스크립트 데모 |
+| Circle Heroes | `circle-heroes/` | SD 히어로 수집형 자동전투 방치형 모바일 게임(APK) | **발전중** (↑, README보다 완성도 높음) | GitHub Actions 빌드·릴리스 실동작 확인, 웹 라이브 정상. 배포용 서명 키스토어만 없음 |
+| 나의 AI 회사 (Pixel AI Office) | `pixel-ai-office/` | 픽셀 아트 AI 직원 사무실 시뮬레이터(Vite+React, Cloudflare Workers) | 발전중 (유지) | Worker는 실제 배포·정상 응답, Notion/Discord 시크릿만 미등록 상태 |
+| Code Review Board | `code-review-board-action/` | PR을 3명의 독립 AI 리뷰어가 각자 검토하는 GitHub Action (개발자 도구) | **코드 완성 / 미배포** (↓, "배포됨"은 오기재였음) | 마켓플레이스 미등록(모노레포 구조상 현재 등록 불가), 실제 API 키로 end-to-end 검증 안 됨 |
+| 산출물 다운로드 허브 | `output-links-hub/` | 만든 앱들을 한곳에서 받을 수 있게 모아주는 배포 허브 — 나다컴퍼니6의 **공용 배포 채널** | 운영 중 (범위 제한) | 현재 9개 중 2개(claude-auto-allow, circle-heroes)만 등록 — 나머지 7개는 미등록 |
+| Claude 자동허용 매크로 | `claude-auto-allow/` | Claude Desktop 권한 팝업 자동 클릭 매크로(Windows) | 배포됨 (소규모 유틸) | 정상 동작, 위험 고지(무분별 자동승인 리스크)도 README에 명시됨 |
+| Mindmap | `mindmap/` | 단일 페이지 마인드맵 도구 (다중 문서 라이브러리, 공유 링크, AI 붙여넣기용 텍스트 복사) | **발전중** (재점검 결과 완성도 높음) | `meta.json` 없어 허브에 안 뜨던 것 확인, 2026-08-12 추가해 루트 허브에도 노출시킴 |
 
 ## 신규 앱 개발
 
@@ -41,9 +43,17 @@
 - `execution/` — 실제 실행 작업 로그(리팩터링, 배포, 신규 기능 등).
 - [`재무.md`](재무.md) — 이 계열사 매출/경비 기록 (개인사업자 기준, 원칙은 [`hq/재무.md`](../hq/재무.md)). **매출·지출 발생 시 즉시 갱신할 것.**
 
-## 진행 상황 — 대기 중인 항목 (2026-08-12 기준)
+## 진행 상황 (2026-08-12 갱신)
 
-- [ ] 편입 앱 각각의 최신 상태 재점검(위 표는 기존 `meta.json`/README 기준 스냅샷, 실제 완성도 재확인 필요)
-- [ ] `mindmap/` README 없음 — 용도·상태 파악
-- [ ] 신규 앱 후보 발굴 (시우 자율 진행)
-- [ ] 앱스토어/웹스토어 등 배포 채널별 정리 — Circle Heroes APK 배포는 개인 신분 제약으로 후순위(기존 기록, `company1/README.md` "승격형" 사례 참고)
+### 완료
+- [x] 편입 앱 9개 전수 재점검 — 실제 코드까지 열어서 완성도 재평가 (위 표에 반영, 상세는 `candidates.md`)
+- [x] `mindmap/` 용도·상태 파악 — README/meta.json이 둘 다 없어 허브에서 안 보이던 완성도 높은 도구였음. `meta.json` 추가해 루트 허브에 노출시킴(`node scripts/build-registry.js` 재실행 완료)
+- [x] `dividend-passbook/`에 실제 계좌번호가 주석으로 커밋돼 있던 것 발견 → 삭제(공개저장소 개인정보 커밋 금지 원칙 위반, 기능엔 영향 없는 주석이라 즉시 조치)
+- [x] `code-review-board-action/`이 "배포됨"으로 잘못 기재돼 있던 것 정정 — 실제로는 GitHub Marketplace 미등록, 미검증 상태
+
+### 대기 중
+- [ ] `baby-place-registry/` — Kakao/Firebase 키가 클라이언트 코드에 있음(Kakao JS 키·Firebase 웹 config 자체는 공개돼도 되는 값이라 즉시 위험은 낮지만, **Firestore 보안규칙이 열려있는지는 Firebase 콘솔에서 직접 확인 필요** — 계정 로그인이 필요해 회장 확인 요청 예정)
+- [ ] `code-review-board-action/` — 마켓플레이스에 실제로 올리려면 `git subtree split`로 독립 저장소 분리(`action.yml`을 루트로) + 실제 Anthropic 키로 end-to-end 검증 먼저 필요
+- [ ] `output-links-hub/` — 9개 중 2개만 등록돼 있음, 나머지(다운로드 가능한 산출물이 있는 앱 위주로) 카드 추가할지 판단
+- [ ] 신규 앱 후보 발굴 (시우 자율 진행 — `candidates.md` 우선순위 참고)
+- [ ] 앱스토어/웹스토어 등 배포 채널별 정리 — Circle Heroes APK 배포는 개인 신분 제약으로 후순위(기존 기록, `company1/README.md` "승격형" 사례 참고), 지금 단계는 서명 키스토어 없이 디버그 APK만 가능
