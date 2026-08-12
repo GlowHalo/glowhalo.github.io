@@ -1,0 +1,5 @@
+node_modules/
+.env
+# 고객 업로드 원본·이메일 등 PII가 들어있다 — 절대 커밋 금지
+data/
+out/
