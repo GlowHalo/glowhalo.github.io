@@ -53,7 +53,14 @@ paths:
 | `parse-report.mjs` | **시그니처** 리포트 전용: txt → 구조화 JSON (흥미 10개 %, 컴포넌트 9개 평소행동/욕구 숫자쌍) |
 | `parse-report-map.mjs` | **셀프·베이직·커리어** 공용(2026-08-11 신규): txt → 구조화 JSON. 이 세 리포트는 컴포넌트가 숫자쌍이 아니라 "4색 사분면 위 점 + 서술형"이라 정규식으로 억지로 다 구조화하지 않고, 안정적으로 뽑히는 것(흥미%, 강점, 조직지향점, 직업군)만 구조화하고 사분면 설명 자체는 원문 텍스트 블록(`mapSectionRaw`)째로 넘긴다 |
 | `make-debriefing-pdf.mjs` | 마크다운 → PDF (marked + Playwright headless 렌더, poppler 불필요) |
-| `send-debriefing.mjs` | nodemailer 발송. `.env` 의 `GMAIL_USER`/`GMAIL_APP_PASSWORD`/`SENDER_NAME` 사용 |
+| `send-debriefing.mjs` | Resend HTTPS API로 발송(2026-08-12부터, 아래 "메일 발송" 참고). `.env` 의 `RESEND_API_KEY`/`SENDER_NAME`/`SENDER_EMAIL` 사용 |
+
+## 메일 발송 (2026-08-12, Resend로 전환)
+
+- **SMTP(nodemailer)는 이 실행환경에서 원천 불가능.** 465/587 포트가 세션 프록시 정책상 막혀 있어(`ETIMEDOUT`) 계정을 바꿔도 안 되는 구조적 제약 — 로컬 Playwright가 프록시에서 막히는 것과 같은 부류의 문제(비-443 포트는 프록시가 지원 안 함). 그래서 **HTTPS(443) 기반인 Resend API**로 전환해서 실제 발송 확인 완료.
+- 자격증명: 금고의 `resend_api_key`(발급된 API 키), `resend_login_email`/`resend_login_password`(대시보드 로그인용, `tossneon0@gmail.com` 표준 계정). `.env`엔 `RESEND_API_KEY`/`SENDER_NAME`/`SENDER_EMAIL`.
+- **⚠️ 도메인 인증 전엔 계정 소유자 본인 이메일(`tossneon0@gmail.com`)에만 발송 가능.** `onboarding@resend.dev` 발신 주소는 Resend의 샌드박스 제한이라 실제 고객(임의 이메일) 발송 시 `403 validation_error`가 난다 — **실제 서비스 오픈 전 반드시 커스텀 도메인을 resend.com/domains에서 인증**해야 함. 아직 Reflect Lab 전용 도메인이 없어서 이건 다음 단계 결정 필요(도메인 구매 여부 회장 확인 대기).
+- 파이프라인 검증: `tossneon0@gmail.com`으로 실제 첨부파일 발송 성공 확인(2026-08-12).
 
 ## 디브리핑 설계
 
