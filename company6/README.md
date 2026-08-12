@@ -50,10 +50,14 @@
 - [x] `mindmap/` 용도·상태 파악 — README/meta.json이 둘 다 없어 허브에서 안 보이던 완성도 높은 도구였음. `meta.json` 추가해 루트 허브에 노출시킴(`node scripts/build-registry.js` 재실행 완료)
 - [x] `dividend-passbook/`에 실제 계좌번호가 주석으로 커밋돼 있던 것 발견 → 삭제(공개저장소 개인정보 커밋 금지 원칙 위반, 기능엔 영향 없는 주석이라 즉시 조치)
 - [x] `code-review-board-action/`이 "배포됨"으로 잘못 기재돼 있던 것 정정 — 실제로는 GitHub Marketplace 미등록, 미검증 상태
+- [x] 앱 상품화용 유통채널 리서치 — Google Play/Apple/Microsoft Store/GitHub Marketplace/AppSumo/Product Hunt/Amazon·Samsung·itch.io 전수 조사, 비용·개인가입 가능여부·자동화 API 지원여부까지 확인. 결과는 [`execution/유통채널-리서치.md`](execution/유통채널-리서치.md), 회장 액션 필요 항목만 정리해 별도 브리핑
+- [x] 신규 앱 아이디어 1차 발굴(6개, `candidates.md` N1~N6) — 기존에 뚫어둔 채널 재사용 가능한 아이디어 우선
 
 ### 대기 중
 - [ ] `baby-place-registry/` — Kakao/Firebase 키가 클라이언트 코드에 있음(Kakao JS 키·Firebase 웹 config 자체는 공개돼도 되는 값이라 즉시 위험은 낮지만, **Firestore 보안규칙이 열려있는지는 Firebase 콘솔에서 직접 확인 필요** — 계정 로그인이 필요해 회장 확인 요청 예정)
 - [ ] `code-review-board-action/` — 마켓플레이스에 실제로 올리려면 `git subtree split`로 독립 저장소 분리(`action.yml`을 루트로) + 실제 Anthropic 키로 end-to-end 검증 먼저 필요
 - [ ] `output-links-hub/` — 9개 중 2개만 등록돼 있음, 나머지(다운로드 가능한 산출물이 있는 앱 위주로) 카드 추가할지 판단
-- [ ] 신규 앱 후보 발굴 (시우 자율 진행 — `candidates.md` 우선순위 참고)
-- [ ] 앱스토어/웹스토어 등 배포 채널별 정리 — Circle Heroes APK 배포는 개인 신분 제약으로 후순위(기존 기록, `company1/README.md` "승격형" 사례 참고), 지금 단계는 서명 키스토어 없이 디버그 APK만 가능
+- [ ] **회장 최초 가입 4건 대기** — Google Play Console($25)·Amazon Appstore(무료)·itch.io Circle Heroes 프로젝트 페이지(무료, 계정은 있음)·Microsoft Partner Center(2026년부터 무료). 상세 링크·절차는 [`execution/유통채널-리서치.md`](execution/유통채널-리서치.md) "다음 단계" 참고
+- [ ] 가입 완료되는 대로 시우가 각 채널 API 연동(서비스 계정/토큰 발급) → 이후 자동 배포 파이프라인 구축
+- [ ] 웹앱들(아기랑갈곳·체크노트·배당현황·KPC코칭챗봇·Mindmap·Pixel AI Office) 앱별로 "무엇을 유료화할지"(Gumroad 라이선스 잠금 vs 소스코드 판매) 제품 결정 필요 — 채널은 준비됐지만 가격/무료-유료 경계는 아직 미정
+- [ ] Circle Heroes APK 배포는 Google Play·Amazon Appstore·itch.io 3채널로 우선 진행, Apple/Samsung은 각각 비용·회장물리개입/사업자등록 장벽으로 보류(기존 기록, `company1/README.md` "승격형" 사례 참고). 서명 키스토어도 아직 없음(디버그 APK만 가능)
