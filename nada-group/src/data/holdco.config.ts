@@ -91,7 +91,7 @@ export const COMPANIES: Company[] = [
   {
     id: "company11",
     name: "나다컴퍼니11",
-    tagline: "대표 선정 중 · 신사업 검토 — 20인 전문가가 기존 내역 무시하고 아이디어 제안·토론, 최다 지지 아이디어의 제안자가 대표로 취임",
+    tagline: "이든 대표 · 신사업 검토 — 20인 전문가 토론에서 최다 지지 받은 \"브리프AI\"(AI 회의록 자동정리·액션아이템 트래커 SaaS)로 창업",
     mode: "op",
   },
   {
@@ -351,8 +351,16 @@ export const STAFF: Staff[] = [
     task: "나다컴퍼니1 A5(스티비 뉴스레터)와의 관계 정리 중 — Beehiiv 승계 여부 회장 확인 대기",
   },
 
-  // 나다컴퍼니11 — 신사업 검토(2026-08-12 신설). 대표는 Round 1 20인 토론 결과로 선정 예정 —
-  // 아직 미정이라 STAFF 항목 없음. 선정되면 대표 이름으로 STAFF 항목을 여기에 추가할 것.
+  // 나다컴퍼니11 — 신사업 검토(2026-08-12 신설). Round 1 20인 토론 결과(20표 중 14표)로 대표 확정.
+  {
+    id: "c11-ceo",
+    name: "이든",
+    roleLabel: "CEO",
+    rank: "ceo",
+    companyId: "company11",
+    roomId: "c11-panel-room",
+    task: "1호 사업 \"브리프AI\"(AI 회의록 자동정리·액션아이템 트래커 SaaS) 착수 준비 — 결제 계정 개설은 회장 확인 대기",
+  },
 ];
 
 export type BusinessLine = {
