@@ -12,7 +12,7 @@
 
 | # | 후보 | 결제/유통 구조 | 자동화 근거 | 검증비용 | 상태 |
 |---|---|---|---|---|---|
-| B1 | 니치 API 프로덕트 (소형 유틸 API 개발·판매) | [RapidAPI Hub](https://rapidapi.com) — 공식 Platform REST API로 리스팅 생성/수정 가능([문서](https://docs.rapidapi.com/docs/creating-updating-apis)), 결제·구독·정산은 RapidAPI가 대행(수수료 25%, Stripe 기반 payout) | API 백엔드는 기존에 쓰던 패턴대로 Cloudflare Worker로 무자본 구현, RapidAPI 등록도 0원 | 0원 | 🟢 **MVP 프로토타입 완성·배포됨(2026-08-09)** — Link Preview API, 라이브: https://nada-company2-link-preview.tossneon.workers.dev ([상세](products/link-preview-api/README.md)). 다음 단계는 RapidAPI Hub 실제 등록 |
+| B1 | 니치 API 프로덕트 (소형 유틸 API 개발·판매) — **2026-08-12 회장 확정, 나다컴퍼니2 메인 사업** | [RapidAPI Hub](https://rapidapi.com) — 공식 Platform REST API로 리스팅 생성/수정 가능([문서](https://docs.rapidapi.com/docs/creating-updating-apis)), 결제·구독·정산은 RapidAPI가 대행(수수료 25%, Stripe 기반 payout). **RapidAPI가 2024-11 Nokia에 인수돼 브랜드 재편 중이라 단일 의존 리스크 있음** — Zyla API Hub·APILayer·LimitPear 등으로 다변화 진행 ([전략 문서](products/니치API-플랫폼-전략.md)) | API 백엔드는 기존에 쓰던 패턴대로 Cloudflare Worker로 무자본 구현, 등록도 플랫폼별 0원 | 0원 | 🟢 **MVP 프로토타입 완성·배포됨(2026-08-09)** — Link Preview API, 라이브: https://nada-company2-link-preview.tossneon.workers.dev ([상세](products/link-preview-api/README.md)). RapidAPI는 계정 500 에러로 등록 대기(지원 티켓 접수), **Zyla API Hub 등 대체/병행 플랫폼 등록이 다음 우선순위** |
 
 ### 🔍 신규 후보 — 추가 검증 필요 (2건, 아직 Tier A 확정 아님)
 
@@ -62,7 +62,7 @@ RapidAPI 인증메일은 회장이 저녁에 확인하기로 해서 대기, 그 
 
 | # | 후보 | 결제/유통 구조 | 자동화 근거 | 검증비용 | 상태 |
 |---|---|---|---|---|---|
-| C1 | 쿠팡파트너스(제휴 마케팅 — 상품 링크 공유 후 구매 발생 시 수수료) | 개인 가입 가능, 무자본, 사업소득 원천징수 3.3% 후 **계좌 직접 지급**(최소 1만원부터)([가이드](https://naligi.com/entry/%EC%BF%A0%ED%8C%A1%ED%8C%8C%ED%8A%B8%EB%84%88%EC%8A%A4%EB%A1%9C-%EB%8F%88%EB%B2%8C%EA%B8%B0-%EC%A0%88%EC%B0%A8-%EB%B0%A9%EB%B2%95-%EC%9A%94%EA%B1%B4-%EC%88%98%EC%88%98%EB%A3%8C%EC%9C%A8)) | **공식 API 있음**(링크 자동 생성). 단 **초기엔 API 미개방** — 누적 판매 15만원 이상이 돼야 "최종승인"되면서 API 키가 열림([근거](https://mg.jnomy.com/coupang-partners-verify)); **쿠팡 사이트 자체가 브라우저 자동화·서버사이드 fetch를 전부 봇 방어로 차단**하는 것도 확인됨(WAF+애플리케이션단 이중 차단) — 그래서 API 개방 전까진 완전자동이 아니라 회장이 딥링크만 붙여넣는 수동 브릿지로 운영 | 0원 | 🟢 **실제 게시 가능한 상태 — 가입·채널(디스코드)·웹훅·`/seed` 폼 전부 연결·검증 완료.** [상세](products/coupang-dealbot/README.md) |
+| C1 | 쿠팡파트너스(제휴 마케팅 — 상품 링크 공유 후 구매 발생 시 수수료) — **2026-08-12 회장 지시로 별도 계열사 이관 예정, 나다컴퍼니2는 더 이상 진행 안 함** | 개인 가입 가능, 무자본, 사업소득 원천징수 3.3% 후 **계좌 직접 지급**(최소 1만원부터)([가이드](https://naligi.com/entry/%EC%BF%A0%ED%8C%A1%ED%8C%8C%ED%8A%B8%EB%84%88%EC%8A%A4%EB%A1%9C-%EB%8F%88%EB%B2%8C%EA%B8%B0-%EC%A0%88%EC%B0%A8-%EB%B0%A9%EB%B2%95-%EC%9A%94%EA%B1%B4-%EC%88%98%EC%88%98%EB%A3%8C%EC%9C%A8)) | **공식 API 있음**(링크 자동 생성). 단 **초기엔 API 미개방** — 누적 판매 15만원 이상이 돼야 "최종승인"되면서 API 키가 열림([근거](https://mg.jnomy.com/coupang-partners-verify)); **쿠팡 사이트 자체가 브라우저 자동화·서버사이드 fetch를 전부 봇 방어로 차단**하는 것도 확인됨(WAF+애플리케이션단 이중 차단) — 그래서 API 개방 전까진 완전자동이 아니라 회장이 딥링크만 붙여넣는 수동 브릿지로 운영 | 0원 | 🔁 **인수인계 완료(2026-08-12) — 참고용으로만 보존.** 가입·채널(디스코드)·웹훅·`/seed` 폼 전부 연결·검증 완료된 상태 그대로 다음 담당 계열사에 이관. [인수인계 자료](products/coupang-dealbot/README.md) · [이관 결정 기록](../hq/decisions/2026-08-12-쿠팡파트너스-계열사이관.md) |
 
 **실행 아이디어 메모**: 제휴 링크를 실을 콘텐츠를 검색엔진 SEO에 의존하는 블로그형으로 만들면, 구글이 AI 대량생산 콘텐츠에 점점 엄격해지는 "Helpful Content" 정책 단속에 걸릴 리스크가 있다고 독자적으로 판단했다. 이 리스크를 피하려면 **"가격 추적/특가 알림" 형태**(예: 텔레그램/디스코드/카카오톡 채널에 가격 하락 상품을 올리고 쿠팡파트너스 링크를 붙이는 봇)가 더 나은 실행 경로로 보인다 — 무자본이고, AI가 데이터 수집·포스팅까지 자동화하기 좋고, 검색엔진 정책 리스크와 무관하다. 다음 라운드에서 이 실행안을 더 구체화할 것.
 
@@ -71,11 +71,11 @@ RapidAPI 인증메일은 회장이 저녁에 확인하기로 해서 대기, 그 
 - **앱인토스(토스 미니앱 플랫폼)** — 회장이 언급한 "토스에 앱 등록해서 수익"의 실체. 개발 자체는 사업자등록 없이 가능하지만, **수익화(정산)에는 사업자등록증이 필수**([공식 문서](https://developers-apps-in-toss.toss.im/prepare/register-business.html))라 회장 리소스 제약 원칙 2("사업자등록 불가")에 정면으로 걸려 원천 배제.
 - **토스쇼핑 쉐어링크(제휴 링크)** — 회장이 언급한 "상품 링크 등록해 수수료"의 토스 버전. 개인 신청 가능(사업자등록 불필요)까지는 좋았는데, **PC를 지원하지 않고 모바일 앱에서만 작업 가능**한 구조([근거](https://choojongbum.com/%ED%86%A0%EC%8A%A4%EC%87%BC%ED%95%91-%EC%89%90%EC%96%B4%EB%A7%81%ED%81%AC-%EC%8B%A0%EC%B2%AD%EB%B0%A9%EB%B2%95%EA%B3%BC-%EC%82%AC%EC%9A%A9%EB%B0%A9%EB%B2%95-%EC%99%84%EC%A0%84%EC%A0%95%EB%B3%B5/)) — Browserbase/Cloudflare Browser Rendering은 둘 다 **데스크톱 웹 브라우저** 자동화라 네이티브 모바일 앱은 원천적으로 손을 못 댄다. 쿠팡파트너스가 같은 카테고리에서 더 나은 대안이라 이쪽은 완전 제외.
 
-## 다음 단계
+## 다음 단계 (2026-08-12 갱신 — 니치 API가 메인 사업으로 확정)
 
-1. **B1(RapidAPI) 재개** — 인증메일은 회장이 저녁에 확인 예정, 그 결과에 따라 이어서 Platform REST API로 `openapi.json` 업로드해 리스팅 생성 → `RAPIDAPI_PROXY_SECRET` 발급·시크릿 등록·게이트웨이 잠금 → 테스트 콘솔 종단 검증.
-2. **C1(쿠팡파트너스)** — 가입·채널(디스코드 "나다특가")·웹훅 전부 연결 완료, `/seed` 수동 브릿지 폼으로 실제 게시 가능한 상태([상세](products/coupang-dealbot/README.md)). 회장이 딥링크+상품명을 폼에 붙여넣으면 바로 채널 게시. 누적매출 15만원 넘으면 API로 완전자동 전환 예정.
-3. B1 검증되면 API 2호 상품 기획 — 3라운드 관찰대로 이 카테고리에도 계속 투자.
-4. Framer·CrazyGames는 낮은 우선순위로 보류, 자동화 인프라가 더 성숙하면 재검토.
+1. **B1 플랫폼 다변화** — RapidAPI는 계정 500 에러로 지원 티켓 대기 중(Nokia 인수 이후 재편 국면). **Zyla API Hub를 1순위 대체/병행 채널로 가입 진행 승인 요청**([전략](products/니치API-플랫폼-전략.md)) — 승인되면 이어서 APILayer·LimitPear 순으로 확장.
+2. **C1(쿠팡파트너스)** — 별도 계열사로 이관 예정, 나다컴퍼니2는 종료. 인수인계 자료는 [`products/coupang-dealbot/README.md`](products/coupang-dealbot/README.md), 결정 기록은 [`hq/decisions/2026-08-12-쿠팡파트너스-계열사이관.md`](../hq/decisions/2026-08-12-쿠팡파트너스-계열사이관.md).
+3. B1 플랫폼 다변화가 안정되면 API 2호 상품 기획 — 3라운드 관찰대로 이 카테고리에 계속 투자, 신상품도 여러 플랫폼에 동시 등록.
+4. Framer·CrazyGames는 낮은 우선순위로 계속 보류, 자동화 인프라가 더 성숙하면 재검토.
 
-무자본 + 되돌리기 쉬운 범위라 회장 승인 없이 계속 진행.
+무자본 + 되돌리기 쉬운 범위라 회장 승인 없이 계속 진행. 단, **신규 플랫폼 계정 가입은 정책상 회장 승인 필요**(CLAUDE.md 2026-08-11~12 정정).
