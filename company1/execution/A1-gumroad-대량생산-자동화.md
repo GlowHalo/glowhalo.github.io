@@ -76,3 +76,7 @@
   - **1차 배치 5종 전부 발행 완료**: Marketing Copy Board · Pricing Council · Hiring Panel · Feature Prioritization Board · Cold Outreach Board. 콘텐츠 초안은 5개 백그라운드 에이전트가 병렬 생성(06번 문서 스타일 가이드 제공), Notion 빌드(루트+DB+Start Here+Prompt Sets 15개, 데모 콘텐츠는 "Alex의 RoastLoop" 세계관 통일)와 Gumroad 발행은 분류기 리스크 회피를 위해 직접 순차 실행. 상세: [products/11-notion-line-3to20-배치1.md](products/11-notion-line-3to20-배치1.md).
   - **커버 이미지 이슈**: Cloudflare Browser Rendering이 notion.site 로드에서 반복 타임아웃(연결 자체는 정상, notion.site 특정 문제로 추정), Browserbase는 무료 시간 소진(402) — 기존 3종처럼 실제 Notion 스크린샷을 못 써서 PromptDeck에서 검증된 헤드리스 브라우저 HTML/CSS 직접 렌더링 방식으로 15장 대체 제작. investor-panel의 미해결 3번째 커버도 같은 이유로 이번 회차에도 못 넣음(백로그 유지).
   - **8개 상품 전체 매출 재확인 — 여전히 0건**. 확인되는 즉시 최우선 보고 원칙 유지. 2·3차 배치(11종)는 이어서 진행.
+- **2026-08-12 (같은 날 후속2) — 2차 배치(5종 발행), Gumroad "하루 10개 생성" 한도 신규 확인.**
+  - **2차 배치**: Churn Autopsy Board · Vendor Selection Board · Investor Update Board · Freelancer Rate Board · Cofounder Panel 전부 발행 완료(Notion 빌드+Gumroad 발행+커버 15장+검증까지 1차와 동일 절차). 상세: [products/12-notion-line-3to20-배치2.md](products/12-notion-line-3to20-배치2.md).
+  - **신규 제약 확인**: 6번째 상품(Brand Name & Domain Panel) 발행 시도에서 Gumroad가 `"Sorry, you can only create 10 products per day."` 응답 — 계정당 하루 상품 생성 10개 한도가 있다는 걸 이번에 처음 확인했다(과거의 자동승인 분류기 차단과는 별개의 플랫폼 자체 제약). 해당 상품은 Notion 콘텐츠까지 전부 완성해뒀고 다음 날 Gumroad 발행 1콜만 남은 상태로 대기.
+  - **13개 상품 전체 매출 재확인 — 여전히 0건**. 확인되는 즉시 최우선 보고 원칙 유지. 3차 배치(6종)는 하루 10개 한도를 감안해 다음 기회에 이어서 진행.
