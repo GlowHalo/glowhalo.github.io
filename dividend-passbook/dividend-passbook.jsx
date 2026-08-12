@@ -322,13 +322,13 @@ function loadHoldings() {
   }
 }
 const DEFAULT_HOLDINGS = [
-  // 일반위탁 (203-02-227281) — QQQI (매입단가는 실제 체결단가, USD)
+  // 일반위탁 — QQQI (매입단가는 실제 체결단가, USD)
   { id: 1, ticker: "QQQI", quantity: 10, price: 53.55, purchaseDate: "2026-04-28", sellDate: null, accountType: "general" },
   { id: 2, ticker: "QQQI", quantity: 33, price: 53.56, purchaseDate: "2026-04-28", sellDate: null, accountType: "general" },
   { id: 3, ticker: "QQQI", quantity: 1, price: 56.47, purchaseDate: "2026-05-19", sellDate: null, accountType: "general" },
   { id: 4, ticker: "QQQI", quantity: 16, price: 56.10, purchaseDate: "2026-06-11", sellDate: null, accountType: "general" },
   { id: 5, ticker: "QQQI", quantity: 13, price: 54.47, purchaseDate: "2026-07-22", sellDate: null, accountType: "general" },
-  // 중개형ISA (211-02-404170) — RISE 491620 (매입단가는 실제 체결단가, KRW)
+  // 중개형ISA — RISE 491620 (매입단가는 실제 체결단가, KRW)
   { id: 6, ticker: "491620", quantity: 20, price: 10505, purchaseDate: "2026-03-12", sellDate: null, accountType: "isa" },
   { id: 7, ticker: "491620", quantity: 491, price: 10140, purchaseDate: "2026-04-03", sellDate: null, accountType: "isa" },
   { id: 8, ticker: "491620", quantity: 500, price: 11105, purchaseDate: "2026-04-23", sellDate: null, accountType: "isa" },
