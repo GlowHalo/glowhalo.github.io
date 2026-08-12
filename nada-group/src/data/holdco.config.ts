@@ -113,6 +113,7 @@ export type Room = {
 
 export const ROOMS: Room[] = [
   { id: "holdco-room", name: "HQ 오피스", companyId: "holdco", kind: "ceo" },
+  { id: "secretariat-room", name: "비서실", companyId: "holdco", kind: "team" },
 
   { id: "ceo-room", name: "대표실", companyId: "company1", kind: "ceo" },
   { id: "strategy-room", name: "전략팀", companyId: "company1", kind: "team" },
@@ -175,6 +176,17 @@ export const STAFF: Staff[] = [
     companyId: "holdco",
     roomId: "holdco-room",
     task: "관계사 운영 지원 · 자동화 · 막히면 조치",
+  },
+
+  // 나다그룹 비서실 — 2026-08-12 신설. 사업 계열사 아님, 회장 개인 보좌 전담.
+  {
+    id: "secretary",
+    name: "소율",
+    roleLabel: "비서실",
+    rank: "lead",
+    companyId: "holdco",
+    roomId: "secretariat-room",
+    task: "브리핑 창구 · 간단한 질문 응대 · 일정 관련 대화",
   },
 
   // 나다컴퍼니1
