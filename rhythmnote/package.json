@@ -1,0 +1,17 @@
+{
+  "name": "rhythmnote",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "리듬노트 — 웨어러블 헬스데이터 AI 웰니스 인사이트 리포트 (나다컴퍼니9 E1)",
+  "scripts": {
+    "list": "node scripts/list-submissions.mjs",
+    "pending": "node scripts/list-submissions.mjs --pending",
+    "render": "node scripts/render-report-pdf.mjs",
+    "send": "node scripts/send-report.mjs"
+  },
+  "dependencies": {
+    "marked": "^18.0.6",
+    "playwright": "^1.48.0"
+  }
+}
