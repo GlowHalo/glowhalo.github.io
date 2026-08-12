@@ -80,6 +80,14 @@ A1과 동일 계정·동일 정산 구조(Gumroad 계좌 직접입금) 재사용
 
 **남은 것**: 회장 액션 불필요, Mozilla 리뷰어 심사 대기(통상 며칠). 심사 결과는 다음 세션이 `GET /api/v5/addons/addon/promptdeck/`으로 확인 가능(`status`가 `"public"`으로 바뀌면 게시 완료).
 
+## 2026-08-12 저녁 — 🎉 Firefox Add-ons 심사 통과, 공식 배포 채널 확보
+
+회장이 Mozilla 승인 메일 스크린샷 공유 → API로 재확인(`GET /api/v5/addons/addon/promptdeck/`) → **`status: "public"`, `current_version: "1.0.0"`, `file status: "public"`** 확인. 공식 설치 링크: https://addons.mozilla.org/en-US/firefox/addon/promptdeck/
+
+**즉시 반영**: Gumroad `promptdeck-pro` 상품 설명·영수증(`custom_receipt`)을 "Firefox Add-ons 심사중"에서 "Firefox는 공식 스토어에서 바로 설치, Chrome/Edge/Brave는 사이드로드 zip, Chrome 웹스토어는 준비중"으로 갱신(`PUT /v2/products/:id`, 200 성공 확인). 이제 PromptDeck은 **공식 스토어(Firefox) + 자체배포(Chromium 계열) 두 경로 모두 살아있는 상태**.
+
+**남은 채널**: Chrome 웹스토어($5, 회장 액션 필요, 낮은 우선순위) · itch.io(회장이 프로젝트 페이지 1회 생성 필요, 아래 안내 참고).
+
 ## 2026-08-11/12 — 결제 퍼널 감사, "빈 상품 페이지" 발견·즉시 수정, 설치 병목 자체 해소
 
 > 배경: 회장 지시("개입 없이 완성된 자동화 사이클은 상품기획→업로드를 쉬지 않고 진행, 품질개선·구매 퍼널 점검도 백로그로 자체 진행") — A1 4개 상품 전체를 API로 감사.
