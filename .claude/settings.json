@@ -35,7 +35,17 @@
       "Bash(python3 *)",
       "Bash(curl *tossneon-api-vault.tossneon.workers.dev*)",
       "Bash(curl *nada-group-api.tossneon.workers.dev*)",
-      "Bash(curl *tossneon.workers.dev*)"
+      "Bash(curl *tossneon.workers.dev*)",
+      "mcp__Claude_Code_Remote__create_trigger",
+      "mcp__Claude_Code_Remote__update_trigger",
+      "mcp__Claude_Code_Remote__delete_trigger",
+      "mcp__Claude_Code_Remote__fire_trigger",
+      "mcp__Claude_Code_Remote__send_later",
+      "mcp__Claude_Code_Remote__list_triggers",
+      "mcp__Claude_Code_Remote__list_sessions",
+      "mcp__Claude_Code_Remote__get_session",
+      "mcp__Claude_Code_Remote__list_environments",
+      "mcp__Claude_Code_Remote__create_session"
     ]
   },
   "autoMode": {
