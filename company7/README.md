@@ -29,5 +29,9 @@
 ## 진행 상황 — 대기 중인 항목 (2026-08-12 기준)
 
 - [ ] 회장이 `/seed` 폼으로 딥링크 게시 시작 — 초기 매출은 이 수동 브릿지로 발생시켜야 API 개방 조건(15만원) 충족
-- [ ] 누적매출 추적 — 15만원 도달 시 API 전환 절차 진행
+  - 접속 링크·사용법: [`products/coupang-dealbot/README.md`](products/coupang-dealbot/README.md) "수동 브릿지 — `/seed` 폼" 섹션 참고
+- [x] Worker 상태 점검 (2026-08-12, 도현) — `/health` 200 OK 정상 응답, `/seed` 라우팅 로직 정상(키 불일치 시 404) 확인
+- [x] 누적매출 추적 체계 신설 (2026-08-12) — [`재무.md`](재무.md) "API 개방 목표 추적" 섹션, 회장이 확정 커미션 금액 알려줄 때마다 갱신
+- [ ] 누적매출 15만원 도달 시 API 전환 절차 진행
 - [ ] 배포된 Worker 이름(`nada-company2-coupang-dealbot`)이 여전히 "company2"를 참조 — 실사용에 지장 없어 그대로 두되, 재배포 계기가 생기면 개명 검토
+- [ ] 텔레그램 봇(`@nada_dealbot`) 채널 관리자 미등록 — 상세는 [`products/coupang-dealbot/README.md`](products/coupang-dealbot/README.md) "미해결 이슈" 참고, 디스코드만으로도 운영 지장 없어 급하지 않음
