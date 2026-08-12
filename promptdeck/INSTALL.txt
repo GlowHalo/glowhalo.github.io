@@ -1,0 +1,37 @@
+PromptDeck — install instructions (sideload)
+==============================================
+
+This is the same code submitted to the Chrome Web Store and Firefox Add-ons —
+this zip lets you start using it immediately instead of waiting for store review.
+
+Chrome / Edge / Brave (Chromium-based browsers)
+------------------------------------------------
+1. Unzip this file into its own folder.
+2. Go to chrome://extensions (or edge://extensions, or brave://extensions).
+3. Turn on "Developer mode" (top-right toggle).
+4. Click "Load unpacked" and select the unzipped folder.
+5. Pin PromptDeck from the extensions toolbar icon for quick access.
+
+Firefox
+-------
+Firefox requires signed extensions for permanent installs. This sideload zip
+works for temporary testing (about:debugging → "This Firefox" → "Load
+Temporary Add-on" → select manifest.json inside the unzipped folder), but it
+resets when Firefox restarts. For a permanent Firefox install, use the
+official Firefox Add-ons listing once it's approved:
+https://addons.mozilla.org/en-US/firefox/addon/promptdeck/
+
+Unlocking Pro
+-------------
+1. After buying the Pro license key on Gumroad, click the extension icon,
+   then "⚙ License".
+2. Paste your license key and save.
+3. Unlimited saved prompts + one-click import of the "AI Board of Directors"
+   15-prompt pack unlock immediately — no reinstall needed.
+
+Updates
+-------
+This is a manually-versioned zip (not auto-updating like a store install).
+Re-download from your Gumroad purchase page whenever a new version ships.
+
+Questions? Reply to your Gumroad receipt email.
