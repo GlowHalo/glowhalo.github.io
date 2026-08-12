@@ -1,0 +1,16 @@
+name = "nada-company11-brief-ai"
+main = "src/worker.js"
+compatibility_date = "2026-01-01"
+
+# 무료 티어(workers.dev 서브도메인)로 배포. KV 네임스페이스 ID는 비밀 아님
+# (계정 API 토큰 없이는 무용지물) — company2/link-preview-api와 같은 패턴.
+# 주의: TOML은 순서에 민감하다 — [ai] 같은 테이블 헤더보다 반드시 먼저 와야
+# 최상위 키로 파싱된다(뒤에 두면 [ai] 테이블 안에 잘못 중첩돼 바인딩이 누락됨 — 실제로 겪은 버그).
+kv_namespaces = [
+  { binding = "WAITLIST_KV", id = "6f83ef600f184e89bd272656b564975a" }
+]
+
+# Cloudflare Workers AI — 별도 API 키·계정 가입 없이 cloudflare_api_token 하나로 바로 쓸 수 있다.
+# (OpenAI/Whisper/Anthropic 키가 금고에 없어 이 방식으로 시작 — 회장 리소스 제약 "무자본" 원칙에 부합)
+[ai]
+binding = "AI"
