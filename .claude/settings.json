@@ -36,6 +36,7 @@
       "Bash(curl *tossneon-api-vault.tossneon.workers.dev*)",
       "Bash(curl *nada-group-api.tossneon.workers.dev*)",
       "Bash(curl *tossneon.workers.dev*)",
+      "Bash(curl *$VAULT_URL*)",
       "mcp__Claude_Code_Remote__create_trigger",
       "mcp__Claude_Code_Remote__update_trigger",
       "mcp__Claude_Code_Remote__delete_trigger",
