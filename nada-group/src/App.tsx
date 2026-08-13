@@ -168,7 +168,7 @@ function BusinessLinesPanel({ companyId }: { companyId: string }) {
   return (
     <div className="panel">
       <h3>
-        📊 사업 라인 현황 <small>company1/candidates.md 스냅샷</small>
+        📊 사업 라인 현황 <small>biz-exploration/candidates.md 스냅샷</small>
       </h3>
       <div className="biz-table">
         {lines.map((b) => (
@@ -310,7 +310,7 @@ function FinanceHqPanel() {
   );
 }
 
-/** 계열사 화면 — 이 회사 매출/경비만. 정본은 company1~4/재무.md, 여기는 그 스냅샷. */
+/** 계열사 화면 — 이 회사 매출/경비만. 정본은 각 계열사 폴더의 재무.md, 여기는 그 스냅샷. */
 function FinanceCompanyPanel({ companyId }: { companyId: string }) {
   const { rows, confirmedRevenue, confirmedCost, capital, net } = financeSummaryFor(companyId);
   if (!rows.length) return null;
@@ -547,7 +547,7 @@ export default function App() {
               {company.isHq ? <FinanceHqPanel /> : <FinanceCompanyPanel companyId={companyId} />}
 
               <BusinessLinesPanel companyId={companyId} />
-              {companyId === "company2" ? (
+              {companyId === "niche-api" ? (
                 <ExecutionLogPanel items={executionLog.filter((e) => e.companyId === companyId)} />
               ) : null}
 

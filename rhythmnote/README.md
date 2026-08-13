@@ -1,14 +1,14 @@
 # 리듬노트 (RhythmNote)
 
 나다컴퍼니9(신사업 서칭) E1 — 웨어러블 헬스데이터 AI 웰니스 인사이트 리포트.
-경영 의사결정·진행 상황은 [`company9/execution/E1-웰니스리포트.md`](../company9/execution/E1-웰니스리포트.md)가 정본. 이 문서는 코드/운영 방법만.
+경영 의사결정·진행 상황은 [`biz-scouting/execution/E1-웰니스리포트.md`](../biz-scouting/execution/E1-웰니스리포트.md)가 정본. 이 문서는 코드/운영 방법만.
 
 라이브: `https://tossneon.github.io/rhythmnote/`
 
 ## 지금 상태 — 무료 베타 (2026-08-12)
 
 결제(Gumroad 발행)는 아직 시작하지 않았다. 랜딩페이지에서 무료로 업로드를 받아 파이프라인을 검증하는 중.
-실제 유료 전환은 회장 확인 후 진행([E1 실행 로그](../company9/execution/E1-웰니스리포트.md) "다음에 회장에게 확인받을 것" 참고).
+실제 유료 전환은 회장 확인 후 진행([E1 실행 로그](../biz-scouting/execution/E1-웰니스리포트.md) "다음에 회장에게 확인받을 것" 참고).
 
 ## 구조
 
@@ -60,4 +60,4 @@ CLOUDFLARE_API_TOKEN=$(금고에서 조회) npx wrangler deploy
 ## 알려진 제약
 
 - **R2 미사용**: 계정에서 R2 활성화(대시보드 약관 동의)가 안 돼 있어(2026-08-12 확인, Cloudflare API code 10042) 업로드 파일을 R2 대신 KV에 base64로 직접 저장한다. 트래픽이 늘면 R2 활성화를 회장에게 요청하고 전환.
-- **고객 이메일 발송 불가(도메인 미인증)**: Resend 발신 도메인이 아직 인증 전이라 계정 소유자 본인 이메일(`tossneon0@gmail.com`)에만 실제 발송이 된다. company4(Reflect Lab)와 공유하는 이슈 — 상세는 E1 실행 로그.
+- **고객 이메일 발송 불가(도메인 미인증)**: Resend 발신 도메인이 아직 인증 전이라 계정 소유자 본인 이메일(`tossneon0@gmail.com`)에만 실제 발송이 된다. assessment-products(Reflect Lab)와 공유하는 이슈 — 상세는 E1 실행 로그.
