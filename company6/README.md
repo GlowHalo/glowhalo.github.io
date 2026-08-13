@@ -23,7 +23,7 @@
 | 초간단 배당현황 | `dividend-passbook/` | 국내·해외 배당주를 계좌유형별로 세전 기준 정리하는 배당 관리 앱 | 프로토타입 (유지) | 실제 계좌번호가 주석에 커밋돼 있던 걸 발견해 2026-08-12 삭제 완료 |
 | KPC 코칭챗봇 | `kpc-coach-chat/` | ICF/KCA 역량 기반 셀프코칭 대화 상대 | 프로토타입 (유지) | Gemini API 연동 자체가 아직 없음 — 5턴 고정 스크립트 데모 |
 | Circle Heroes | `circle-heroes/` | SD 히어로 수집형 자동전투 방치형 모바일 게임(APK) | **발전중** (↑, README보다 완성도 높음) | GitHub Actions 빌드·릴리스 실동작 확인, 웹 라이브 정상. 배포용 서명 키스토어만 없음 |
-| 나의 AI 회사 (Pixel AI Office) | `pixel-ai-office/` | 픽셀 아트 AI 직원 사무실 시뮬레이터(Vite+React, Cloudflare Workers) | 발전중 (유지) | Worker는 실제 배포·정상 응답, Notion/Discord 시크릿만 미등록 상태 |
+| 나의 AI 회사 (Pixel AI Office) | `pixel-ai-office/` | 픽셀 아트 AI 직원 사무실 시뮬레이터(Vite+React, Cloudflare Workers) | **레퍼런스** (2026-08-13 회장 확정 — 나다그룹 HQ 대시보드(`nada-group/`) 만들 때 참고했던 프로젝트, 별도 상품화 계획 없음) | Worker는 실제 배포·정상 응답 상태로 남겨둠, 추가 개발은 하지 않음 |
 | Code Review Board | `code-review-board-action/` | PR을 3명의 독립 AI 리뷰어가 각자 검토하는 GitHub Action (개발자 도구) | **코드 완성 / 미배포** (↓, "배포됨"은 오기재였음) | 마켓플레이스 미등록(모노레포 구조상 현재 등록 불가), 실제 API 키로 end-to-end 검증 안 됨 |
 | 산출물 다운로드 허브 | `output-links-hub/` | 만든 앱들을 한곳에서 받을 수 있게 모아주는 배포 허브 — 나다컴퍼니6의 **공용 배포 채널** | 운영 중 (범위 제한) | 현재 9개 중 2개(claude-auto-allow, circle-heroes)만 등록 — 나머지 7개는 미등록 |
 | Claude 자동허용 매크로 | `claude-auto-allow/` | Claude Desktop 권한 팝업 자동 클릭 매크로(Windows) | 배포됨 (소규모 유틸) | 정상 동작, 위험 고지(무분별 자동승인 리스크)도 README에 명시됨 |
@@ -52,6 +52,9 @@
 - [x] `code-review-board-action/`이 "배포됨"으로 잘못 기재돼 있던 것 정정 — 실제로는 GitHub Marketplace 미등록, 미검증 상태
 - [x] 앱 상품화용 유통채널 리서치 — Google Play/Apple/Microsoft Store/GitHub Marketplace/AppSumo/Product Hunt/Amazon·Samsung·itch.io 전수 조사, 비용·개인가입 가능여부·자동화 API 지원여부까지 확인. 결과는 [`execution/유통채널-리서치.md`](execution/유통채널-리서치.md), 회장 액션 필요 항목만 정리해 별도 브리핑
 - [x] 신규 앱 아이디어 1차 발굴(6개, `candidates.md` N1~N6) — 기존에 뚫어둔 채널 재사용 가능한 아이디어 우선
+- [x] **실사용 여부 확인(2026-08-13, 회장 확인) — 앱별 정비 우선순위 판단용.** 아기랑갈곳·초간단배당현황은 회장이 실제로 매일 쓰는 중이라 손댈 때 주의 필요. 체크노트·Circle Heroes·KPC코칭챗봇·Mindmap은 실사용 아님 — 자유롭게 정비 가능.
+- [x] Circle Heroes 안드로이드 패키지 ID `io.github.tossneon.circleheroes` → `com.nadagroup.circleheroes` 정비(2026-08-13) — 개인 계정명 노출 제거. 정식 APK 배포 전이라 전환 비용 없음(회장 확인). Java 패키지 폴더·build.gradle·capacitor.config.ts·strings.xml 전부 갱신 완료, `meta.json` 신규 추가(허브에 표시 안 되고 있었음)
+- [x] Pixel AI Office → 레퍼런스로 재분류(2026-08-13, 회장 확정) — 나다그룹 HQ 대시보드 제작 시 참고했던 프로젝트, 별도 상품화 계획 없음
 
 ### 대기 중
 - [ ] `baby-place-registry/` — Kakao/Firebase 키가 클라이언트 코드에 있음(Kakao JS 키·Firebase 웹 config 자체는 공개돼도 되는 값이라 즉시 위험은 낮지만, **Firestore 보안규칙이 열려있는지는 Firebase 콘솔에서 직접 확인 필요** — 계정 로그인이 필요해 회장 확인 요청 예정)

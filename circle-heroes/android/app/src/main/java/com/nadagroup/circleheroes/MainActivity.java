@@ -1,4 +1,4 @@
-package io.github.tossneon.circleheroes;
+package com.nadagroup.circleheroes;
 
 import com.getcapacitor.BridgeActivity;
 

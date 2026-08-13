@@ -1,0 +1,8 @@
+{
+  "title": "Circle Heroes",
+  "date": "2026.07",
+  "status": "발전중",
+  "tags": ["React", "방치형게임", "APK"],
+  "description": "SD 히어로 수집형 자동전투 방치형 게임. 모바일 APK로 설치해서 싱글플레이로 즐기는 걸 목표로 한다. 영웅 마스터데이터는 Notion이 정본.",
+  "note": "meta.json이 없어 허브에 안 뜨고 있던 걸 2026-08-13 정비에서 발견해 등록. 나다컴퍼니6(시우) 소속. 안드로이드 패키지 ID는 io.github.tossneon.circleheroes → com.nadagroup.circleheroes로 정비 완료(2026-08-13, 아직 APK 정식 배포 전이라 전환 비용 없음)."
+}
