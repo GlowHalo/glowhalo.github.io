@@ -66,3 +66,13 @@ A2(PromptDeck)·A1(Code Review Board)에서 이미 만든 자산을 그대로 �
 **"플랫폼이 자동화를 공식 API/CLI로 지원하는가, 아니면 사람 손을 흉내내는 자동화(브라우저 매크로)로 우회해야 하는가"가 KEEP/PASS를 가르는 핵심 변수**였습니다. 네이버(API 없음→PASS), 유튜브(API는 있지만 정책이 별도로 막음→PASS), itch.io(공식 CLI 지원→가장 안전), 스티비(애초에 이 용도로 설계된 전용 기능→KEEP), 포인트현금화(사람 행동을 흉내내야만 해서 전멸→PASS)까지 총 5번 반복 확인된 패턴이라 후보를 낼 때 "이 플랫폼이 자동화를 공식 지원하는가"를 1차 필터로 계속 쓰고 있습니다.
 
 **2026-08-09 새로 확인된 패턴 — "이미 만든 자산의 라인 확장"이 신규 발굴보다 저렴하다.** A1(Code Review Board)·A2(PromptDeck) 모두 완전히 새로 만들지 않고 기존 콘텐츠/코드를 다른 유통채널 포맷으로 옮기기만 해서 오늘 하루 만에 실제 발행까지 갔습니다. 이번에 발굴한 4라운드 후보 2건(GitHub Action·VS Code 확장)도 같은 논리로 골랐습니다 — 완전히 새로운 아이디어를 찾는 것보다, 검증된 콘텐츠를 아직 안 건드린 공식-API 지원 채널로 옮기는 쪽이 리스크도 낮고 속도도 빠릅니다. 다음 라운드부터 이 관점("우리가 이미 만든 것 중 다른 채널로 재활용 가능한 게 있는가")도 스카우팅 1차 필터에 추가하는 걸 제안합니다.
+
+## 🆕 신규 후보 — Notion 정비 중 재발견 (2026-08-13, 회장 확인 요청 건)
+
+노션 워크스페이스 이관 작업 중 "상품 허브" 하위에서 발견된, **AI Board of Directors와 같은 라인의 미완성 상품**입니다. 정연이 아직 이 존재를 몰랐을 가능성이 높아 여기 기록합니다.
+
+- **Investor Panel — 3 AI VCs Review Your Pitch Before Real Ones Do.** AI Board of Directors와 동일한 "독립검토" 메커니즘을 피치덱/투자 미팅 준비로 특화한 버전. 3인 페르소나(the Optimist·the Skeptic·the Domain Specialist)가 서로 안 보고 피치를 검토. **회장이 직접 내용을 확인한 결과, 페이지만 만들어진 게 아니라 Pitch Reviews DB·Prompt Sets·Start Here까지 실제로 설계가 끝난 상태**로 확인됐습니다(2026-08-13). AI Board of Directors처럼 Gumroad 등록·공개만 하면 바로 출시 가능해 보입니다 — 완성도 재확인 후 출시 여부 판단 요청.
+- 같은 상품 허브 아래 Code Review Board도 유사하게 Start Here·Prompt Sets·Review Log DB까지 설계돼 있음(이쪽은 A1 후보 GitHub Action 버전과 별개로, 원래 Notion 템플릿 상품 라인).
+- 나머지 18개(Marketing Copy Board 등)는 페이지 제목만 있고 본문은 비어있는 초기 상태로 보입니다 — 확인 필요.
+
+**다음 단계 제안**: 정연이 상품 허브 전체를 한 번 훑어서, Investor Panel처럼 이미 설계 끝난 게 더 있는지 확인하고 출시 우선순위를 매기는 걸 추천합니다.
