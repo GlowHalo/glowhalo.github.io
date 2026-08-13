@@ -69,14 +69,14 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `sendowl_login_email` / `sendowl_login_password` | SendOwl 계정(`tossneon0`, 표준 규칙) — 원래 Google 전용 가입이었으나 표준 비밀번호 로그인 확인 완료(2026-08-09). 대시보드 화면 진입 시 Cloudflare "사람 확인" 캡차가 뜰 수 있음(우회 안 함). **2026-08-12 회장 확인 — API 발급에 카드(결제수단) 등록이 필수라는 게 확인됨.** Etsy와 동일하게 지금은 활용 보류, 매출 늘면 그때 카드 등록하고 확장하는 채널로 관리(회장 지시) |
 | `itchio_login_email` / `itchio_login_password` | itch.io 자동화 전용 계정(`tossneon0`, 표준 규칙 준수) — 앱류(A2 PromptDeck)·템플릿류 공용 채널, 회장이 가입 완료(2026-08-09) |
 | `itchio_api_key` | itch.io API 키 — Butler CLI로 업로드·버전관리 자동화용 |
-| `upbit_access_key` / `upbit_secret_key` | 업비트 Open API (나다컴퍼니3 자산운용, **회장 실명 KYC 계좌** — 자동화 전용 계정 아님). 권한: 자산조회+주문조회+주문하기만, **출금 권한 없음**(보안 원칙). 등록 IP: 세션 출구 160.79.106.128~137. 키 유효 1년(2027-08 만료), 발급 2026-08-10. 인증 테스트 성공 확인. **`company1/README.md`의 "나다컴퍼니3 — 실거래 확인 게이트" 적용 대상** — 키가 있어도 바로 실거래 시작 금지 |
+| `upbit_access_key` / `upbit_secret_key` | 업비트 Open API (나다컴퍼니3 자산운용, **회장 실명 KYC 계좌** — 자동화 전용 계정 아님). 권한: 자산조회+주문조회+주문하기만, **출금 권한 없음**(보안 원칙). 등록 IP: 세션 출구 160.79.106.128~137. 키 유효 1년(2027-08 만료), 발급 2026-08-10. 인증 테스트 성공 확인. **`biz-exploration/README.md`의 "나다컴퍼니3 — 실거래 확인 게이트" 적용 대상** — 키가 있어도 바로 실거래 시작 금지 |
 | `lemonsqueezy_api_key` | Lemon Squeezy API 키(2026-08-09 대시보드에서 직접 발급) — 스토어가 아직 미활성화(신원인증 대기) 상태라 **테스트 모드 데이터에만 동작**, Activate Store 완료 후 라이브 키로 재발급 필요할 수 있음 |
 | `notion_login_email` / `notion_login_password` | 나다컴퍼니 전용 Notion 계정(`tossneon0`) — 나다컴퍼니 산출물 원본을 여기로 이관 중(2026-08-09). **비밀번호는 신버전**(아래 "표준 비밀번호 세대" 참고) |
 | `discord_login_email` / `discord_login_password` | 나다컴퍼니2(하윤) Discord 자동화 전용 계정(`tossneon0`, 표준 규칙) — C1(쿠팡파트너스 특가 알림) 채널 후보 중 디스코드 쪽 자체 처리용. **비밀번호는 최신값**(`standard_login_password`와 동일 세대, 2026-08-12 가입 시점부터 바로 적용됨 — "○○ 이전 완료" 아니라 처음부터 최신값으로 생성) |
-| `coupang_partners_login_email` / `coupang_partners_login_password` | 쿠팡파트너스 계정 — **회장 본인 명의 휴대폰 인증이 가입 필수**라 표준 자동화 계정으로 우회 불가(예외, `birkman_login_*`과 같은 성격). 가입 자체는 아직 회장 액션 대기 중([상세](../../company2/products/coupang-dealbot/README.md)) — 이 값은 그 전까지의 임시/개별 등록분이므로 실제 승인 완료 시 재확인 필요 |
+| `coupang_partners_login_email` / `coupang_partners_login_password` | 쿠팡파트너스 계정 — **회장 본인 명의 휴대폰 인증이 가입 필수**라 표준 자동화 계정으로 우회 불가(예외, `birkman_login_*`과 같은 성격). 가입 자체는 아직 회장 액션 대기 중([상세](../../coupang-partners/products/coupang-dealbot/README.md)) — 이 값은 그 전까지의 임시/개별 등록분이므로 실제 승인 완료 시 재확인 필요 |
 | `rapidapi_login_email` / `rapidapi_login_password` | RapidAPI Hub 계정(`tossneon0`, 표준 규칙) — 나다컴퍼니2 B1(Link Preview API) 리스팅용 |
 | `lemonsqueezy_login_email` / `lemonsqueezy_login_password` | Lemon Squeezy 대시보드 로그인 계정 — `lemonsqueezy_api_key`와 별도(API 키는 발급 완료, 대시보드 로그인은 브라우저 자동화용) |
-| `cloudflare_api_token` | Cloudflare API 토큰 — Workers 배포 권한 + **Browser Rendering:Edit** 포함(2026-08-10 신규 발급). 헤드리스 브라우저 자동화 메인 경로로 씀, 세션 환경변수 `CLOUDFLARE_API_TOKEN`과 별개로 여기도 등록해서 다른 세션(하윤 등)도 조회 가능하게 함. 사용법·검증된 코드 스니펫: [`company1/execution/헤드리스브라우저-프록시-이슈.md`](../../company1/execution/헤드리스브라우저-프록시-이슈.md) |
+| `cloudflare_api_token` | Cloudflare API 토큰 — Workers 배포 권한 + **Browser Rendering:Edit** 포함(2026-08-10 신규 발급). 헤드리스 브라우저 자동화 메인 경로로 씀, 세션 환경변수 `CLOUDFLARE_API_TOKEN`과 별개로 여기도 등록해서 다른 세션(하윤 등)도 조회 가능하게 함. 사용법·검증된 코드 스니펫: [`biz-exploration/execution/헤드리스브라우저-프록시-이슈.md`](../../biz-exploration/execution/헤드리스브라우저-프록시-이슈.md) |
 | `webshare_login_email` / `webshare_login_password` | 프록시 서비스(Webshare) 계정 — **2026-08-10 정정 완료**: 비표준 계정(`tossneon+webshare@gmail.com`)을 회장이 직접 탈퇴 처리하고 `tossneon0@gmail.com`(표준 규칙)으로 신규 가입, 비밀번호도 **신버전**(`notion_login_password`와 동일 세대) 적용 |
 | `etsy_login_email` / `etsy_login_password` | Etsy 셀러 계정(`tossneon0`, 2026-08-12 회장이 직접 가입) — **최초 상점 등록비 $19 발생**, 지금은 활용 안 함(제품군 매출이 확인되면 그때 확장 채널로 검토) |
 | `birkman_login_id` / `birkman_login_password` | 버크만코리아(birkmankorea.co.kr) 로그인 — **회장 개인 계정, 위 "자동화 전용 계정 표준"의 예외.** 2026-08-10 회장이 나다컴퍼니4(채원)에게만 직접 로그인 사용을 허가한 예외 자격증명. 다른 계열사·범용 자동화 목적으로 재사용 금지, `birkman-automation/` 용도로만 사용. 로그인 1회 + 마이페이지(`/mypage/assessment`) 진입 시 비밀번호 재확인 1회, 총 2회 필요(같은 비밀번호로 추정, 미검증) |
@@ -172,7 +172,7 @@ auto mode 분류기에 막히는 경우가 있었다(Gumroad API 호출 때도 �
 - 값을 조회하는 API 호출은 정말 필요할 때만 — 시행착오로 여러 엔드포인트를 반복 탐색하지 않는다
   (안전장치에 걸릴 수 있고, 애초에 API가 이 문서에 이미 다 적혀있다).
 - 이미 금고에 있는 이름의 값을 다시 채팅에 붙여넣게 하지 않는다.
-- **⚠️ 이 규칙은 이 파일(금고 표)에만 적용되는 게 아니라 저장소 전체에 적용된다 (2026-08-09 사고 기록).** 작업 로그·리서치 문서(예: `company1/execution/products/*.md`) 안에 진행상황을 기록하다가, API 키·비밀번호·**2FA/TOTP 시크릿(Setup key)**·세션 토큰 같은 실제 비밀값을 "확인했다"는 근거로 그대로 붙여넣는 실수가 실제로 있었다. 특히 2FA 설정 화면의 TOTP Setup key는 그 자체로 재사용 가능한 인증수단이라 API 키와 동급으로 취급해야 한다 — 이런 값을 발견하면 **문서에는 "확인함"이라고만 적고 값 자체는 남기지 않는다.** 실수로 커밋됐다면 즉시 삭제하고, 그 시크릿은 노출된 것으로 간주해 재사용하지 말고 재발급받는다.
+- **⚠️ 이 규칙은 이 파일(금고 표)에만 적용되는 게 아니라 저장소 전체에 적용된다 (2026-08-09 사고 기록).** 작업 로그·리서치 문서(예: `biz-exploration/execution/products/*.md`) 안에 진행상황을 기록하다가, API 키·비밀번호·**2FA/TOTP 시크릿(Setup key)**·세션 토큰 같은 실제 비밀값을 "확인했다"는 근거로 그대로 붙여넣는 실수가 실제로 있었다. 특히 2FA 설정 화면의 TOTP Setup key는 그 자체로 재사용 가능한 인증수단이라 API 키와 동급으로 취급해야 한다 — 이런 값을 발견하면 **문서에는 "확인함"이라고만 적고 값 자체는 남기지 않는다.** 실수로 커밋됐다면 즉시 삭제하고, 그 시크릿은 노출된 것으로 간주해 재사용하지 말고 재발급받는다.
 
 ## 지난 시도 — Cloudflare 계정 Secrets Store 직접 사용 (폐기됨)
 
