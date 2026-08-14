@@ -2,11 +2,11 @@
 
 나다그룹 산하 여덟 번째 관계사. 대표: **예슬** (2026-08-12 선임). **카카오톡 이모티콘 제작·심사·정산**을 전담한다.
 
-공유 원칙(회장 리소스 제약, 공개저장소 주의, 조직 확장은 사후 기록·사전 승인 불필요, 신규 역할은 실명 없이 역할명만, 신규 계정 가입은 회장 요청 기반 — 2026-08-12 CLAUDE.md 정정)은 루트 [`CLAUDE.md`](../CLAUDE.md)와 [`biz-exploration/README.md`](../biz-exploration/README.md)를 그대로 따른다. 이 문서는 나다컴퍼니8만의 차이점만 적는다.
+공유 원칙(회장 리소스 제약, 공개저장소 주의, 조직 확장은 사후 기록·사전 승인 불필요, 신규 역할은 실명 없이 역할명만, 신규 계정 가입은 회장 요청 기반 — 2026-08-12 CLAUDE.md 정정)은 루트 [`CLAUDE.md`](../CLAUDE.md)와 [`niche-templates/README.md`](../niche-templates/README.md)를 그대로 따른다. 이 문서는 나다컴퍼니8만의 차이점만 적는다.
 
 ## 계열사 신설 배경 — 나다컴퍼니1(A3)에서 분사
 
-나다컴퍼니1(정연)이 A1(템플릿)·A2(PromptDeck)·A3(카카오 이모티콘) 등을 병행하고 있었는데, 회장 지시(2026-08-12)로 **정연은 템플릿 라인(A1)에 집중**하고 **카카오 이모티콘은 신규 담당자 "예슬"에게 완전히 이관**한다. `biz-exploration/execution/A3-kakao-emoticon.md`, `biz-exploration/execution/products/kakao-emoticon-art/`, `biz-exploration/execution/products/kakao-mockups/`를 그대로 이동했다(git mv, 히스토리 보존).
+나다컴퍼니1(정연)이 A1(템플릿)·A2(PromptDeck)·A3(카카오 이모티콘) 등을 병행하고 있었는데, 회장 지시(2026-08-12)로 **정연은 템플릿 라인(A1)에 집중**하고 **카카오 이모티콘은 신규 담당자 "예슬"에게 완전히 이관**한다. `niche-templates/execution/A3-kakao-emoticon.md`, `niche-templates/execution/products/kakao-emoticon-art/`, `niche-templates/execution/products/kakao-mockups/`를 그대로 이동했다(git mv, 히스토리 보존).
 
 ## 진행 중인 상품
 

@@ -39,7 +39,7 @@ POST /v1/summarize
 ## 배포
 
 ```bash
-cd biz-review/product/brief-ai
+cd brief-ai/product/brief-ai
 CLOUDFLARE_API_TOKEN=<Workers Scripts:Edit 토큰> npx wrangler deploy
 ```
 

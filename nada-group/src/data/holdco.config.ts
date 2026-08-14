@@ -1,10 +1,10 @@
 // ============================================================
-//  지주사 콘솔 데이터 — biz-exploration/ 폴더의 실제 내용을 반영한다.
+//  지주사 콘솔 데이터 — niche-templates/ 폴더의 실제 내용을 반영한다.
 //  Notion(registry.js)이나 ai-office/status.js처럼, 회사에 의미 있는
 //  변화가 있을 때마다 이 파일을 갱신하는 스냅샷 패턴이다(실시간 연동 아님).
-//  정본은 항상 biz-exploration/candidates.md · biz-exploration/README.md.
+//  정본은 항상 niche-templates/candidates.md · niche-templates/README.md.
 //
-//  (2026-08-08) companyId "hq" → "biz-exploration"로 개명. 원래 "이 콘솔이 보여주는 유일한
+//  (2026-08-08) companyId "hq" → "niche-templates"로 개명. 원래 "이 콘솔이 보여주는 유일한
 //  회사"라는 뜻으로 "hq"를 썼는데, 진짜 지주사(홀딩) 항목("holdco")이 새로 생기면서
 //  이름이 겹쳐 헷갈리게 됐다. id는 내부 식별자라 바꿔도 화면엔 안 보인다.
 // ============================================================
@@ -29,7 +29,7 @@ export const COMPANIES: Company[] = [
     isHq: true,
   },
   {
-    id: "biz-exploration",
+    id: "niche-templates",
     name: "나다컴퍼니1",
     tagline: "정연 사장 · AI 임원진이 백지상태에서 새 사업을 탐색하는 나다그룹 첫 관계사(신사업)",
     mode: "op",
@@ -89,7 +89,7 @@ export const COMPANIES: Company[] = [
     mode: "op",
   },
   {
-    id: "biz-review",
+    id: "brief-ai",
     name: "나다컴퍼니11",
     tagline: "이든 대표 · 신사업 검토 — 20인 전문가 토론에서 최다 지지 받은 \"브리프AI\"(AI 회의록 자동정리·액션아이템 트래커 SaaS)로 창업",
     mode: "op",
@@ -121,11 +121,11 @@ export const ROOMS: Room[] = [
   { id: "holdco-room", name: "HQ 오피스", companyId: "holdco", kind: "ceo" },
   { id: "secretariat-room", name: "비서실", companyId: "holdco", kind: "team" },
 
-  { id: "ceo-room", name: "대표실", companyId: "biz-exploration", kind: "ceo" },
-  { id: "strategy-room", name: "전략팀", companyId: "biz-exploration", kind: "team" },
-  { id: "tech-room", name: "기술팀", companyId: "biz-exploration", kind: "team" },
-  { id: "growth-room", name: "그로스팀", companyId: "biz-exploration", kind: "team" },
-  { id: "meeting-room", name: "회의실", companyId: "biz-exploration", kind: "meeting" },
+  { id: "ceo-room", name: "대표실", companyId: "niche-templates", kind: "ceo" },
+  { id: "strategy-room", name: "전략팀", companyId: "niche-templates", kind: "team" },
+  { id: "tech-room", name: "기술팀", companyId: "niche-templates", kind: "team" },
+  { id: "growth-room", name: "그로스팀", companyId: "niche-templates", kind: "team" },
+  { id: "meeting-room", name: "회의실", companyId: "niche-templates", kind: "meeting" },
 
   { id: "c2-exec-room", name: "실행팀", companyId: "niche-api", kind: "team" },
 
@@ -145,7 +145,7 @@ export const ROOMS: Room[] = [
 
   { id: "c10-ceo-room", name: "대표실", companyId: "newsletter-automation", kind: "ceo" },
 
-  { id: "c11-panel-room", name: "토론실", companyId: "biz-review", kind: "meeting" },
+  { id: "c11-panel-room", name: "토론실", companyId: "brief-ai", kind: "meeting" },
 
   { id: "c12-ceo-room", name: "상담실", companyId: "biz-consulting", kind: "ceo" },
 ];
@@ -203,7 +203,7 @@ export const STAFF: Staff[] = [
     name: "정연",
     roleLabel: "CEO",
     rank: "ceo",
-    companyId: "biz-exploration",
+    companyId: "niche-templates",
     roomId: "ceo-room",
     task: "6시간 자율 생산 마무리 정리 중 — 회장 액션 목록 정리, 곧 종합 보고",
     inMeeting: true,
@@ -213,7 +213,7 @@ export const STAFF: Staff[] = [
     roleLabel: "전략팀장",
     subtitle: "CSO",
     rank: "lead",
-    companyId: "biz-exploration",
+    companyId: "niche-templates",
     roomId: "strategy-room",
     task: "A3 '일잘봇' 컨셉·32종 문구 확정 — 정식 아트워크는 회장 액션 필요",
     inMeeting: true,
@@ -223,7 +223,7 @@ export const STAFF: Staff[] = [
     roleLabel: "전략팀원",
     subtitle: "미배정",
     rank: "member",
-    companyId: "biz-exploration",
+    companyId: "niche-templates",
     roomId: "strategy-room",
     task: "신규 사업 후보 4라운드 스카우팅 대기",
   },
@@ -232,7 +232,7 @@ export const STAFF: Staff[] = [
     roleLabel: "기술팀장",
     subtitle: "CTO",
     rank: "lead",
-    companyId: "biz-exploration",
+    companyId: "niche-templates",
     roomId: "tech-room",
     task: "A2 PromptDeck 코드 완성 — 크롬 웹스토어 등록은 회장 결제 필요",
     inMeeting: true,
@@ -242,7 +242,7 @@ export const STAFF: Staff[] = [
     roleLabel: "기술팀원",
     subtitle: "미배정",
     rank: "member",
-    companyId: "biz-exploration",
+    companyId: "niche-templates",
     roomId: "tech-room",
     task: "채널 자동화 API 지원 여부 상시 점검",
   },
@@ -251,7 +251,7 @@ export const STAFF: Staff[] = [
     roleLabel: "그로스팀장",
     subtitle: "CMO",
     rank: "lead",
-    companyId: "biz-exploration",
+    companyId: "niche-templates",
     roomId: "growth-room",
     task: "A5 뉴스레터 컨셉·창간호 초안 완성 — 스티비 계정 생성 대기",
   },
@@ -279,7 +279,7 @@ export const STAFF: Staff[] = [
 
   // 나다컴퍼니3 — 자산운용 실험(2026-08-09 신설). 코인/주식 중 택일, 초기자본 30만원.
   // 조사·전략 수립은 자율 진행하되, 실제 매매 실행은 회장이 실거래 계좌를 열고
-  // 매매 권한 범위를 확정하기 전까지 보류(biz-exploration/README.md 참고).
+  // 매매 권한 범위를 확정하기 전까지 보류(niche-templates/README.md 참고).
   {
     id: "c3-ceo",
     name: "은성",
@@ -377,7 +377,7 @@ export const STAFF: Staff[] = [
     name: "이든",
     roleLabel: "CEO",
     rank: "ceo",
-    companyId: "biz-review",
+    companyId: "brief-ai",
     roomId: "c11-panel-room",
     task: "1호 사업 \"브리프AI\"(AI 회의록 자동정리·액션아이템 트래커 SaaS) 착수 준비 — 결제 계정 개설은 회장 확인 대기",
   },
@@ -406,7 +406,7 @@ export type BusinessLine = {
 export const BUSINESS_LINES: BusinessLine[] = [
   {
     id: "a1",
-    companyId: "biz-exploration",
+    companyId: "niche-templates",
     name: "A1 · AI 프롬프트팩/노션·시트 템플릿",
     channel: "Gumroad",
     status: "런칭 완료",
@@ -414,7 +414,7 @@ export const BUSINESS_LINES: BusinessLine[] = [
   },
   {
     id: "a2",
-    companyId: "biz-exploration",
+    companyId: "niche-templates",
     name: "A2 · AI 마이크로 SaaS(PromptDeck, 크롬 확장)",
     channel: "크롬 웹스토어",
     status: "코드 완성",
@@ -422,7 +422,7 @@ export const BUSINESS_LINES: BusinessLine[] = [
   },
   {
     id: "a3",
-    companyId: "biz-exploration",
+    companyId: "niche-templates",
     name: "A3 · 카카오톡 이모티콘 '일잘봇'",
     channel: "카카오 이모티콘 스튜디오",
     status: "컨셉 준비 완료",
@@ -430,7 +430,7 @@ export const BUSINESS_LINES: BusinessLine[] = [
   },
   {
     id: "a5",
-    companyId: "biz-exploration",
+    companyId: "niche-templates",
     name: "A5 · 니치 유료 뉴스레터",
     channel: "스티비",
     status: "콘텐츠 준비 완료",
@@ -453,14 +453,14 @@ export type ApprovalItem = {
   detail: string;
   /** true면 회장이 물리적으로만 할 수 있는 일(계정가입·본인인증·결제수단연결·API토큰발급 등).
    *  false/미지정이면 사장(AI)이 판단해서 처리 가능한 항목 — 그래도 기록 삼아 승인 대기에
-   *  올려두되, "회장 액션 필요" 배지는 안 붙는다. (biz-exploration/README.md 운영원칙 2 참고) */
+   *  올려두되, "회장 액션 필요" 배지는 안 붙는다. (niche-templates/README.md 운영원칙 2 참고) */
   needsChairman?: boolean;
 };
 
 export const INITIAL_APPROVALS: ApprovalItem[] = [
-  { id: "ap1", companyId: "biz-exploration", title: "A2 · 웹스토어 등록 결제", detail: "재현 · 회장 액션 필요", needsChairman: true },
-  { id: "ap2", companyId: "biz-exploration", title: "A1 · 2호 상품(Investor Panel) 공개", detail: "정연 · Notion 웹공개 토글만 하면 됨", needsChairman: false },
-  { id: "ap3", companyId: "biz-exploration", title: "A5 · 스티비 계정 생성", detail: "윤슬 · 발행 준비 끝, 계정만 필요", needsChairman: true },
+  { id: "ap1", companyId: "niche-templates", title: "A2 · 웹스토어 등록 결제", detail: "재현 · 회장 액션 필요", needsChairman: true },
+  { id: "ap2", companyId: "niche-templates", title: "A1 · 2호 상품(Investor Panel) 공개", detail: "정연 · Notion 웹공개 토글만 하면 됨", needsChairman: false },
+  { id: "ap3", companyId: "niche-templates", title: "A5 · 스티비 계정 생성", detail: "윤슬 · 발행 준비 끝, 계정만 필요", needsChairman: true },
 ];
 
 export type InstructionItem = {
@@ -471,8 +471,8 @@ export type InstructionItem = {
 };
 
 export const INITIAL_INSTRUCTIONS: InstructionItem[] = [
-  { id: "in1", companyId: "biz-exploration", text: "A3 아트워크 외주처 후보 3곳 비교해줘", status: "queued" },
-  { id: "in2", companyId: "biz-exploration", text: "A1 이번 주 판매 현황 요약해줘", status: "done" },
+  { id: "in1", companyId: "niche-templates", text: "A3 아트워크 외주처 후보 3곳 비교해줘", status: "queued" },
+  { id: "in2", companyId: "niche-templates", text: "A1 이번 주 판매 현황 요약해줘", status: "done" },
 ];
 
 /** 나다컴퍼니2처럼 "판단"보다 "반복 실행"이 본업인 관계사를 위한 로그 — 승인 대기 형식이 안 맞는다. */

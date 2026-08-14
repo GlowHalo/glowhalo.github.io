@@ -41,7 +41,7 @@ paths:
 
 - Claude 는 headed 브라우저를 띄우지 못한다 → 앱 내장 브라우저(`mcp__Claude_Browser__`)에 사용자가 로그인하고 Claude 가 조작한다.
 - `get_page_text` 는 되는데 `screenshot` 이 멈추면 `navigate` 로 리셋한다.
-- **2026-08-10 재확인 — 로컬 Playwright는 이 그룹 전체의 기존 이슈, birkman도 동일하게 막힘.** `birkman_login_*` 예외 승인 직후 직접 시도(`chromium.launch()`)했는데 `net::ERR_CONNECTION_RESET` — birkmankorea.co.kr뿐 아니라 example.com/google.com도 동일 실패. 이건 이미 그룹 차원에서 근본원인까지 규명·문서화된 기존 이슈였다: [`biz-exploration/execution/헤드리스브라우저-프록시-이슈.md`](../../biz-exploration/execution/헤드리스브라우저-프록시-이슈.md)(TLS ClientHello 지문 차단, 세션 프록시 구조적 제약 — 재시도 무의미) 참고. 로그인 폼 입력 전 단계에서 막혀서 자격증명 자체는 아직 한 번도 안 써봤다.
+- **2026-08-10 재확인 — 로컬 Playwright는 이 그룹 전체의 기존 이슈, birkman도 동일하게 막힘.** `birkman_login_*` 예외 승인 직후 직접 시도(`chromium.launch()`)했는데 `net::ERR_CONNECTION_RESET` — birkmankorea.co.kr뿐 아니라 example.com/google.com도 동일 실패. 이건 이미 그룹 차원에서 근본원인까지 규명·문서화된 기존 이슈였다: [`niche-templates/execution/헤드리스브라우저-프록시-이슈.md`](../../niche-templates/execution/헤드리스브라우저-프록시-이슈.md)(TLS ClientHello 지문 차단, 세션 프록시 구조적 제약 — 재시도 무의미) 참고. 로그인 폼 입력 전 단계에서 막혀서 자격증명 자체는 아직 한 번도 안 써봤다.
   - **✅ Browserbase 경유 로그인 성공 확인(2026-08-10, 재시도).** 1차 시도는 세션 5분 제한으로 결과 미확인, Cloudflare Browser Rendering 재시도는 다른 계열사 동시 사용으로 `429`. 30분 뒤 Browserbase로 다시 시도해 **로그인·2차 비밀번호 확인·`/mypage/assessment` 도달까지 전부 성공** — 위 "사이트 동작" 섹션의 검증된 셀렉터·우회법 참고. 이번 재검증은 매번 새 세션을 만들고 스크립트 하나로 끝까지 처리한 뒤 종료하는 방식으로 세션 수명 문제를 피했다.
   - 계정당 세션이 있는 한 브라우저 자동화가 필요하니, 반복 작업(주문 여러 건 처리 등)은 매번 로그인부터 새로 하기보다 한 세션 안에서 여러 단계를 이어서 처리하는 스크립트로 짜는 게 할당량 절약에 유리하다.
 
