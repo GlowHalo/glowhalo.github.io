@@ -2,7 +2,7 @@
 
 Chrome extension (Manifest V3) — save your favorite AI prompts and insert them into ChatGPT, Claude, Gemini, or any text box on the web with one click or a right-click.
 
-작업실 컴퍼니 A2 상품(카테고리: 마이크로 SaaS/Chrome 확장). 회사 의사결정 배경은 [`biz-exploration/execution/A2-promptdeck.md`](../biz-exploration/execution/A2-promptdeck.md) 참고.
+작업실 컴퍼니 A2 상품(카테고리: 마이크로 SaaS/Chrome 확장). 회사 의사결정 배경은 [`niche-templates/execution/A2-promptdeck.md`](../niche-templates/execution/A2-promptdeck.md) 참고.
 
 ## What it does
 

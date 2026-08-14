@@ -56,7 +56,7 @@
   - **보안사고 2건, 발견 즉시 조치**: (1) 배경 작업 하나가 카카오 로그인 화면 스크린샷 3장을 이 공개 저장소에 잘못 커밋 — 즉시 삭제, 실제 자격증명 노출은 없었음을 직접 확인. (2) Lemon Squeezy 온보딩 중 배경 작업이 2FA(TOTP) 시크릿을 평문으로 문서에 커밋 — 즉시 삭제, 해당 시크릿은 노출된 것으로 간주해 재사용 금지 처리. 둘 다 CLAUDE.md·vault 문서에 재발방지 규칙 추가.
   - **채널 확장 부분 진행**: SendOwl은 로그인 성공했으나 자동화 전용 계정(`tossneon0`)의 자체 이메일함을 이 세션 Gmail 연동이 못 읽어 매직링크 인증 단계 대기. Lemon Squeezy는 API 키 확보했으나 신원인증(Stripe Connect iframe이 Browserbase와 호환 문제) 단계 대기 — 회장 액션 필요.
   - **A3(카카오) 인프라 이슈 진단**: Browserbase 무료플랜이 미국 IP라 카카오 "비허용 국가" 차단이 반복됨 — 유료 지역 프록시($39/월)는 회장이 "지금은 구독 안 한다"고 결정, 무료 대안(Webshare 등)을 직접 테스트하다 Claude Code 안전장치에 막혀 중단, 회장에게 직접 확인 요청한 상태. (참고: 오늘 늦게 나다컴퍼니2가 별도로 **Cloudflare Browser Rendering**이라는 더 나은 무료 대안을 찾아 `hq/decisions/2026-08-10-헤드리스브라우저-대안-검토.md`에 회장 검토 요청을 올려둠 — 이게 확정되면 카카오 국가차단 자체는 아니어도 Browserbase 시간 부족 문제는 풀릴 전망.)
-  - **주간 사업기회 스카우팅**: `biz-exploration/candidates.md` 정기 갱신 — A1/A2/A3 상태 최신화, A5(뉴스레터)가 부당하게 밀려있었다는 우선순위 재정렬 관찰, 포인트현금화 리서치 결과(PASS) 반영, 신규 후보 2건(GitHub Marketplace Action·VS Code 확장 — 둘 다 기존 A1/A2 자산 재활용형) 추가.
+  - **주간 사업기회 스카우팅**: `niche-templates/candidates.md` 정기 갱신 — A1/A2/A3 상태 최신화, A5(뉴스레터)가 부당하게 밀려있었다는 우선순위 재정렬 관찰, 포인트현금화 리서치 결과(PASS) 반영, 신규 후보 2건(GitHub Marketplace Action·VS Code 확장 — 둘 다 기존 A1/A2 자산 재활용형) 추가.
   - **매출 여전히 0건**(3개 상품 전부) — 확인되는 즉시 최우선 보고 원칙 유지.
 - **2026-08-11 — 인프라 재검증 1건, 신규 라인 확장 상품 1건 착수·코드 완성, 회장 액션 요청 1건.**
   - **Lemon Squeezy 신원인증, Cloudflare Browser Rendering으로 재시도했으나 여전히 막힘(다른 양상).** Browserbase 때(iframe cross-origin navigation 에러)와 달리 이번엔 403 다수 + Sentry 에러로 실패. 서로 다른 두 원격 브라우저 벤더가 같은 단계에서 각기 다르게 막힌다는 건 벤더 버그가 아니라 **Stripe 자체의 데이터센터 IP 부정거래 탐지**일 가능성이 높다는 결론 — 회장이 본인 브라우저(자택 IP)로 직접 완료하는 게 유일한 신뢰 가능한 경로로 판단. 겸사겸사 확인한 결과 Cloudflare Browser Rendering의 아웃바운드 IP도 미국(일리노이)이라 A3(카카오) 지역차단에도 도움 안 됨. 상세: [08-AI패키지-유통채널-리서치.md](products/08-AI패키지-유통채널-리서치.md).
@@ -66,7 +66,7 @@
   - **매출 재확인 — 여전히 0건**(3개 상품 전부, `GET /v2/sales` 빈 배열). 확인되는 즉시 최우선 보고 원칙 유지.
   - **🎉 A3(카카오 이모티콘) 회장 직접 제출 완료 — 심사중.** 회장이 `tossneon0@gmail.com` 계정으로 직접 로그인해 32종 이미지·대표 이미지·아이콘 이미지(78×78, 사장이 실시간 제작해 전달)까지 전부 등록 후 제출. "제안이 정상 제출되었습니다", 상태 심사중, 제안일 2026-08-11 23:39 확인. 상세: [A3-kakao-emoticon.md](../../kakao-emoticon/execution/A3-kakao-emoticon.md).
 - **2026-08-12 — 회장 지시로 "완전자동 사이클 백로그 상시 진행" 원칙 확정, 첫 실행으로 A1/A2 결제 퍼널 감사·수정.**
-  - **회장 지시 반영**: "개입 없이 완성된 자동화 사이클은 상품기획→업로드를 쉬지 않고 진행, 품질개선·구매 퍼널 점검도 백로그로 자체 진행, 그 외는 기존처럼 대화." `biz-exploration/README.md` 운영원칙 7번에 확정 기록.
+  - **회장 지시 반영**: "개입 없이 완성된 자동화 사이클은 상품기획→업로드를 쉬지 않고 진행, 품질개선·구매 퍼널 점검도 백로그로 자체 진행, 그 외는 기존처럼 대화." `niche-templates/README.md` 운영원칙 7번에 확정 기록.
   - **퍼널 감사 실행**: Gumroad `GET /v2/products`로 4개 상품 전체(description/tags/covers/summary) 점검. `promptdeck-pro`가 전부 빈 값으로 몇 주째 라이브 상태였던 것 발견 — 즉시 name/description(다른 3개와 동일한 HTML 구조)/tags 8개/summary/receipt 채우고, 헤드리스 브라우저(Cloudflare Browser Rendering)로 커버 3장 신규 제작·등록.
   - **더 근본적인 문제 발견·해소**: Firefox Add-ons(재확인 결과 여전히 Mozilla 심사중)·itch.io(회장 액션 대기)·Chrome 웹스토어(미착수) 전부 막혀 있어, **PromptDeck 라이선스를 사도 설치할 곳이 없는 상태**였음. 스토어 승인을 기다리지 않고 `promptdeck/promptdeck-extension.zip`(사이드로드 zip + INSTALL.txt)을 GitHub Pages로 직접 배포(`https://tossneon.github.io/promptdeck/promptdeck-extension.zip`)해 결제→설치까지 지금 바로 완결되도록 조치. Cloudflare Browser Rendering으로 라이브 페이지 렌더링 검증 완료(제목/가격/커버 3장/FAQ/구매버튼 전부 정상).
   - **부가 발견**: `investor-panel`만 커버가 2장(다른 상품은 3장) — 치명적이진 않으나 다음 백로그 항목으로 기록.

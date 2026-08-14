@@ -85,7 +85,7 @@
 
 ## 2026-08-09 제출 시도 기록 — Browserbase로 로그인까지 성공, 본인확인에서 중단
 
-`biz-exploration/execution/헤드리스브라우저-프록시-이슈.md`의 "부록 3 — Browserbase 도입"에 따라, 이 세션의 프록시를 거치지 않는 클라우드 원격 브라우저(Browserbase)로 실제 제출을 시도했다.
+`niche-templates/execution/헤드리스브라우저-프록시-이슈.md`의 "부록 3 — Browserbase 도입"에 따라, 이 세션의 프록시를 거치지 않는 클라우드 원격 브라우저(Browserbase)로 실제 제출을 시도했다.
 
 **진행 방식**: 금고에서 `browserbase_api_key`/`kakao_login_email`/`kakao_login_password`를 조회(셸 변수로만 사용, 화면·로그에 노출 안 함) → Browserbase `POST /v1/sessions`로 원격 Chrome 세션 생성 → Playwright `chromium.connectOverCDP()`로 연결 → `emoticonstudio.kakao.com` 접속·로그인 시도.
 

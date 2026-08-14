@@ -37,7 +37,7 @@ export const HQ_SHARED_COSTS: HqSharedCost[] = [
 
 export type FinanceLedgerEntry = {
   id: string;
-  companyId: string; // "biz-exploration".."assessment-products"
+  companyId: string; // "niche-templates".."assessment-products"
   item: string;
   kind: FinanceKind;
   amountLabel: string;
@@ -49,9 +49,9 @@ export type FinanceLedgerEntry = {
 
 export const FINANCE_LEDGER: FinanceLedgerEntry[] = [
   // 나다컴퍼니1
-  { id: "c1-1", companyId: "biz-exploration", item: "Gumroad(AI Board/Investor Panel/Code Review Board) 판매", kind: "매출", amountLabel: "0원", amountKrw: 0, status: "확정", note: "GET /v2/sales 반복 확인, 아직 판매 없음" },
-  { id: "c1-2", companyId: "biz-exploration", item: "SendOwl(PromptDeck 등) 판매", kind: "매출", amountLabel: "0원", amountKrw: 0, status: "확정" },
-  { id: "c1-3", companyId: "biz-exploration", item: "A2(PromptDeck) Chrome 웹스토어 개발자 등록", kind: "경비", amountLabel: "$5(1회성)", amountKrw: 0, status: "승인대기", note: "회장 결제 필요" },
+  { id: "c1-1", companyId: "niche-templates", item: "Gumroad(AI Board/Investor Panel/Code Review Board) 판매", kind: "매출", amountLabel: "0원", amountKrw: 0, status: "확정", note: "GET /v2/sales 반복 확인, 아직 판매 없음" },
+  { id: "c1-2", companyId: "niche-templates", item: "SendOwl(PromptDeck 등) 판매", kind: "매출", amountLabel: "0원", amountKrw: 0, status: "확정" },
+  { id: "c1-3", companyId: "niche-templates", item: "A2(PromptDeck) Chrome 웹스토어 개발자 등록", kind: "경비", amountLabel: "$5(1회성)", amountKrw: 0, status: "승인대기", note: "회장 결제 필요" },
 
   // 나다컴퍼니2
   { id: "c2-1", companyId: "niche-api", item: "B1 Link Preview API 판매", kind: "매출", amountLabel: "0원", amountKrw: 0, status: "확정", note: "RapidAPI Hub 리스팅 진행 중" },

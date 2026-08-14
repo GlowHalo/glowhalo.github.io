@@ -168,7 +168,7 @@ function BusinessLinesPanel({ companyId }: { companyId: string }) {
   return (
     <div className="panel">
       <h3>
-        📊 사업 라인 현황 <small>biz-exploration/candidates.md 스냅샷</small>
+        📊 사업 라인 현황 <small>niche-templates/candidates.md 스냅샷</small>
       </h3>
       <div className="biz-table">
         {lines.map((b) => (

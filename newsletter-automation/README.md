@@ -2,11 +2,11 @@
 
 나다그룹 산하 열 번째 관계사. 대표: **은우** (2026-08-12 선임). **뉴스레터 자동화**를 전담한다. (신설 당시 회장이 Beehiiv를 지정했으나, 2026-08-12 폭넓은 플랫폼 비교 후 회장이 "유료 플랫폼은 지금 쓰고 싶지 않다"는 제약을 명시 — 아래 참고, 플랫폼은 재검토 중)
 
-공유 원칙(회장 리소스 제약, 공개저장소 주의, 조직 확장은 사후 기록·사전 승인 불필요, 신규 역할은 실명 없이 역할명만, 신규 계정 가입은 회장 요청 기반 — 2026-08-12 CLAUDE.md 정정)은 루트 [`CLAUDE.md`](../CLAUDE.md)와 [`biz-exploration/README.md`](../biz-exploration/README.md)를 그대로 따른다. 이 문서는 나다컴퍼니10만의 차이점만 적는다.
+공유 원칙(회장 리소스 제약, 공개저장소 주의, 조직 확장은 사후 기록·사전 승인 불필요, 신규 역할은 실명 없이 역할명만, 신규 계정 가입은 회장 요청 기반 — 2026-08-12 CLAUDE.md 정정)은 루트 [`CLAUDE.md`](../CLAUDE.md)와 [`niche-templates/README.md`](../niche-templates/README.md)를 그대로 따른다. 이 문서는 나다컴퍼니10만의 차이점만 적는다.
 
 ## 나다컴퍼니1 A5 · 나다컴퍼니9 E2와의 관계 — 흡수는 확정, 플랫폼은 검토 중
 
-나다컴퍼니1(정연)의 A5(니치 유료 뉴스레터, 컨셉명 "The Independent Board")가 **이미 콘텐츠·가격·창간호 초안까지 완성돼 있고**, 결제 수단으로 **스티비(Stibee)**를 쓰기로 검증까지 끝난 상태였다([biz-exploration/candidates.md](../biz-exploration/candidates.md) A5 항목, [biz-exploration/execution/A5-newsletter.md](../biz-exploration/execution/A5-newsletter.md)). 나다컴퍼니9(다연)의 Round 1 서칭에서도 독립적으로 "E2 니치 AI 뉴스레터"가 Tier A 확정됐다([biz-scouting/candidates.md](../biz-scouting/candidates.md) E2).
+나다컴퍼니1(정연)의 A5(니치 유료 뉴스레터, 컨셉명 "The Independent Board")가 **이미 콘텐츠·가격·창간호 초안까지 완성돼 있고**, 결제 수단으로 **스티비(Stibee)**를 쓰기로 검증까지 끝난 상태였다([niche-templates/candidates.md](../niche-templates/candidates.md) A5 항목, [niche-templates/execution/A5-newsletter.md](../niche-templates/execution/A5-newsletter.md)). 나다컴퍼니9(다연)의 Round 1 서칭에서도 독립적으로 "E2 니치 AI 뉴스레터"가 Tier A 확정됐다([biz-scouting/candidates.md](../biz-scouting/candidates.md) E2).
 
 **2026-08-12 회장 1차 지시로 방향 확정**: "정연이 검토했던 뉴스레터는 멈춘 상태고 은우가 흡수하는 게 좋겠다" → **A5를 나다컴퍼니10이 승계하는 것으로 확정.** 다만 "유료 플랫폼을 지금은 쓰고 싶지 않다"며 플랫폼(스티비 유지 vs Beehiiv 등)은 폭넓게 점검 후 다시 논의하기로 함 — 은우가 스티비·Beehiiv·Substack·Ghost·Kit·Buttondown·MailerLite 7곳을 조사해 [`candidates.md`](candidates.md#뉴스레터-발행-플랫폼-폭넓은-비교-2026-08-12-회장-지시--최대한-많이-점검)에 비교표로 정리. **결론: "지금 당장 무료로 유료구독까지 가능한" 곳은 스티비·Substack·Ghost(셀프호스팅) 셋뿐이고, 이 중 API 자동화·콘텐츠 재사용까지 갖춘 건 스티비뿐 — 회장의 "현재안(스티비)"이 가장 타당.** 최종 확정은 회장 판단 대기.
 
@@ -29,4 +29,4 @@ Beehiiv·스티비 포함 7개 플랫폼의 이용료/유료구독 조건/API/�
 - [x] Beehiiv 공식 문서로 자동화 범위 확인 — [`candidates.md`](candidates.md) 참고
 - [x] A5(스티비 뉴스레터)·E2(나다컴퍼니9)와의 관계 정리 — **흡수 확정**(회장 지시), 플랫폼만 검토 중
 - [x] 뉴스레터 발행 플랫폼 7곳 폭넓은 비교(스티비/Beehiiv/Substack/Ghost/Kit/Buttondown/MailerLite) — [`candidates.md`](candidates.md) 참고
-- [ ] 회장이 플랫폼 최종 확정하면: 신규 계정 가입 요청(회장 요청 기반) — 스티비로 확정 시 [A5 실행문서](../biz-exploration/execution/A5-newsletter.md)의 "회장 액션 필요" 단계(계정 생성 → 유료구독 활성화)를 그대로 이어받아 진행
+- [ ] 회장이 플랫폼 최종 확정하면: 신규 계정 가입 요청(회장 요청 기반) — 스티비로 확정 시 [A5 실행문서](../niche-templates/execution/A5-newsletter.md)의 "회장 액션 필요" 단계(계정 생성 → 유료구독 활성화)를 그대로 이어받아 진행
