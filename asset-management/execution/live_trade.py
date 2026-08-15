@@ -35,6 +35,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 LIVE_DIR = os.path.join(BASE, "live")
 LIVE_LOG = os.path.join(LIVE_DIR, "log.jsonl")
 STATE_PATH = os.environ.get("LIVE_STATE_PATH", os.path.join(LIVE_DIR, "state.json"))
+VAULT_STATE_KEY = "company3_live_state"   # 금고에 두는 상태 정본(커밋 유실 대비)
 
 MARKETS = ["KRW-BTC", "KRW-ETH", "KRW-XRP", "KRW-DOGE", "KRW-SOL"]
 K = 0.5
@@ -65,6 +66,15 @@ def vault_get(name: str) -> str:
          "-H", f"Authorization: Bearer {os.environ['VAULT_TOKEN']}"],
         capture_output=True, text=True, timeout=15).stdout
     return json.loads(out)["value"]
+
+
+def vault_put(name: str, value: str) -> None:
+    subprocess.run(
+        ["curl", "-s", "-X", "PUT", f"{os.environ['VAULT_URL']}/secrets/{name}",
+         "-H", f"Authorization: Bearer {os.environ['VAULT_TOKEN']}",
+         "-H", "Content-Type: application/json",
+         "-d", json.dumps({"value": value})],
+        capture_output=True, text=True, timeout=15, check=True)
 
 
 def _b64url(b: bytes) -> bytes:
@@ -159,6 +169,17 @@ def v2_signal(market: str) -> dict:
 
 
 def load_state() -> dict:
+    """금고를 정본으로 삼고 로컬 파일은 폴백.
+
+    루틴 세션은 저장소에 push할 권한이 없어(2026-08-15 확인) 커밋으로는 상태가
+    보존되지 않는다. 금고는 모든 세션이 접근 가능하므로 여기를 정본으로 쓴다.
+    """
+    try:
+        raw = vault_get(VAULT_STATE_KEY)
+        if raw:
+            return json.loads(raw)
+    except Exception as e:
+        print(f"  (금고 상태 조회 실패 — 로컬 파일로 폴백: {type(e).__name__})")
     if os.path.exists(STATE_PATH):
         with open(STATE_PATH, encoding="utf-8") as f:
             return json.load(f)
@@ -169,6 +190,12 @@ def save_state(state: dict):
     os.makedirs(LIVE_DIR, exist_ok=True)
     with open(STATE_PATH, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=2)
+    try:
+        vault_put(VAULT_STATE_KEY, json.dumps(state, ensure_ascii=False))
+    except Exception as e:
+        # 금고 저장 실패는 치명적이다 — 커밋도 막히면 상태가 통째로 사라진다.
+        print(f"⚠ 금고 상태 저장 실패({type(e).__name__}) — 이 실행의 포지션 기록이 "
+              f"유실될 수 있음. 다음 실행은 거래소 잔고에서 포지션을 복원한다.")
 
 
 def log_event(event: dict):
