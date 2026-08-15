@@ -67,12 +67,10 @@ A2(PromptDeck)·A1(Code Review Board)에서 이미 만든 자산을 그대로 �
 
 **2026-08-09 새로 확인된 패턴 — "이미 만든 자산의 라인 확장"이 신규 발굴보다 저렴하다.** A1(Code Review Board)·A2(PromptDeck) 모두 완전히 새로 만들지 않고 기존 콘텐츠/코드를 다른 유통채널 포맷으로 옮기기만 해서 오늘 하루 만에 실제 발행까지 갔습니다. 이번에 발굴한 4라운드 후보 2건(GitHub Action·VS Code 확장)도 같은 논리로 골랐습니다 — 완전히 새로운 아이디어를 찾는 것보다, 검증된 콘텐츠를 아직 안 건드린 공식-API 지원 채널로 옮기는 쪽이 리스크도 낮고 속도도 빠릅니다. 다음 라운드부터 이 관점("우리가 이미 만든 것 중 다른 채널로 재활용 가능한 게 있는가")도 스카우팅 1차 필터에 추가하는 걸 제안합니다.
 
-## 🆕 신규 후보 — Notion 정비 중 재발견 (2026-08-13, 회장 확인 요청 건)
+## ✏️ 정정 — "Notion 정비 중 재발견" 건은 신규 기회가 아니었음 (2026-08-15)
 
-노션 워크스페이스 이관 작업 중 "상품 허브" 하위에서 발견된, **AI Board of Directors와 같은 라인의 미완성 상품**입니다. 정연이 아직 이 존재를 몰랐을 가능성이 높아 여기 기록합니다.
+2026-08-13에 이 자리에 있던 "Investor Panel 재발견" 기록은 **오독이었다.** Investor Panel은 이미 2026-08-07부터 라이브 상품(`https://nadacompany.gumroad.com/l/investor-panel`)이고, 그날 "발견"한 건 그 상품을 실제로 만들지 않은 **다른 Notion 워크스페이스**에 있던 같은 콘텐츠의 중복 사본이었다 — README의 "과거 결론을 재검증 없이 전달하지 않는다" 원칙과 정확히 반대 방향의 실수(이번엔 "새 기회"라고 재검증 없이 전달)라 여기 정정해 남긴다. 상세: [products/05-investor-panel.md의 "Notion 워크스페이스 이원화 발견"](execution/products/05-investor-panel.md#notion-워크스페이스-이원화-발견-2026-08-15-회장-확인-필요).
 
-- **Investor Panel — 3 AI VCs Review Your Pitch Before Real Ones Do.** AI Board of Directors와 동일한 "독립검토" 메커니즘을 피치덱/투자 미팅 준비로 특화한 버전. 3인 페르소나(the Optimist·the Skeptic·the Domain Specialist)가 서로 안 보고 피치를 검토. **회장이 직접 내용을 확인한 결과, 페이지만 만들어진 게 아니라 Pitch Reviews DB·Prompt Sets·Start Here까지 실제로 설계가 끝난 상태**로 확인됐습니다(2026-08-13). AI Board of Directors처럼 Gumroad 등록·공개만 하면 바로 출시 가능해 보입니다 — 완성도 재확인 후 출시 여부 판단 요청.
-- 같은 상품 허브 아래 Code Review Board도 유사하게 Start Here·Prompt Sets·Review Log DB까지 설계돼 있음(이쪽은 A1 후보 GitHub Action 버전과 별개로, 원래 Notion 템플릿 상품 라인).
-- 나머지 18개(Marketing Copy Board 등)는 페이지 제목만 있고 본문은 비어있는 초기 상태로 보입니다 — 확인 필요.
+**회장 확인 필요 1가지**: 이 세션(Notion MCP)이 물려 있는 워크스페이스("나다컴퍼니 > 신사업 탐색 > 🏪 상품 허브")는 회장 개인 계정으로 추정되고, 실제 판매 중인 21개 상품은 전부 자동화 전용 계정(`tossneon0`, `fearless-frog-802.notion.site`)에서 만들어졌다 — 즉 같은 템플릿 20종의 완성된 사본이 두 워크스페이스에 중복으로 존재한다. 개인 계정 쪽 사본을 정리(보관 또는 삭제)할지, 아니면 그대로 둘지 회장 판단 요청. (참고: 그 허브 페이지 자체의 안내 문구 "AI Board of Directors만 판매중, 나머지는 초기상태"도 낡은 상태라 실제와 다름 — 정리 방향이 정해지면 문구도 같이 바로잡을 것.)
 
-**다음 단계 제안**: 정연이 상품 허브 전체를 한 번 훑어서, Investor Panel처럼 이미 설계 끝난 게 더 있는지 확인하고 출시 우선순위를 매기는 걸 추천합니다.
+같은 발견 과정에서 **investor-panel의 커버가 2장뿐이었던 것**(2026-08-12부터 알려진 결함)은 이번에 3장으로 정비 완료 — 회장 확인 불필요한 순수 정비 작업이라 승인 없이 바로 처리함.
