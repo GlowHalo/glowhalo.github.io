@@ -387,6 +387,58 @@
   border-color: var(--teal);
 }
 
+/* 자리↔회의실 복도 — 장식용 연출. 실제 회의 여부(inMeeting)와 무관하게 몇 초마다
+   한 명씩 조용히 지나간다("사무실이 멈춰있지 않다"는 느낌만 주는 용도). */
+.corridor {
+  grid-column: 1 / -1;
+  position: relative;
+  height: 30px;
+  border-top: 1px dashed var(--line);
+  border-bottom: 1px dashed var(--line);
+  background: var(--surface2);
+  overflow: hidden;
+}
+.corridor .walker {
+  position: absolute;
+  bottom: 1px;
+  animation: walk-across 4.5s linear forwards;
+}
+.corridor .walker.reverse {
+  animation-name: walk-across-reverse;
+}
+@keyframes walk-across {
+  0% {
+    left: -26px;
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.85;
+  }
+  92% {
+    opacity: 0.85;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+@keyframes walk-across-reverse {
+  0% {
+    left: 100%;
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.85;
+  }
+  92% {
+    opacity: 0.85;
+  }
+  100% {
+    left: -26px;
+    opacity: 0;
+  }
+}
+
 /* 회의 구역 — 바닥 전체 폭, 타원 테이블을 사이에 두고 두 줄(안쪽/바깥쪽)이
    마주보게 배치한다. 마주보는 줄은 좌우 반전해서 서로를 보는 것처럼. */
 .meeting-zone {
