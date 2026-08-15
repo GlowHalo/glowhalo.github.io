@@ -289,8 +289,11 @@
 
 .zone-desks {
   display: flex;
-  gap: 18px;
+  gap: 22px;
   flex-wrap: wrap;
+  /* people-layer의 사람(이름표+캐릭터)이 이 책상 위에 절대좌표로 얹히는데,
+     그 높이만큼 위쪽 여유가 없으면 zone-label과 겹친다 — 넉넉히 띄운다. */
+  margin-top: 46px;
 }
 .desk {
   display: flex;
@@ -320,32 +323,20 @@
   background: var(--teal);
   opacity: 0.35;
 }
-/* 회의 참석 중이라 자리를 비운 사람 — 점선 빈 책상 + "회의중" 표시만 남기고
-   사람은 그리지 않는다(회의실 쪽에만 실제로 존재하게). */
-.desk.ghost {
-  opacity: 0.55;
-}
-.desk.ghost .surface2 {
-  border-style: dashed;
-}
-.desk.ghost .surface2::before {
-  opacity: 0;
-}
-.ghost-slot {
+/* 책상/좌석 "가구" — 사람이 지금 거기 없어도(자리를 비우고 이동 중이어도)
+   항상 보이는 빈 자리 표시. 실제 캐릭터는 people-layer가 절대좌표로 위에
+   얹는다(아래 참고) — 그래서 한 사람이 두 곳에 동시에 보이는 일이 없다. */
+.desk-anchor,
+.seat-anchor {
   width: 34px;
   height: 41px;
   border: 1px dashed var(--line);
   border-radius: 6px;
+  background: rgba(255, 255, 255, 0.35);
 }
-.ghost-tag {
-  font-size: 9.5px;
-  font-weight: 700;
-  color: var(--coral);
-  border: 1px dashed var(--coral);
-  background: rgba(194, 63, 48, 0.06);
-  border-radius: 999px;
-  padding: 2px 8px;
-  white-space: nowrap;
+.seat-anchor {
+  width: 30px;
+  height: 36px;
 }
 
 .person {
@@ -387,56 +378,22 @@
   border-color: var(--teal);
 }
 
-/* 자리↔회의실 복도 — 장식용 연출. 실제 회의 여부(inMeeting)와 무관하게 몇 초마다
-   한 명씩 조용히 지나간다("사무실이 멈춰있지 않다"는 느낌만 주는 용도). */
-.corridor {
-  grid-column: 1 / -1;
-  position: relative;
-  height: 30px;
-  border-top: 1px dashed var(--line);
-  border-bottom: 1px dashed var(--line);
-  background: var(--surface2);
-  overflow: hidden;
-}
-.corridor .walker {
+/* 사람 레이어 — 가구(zone/meeting-zone) 위에 통째로 덮어서, 절대좌표로 각자의
+   현재 목표 지점(자기 책상 또는 배정된 회의 좌석)에 캐릭터를 얹는다. 목표가
+   바뀔 때(자리→회의실, 회의실→자리) transform만 바뀌므로 브라우저가 그 사이를
+   자동으로 부드럽게 보간해서 "걸어가는" 것처럼 보인다 — 실제 좌표 이동이라
+   순간이동하는 로딩바 느낌이 아니다. */
+.people-layer {
   position: absolute;
-  bottom: 1px;
-  animation: walk-across 4.5s linear forwards;
+  inset: 0;
+  pointer-events: none;
 }
-.corridor .walker.reverse {
-  animation-name: walk-across-reverse;
-}
-@keyframes walk-across {
-  0% {
-    left: -26px;
-    opacity: 0;
-  }
-  8% {
-    opacity: 0.85;
-  }
-  92% {
-    opacity: 0.85;
-  }
-  100% {
-    left: 100%;
-    opacity: 0;
-  }
-}
-@keyframes walk-across-reverse {
-  0% {
-    left: 100%;
-    opacity: 0;
-  }
-  8% {
-    opacity: 0.85;
-  }
-  92% {
-    opacity: 0.85;
-  }
-  100% {
-    left: -26px;
-    opacity: 0;
-  }
+.roam-person {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition: transform 2.6s cubic-bezier(0.45, 0.05, 0.25, 1);
+  will-change: transform;
 }
 
 /* 회의 구역 — 바닥 전체 폭, 타원 테이블을 사이에 두고 두 줄(안쪽/바깥쪽)이
@@ -459,7 +416,9 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  margin-top: 18px;
+  /* zone-desks와 동일한 이유로 넉넉히 띄운다 — far row에 앉은 사람의
+     이름표가 위쪽 zone-label과 안 겹치게. */
+  margin-top: 46px;
 }
 .table-row {
   display: flex;
@@ -471,6 +430,10 @@
   transform: scale(0.92);
   opacity: 0.92;
   margin-bottom: -4px;
+}
+.table-row.near {
+  /* near row 사람의 이름표(위로 자람)가 far row·테이블과 안 겹치게 충분히 띄운다. */
+  margin-top: 68px;
 }
 .oval-table {
   position: relative;
@@ -499,12 +462,6 @@
   text-overflow: ellipsis;
   animation: pulse-badge 2.4s ease-in-out infinite;
   z-index: 2;
-}
-.seat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
 }
 .speak-dot {
   width: 7px;
