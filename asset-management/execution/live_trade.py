@@ -192,6 +192,32 @@ def main():
 
     up = Upbit()
     state = load_state()
+
+    # ---- 1회성 매수/매도 경로 검증 (회장 질문 대응, 2026-08-14) ----
+    # verify_requested 플래그가 있으면 최소금액(5,500원) BTC 왕복 주문으로
+    # 실제 주문 경로를 검증하고 플래그를 삭제한다. --live에서만 동작.
+    verify_flag = os.path.join(LIVE_DIR, "verify_requested")
+    if args.live and os.path.exists(verify_flag):
+        os.remove(verify_flag)
+        r1 = up.buy_market("KRW-BTC", 5500)
+        print(f"[LIVE] 검증 매수: BTC 시장가 5,500원 — uuid {r1.get('uuid')}")
+        import time as _t
+        vol = 0.0
+        for _ in range(10):
+            _t.sleep(1)
+            vol = next((float(a["balance"]) for a in up.accounts() if a["currency"] == "BTC"), 0.0)
+            if vol > 0:
+                break
+        if vol > 0:
+            r2 = up.sell_market("KRW-BTC", vol)
+            print(f"[LIVE] 검증 매도: BTC {vol:.8f}개 전량 — uuid {r2.get('uuid')}")
+            log_event({"mode": "LIVE", "action": "verify_roundtrip_ok",
+                       "buy_uuid": r1.get("uuid"), "sell_uuid": r2.get("uuid"), "volume": vol})
+            print("[LIVE] ✅ 매수/매도 경로 검증 성공")
+        else:
+            log_event({"mode": "LIVE", "action": "verify_buy_unfilled", "buy_uuid": r1.get("uuid")})
+            print("[LIVE] ⚠ 검증 매수 미체결 — 수동 확인 필요")
+
     accounts = {a["currency"]: float(a["balance"]) for a in up.accounts()}
     krw = accounts.get("KRW", 0.0)
 
