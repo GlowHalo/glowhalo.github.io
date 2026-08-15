@@ -182,6 +182,46 @@ def realized_sum(state: dict, keys: list[str]) -> float:
     return sum(state["realized"].get(k, 0.0) for k in keys)
 
 
+def verify_already_done() -> bool:
+    """log.jsonl에 왕복 검증 성공 기록이 있는지."""
+    if not os.path.exists(LIVE_LOG):
+        return False
+    with open(LIVE_LOG, encoding="utf-8") as f:
+        return any('"verify_roundtrip_ok"' in line for line in f)
+
+
+def recover_orphan_positions(state: dict, accounts_raw: dict, today: str, live: bool) -> None:
+    """거래소 잔고에는 있는데 state에 기록이 없는 포지션을 복원한다.
+
+    루틴 세션이 매수 후 state.json 커밋에 실패하면(2026-08-15 실제 발생) 다음
+    실행이 포지션을 인식하지 못해 손절·청산이 통째로 작동하지 않는다. 거래소
+    잔고가 진실의 원천이므로, 업비트가 주는 avg_buy_price로 진입가를 복원해
+    리스크 헌법(§4)의 손절을 되살린다. 진입일은 알 수 없어 오늘로 잡으므로
+    보유 1일 청산이 최대 하루 늦어질 수 있다 — 손절은 정상 작동한다.
+    MARKETS 밖의 코인(PICA 등 회장 기존 보유분)은 대상이 아니다.
+    """
+    for market in MARKETS:
+        if market in state["positions"]:
+            continue
+        cur = market.split("-")[1]
+        acc = accounts_raw.get(cur)
+        if not acc:
+            continue
+        vol = float(acc["balance"])
+        avg_buy = float(acc.get("avg_buy_price") or 0)
+        if vol <= 0 or avg_buy <= 0:
+            continue
+        price = public("ticker", {"markets": market})[0]["trade_price"]
+        if vol * price < MIN_ORDER_KRW:
+            continue  # 먼지 잔고는 무시
+        state["positions"][market] = {"entry_price": avg_buy, "entry_date": today,
+                                      "krw": round(vol * avg_buy)}
+        print(f"⚠ {market}: 기록 없는 보유분 발견 — 거래소 평단 {avg_buy:,.0f}원으로 포지션 복원 "
+              f"({vol:.8f}개 ≈{vol*price:,.0f}원)")
+        log_event({"mode": "LIVE" if live else "DRY-RUN", "action": "orphan_recovered",
+                   "market": market, "volume": vol, "avg_buy_price": avg_buy})
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--live", action="store_true")
@@ -196,8 +236,12 @@ def main():
     # ---- 1회성 매수/매도 경로 검증 (회장 질문 대응, 2026-08-14) ----
     # verify_requested 플래그가 있으면 최소금액(5,500원) BTC 왕복 주문으로
     # 실제 주문 경로를 검증하고 플래그를 삭제한다. --live에서만 동작.
+    # 플래그 삭제가 커밋되지 못하면 매 실행마다 재검증되므로(2026-08-15 실제 발생),
+    # 로그에 성공 기록이 있으면 플래그가 남아있어도 건너뛴다.
     verify_flag = os.path.join(LIVE_DIR, "verify_requested")
-    if args.live and os.path.exists(verify_flag):
+    if args.live and os.path.exists(verify_flag) and verify_already_done():
+        print("[LIVE] 경로 검증은 이미 완료됨(로그 기록 확인) — 재검증 건너뜀")
+    elif args.live and os.path.exists(verify_flag):
         os.remove(verify_flag)
         r1 = up.buy_market("KRW-BTC", 5500)
         print(f"[LIVE] 검증 매수: BTC 시장가 5,500원 — uuid {r1.get('uuid')}")
@@ -218,8 +262,12 @@ def main():
             log_event({"mode": "LIVE", "action": "verify_buy_unfilled", "buy_uuid": r1.get("uuid")})
             print("[LIVE] ⚠ 검증 매수 미체결 — 수동 확인 필요")
 
-    accounts = {a["currency"]: float(a["balance"]) for a in up.accounts()}
+    accounts_raw = {a["currency"]: a for a in up.accounts()}
+    accounts = {c: float(a["balance"]) for c, a in accounts_raw.items()}
     krw = accounts.get("KRW", 0.0)
+
+    # ---- 기록 유실 대비: 거래소 잔고 기준으로 포지션 복원 ----
+    recover_orphan_positions(state, accounts_raw, today, args.live)
 
     # ---- 총자산 평가 + 서킷브레이커 ----
     total = krw
