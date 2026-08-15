@@ -70,6 +70,7 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `sendowl_login_email` / `sendowl_login_password` | SendOwl 계정(`tossneon0`, 표준 규칙) — 원래 Google 전용 가입이었으나 표준 비밀번호 로그인 확인 완료(2026-08-09). 대시보드 화면 진입 시 Cloudflare "사람 확인" 캡차가 뜰 수 있음(우회 안 함). **2026-08-12 회장 확인 — API 발급에 카드(결제수단) 등록이 필수라는 게 확인됨.** Etsy와 동일하게 지금은 활용 보류, 매출 늘면 그때 카드 등록하고 확장하는 채널로 관리(회장 지시) |
 | `itchio_login_email` / `itchio_login_password` | itch.io 자동화 전용 계정(`tossneon0`, 표준 규칙 준수) — 앱류(A2 PromptDeck)·템플릿류 공용 채널, 회장이 가입 완료(2026-08-09) |
 | `itchio_api_key` | itch.io API 키 — Butler CLI로 업로드·버전관리 자동화용 |
+| `company3_live_state` | **비밀값이 아니라 운영 상태다**(예외 항목) — 나다컴퍼니3 실거래 포지션·실현손익·halt 상태 JSON. 루틴 세션이 저장소 push 권한이 없어(2026-08-15 확인) 커밋으로는 상태가 보존되지 않는데, 이 상태가 유실되면 일/주 손실한도와 당일 재진입 금지가 작동하지 않는다. 모든 세션이 접근 가능한 금고를 정본으로 삼았다. `execution/live_trade.py`가 자동으로 읽고 쓰며 사람이 손댈 일은 없다 |
 | `upbit_access_key` / `upbit_secret_key` | 업비트 Open API (나다컴퍼니3 자산운용, **회장 실명 KYC 계좌** — 자동화 전용 계정 아님). 권한: 자산조회+주문조회+주문하기만, **출금 권한 없음**(보안 원칙). 등록 IP: 세션 출구 160.79.106.128~137. 키 유효 1년(2027-08 만료), 발급 2026-08-10. 인증 테스트 성공 확인. **`niche-templates/README.md`의 "나다컴퍼니3 — 실거래 확인 게이트" 적용 대상** — 키가 있어도 바로 실거래 시작 금지 |
 | `lemonsqueezy_api_key` | Lemon Squeezy API 키(2026-08-09 대시보드에서 직접 발급) — 스토어가 아직 미활성화(신원인증 대기) 상태라 **테스트 모드 데이터에만 동작**, Activate Store 완료 후 라이브 키로 재발급 필요할 수 있음 |
 | `notion_login_email` / `notion_login_password` | 나다컴퍼니 전용 Notion 계정(`tossneon0`) — 나다컴퍼니 산출물 원본을 여기로 이관 중(2026-08-09). **비밀번호는 신버전**(아래 "표준 비밀번호 세대" 참고) |
@@ -112,6 +113,7 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 - 사이트를 신버전으로 개별 이전했으면 그 계정의 `*_login_password` 값 자체를 갱신하고 이 문단에
   "○○ 이전 완료" 한 줄을 추가해 진행 상황을 추적한다.
   - **Webshare 이전 완료(2026-08-10)** — 비표준 계정 탈퇴 후 `tossneon0@gmail.com` + 신버전으로 재가입.
+  - **Kakao 이전 완료(2026-08-15, 예슬)** — 로그인 실패로 시도해본 결과 계정 비밀번호가 이미 `standard_login_password`(최신값)로 바뀌어 있었음을 확인, `kakao_login_password` 값을 그 값으로 갱신함. 상세: `kakao-emoticon/execution/A3-kakao-emoticon.md`의 "완전자동 로그인 실제 성공" 섹션.
   - **Discord는 처음부터 최신값 적용(2026-08-12)** — 나다컴퍼니2(하윤)가 이 값 갱신 시점 이후 신규 가입해서 이전 작업 없이 바로 최신 세대. 확인 완료.
 **가입 방식은 "Continue with Google" 같은 소셜 로그인 대신 이메일+비밀번호 직접 가입을 우선한다
 (2026-08-09)** — 소셜 로그인은 리다이렉트가 여러 단계로 나뉘고 숨겨진 함정 필드도 있어 헤드리스

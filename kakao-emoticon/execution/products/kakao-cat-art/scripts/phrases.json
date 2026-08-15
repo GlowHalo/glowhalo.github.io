@@ -1,0 +1,226 @@
+[
+  {
+    "n": 1,
+    "phrase": "왔냥? (반가운데 안 반가운 척)",
+    "slug": "01-wannyang",
+    "expr": "eyes wide with a flash of surprise quickly settling into a nonchalant look, small flat neutral mouth trying to hide interest",
+    "whiskers": "whiskers perked forward slightly, betraying interest"
+  },
+  {
+    "n": 2,
+    "phrase": "밥 언제 줘 (재촉)",
+    "slug": "02-bab-eonje-jwo",
+    "expr": "eyes wide and demanding with an insistent stare, small open impatient mouth",
+    "whiskers": "whiskers pointed forward eagerly"
+  },
+  {
+    "n": 3,
+    "phrase": "안 만져 (도도)",
+    "slug": "03-an-manjyeo",
+    "expr": "half closed haughty disdainful eyes looking slightly away, small flat pursed mouth turned to one side",
+    "whiskers": "whiskers pulled back stiffly"
+  },
+  {
+    "n": 4,
+    "phrase": "...알겠다냥 (마지못한 승낙)",
+    "slug": "04-algessdanyang",
+    "expr": "eyes rolled slightly to the side with a reluctant tired look, small flat resigned mouth",
+    "whiskers": "whiskers drooping slightly"
+  },
+  {
+    "n": 5,
+    "phrase": "집사 오늘도 수고했다냥",
+    "slug": "05-jipsa-suryogo",
+    "expr": "eyes softly closed in a warm gentle crescent shape, small soft closed content smile, one small pink heart icon floating above the head",
+    "whiskers": "whiskers relaxed and gently curved"
+  },
+  {
+    "n": 6,
+    "phrase": "이거 내꺼다",
+    "slug": "06-igeo-naekkeoda",
+    "expr": "eyes wide and possessive with a fierce glint, small determined pursed mouth",
+    "whiskers": "whiskers held stiff and forward"
+  },
+  {
+    "n": 7,
+    "phrase": "캔따개 부르는 소리 들었다",
+    "slug": "07-kkaendagae-sori",
+    "expr": "eyes suddenly wide, alert and sparkling, small open eager mouth, one small sound wave icon floating beside the ear",
+    "whiskers": "whiskers perked straight up, fully alert"
+  },
+  {
+    "n": 8,
+    "phrase": "놀아줘 근데 지금 당장",
+    "slug": "08-nolajwo-jigeum",
+    "expr": "eyes wide, insistent and sparkling, small open urgent mouth",
+    "whiskers": "whiskers pointed forward urgently"
+  },
+  {
+    "n": 9,
+    "phrase": "그루밍 중 방해금지",
+    "slug": "09-geuruming-jung",
+    "expr": "eyes half closed, focused and serene, small flat concentrated mouth with a tiny pink tongue tip visible",
+    "whiskers": "whiskers relaxed and pointing downward"
+  },
+  {
+    "n": 10,
+    "phrase": "잘 자라 (아침엔 모른척)",
+    "slug": "10-jal-jara",
+    "expr": "eyes drowsy and half closed, sleepy and soft, small soft sleepy smile, one small crescent moon icon floating above the head",
+    "whiskers": "whiskers drooping softly"
+  },
+  {
+    "n": 11,
+    "phrase": "잠깐 앉아있어봐 (무릎냥)",
+    "slug": "11-jamkkan-anja",
+    "expr": "eyes softly closed, content and calm, small closed peaceful smile",
+    "whiskers": "whiskers relaxed and neutral"
+  },
+  {
+    "n": 12,
+    "phrase": "택배왔다 사각박스 내꺼",
+    "slug": "12-taekbae-watda",
+    "expr": "eyes wide and gleaming with excitement, small open delighted smile, one small brown cardboard box icon floating beside the head",
+    "whiskers": "whiskers perked forward excitedly"
+  },
+  {
+    "n": 13,
+    "phrase": "화났다 (꼬리 탁탁)",
+    "slug": "13-hwanatda",
+    "expr": "eyes narrowed into a sharp angry glare, small tight flat angry mouth, a few small motion-line marks near the tail showing it flicking",
+    "whiskers": "whiskers bristled and stiff"
+  },
+  {
+    "n": 14,
+    "phrase": "배 만지면 물어버린다",
+    "slug": "14-bae-manjimyeon",
+    "expr": "eyes narrowed in a warning glare, small open mouth showing one tiny fang, one small warning exclamation mark icon beside the head",
+    "whiskers": "whiskers pulled back tight in warning"
+  },
+  {
+    "n": 15,
+    "phrase": "오늘 컨디션 최상 🐾",
+    "slug": "15-oneul-keondisyeon",
+    "expr": "eyes bright and sparkling wide open, big cheerful open smile, one small paw print icon floating above the head",
+    "whiskers": "whiskers perked up energetically"
+  },
+  {
+    "n": 16,
+    "phrase": "개인기 부리는 중(안 귀여운 척 귀여움)",
+    "slug": "16-gaeingi-bulineun",
+    "expr": "eyes trying to look serious with a stiff wide stare, small pursed mouth forced into a flat line, one tiny sparkle icon beside the face hinting secret cuteness",
+    "whiskers": "whiskers held rigid, comically stiff"
+  },
+  {
+    "n": 17,
+    "phrase": "미안하다냥 (실수로 물건 떨어뜨림)",
+    "slug": "17-mianhadanyang",
+    "expr": "eyes wide and guilty with a worried look, small wavering apologetic frown, one small sweat drop icon beside the face",
+    "whiskers": "whiskers drooping apologetically"
+  },
+  {
+    "n": 18,
+    "phrase": "창밖 감시 중",
+    "slug": "18-changbakk-gamsi",
+    "expr": "eyes narrowed and sharply focused, staring intently to one side, small flat serious mouth",
+    "whiskers": "whiskers pointed forward rigidly, fully alert"
+  },
+  {
+    "n": 19,
+    "phrase": "월요일도 나는 자유롭다",
+    "slug": "19-woryoildo-jayu",
+    "expr": "eyes half closed in a relaxed carefree look, small lazy content smile",
+    "whiskers": "whiskers relaxed and loose"
+  },
+  {
+    "n": 20,
+    "phrase": "츄르 내놔",
+    "slug": "20-chyureu-naenwa",
+    "expr": "eyes wide and pleading with a hopeful glimmer, small open begging mouth, one tiny drop icon beside the mouth",
+    "whiskers": "whiskers pointed forward eagerly"
+  },
+  {
+    "n": 21,
+    "phrase": "흠… 생각 좀 해보겠다",
+    "slug": "21-heum-saenggak",
+    "expr": "eyes looking upward and to the side in a thoughtful ponder, small pursed thinking mouth, one small thought bubble icon floating above the head",
+    "whiskers": "whiskers relaxed and slightly tilted"
+  },
+  {
+    "n": 22,
+    "phrase": "잘 부탁한다냥",
+    "slug": "22-jal-butaghandanyang",
+    "expr": "eyes warm and earnest looking slightly upward, small polite closed smile",
+    "whiskers": "whiskers neutral and calm"
+  },
+  {
+    "n": 23,
+    "phrase": "화이팅(뒷발로 툭)",
+    "slug": "23-hwaiting",
+    "expr": "eyes determined and bright with a confident squint, small open motivated grin, one small star icon floating beside the head",
+    "whiskers": "whiskers perked forward with determination"
+  },
+  {
+    "n": 24,
+    "phrase": "내가 맞다냥",
+    "slug": "24-naega-matdanyang",
+    "expr": "eyes confident and half closed with a smug knowing look, small satisfied smirk, one small check mark icon floating above the head",
+    "whiskers": "whiskers held stiff and assured"
+  },
+  {
+    "n": 25,
+    "phrase": "일단 낮잠부터",
+    "slug": "25-ildan-najjambuteo",
+    "expr": "eyes fully closed in peaceful sleep, small soft sleeping smile, one small Zzz icon floating above the head",
+    "whiskers": "whiskers drooping softly, fast asleep"
+  },
+  {
+    "n": 26,
+    "phrase": "곧 내려간다(캣타워에서)",
+    "slug": "26-god-naeryeoganda",
+    "expr": "eyes looking downward with a calm relaxed gaze, small flat calm mouth",
+    "whiskers": "whiskers relaxed and neutral"
+  },
+  {
+    "n": 27,
+    "phrase": "삐졌다 (등 돌림)",
+    "slug": "27-ppijyeotda",
+    "expr": "eyes narrowed and pouting, looking off to one side away from the viewer, small tight sulky frown",
+    "whiskers": "whiskers turned to the side, following the sulky gaze"
+  },
+  {
+    "n": 28,
+    "phrase": "최고다냥 👍",
+    "slug": "28-choegodanyang",
+    "expr": "eyes bright and delighted, wide and sparkling, big proud open smile, one small thumbs-up paw icon floating beside the head",
+    "whiskers": "whiskers perked up proudly"
+  },
+  {
+    "n": 29,
+    "phrase": "안 될 것 같다냥",
+    "slug": "29-an-doelgeot",
+    "expr": "eyes narrowed with a doubtful skeptical look, small flat wavering unsure mouth, one small question mark icon floating above the head",
+    "whiskers": "whiskers drooping uncertainly"
+  },
+  {
+    "n": 30,
+    "phrase": "확인했다냥, 답장은 나중에",
+    "slug": "30-hwaginhaessdanyang",
+    "expr": "eyes calm and half closed with a knowing glance, small flat neutral acknowledging mouth, one small check mark icon floating above the head",
+    "whiskers": "whiskers relaxed and neutral"
+  },
+  {
+    "n": 31,
+    "phrase": "오늘 하루도 끝, 이제 내 시간",
+    "slug": "31-oneul-harudo-kkeut",
+    "expr": "eyes relaxed and softly half closed with a satisfied look, small content closed smile, one tiny crescent moon and star icon floating above the head",
+    "whiskers": "whiskers relaxed and loose"
+  },
+  {
+    "n": 32,
+    "phrase": "사랑한다냥 ❤️ (한 번씩만 애교)",
+    "slug": "32-saranghandanyang",
+    "expr": "eyes soft and sparkling with affection, small shy affectionate smile, one small red heart icon floating above the head",
+    "whiskers": "whiskers gently curved affectionately"
+  }
+]

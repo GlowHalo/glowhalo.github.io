@@ -215,57 +215,79 @@
   font: 700 20px/1 ui-monospace, "SF Mono", Menlo, monospace;
 }
 
-.floor {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-@media (max-width: 640px) {
-  .floor {
-    grid-template-columns: 1fr;
-  }
-}
-
-.room {
+/* ============================================================
+   오피스 플로어 — 방마다 따로 노는 카드가 아니라, 한 바닥(office-floor)
+   위에 구역(zone)이 벽선(점선)으로만 나뉜 하나의 사무실로 렌더링한다.
+   회의 참석자는 자기 구역엔 빈 자리(ghost)만 남기고 회의 구역에만 실제로
+   존재한다 — 한 사람이 두 곳에 동시에 보이던 문제를 구조적으로 없앰.
+   ============================================================ */
+.office-floor {
   position: relative;
-  overflow: hidden;
   background: var(--surface);
   background-image: radial-gradient(var(--line) 1px, transparent 1px);
   background-size: 15px 15px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  padding: 16px 14px 14px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 }
-.room::before {
-  content: "";
+@media (max-width: 640px) {
+  .office-floor {
+    grid-template-columns: 1fr;
+  }
+}
+
+.zone {
+  position: relative;
+  padding: 26px 14px 16px;
+  border-right: 1px dashed var(--line);
+  border-bottom: 1px dashed var(--line);
+  min-height: 108px;
+}
+.office-floor > .zone:nth-child(2n),
+.office-floor > .zone:last-of-type {
+  border-right: none;
+}
+@media (max-width: 640px) {
+  .office-floor > .zone {
+    border-right: none;
+  }
+}
+.zone[data-kind="ceo"] {
+  background: linear-gradient(180deg, rgba(168, 112, 15, 0.06), transparent 60px);
+}
+.zone-label {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--teal);
-}
-.room[data-kind="ceo"]::before {
-  background: var(--amber);
-}
-.room[data-kind="meeting"]::before {
-  background: var(--coral);
-}
-.room-head {
+  top: 9px;
+  left: 12px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-.room-head b {
-  font-size: 13.5px;
-}
-.room-head small {
-  font-size: 11px;
-  font-weight: 600;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--muted);
 }
-.desks {
+.zone-label .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+  flex-shrink: 0;
+}
+.zone[data-kind="ceo"] .zone-label .dot {
+  background: var(--amber);
+}
+.zone-label .headcount {
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.zone-desks {
   display: flex;
   gap: 18px;
   flex-wrap: wrap;
@@ -298,6 +320,33 @@
   background: var(--teal);
   opacity: 0.35;
 }
+/* 회의 참석 중이라 자리를 비운 사람 — 점선 빈 책상 + "회의중" 표시만 남기고
+   사람은 그리지 않는다(회의실 쪽에만 실제로 존재하게). */
+.desk.ghost {
+  opacity: 0.55;
+}
+.desk.ghost .surface2 {
+  border-style: dashed;
+}
+.desk.ghost .surface2::before {
+  opacity: 0;
+}
+.ghost-slot {
+  width: 34px;
+  height: 41px;
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+}
+.ghost-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--coral);
+  border: 1px dashed var(--coral);
+  background: rgba(194, 63, 48, 0.06);
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
 
 .person {
   display: inline-flex;
@@ -306,8 +355,12 @@
   gap: 7px;
 }
 .person svg {
-  animation: idle-bob 2.6s ease-in-out infinite;
-  animation-delay: var(--stagger, 0s);
+  animation:
+    walk-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both,
+    idle-bob 2.6s ease-in-out infinite;
+  animation-delay:
+    var(--walk-delay, 0s),
+    var(--stagger, 0s);
 }
 .tag {
   /* 예전엔 position:absolute + top:-18px로 캐릭터 머리 위에 억지로 띄웠는데, 이름+역할
@@ -334,28 +387,104 @@
   border-color: var(--teal);
 }
 
-.meeting-room {
+/* 자리↔회의실 복도 — 장식용 연출. 실제 회의 여부(inMeeting)와 무관하게 몇 초마다
+   한 명씩 조용히 지나간다("사무실이 멈춰있지 않다"는 느낌만 주는 용도). */
+.corridor {
   grid-column: 1 / -1;
+  position: relative;
+  height: 30px;
+  border-top: 1px dashed var(--line);
+  border-bottom: 1px dashed var(--line);
+  background: var(--surface2);
+  overflow: hidden;
 }
-.meeting-room .room-head b {
+.corridor .walker {
+  position: absolute;
+  bottom: 1px;
+  animation: walk-across 4.5s linear forwards;
+}
+.corridor .walker.reverse {
+  animation-name: walk-across-reverse;
+}
+@keyframes walk-across {
+  0% {
+    left: -26px;
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.85;
+  }
+  92% {
+    opacity: 0.85;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+@keyframes walk-across-reverse {
+  0% {
+    left: 100%;
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.85;
+  }
+  92% {
+    opacity: 0.85;
+  }
+  100% {
+    left: -26px;
+    opacity: 0;
+  }
+}
+
+/* 회의 구역 — 바닥 전체 폭, 타원 테이블을 사이에 두고 두 줄(안쪽/바깥쪽)이
+   마주보게 배치한다. 마주보는 줄은 좌우 반전해서 서로를 보는 것처럼. */
+.meeting-zone {
+  grid-column: 1 / -1;
+  position: relative;
+  padding: 30px 16px 20px;
+  border-top: 1px dashed var(--line);
+  background: linear-gradient(180deg, rgba(194, 63, 48, 0.05), transparent 70px);
+}
+.meeting-zone .zone-label {
   color: var(--coral);
 }
-.table {
+.meeting-zone .zone-label .dot {
+  background: var(--coral);
+}
+.meeting-scene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-top: 18px;
+}
+.table-row {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+.table-row.far {
+  transform: scale(0.92);
+  opacity: 0.92;
+  margin-bottom: -4px;
+}
+.oval-table {
+  position: relative;
+  width: min(360px, 88%);
+  height: 34px;
   background: var(--surface2);
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 20px 24px;
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-end;
-  position: relative;
-  flex-wrap: wrap;
-  gap: 14px;
+  border-radius: 999px;
+  margin: 6px 0 10px;
 }
-.table::before {
+.oval-table::before {
   content: attr(data-topic);
   position: absolute;
-  top: -13px;
+  top: -15px;
   left: 50%;
   transform: translateX(-50%);
   background: var(--coral);
@@ -365,10 +494,26 @@
   padding: 4px 12px;
   border-radius: 999px;
   white-space: nowrap;
-  max-width: 90%;
+  max-width: 92vw;
   overflow: hidden;
   text-overflow: ellipsis;
   animation: pulse-badge 2.4s ease-in-out infinite;
+  z-index: 2;
+}
+.seat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.speak-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--coral);
+  opacity: 0.35;
+  animation: pulse-dot 3.6s ease-in-out infinite;
+  animation-delay: var(--speak-delay, 0s);
 }
 
 .two-col {
@@ -552,15 +697,32 @@
   color: var(--muted);
   font-size: 11.5px;
 }
+.detail-warn {
+  color: var(--coral) !important;
+  font-weight: 700;
+}
+/* 상태 알약 — 색이 심각도를 뜻하게 만든다(전부 초록이면 "확인해야 할 것"이
+   묻힌다). ok = 확정된 좋은 소식(매출·완료), warn = 회장 액션/승인 필요,
+   muted = 그냥 사실(진행중·무료·인원수) — 세 톤 중 하나를 항상 명시해서 쓴다. */
 .status-pill {
   font-size: 11px;
   font-weight: 700;
   padding: 4px 9px;
   border-radius: 999px;
-  background: rgba(14, 143, 108, 0.14);
-  color: var(--teal);
   white-space: nowrap;
   text-align: center;
+}
+.status-pill.tone-ok {
+  background: rgba(14, 143, 108, 0.14);
+  color: var(--teal);
+}
+.status-pill.tone-warn {
+  background: rgba(194, 63, 48, 0.14);
+  color: var(--coral);
+}
+.status-pill.tone-muted {
+  background: rgba(103, 108, 120, 0.14);
+  color: var(--muted);
 }
 
 .external-card {
@@ -595,6 +757,16 @@ footer.note {
   line-height: 1.7;
 }
 
+@keyframes walk-in {
+  from {
+    opacity: 0;
+    transform: translateY(9px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
 @keyframes idle-bob {
   0%,
   100% {

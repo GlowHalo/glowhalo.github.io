@@ -27,6 +27,15 @@ function staggerDelay(seed: string): string {
   return `${(h % 2000) / 1000}s`;
 }
 
+/** walk-in(등장) 전용 짧은 지연 — idle-bob용 staggerDelay(최대 2s)를 그대로 쓰면
+ *  animation-fill-mode:both 때문에 지연이 끝날 때까지 opacity:0으로 안 보이는
+ *  사람이 생긴다(최대 2초간 "사라진" 것처럼 보이는 버그). 등장은 훨씬 짧게. */
+function quickStagger(seed: string): string {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 17 + seed.charCodeAt(i)) >>> 0;
+  return `${(h % 350) / 1000}s`;
+}
+
 function PersonTag({ staff }: { staff: Staff }) {
   const main = staff.name ?? staff.roleLabel;
   const sub = staff.name ? staff.roleLabel : staff.subtitle;
@@ -38,30 +47,115 @@ function PersonTag({ staff }: { staff: Staff }) {
   );
 }
 
-function DeskPerson({ staff, bare }: { staff: Staff; bare?: boolean }) {
-  const style = { "--stagger": staggerDelay(staff.id) } as CSSProperties;
+function DeskPerson({ staff, bare, flip }: { staff: Staff; bare?: boolean; flip?: boolean }) {
+  const style = {
+    "--stagger": staggerDelay(staff.id),
+    "--walk-delay": quickStagger(staff.id),
+  } as CSSProperties;
   return (
     <div className="desk">
       <div className="person" style={style}>
         <PersonTag staff={staff} />
-        <CharacterSprite seed={staff.id} wearsBadge={staff.rank !== "ceo"} />
+        <CharacterSprite seed={staff.id} wearsBadge={staff.rank !== "ceo"} flip={flip} />
       </div>
       {bare ? null : <div className="surface2" />}
     </div>
   );
 }
 
-function RoomCard({ room, staff, headCount }: { room: Room; staff: Staff[]; headCount: string }) {
+/** 지금 회의 중이라 자리를 비운 사람 — 여기(원래 자리)엔 그리지 않고, 빈 책상 +
+ *  "회의중" 표시만 남긴다. 실제 모습은 회의 구역(MeetingScene)에만 존재한다
+ *  — 한 사람이 두 군데 동시에 보이던 문제를 구조적으로 없앤 것. */
+function GhostDesk({ staff }: { staff: Staff }) {
   return (
-    <div className="room" data-kind={room.kind}>
-      <div className="room-head">
-        <b>{room.name}</b>
-        <small>{headCount}</small>
+    <div className="desk ghost">
+      <span className="ghost-tag">{(staff.name ?? staff.roleLabel)} · 회의중</span>
+      <div className="ghost-slot" />
+      <div className="surface2" />
+    </div>
+  );
+}
+
+/** 방 하나 = 바닥 위의 구역(zone) 하나. 회의 참석 중인 사람은 여기서 빠지고
+ *  GhostDesk로 대체된다. */
+function Zone({ room, staff, headCount }: { room: Room; staff: Staff[]; headCount: string }) {
+  return (
+    <div className="zone" data-kind={room.kind}>
+      <div className="zone-label">
+        <span className="dot" />
+        {room.name}
+        <span className="headcount">· {headCount}</span>
       </div>
-      <div className="desks">
-        {staff.map((s) => (
-          <DeskPerson key={s.id} staff={s} />
-        ))}
+      <div className="zone-desks">
+        {staff.map((s) => (s.inMeeting ? <GhostDesk key={s.id} staff={s} /> : <DeskPerson key={s.id} staff={s} />))}
+      </div>
+    </div>
+  );
+}
+
+/** 회의 구역 — 타원 테이블을 사이에 두고 두 줄이 마주보게 배치한다(안쪽 줄은
+ *  좌우 반전해서 테이블 건너편에서 이쪽을 보는 것처럼). 발언 순서가 도는 것처럼
+ *  말풍선 점을 사람마다 다른 타이밍으로 pulse시켜, 정적인 사진이 아니라
+ *  "지금 대화 중"인 느낌을 준다. */
+function MeetingScene({ room, staff, topic }: { room: Room; staff: Staff[]; topic: string }) {
+  const mid = Math.ceil(staff.length / 2);
+  const far = staff.slice(0, mid);
+  const near = staff.slice(mid);
+  const speakDelay = (i: number) => `${((i * 3.6) / Math.max(staff.length, 1)).toFixed(2)}s`;
+  return (
+    <div className="zone meeting-zone" data-kind="meeting">
+      <div className="zone-label">
+        <span className="dot" />
+        {room.name}
+      </div>
+      <div className="meeting-scene">
+        <div className="table-row far">
+          {far.map((s, i) => (
+            <div className="seat" key={s.id}>
+              <span className="speak-dot" style={{ "--speak-delay": speakDelay(i) } as CSSProperties} />
+              <DeskPerson staff={s} bare flip />
+            </div>
+          ))}
+        </div>
+        <div className="oval-table" data-topic={topic} />
+        <div className="table-row near">
+          {near.map((s, i) => (
+            <div className="seat" key={s.id}>
+              <DeskPerson staff={s} bare />
+              <span className="speak-dot" style={{ "--speak-delay": speakDelay(mid + i) } as CSSProperties} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** 자리↔회의실 사이 복도 — 실제 회의 참석 여부(inMeeting)와는 무관한 순수 장식용
+ *  연출이다(스냅샷 데이터에 없는 움직임이라 "지금 진짜 이동 중"이라는 뜻은 아님).
+ *  몇 초마다 한 명이 조용히 지나가는 정도로 그친다 — 다 같이 우르르 움직이면
+ *  오히려 산만해지므로 "한 순간에 한 명"만. prefers-reduced-motion이면 아예 끔. */
+function Corridor({ staff }: { staff: Staff[] }) {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    if (!staff.length) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const walk = () => setTick((t) => t + 1);
+    const first = setTimeout(walk, 1500);
+    const loop = setInterval(walk, 7000);
+    return () => {
+      clearTimeout(first);
+      clearInterval(loop);
+    };
+  }, [staff.length]);
+
+  if (!staff.length) return null;
+  const person = staff[tick % staff.length];
+  const reverse = tick % 2 === 1;
+  return (
+    <div className="corridor" aria-hidden="true">
+      <div className={`walker${reverse ? " reverse" : ""}`} key={`${person.id}-${tick}`}>
+        <CharacterSprite seed={person.id} wearsBadge={person.rank !== "ceo"} size={22} flip={reverse} />
       </div>
     </div>
   );
@@ -74,6 +168,25 @@ function headCountLabel(staff: Staff[]) {
   if (leads) parts.push(`팀장 ${leads}`);
   if (members) parts.push(`팀원 ${members}`);
   return parts.join(" · ") || "구성 전";
+}
+
+/** 상태 알약 톤 — "회장 액션/승인 필요"는 warn(경고색), 확정된 매출·완료는
+ *  ok(초록), 그 외 사실(진행중·인원수·무료)은 muted(회색). 전부 초록이면
+ *  뭘 봐야 할지 안 보이니 색 자체가 정보가 되게 한다. */
+type Tone = "ok" | "warn" | "muted";
+function financeTone(status: "확정" | "승인대기" | "진행중", kind: "매출" | "경비" | "자본금"): Tone {
+  if (status === "승인대기") return "warn";
+  if (status === "확정") return kind === "매출" ? "ok" : "muted";
+  return "muted";
+}
+function sharedCostTone(status: string): Tone {
+  return /승인대기|검토/.test(status) ? "warn" : "muted";
+}
+function businessStatusTone(status: string): Tone {
+  return /완료|완성/.test(status) ? "ok" : "muted";
+}
+function needsChairmanAction(text: string): boolean {
+  return /회장|승인|결제/.test(text);
 }
 
 function ApprovalPanel({
@@ -177,8 +290,8 @@ function BusinessLinesPanel({ companyId }: { companyId: string }) {
               <b>{b.name}</b>
               <small>{b.channel}</small>
             </div>
-            <span className="status-pill">{b.status}</span>
-            <small>{b.detail}</small>
+            <span className={`status-pill tone-${businessStatusTone(b.status)}`}>{b.status}</span>
+            <small className={needsChairmanAction(b.detail) ? "detail-warn" : undefined}>{b.detail}</small>
           </div>
         ))}
       </div>
@@ -232,9 +345,19 @@ function GroupOverviewPanel({
                 <b>{c.name}</b>
                 <small>{c.tagline}</small>
               </div>
-              <span className="status-pill">인원 {staffCount}</span>
+              <span className="status-pill tone-muted">인원 {staffCount}</span>
               <small>
-                승인대기 {pending}{chairmanPending ? ` (👑${chairmanPending})` : ""} · 지시함 {inboxOpen}
+                {pending > 0 ? (
+                  <span className="status-pill tone-warn" style={{ marginRight: 6 }}>
+                    승인대기 {pending}
+                    {chairmanPending ? ` 👑${chairmanPending}` : ""}
+                  </span>
+                ) : (
+                  <span className="status-pill tone-muted" style={{ marginRight: 6 }}>
+                    대기없음
+                  </span>
+                )}
+                지시함 {inboxOpen}
               </small>
             </div>
           );
@@ -284,7 +407,9 @@ function FinanceHqPanel() {
                 매출 {krw(confirmedRevenue)} · 경비 {krw(confirmedCost)}
               </small>
             </div>
-            <span className="status-pill">{pendingCosts.length ? `승인대기 ${pendingCosts.length}건` : "대기 없음"}</span>
+            <span className={`status-pill tone-${pendingCosts.length ? "warn" : "muted"}`}>
+              {pendingCosts.length ? `승인대기 ${pendingCosts.length}건` : "대기 없음"}
+            </span>
             <small>{pendingCosts.map((p) => p.amountLabel).join(", ") || "-"}</small>
           </div>
         ))}
@@ -299,7 +424,7 @@ function FinanceHqPanel() {
               <b>{cost.item}</b>
               <small>{cost.purpose}</small>
             </div>
-            <span className="status-pill">{cost.amountLabel}</span>
+            <span className={`status-pill tone-${sharedCostTone(cost.status)}`}>{cost.amountLabel}</span>
             <small>
               {cost.cycle} · {cost.status}
             </small>
@@ -340,7 +465,7 @@ function FinanceCompanyPanel({ companyId }: { companyId: string }) {
               <b>{r.item}</b>
               <small>{r.note ?? ""}</small>
             </div>
-            <span className="status-pill">
+            <span className={`status-pill tone-${financeTone(r.status, r.kind)}`}>
               {r.kind} · {r.amountLabel}
             </span>
             <small>{r.status}</small>
@@ -443,8 +568,9 @@ export default function App() {
   const regularRooms = rooms.filter((r) => r.kind !== "meeting");
   const meetingRoom = rooms.find((r) => r.kind === "meeting");
 
-  const meetingStaff = STAFF.filter((s) => s.companyId === companyId && s.inMeeting);
-  const onDuty = STAFF.filter((s) => s.companyId === companyId).length;
+  const companyStaff = STAFF.filter((s) => s.companyId === companyId);
+  const meetingStaff = companyStaff.filter((s) => s.inMeeting);
+  const onDuty = companyStaff.length;
 
   /** 승인/지시 상태가 바뀔 때마다 서버에 전체 상태를 덮어쓴다(PUT은 통째로 저장하는 API라
    *  건건이 조각을 보낼 수 없다). 토큰이 없으면 pushState가 조용히 false를 돌려줄 뿐이라
@@ -518,9 +644,9 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="floor">
+              <div className="office-floor">
                 {regularRooms.map((room) => (
-                  <RoomCard
+                  <Zone
                     key={room.id}
                     room={room}
                     staff={staffByRoom.get(room.id) ?? []}
@@ -528,19 +654,8 @@ export default function App() {
                   />
                 ))}
 
-                {meetingRoom ? (
-                  <div className="room meeting-room" data-kind="meeting">
-                    <div className="room-head">
-                      <b>{meetingRoom.name}</b>
-                      <small>MEETING ROOM</small>
-                    </div>
-                    <div className="table" data-topic={MEETING_TOPIC}>
-                      {meetingStaff.map((s) => (
-                        <DeskPerson key={s.id} staff={s} bare />
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
+                {meetingRoom ? <Corridor staff={companyStaff} /> : null}
+                {meetingRoom ? <MeetingScene room={meetingRoom} staff={meetingStaff} topic={MEETING_TOPIC} /> : null}
               </div>
 
               {company.isHq ? <GroupOverviewPanel approvals={approvals} instructions={instructions} /> : null}
