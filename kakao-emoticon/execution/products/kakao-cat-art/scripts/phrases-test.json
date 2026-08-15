@@ -1,0 +1,23 @@
+[
+  {
+    "n": 1,
+    "phrase": "왔냥? (반가운데 안 반가운 척)",
+    "slug": "01-wannyang",
+    "expr": "eyes wide with a flash of surprise quickly settling into a nonchalant look, small flat neutral mouth trying to hide interest",
+    "whiskers": "whiskers perked forward slightly, betraying interest"
+  },
+  {
+    "n": 5,
+    "phrase": "집사 오늘도 수고했다냥",
+    "slug": "05-jipsa-suryogo",
+    "expr": "eyes softly closed in a warm gentle crescent shape, small soft closed content smile, one small pink heart icon floating above the head",
+    "whiskers": "whiskers relaxed and gently curved"
+  },
+  {
+    "n": 9,
+    "phrase": "그루밍 중 방해금지",
+    "slug": "09-geuruming-jung",
+    "expr": "eyes half closed, focused and serene, small flat concentrated mouth with a tiny pink tongue tip visible",
+    "whiskers": "whiskers relaxed and pointing downward"
+  }
+]
