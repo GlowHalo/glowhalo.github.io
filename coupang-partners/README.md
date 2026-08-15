@@ -35,3 +35,7 @@
 - [ ] 누적매출 15만원 도달 시 API 전환 절차 진행
 - [ ] 배포된 Worker 이름(`nada-company2-coupang-dealbot`)이 여전히 "niche-api"를 참조 — 실사용에 지장 없어 그대로 두되, 재배포 계기가 생기면 개명 검토
 - [ ] 텔레그램 봇(`@nada_dealbot`) 채널 관리자 미등록 — 상세는 [`products/coupang-dealbot/README.md`](products/coupang-dealbot/README.md) "미해결 이슈" 참고, 디스코드만으로도 운영 지장 없어 급하지 않음
+
+## 🔄 세션 인계 메모 (2026-08-15)
+
+최근 며칠간 Notion 워크스페이스 분리·계정 비밀번호 표준화·GitHub 폴더 구조 개편(companyN → 주제별 이름)이 한꺼번에 진행되면서, 오래 이어진 세션이 옛 맥락(옛 경로·옛 워크스페이스)에 헷갈릴 수 있다는 회장 판단으로 이 계열사 세션을 새로 열었다. 새 세션은 이 파일과 `candidates.md` 등 폴더 안 문서를 정본으로 삼아 현재 상태부터 파악할 것.
