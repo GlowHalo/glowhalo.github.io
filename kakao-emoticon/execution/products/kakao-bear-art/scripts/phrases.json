@@ -1,0 +1,86 @@
+[
+  {
+    "n": 1,
+    "phrase": "보고싶었어 (그리움)",
+    "slug": "01-bogosipeosseo",
+    "expr": "soft watery longing eyes slightly teary, small wistful downturned smile",
+    "arms": "arms reaching forward as if hugging someone far away"
+  },
+  {
+    "n": 2,
+    "phrase": "오늘 뭐해? (심심해서 연락)",
+    "slug": "02-oneul-mwohae",
+    "expr": "curious wide round eyes with head tilted, small open curious smile",
+    "arms": "one paw raised near the chin in a thinking pose"
+  },
+  {
+    "n": 3,
+    "phrase": "자기야 (부르기)",
+    "slug": "03-jagiya",
+    "expr": "sparkling loving eyes, small shy closed smile with a light blush",
+    "arms": "both paws clasped together in front of the chest"
+  },
+  {
+    "n": 4,
+    "phrase": "뽀뽀해줘 (애교)",
+    "slug": "04-ppoppohaejwo",
+    "expr": "eyes closed in a puckered kissing expression, small round pucker mouth, one small pink heart-shaped kiss mark icon floating nearby",
+    "arms": "paws pressed near the cheeks"
+  },
+  {
+    "n": 5,
+    "phrase": "화났어 삐졌어 (토라짐)",
+    "slug": "05-hwanasseo-ppijyeosseo",
+    "expr": "narrowed pouting eyes looking to the side, small puffed-cheek pout mouth",
+    "arms": "arms crossed tightly over the chest"
+  },
+  {
+    "n": 6,
+    "phrase": "미안해 풀어줘 (사과)",
+    "slug": "06-mianhae-pureojwo",
+    "expr": "wide pleading puppy eyes, small wobbly apologetic mouth",
+    "arms": "paws pressed together in a pleading, praying gesture"
+  },
+  {
+    "n": 7,
+    "phrase": "사랑해 (직진 고백)",
+    "slug": "07-saranghae",
+    "expr": "big sparkling heart-shaped eyes, wide joyful open smile, one large red heart icon floating above the head",
+    "arms": "arms spread open wide"
+  },
+  {
+    "n": 8,
+    "phrase": "안아줘 (스킨십 요청)",
+    "slug": "08-anajwo",
+    "expr": "soft warm eyes, small gentle smile",
+    "arms": "both arms open wide reaching forward for a hug"
+  },
+  {
+    "n": 9,
+    "phrase": "밥 먹었어? (챙김)",
+    "slug": "09-bab-meogeosseo",
+    "expr": "caring gentle eyes, small warm closed smile, one small rice bowl icon floating beside the head",
+    "arms": "one paw raised in a small wave"
+  },
+  {
+    "n": 10,
+    "phrase": "조심히 들어가 (배웅)",
+    "slug": "10-josimhi-deureoga",
+    "expr": "soft eyes with a warm farewell look, small warm smile",
+    "arms": "one paw raised in a waving gesture"
+  },
+  {
+    "n": 11,
+    "phrase": "꿈에서 만나 (굿나잇)",
+    "slug": "11-kkumeseo-manna",
+    "expr": "drowsy sleepy half-closed eyes, small soft sleepy smile, one small Zzz icon and small star floating above the head",
+    "arms": "paws tucked together sleepily near the chest"
+  },
+  {
+    "n": 12,
+    "phrase": "오늘도 네 생각만 했어 (하루종일 그리움)",
+    "slug": "12-oneuldo-ne-saenggak",
+    "expr": "soft dreamy eyes looking upward, small gentle smile, one small pink heart icon and small cloud icon floating above the head",
+    "arms": "paws clasped near the chest in a dreamy pose"
+  }
+]
