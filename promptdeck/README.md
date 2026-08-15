@@ -8,7 +8,7 @@ Chrome extension (Manifest V3) — save your favorite AI prompts and insert them
 
 - Save prompts (title + body, `[bracketed]` fill-in-later placeholders) in `chrome.storage.sync` — no backend, no account, syncs across your own Chrome install for free via Google.
 - Insert a saved prompt into whatever text field is currently focused, via the popup, a right-click context menu, or the `Ctrl/Cmd+Shift+P` shortcut.
-- Free tier: up to 3 saved prompts. **PromptDeck Pro** (one-time purchase via Gumroad license key, verified client-side against Gumroad's public license API — no server of our own): unlimited prompts + one-click import of the full 15-prompt [AI Board of Directors](https://tossneon.gumroad.com/l/ai-board-of-directors) prompt pack.
+- Free tier: up to 3 saved prompts. **PromptDeck Pro** (one-time purchase via Gumroad license key, verified client-side against Gumroad's public license API — no server of our own): unlimited prompts + one-click import of the full 15-prompt [AI Board of Directors](https://nadacompany.gumroad.com/l/ai-board-of-directors) prompt pack.
 
 ## Monetization model
 

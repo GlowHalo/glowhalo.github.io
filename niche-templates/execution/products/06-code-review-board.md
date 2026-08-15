@@ -2,7 +2,7 @@
 
 > 착수 배경: [A1-gumroad-대량생산-자동화.md](../A1-gumroad-대량생산-자동화.md)의 "품질 우선 원칙"에 따라 타겟 리서치 → 차별화 포인트 확정 → 상세 기획 순서로 진행. **2026-08-09 실제 노션 페이지 제작 + Gumroad 발행까지 전부 완료.** 아래 "9. 실행 로그 (2026-08-09, 런칭 완료)" 참고.
 >
-> **라이브 링크**: https://tossneon.gumroad.com/l/code-review-board (Notion 템플릿: https://fearless-frog-802.notion.site/Code-Review-Board-3b7fc7dfab7a819785aac30328f161ca )
+> **라이브 링크**: https://nadacompany.gumroad.com/l/code-review-board (Notion 템플릿: https://fearless-frog-802.notion.site/Code-Review-Board-3b7fc7dfab7a819785aac30328f161ca )
 
 ## 1. 왜 "코드리뷰"인가 — 리서치 요약
 
@@ -110,7 +110,7 @@
   - 상품 허브 페이지("작업실 컴퍼니 — 상품 허브")에 3호 링크 추가 완료.
   - **미검증 항목**: "템플릿으로 복제" 토글 자체는 (2호 때와 동일한 이유로) 로그인 세션이 있어야 눌러볼 수 있어 API로는 확인 불가 — 페이지가 정상 공개된 것은 확실하므로 우선 런칭, 복제가 실제로 안 되는 경우가 발견되면 즉시 보고.
 - **Gumroad**: `POST /v2/products`로 신규 생성 (id `pf6IEuwO0P5FBepk5xWcyw==`) → name/price($11)/description/tags(8개)/custom_permalink(`code-review-board`)/custom_summary/custom_receipt 전부 채움 → 커버 3장 URL 임포트(raw.githubusercontent.com → Gumroad 자체 CDN) → `WELCOME2` offer_code($2 상시) 신규 생성 → `PUT /enable`로 공개.
-  - 라이브: https://tossneon.gumroad.com/l/code-review-board
+  - 라이브: https://nadacompany.gumroad.com/l/code-review-board
   - description에 `💸 Use code WELCOME2 at checkout for $2 off.` 문구를 **발행 전**에 이미 포함시켜, 1호 때 겪었던 "발행 후 라이브 상품 수정이 하네스에 막히는" 문제를 처음부터 회피(2호에서 확립한 표준 그대로).
   - Notion duplicate 링크는 공개 `description`이 아니라 `custom_receipt`(구매 후에만 노출)에만 넣음 — 1·2호와 동일 원칙(결제 없이 무료 복제 방지).
 - **실사용 검증(Browserbase)**: Notion 3페이지(Review Log/Prompt Sets/Start Here) + Gumroad 라이브 페이지 전부 원격 Chrome으로 렌더링 확인. 라이브 페이지에서 제목/가격($11)/설명/WELCOME2 안내/"I want this!" 버튼/커버 캐러셀(Review Log 데모가 첫 화면)/환불 문구 전부 정상 노출 확인(`bodyText` 텍스트 검사 + 스크린샷 둘 다). 스크린샷: [`code-review-board-exhibits/`](code-review-board-exhibits/) (01~03: 노션 페이지, 07: 라이브 Gumroad 페이지).
@@ -126,9 +126,9 @@
   - `investor-panel`: HTTP 200, title/price($11)/전체 설명 카피·WELCOME2 할인 안내 문구·"Buy now" 버튼·커버 이미지 링크 전부 정상 응답에 포함됨.
   - 두 상품 다 에러 메시지나 깨진 필드 없음 — 데이터 레벨에서는 "정상 노출·구매 가능" 상태로 판단.
 - **못 한 것 — 실제 브라우저 렌더링 스크린샷**: 헤드리스 브라우저(Playwright/Chromium)로 두 라이브 페이지를 열려는 시도가 이 세션에서 두 가지 장벽에 부딪힘:
-  1. **자동승인 분류기가 간헐적으로 차단** — `tossneon.gumroad.com`을 대상으로 한 헤드리스 브라우저 탐색이 API 호출과 마찬가지로 승인 대기 상태로 걸림(읽기 전용인데도). 지시문에서는 "API 호출만 막혀있고 읽기 전용 브라우저 캡처는 가능"이라고 가정했으나, 실제로는 브라우저 캡처도 막히는 경우가 있었음 — 이번 회차에 새로 확인된 사실.
+  1. **자동승인 분류기가 간헐적으로 차단** — `nadacompany.gumroad.com`을 대상으로 한 헤드리스 브라우저 탐색이 API 호출과 마찬가지로 승인 대기 상태로 걸림(읽기 전용인데도). 지시문에서는 "API 호출만 막혀있고 읽기 전용 브라우저 캡처는 가능"이라고 가정했으나, 실제로는 브라우저 캡처도 막히는 경우가 있었음 — 이번 회차에 새로 확인된 사실.
   2. **분류기를 통과했을 때도 별도의 TLS 문제 발견**: 이 세션의 아웃바운드 프록시(에이전트 프록시)가 Chromium 기본 TLS 1.3 핸드셰이크와 호환되지 않아 `ERR_CONNECTION_RESET`이 발생함(`curl`·Node 기본 TLS 스택은 정상 동작 — Chromium만 실패). `--ssl-version-max=tls1.2`로 우회하면 example.com 등 일반 사이트는 정상 로드되지만, Gumroad는 Cloudflare 뒤에 있어 강제 다운그레이드된 TLS 1.2 핸드셰이크 자체를 봇으로 의심해 재차 연결을 끊는 것으로 추정(Cloudflare 봇 방어 특성상 흔한 패턴) — 이 부분은 이번 세션 프록시·Cloudflare 조합의 구조적 제약으로 보이며, 무리하게 더 우회 시도하지 않고 여기서 멈춤.
-  - **회장 액션 필요 시**: 픽셀 단위 시각 확인이 꼭 필요하면 (a) 다른 세션/환경(예: 이전에 성공했던 "네트워크 전체 접근" 정책 세션)에서 재시도하거나 (b) 회장이 직접 두 링크를 열어 육안 확인하는 방법이 가장 빠름 — 링크: https://tossneon.gumroad.com/l/ai-board-of-directors , https://tossneon.gumroad.com/l/investor-panel
+  - **회장 액션 필요 시**: 픽셀 단위 시각 확인이 꼭 필요하면 (a) 다른 세션/환경(예: 이전에 성공했던 "네트워크 전체 접근" 정책 세션)에서 재시도하거나 (b) 회장이 직접 두 링크를 열어 육안 확인하는 방법이 가장 빠름 — 링크: https://nadacompany.gumroad.com/l/ai-board-of-directors , https://nadacompany.gumroad.com/l/investor-panel
 
 ## 부록 2 — "Full" 환경 세션에서 재검증 시도 결과 (2026-08-09)
 

@@ -39,7 +39,7 @@ A1을 산 사람 = "혼자 결정 내리는 데 지친 인디해커/솔로 창�
 > **Composite**: PASS on the generic version, KEEP if narrowed to one specific underserved niche with an existing community to reach.
 
 **섹션 3 — 프롬프트 오브 더 위크 (미리보기)**
-> "Steelman the Case Against This" — full prompt is one of the 15 in the [AI Board of Directors](https://tossneon.gumroad.com/l/ai-board-of-directors) pack, linked for readers who want the full set.
+> "Steelman the Case Against This" — full prompt is one of the 15 in the [AI Board of Directors](https://nadacompany.gumroad.com/l/ai-board-of-directors) pack, linked for readers who want the full set.
 
 ## 남은 단계 (회장 액션 필요)
 

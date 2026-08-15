@@ -103,7 +103,7 @@ A1과 동일 계정·동일 정산 구조(Gumroad 계좌 직접입금) 재사용
 - Gumroad `PUT /v2/products/:id`로 name("PromptDeck Pro — Save AI Prompts Once, Insert Them Anywhere")·description(다른 3개와 동일한 HTML 구조: 훅→Free/Pro 비교→3단계 사용법→"왜 사이드로드인가"→FAQ→가격/환불)·tags(8개)·custom_summary·custom_receipt(설치 zip 링크+단계별 안내) 전부 채움. `POST /v2/products/:id/covers`로 커버 3장 raw.githubusercontent.com URL 임포트.
 - **Gumroad 커스텀 영수증에 라이선스 키를 직접 삽입하는 머지태그가 있는지 확인 없이 지어내지 않음** — 검색으로 확인한 결과 Gumroad는 "Generate a unique license key per sale" 켠 상품의 경우 구매 확인 화면/영수증에 **네이티브로 라이선스 키를 자동 표시**하며, 별도 플레이스홀더 문법은 확인되지 않음 — 영수증 문구를 "키는 이 페이지/영수증에 자동으로 표시됩니다"로 정직하게 작성.
 
-**검증**: Cloudflare Browser Rendering으로 라이브 페이지(`https://tossneon.gumroad.com/l/promptdeck-pro`) 실제 렌더링 확인 — 제목/가격($9)/훅 문구/FAQ/커버 캐러셀(3장)/"I want this!" 버튼 전부 정상 노출. 스크린샷: [`promptdeck-exhibits/04-live-verify-promptdeck-pro.png`](products/promptdeck-exhibits/04-live-verify-promptdeck-pro.png).
+**검증**: Cloudflare Browser Rendering으로 라이브 페이지(`https://nadacompany.gumroad.com/l/promptdeck-pro`) 실제 렌더링 확인 — 제목/가격($9)/훅 문구/FAQ/커버 캐러셀(3장)/"I want this!" 버튼 전부 정상 노출. 스크린샷: [`promptdeck-exhibits/04-live-verify-promptdeck-pro.png`](products/promptdeck-exhibits/04-live-verify-promptdeck-pro.png).
 
 **4개 상품 전체 재감사 결과**: `promptdeck-pro`(desc 2603자·covers 3·tags 8·summary 426자) / `code-review-board`(2897·3·8·506) / `ai-board-of-directors`(2649·3·8·385) / `investor-panel`(1935·**2**·8·324) — investor-panel만 커버가 2장으로 다른 3개보다 적음(치명적이진 않으나 일관성 낮음). **다음 백로그 항목으로 기록**: investor-panel 커버 3번째 추가 검토.
 
