@@ -131,6 +131,36 @@ function MeetingScene({ room, staff, topic }: { room: Room; staff: Staff[]; topi
   );
 }
 
+/** 자리↔회의실 사이 복도 — 실제 회의 참석 여부(inMeeting)와는 무관한 순수 장식용
+ *  연출이다(스냅샷 데이터에 없는 움직임이라 "지금 진짜 이동 중"이라는 뜻은 아님).
+ *  몇 초마다 한 명이 조용히 지나가는 정도로 그친다 — 다 같이 우르르 움직이면
+ *  오히려 산만해지므로 "한 순간에 한 명"만. prefers-reduced-motion이면 아예 끔. */
+function Corridor({ staff }: { staff: Staff[] }) {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    if (!staff.length) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const walk = () => setTick((t) => t + 1);
+    const first = setTimeout(walk, 1500);
+    const loop = setInterval(walk, 7000);
+    return () => {
+      clearTimeout(first);
+      clearInterval(loop);
+    };
+  }, [staff.length]);
+
+  if (!staff.length) return null;
+  const person = staff[tick % staff.length];
+  const reverse = tick % 2 === 1;
+  return (
+    <div className="corridor" aria-hidden="true">
+      <div className={`walker${reverse ? " reverse" : ""}`} key={`${person.id}-${tick}`}>
+        <CharacterSprite seed={person.id} wearsBadge={person.rank !== "ceo"} size={22} flip={reverse} />
+      </div>
+    </div>
+  );
+}
+
 function headCountLabel(staff: Staff[]) {
   const leads = staff.filter((s) => s.rank === "ceo" || s.rank === "lead").length;
   const members = staff.filter((s) => s.rank === "member").length;
@@ -538,8 +568,9 @@ export default function App() {
   const regularRooms = rooms.filter((r) => r.kind !== "meeting");
   const meetingRoom = rooms.find((r) => r.kind === "meeting");
 
-  const meetingStaff = STAFF.filter((s) => s.companyId === companyId && s.inMeeting);
-  const onDuty = STAFF.filter((s) => s.companyId === companyId).length;
+  const companyStaff = STAFF.filter((s) => s.companyId === companyId);
+  const meetingStaff = companyStaff.filter((s) => s.inMeeting);
+  const onDuty = companyStaff.length;
 
   /** 승인/지시 상태가 바뀔 때마다 서버에 전체 상태를 덮어쓴다(PUT은 통째로 저장하는 API라
    *  건건이 조각을 보낼 수 없다). 토큰이 없으면 pushState가 조용히 false를 돌려줄 뿐이라
@@ -623,6 +654,7 @@ export default function App() {
                   />
                 ))}
 
+                {meetingRoom ? <Corridor staff={companyStaff} /> : null}
                 {meetingRoom ? <MeetingScene room={meetingRoom} staff={meetingStaff} topic={MEETING_TOPIC} /> : null}
               </div>
 
