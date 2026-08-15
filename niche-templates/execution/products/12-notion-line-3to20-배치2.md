@@ -14,12 +14,11 @@
 
 Investor Update Board는 기존 Investor Panel(피치덱 심사, 투자 유치 **전**)과 겹치지 않도록 "투자 유치 **후** 정기 업데이트 메일 검토"로 명확히 차별화 — 상품 설명·FAQ에 서로 링크·구분 문구 포함.
 
-## 6번째 — Brand Name & Domain Panel (콘텐츠 완성, 발행은 다음 날)
+## 6번째 — Brand Name & Domain Panel (2026-08-15 발행 완료)
 
 - 페르소나: 🔍 Trademark Risk Skeptic · 🗣️ Memorability & Mispronunciation Tester · 🌐 Domain & Handle Realist
 - Notion 빌드(루트+DB+Start Here+Prompt Sets 15개, 데모 콘텐츠까지) **전부 완료**, 공개 확인(`fearless-frog-802.notion.site` HTTP 200)까지 마침.
-- **Gumroad `POST /v2/products` 호출만 실패** — `"Sorry, you can only create 10 products per day."` (하루 10개 상품 생성 계정 한도, 이번에 처음 확인된 사실). 1차 배치(5개)+2차 배치 첫 5개로 오늘 한도 소진.
-- **다음 세션에서 바로 발행 가능** — Notion 콘텐츠 전부 대기 중, Gumroad 상품 생성 1콜 + 커버 3장 + receipt/offer/enable만 하면 끝. 콘텐츠는 이 문서와 Notion 루트(`3bafc7dfab7a81968729d1387b6ce093`)에 그대로 있음.
+- **🎉 라이브: https://nadacompany.gumroad.com/l/brand-name-domain-panel** — 3일 대기 끝에 2026-08-15 하루 한도 리셋 확인 직후 발행. 커버 3장은 이번에 새로 제작(기존 니치 7종엔 있던 exhibits 폴더가 이 상품엔 없었음) — Cloudflare Browser Rendering으로 HTML/CSS 목업 렌더링, `niche-templates/execution/products/brand-name-domain-panel-exhibits/`에 커밋. $11(정가 $18), WELCOME2 할인코드, custom_receipt(Notion 복제 링크)까지 전부 설정, API 필드 재확인 + 라이브 페이지 픽셀 검증(Cloudflare Browser Rendering 스크린샷) 완료.
 
 ## 새로 확인된 제약 — Gumroad 하루 10개 상품 생성 한도
 
@@ -35,4 +34,4 @@ Investor Update Board는 기존 Investor Panel(피치덱 심사, 투자 유치 *
 
 ## 진행 상황 — 20종 목표 대비
 
-3종(기존) + 5종(1차) + 5종(2차) = **13종 발행 완료**, 1종(Brand Name & Domain Panel) 콘텐츠 완성·발행 대기, 3차 배치(6종)는 착수 전. 20종까지 6종 남음(3차 배치 그대로 채우면 완성).
+3종(기존) + 5종(1차) + 5종(2차) + 1종(Brand Name & Domain Panel, 2026-08-15 발행) + 니치마켓 7종([13번 문서](13-니치마켓-확장.md), 2026-08-15 발행) = **21종 전부 발행 완료**. 20종 목표 초과 달성, 3차 배치(6종)는 별도 확장 후보로 보류.
