@@ -11,11 +11,11 @@
 
 | 상품 | 3개 페르소나 | 라이브 링크 |
 |---|---|---|
-| **Marketing Copy Board** | 🕵️ Skeptical Customer · 📉 Conversion Realist · 🛡️ Brand Guardian | https://tossneon.gumroad.com/l/marketing-copy-board |
-| **Pricing Council** | 💰 Value Maximizer · 🏁 Competitor Realist · 📉 Churn Predictor | https://tossneon.gumroad.com/l/pricing-council |
-| **Hiring Panel** | 🎯 Skills Verifier · 🚩 Red-Flag Hunter · 💰 Culture & Cash-Flow Realist | https://tossneon.gumroad.com/l/hiring-panel |
-| **Feature Prioritization Board** | 👥 User Value Skeptic · ⚙️ Effort Realist · 🎯 Strategic Fit Pragmatist | https://tossneon.gumroad.com/l/feature-prioritization-board |
-| **Cold Outreach Board** | 🚫 Spam Filter Simulator · 🎭 Recipient Empathy Check · 📊 Response Rate Realist | https://tossneon.gumroad.com/l/cold-outreach-board |
+| **Marketing Copy Board** | 🕵️ Skeptical Customer · 📉 Conversion Realist · 🛡️ Brand Guardian | https://nadacompany.gumroad.com/l/marketing-copy-board |
+| **Pricing Council** | 💰 Value Maximizer · 🏁 Competitor Realist · 📉 Churn Predictor | https://nadacompany.gumroad.com/l/pricing-council |
+| **Hiring Panel** | 🎯 Skills Verifier · 🚩 Red-Flag Hunter · 💰 Culture & Cash-Flow Realist | https://nadacompany.gumroad.com/l/hiring-panel |
+| **Feature Prioritization Board** | 👥 User Value Skeptic · ⚙️ Effort Realist · 🎯 Strategic Fit Pragmatist | https://nadacompany.gumroad.com/l/feature-prioritization-board |
+| **Cold Outreach Board** | 🚫 Spam Filter Simulator · 🎭 Recipient Empathy Check · 📊 Response Rate Realist | https://nadacompany.gumroad.com/l/cold-outreach-board |
 
 전부 가격 $11(정가 $18), 할인코드 `WELCOME2`($2 상시), Notion 루트 → Start Here / [Tracking DB] / Prompt Sets(15개) 구조, 세계관 연속성을 위해 데모 콘텐츠는 전부 "Alex의 RoastLoop 커피 구독 서비스"로 통일.
 

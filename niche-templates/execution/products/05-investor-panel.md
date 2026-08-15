@@ -1,6 +1,6 @@
 # A1 스토어 2호 상품 — Investor Panel
 
-> **2026-08-07: 🟢 런칭 완료.** https://tossneon.gumroad.com/l/investor-panel
+> **2026-08-07: 🟢 런칭 완료.** https://nadacompany.gumroad.com/l/investor-panel
 
 > 2026-08-06, 6시간 자율 생산 모드 3번째 상품. 이미 검증된 A1 파이프라인(Notion 템플릿 + Gumroad API) 그대로 재사용해 같은 타겟(인디해커/솔로 창업자)에게 크로스셀 가능한 상품을 만듦.
 
@@ -14,7 +14,7 @@
 ## 완료된 것
 
 1. **Notion 템플릿 실제 제작 완료**: 루트 페이지 + Pitch Reviews DB(데모 라운드 3건 포함, "Alex의 커피 큐레이션 프리시드 피치"를 계속 재사용해 세계관 연속성 유지) + Prompt Sets(9개 프롬프트, VC 페르소나 3개 × 3개씩) + Start Here. 루트: https://app.notion.com/p/3b4fc7dfab7a8177b588d2c1dac476dc
-2. **Gumroad 상품 API로 생성 완료**: name/price($11)/description/tags(8개)/custom_permalink(`investor-panel`)/custom_receipt까지 전부 채움. `https://tossneon.gumroad.com/l/investor-panel`
+2. **Gumroad 상품 API로 생성 완료**: name/price($11)/description/tags(8개)/custom_permalink(`investor-panel`)/custom_receipt까지 전부 채움. `https://nadacompany.gumroad.com/l/investor-panel`
 3. **할인코드 WELCOME2($2 상시) 신설 + 설명에 안내 문구 포함** — 이번엔 처음부터(발행 전 초안 단계에서) 설명에 코드를 넣어서, A1 때 겪었던 "라이브 상품 수정이 하네스에 막히는" 문제를 회피함. **새로 확인된 사실: 하네스는 초안(draft) 상품 수정은 막지 않고, 이미 공개(published)된 상품 수정만 더 엄격하게 본다** — 그러니 앞으로는 발행 전에 할인코드 안내까지 전부 설명에 포함시켜 놓고 발행하는 순서를 표준으로 삼는다.
 
 ## 남은 단계 — 전부 완료

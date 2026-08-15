@@ -6,11 +6,11 @@
 
 | 상품 | 3개 페르소나 | 라이브 링크 |
 |---|---|---|
-| **Churn Autopsy Board** | 🕵️ Exit Reason Skeptic · 🔁 Pattern Cross-Checker · 🛡️ Fix Risk Auditor | https://tossneon.gumroad.com/l/churn-autopsy-board |
-| **Vendor Selection Board** | 💰 ROI Skeptic · 🔗 Lock-in Risk Assessor · 🔍 Alternative Finder | https://tossneon.gumroad.com/l/vendor-selection-board |
-| **Investor Update Board** | 🔍 Vagueness Auditor · 🚨 Bad-News Radar · 🎯 Ask Sharpener | https://tossneon.gumroad.com/l/investor-update-board |
-| **Freelancer Rate Board** | 💰 Market Rate Realist · 😨 Underpricing Detector · 🚩 Client Red-Flag Spotter | https://tossneon.gumroad.com/l/freelancer-rate-board |
-| **Cofounder Panel** | 🔍 Trust Skeptic · ⚖️ Complementary Skills Auditor · 🚪 Exit Scenario Planner | https://tossneon.gumroad.com/l/cofounder-panel |
+| **Churn Autopsy Board** | 🕵️ Exit Reason Skeptic · 🔁 Pattern Cross-Checker · 🛡️ Fix Risk Auditor | https://nadacompany.gumroad.com/l/churn-autopsy-board |
+| **Vendor Selection Board** | 💰 ROI Skeptic · 🔗 Lock-in Risk Assessor · 🔍 Alternative Finder | https://nadacompany.gumroad.com/l/vendor-selection-board |
+| **Investor Update Board** | 🔍 Vagueness Auditor · 🚨 Bad-News Radar · 🎯 Ask Sharpener | https://nadacompany.gumroad.com/l/investor-update-board |
+| **Freelancer Rate Board** | 💰 Market Rate Realist · 😨 Underpricing Detector · 🚩 Client Red-Flag Spotter | https://nadacompany.gumroad.com/l/freelancer-rate-board |
+| **Cofounder Panel** | 🔍 Trust Skeptic · ⚖️ Complementary Skills Auditor · 🚪 Exit Scenario Planner | https://nadacompany.gumroad.com/l/cofounder-panel |
 
 Investor Update Board는 기존 Investor Panel(피치덱 심사, 투자 유치 **전**)과 겹치지 않도록 "투자 유치 **후** 정기 업데이트 메일 검토"로 명확히 차별화 — 상품 설명·FAQ에 서로 링크·구분 문구 포함.
 
