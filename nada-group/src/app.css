@@ -230,9 +230,12 @@
   border-radius: 10px;
   overflow: hidden;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* 팀이 늘어나도 세로로 계속 길어지지 않게, 들어갈 수 있는 만큼 한 줄에
+     채운다(픽셀오피스의 부서방 그리드 배치를 참고) — 회의실만 아래에 따로
+     전체 폭으로 붙는다. */
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
-@media (max-width: 640px) {
+@media (max-width: 480px) {
   .office-floor {
     grid-template-columns: 1fr;
   }
@@ -241,21 +244,17 @@
 .zone {
   position: relative;
   padding: 26px 14px 16px;
-  border-right: 1px dashed var(--line);
-  border-bottom: 1px dashed var(--line);
   min-height: 108px;
-}
-.office-floor > .zone:nth-child(2n),
-.office-floor > .zone:last-of-type {
-  border-right: none;
-}
-@media (max-width: 640px) {
-  .office-floor > .zone {
-    border-right: none;
-  }
+  /* border-right/bottom 대신 outline을 써서, 칸 수가 가변인 auto-fit
+     그리드에서도 nth-child 계산 없이 모든 칸에 똑같이 격자선이 생기게 한다. */
+  outline: 1px dashed var(--line);
+  outline-offset: -1px;
 }
 .zone[data-kind="ceo"] {
-  background: linear-gradient(180deg, rgba(168, 112, 15, 0.06), transparent 60px);
+  background: linear-gradient(180deg, rgba(168, 112, 15, 0.08), transparent 70px);
+  /* CEO는 "방"이라는 느낌을 주기 위해 점선 대신 실선 테두리로 구분. */
+  outline: 2px solid var(--amber);
+  outline-offset: -2px;
 }
 .zone-label {
   position: absolute;
@@ -402,6 +401,7 @@
   grid-column: 1 / -1;
   position: relative;
   padding: 30px 16px 20px;
+  outline: none;
   border-top: 1px dashed var(--line);
   background: linear-gradient(180deg, rgba(194, 63, 48, 0.05), transparent 70px);
 }
