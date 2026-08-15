@@ -1,18 +1,4 @@
 {
-  "extraKnownMarketplaces": {
-    "claude-plugins-official": {
-      "source": {
-        "source": "github",
-        "repo": "anthropics/claude-plugins-official"
-      }
-    },
-    "claude-community": {
-      "source": {
-        "source": "github",
-        "repo": "anthropics/claude-plugins-community"
-      }
-    }
-  },
   "permissions": {
     "allow": [
       "Bash(git add *)",
@@ -75,6 +61,54 @@
       "mcp__Notion__notion-get-comments",
       "mcp__Notion__notion-create-comment"
     ]
+  },
+  "enabledPlugins": {
+    "hookify@claude-plugins-official": true,
+    "mcp-server-dev@claude-plugins-official": true,
+    "plugin-dev@claude-plugins-official": true,
+    "claude-security@claude-plugins-official": true,
+    "playground@claude-plugins-official": true,
+    "project-artifact@claude-plugins-official": true,
+    "google-cloud-storage@claude-plugins-official": true,
+    "exa@claude-plugins-official": true,
+    "chrome-devtools-mcp@claude-plugins-official": true,
+    "canva@claude-plugins-official": true,
+    "hyperframes@claude-plugins-official": true,
+    "cloudinary@claude-plugins-official": true,
+    "save-to-spotify@claude-plugins-official": true,
+    "telegram@claude-plugins-official": true,
+    "discord@claude-plugins-official": true,
+    "resend@claude-plugins-official": true,
+    "notion@claude-plugins-official": true,
+    "mintlify@claude-plugins-official": true,
+    "carbone-skill@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "duckdb-skills@claude-plugins-official": true,
+    "revenuecat@claude-plugins-official": true,
+    "stripe@claude-plugins-official": true,
+    "paypal@claude-plugins-official": true,
+    "sumup@claude-plugins-official": true,
+    "shopify-ai-toolkit@claude-plugins-official": true,
+    "liquid-skills@claude-plugins-official": true,
+    "noibu@claude-plugins-official": true,
+    "posthog@claude-plugins-official": true,
+    "sentry@claude-plugins-official": true,
+    "sentry-cli@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
+    },
+    "claude-community": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-community"
+      }
+    }
   },
   "autoMode": {
     "allow": [
