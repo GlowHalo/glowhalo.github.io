@@ -55,4 +55,4 @@
 
 최근 며칠간 Notion 워크스페이스 분리·계정 비밀번호 표준화·GitHub 폴더 구조 개편(companyN → 주제별 이름)이 한꺼번에 진행되면서, 오래 이어진 세션이 옛 맥락(옛 경로·옛 워크스페이스)에 헷갈릴 수 있다는 회장 판단으로 이 계열사 세션을 새로 열었다. 새 세션은 이 파일과 `candidates.md` 등 폴더 안 문서를 정본으로 삼아 현재 상태부터 파악할 것.
 
-**전 세션에서 회장 확인 대기 중이던 것**: SendGrid 가입 + Single Sender Verification(tossneon0@gmail.com) 승인 필요
+**전 세션에서 회장 확인 대기 중이던 것 → 2026-08-15 재확인 결과 정정**: SendGrid 신규 가입 건은 실제로는 착수 전에 폐기됐다. `execution/E1-웰니스리포트.md`(rhythmnote) 진행 중 `birkman-automation`이 이미 Resend를 쓰고 있는 걸 발견해 그 패턴을 재사용하기로 했고, Resend는 2026-08-12에 이미 가입 완료(금고 `resend_api_key` 등록됨) — SendGrid는 필요 없어졌다. 대신 실제로 남은 대기 항목은 **발신용 커스텀 도메인 구매 여부**(Resend 샌드박스 제한으로 도메인 인증 전엔 발신자 본인 메일로만 발송 가능) — `assessment-products`(Reflect Lab)와 공용으로 걸리는 그룹 전체 인프라 블로커다. 상세는 `execution/E1-웰니스리포트.md`의 "막힌 지점" 절과 `assessment-products/README.md`의 동일 항목 참고.
