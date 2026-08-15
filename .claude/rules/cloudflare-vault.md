@@ -59,7 +59,8 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `google_login_password` | 위와 동일 용도 |
 | `browserbase_api_key` | Browserbase(클라우드 원격 브라우저) — 이 세션 프록시를 안 거치는 헤드리스 브라우저 자동화용 (무료 플랜) |
 | `whop_api_key` | Whop API — 템플릿류(A1)·앱류(A2) 공용 채널, 회장이 가입 완료(2026-08-09) |
-| `chairman_payout_account_kakaobank` | 회장 개인 정산 계좌(카카오뱅크) — 각종 플랫폼 "정산 계좌 등록" 폼 자동입력용. JSON({bank, bankEn, accountNumber, accountHolder, swiftCode}). **swiftCode는 `KAKOKR22XXX`**(2023-03-29 카카오뱅크가 변경한 현행 코드, 2026-08-11 등록·교차검증 완료) — 해외 플랫폼 정산(RapidAPI, Lemon Squeezy 등) 등록 폼에 그대로 씀 |
+| `chairman_payout_account_kakaobank` | 회장 개인 정산 계좌(카카오뱅크) — **2026-08-15부터 신규 등록은 `chairman_payout_account_ibk`로 전환, 이 계좌는 기존에 이미 등록된 곳만 유지**(회장이 필요할 때 차차 변경). JSON({bank, bankEn, accountNumber, accountHolder, swiftCode}). swiftCode는 `KAKOKR22XXX`(2023-03-29 카카오뱅크가 변경한 현행 코드, 2026-08-11 등록·교차검증 완료) |
+| `chairman_payout_account_ibk` | **나다컴퍼니 공식 정산 계좌(기업은행, 2026-08-15 회장 확정)** — 앞으로 새로 등록하는 플랫폼은 이 계좌를 우선 사용. JSON({bank, bankEn, accountNumber, accountHolder, swiftCode}). **swiftCode는 `IBKOKRSEXXX`**(2026-08-15 등록 시 웹서치로 교차검증 완료 — 회장이 전달한 값 `IBK0KRSEXXX`은 O/0 오타였음, 정정해서 등록) |
 | `firefox_addons_jwt_issuer` | Firefox Add-ons(Mozilla) API 인증 — JWT 발급자, 앱류(A2 PromptDeck) 신규 제출까지 API로 완전자동화 가능한 채널. 회장이 개발자 계정 가입 완료(2026-08-09) |
 | `firefox_addons_jwt_secret` | 위와 동일 용도 — JWT 시크릿 |
 | `paypal_business_email` / `paypal_business_password` | 나다컴퍼니용 PayPal **Business** 계정(tossneon0, 2026-08-09 신규 생성) — 자유롭게 활용(회장 지시). 예전 개인계정(`chairman_paypal_*`)은 폐기·삭제됨 |
