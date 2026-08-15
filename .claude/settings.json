@@ -63,26 +63,10 @@
     ]
   },
   "enabledPlugins": {
-    "hookify@claude-plugins-official": true,
-    "mcp-server-dev@claude-plugins-official": true,
-    "plugin-dev@claude-plugins-official": true,
     "claude-security@claude-plugins-official": true,
-    "playground@claude-plugins-official": true,
-    "project-artifact@claude-plugins-official": true,
-    "exa@claude-plugins-official": true,
-    "chrome-devtools-mcp@claude-plugins-official": true,
-    "canva@claude-plugins-official": true,
-    "cloudinary@claude-plugins-official": true,
-    "save-to-spotify@claude-plugins-official": true,
-    "telegram@claude-plugins-official": true,
-    "discord@claude-plugins-official": true,
     "resend@claude-plugins-official": true,
-    "mintlify@claude-plugins-official": true,
-    "carbone-skill@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
-    "duckdb-skills@claude-plugins-official": true,
-    "revenuecat@claude-plugins-official": true,
     "cloudflare@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
