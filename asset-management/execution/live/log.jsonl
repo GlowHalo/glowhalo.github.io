@@ -1,3 +1,4 @@
 {"mode": "DRY-RUN", "action": "no_orders", "krw": 0.88465026}
 {"mode": "DRY-RUN", "action": "no_orders", "krw": 0.88465026}
 {"mode": "DRY-RUN", "action": "no_orders", "krw": 0.88465026}
+{"mode": "LIVE", "action": "verify_roundtrip_ok", "market": "KRW-BTC", "krw": 5500, "ts": "2026-08-15T10:25:00Z", "note": "2026-08-15 19:25 KST 루틴 세션이 실제 체결. 그 세션이 커밋을 남기지 못해 유실된 것을 회장 제공 거래내역 스크린샷 + 계좌 조회(KRW 299,995원, BTC 잔고 0)로 확인해 사후 기록함. 수수료 5원. uuid는 유실되어 미기재."}
