@@ -1,0 +1,23 @@
+[
+  {
+    "n": 1,
+    "phrase": "보고싶었어 (그리움)",
+    "slug": "01-bogosipeosseo",
+    "expr": "soft watery longing eyes slightly teary, small wistful downturned smile",
+    "arms": "arms reaching forward as if hugging someone far away"
+  },
+  {
+    "n": 4,
+    "phrase": "뽀뽀해줘 (애교)",
+    "slug": "04-ppoppohaejwo",
+    "expr": "eyes closed in a puckered kissing expression, small round pucker mouth, one small pink heart-shaped kiss mark icon floating nearby",
+    "arms": "paws pressed near the cheeks"
+  },
+  {
+    "n": 7,
+    "phrase": "사랑해 (직진 고백)",
+    "slug": "07-saranghae",
+    "expr": "big sparkling heart-shaped eyes, wide joyful open smile, one large red heart icon floating above the head",
+    "arms": "arms spread open wide"
+  }
+]
