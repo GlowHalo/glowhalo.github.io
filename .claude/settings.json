@@ -94,7 +94,10 @@
     "noibu@claude-plugins-official": true,
     "posthog@claude-plugins-official": true,
     "sentry@claude-plugins-official": true,
-    "sentry-cli@claude-plugins-official": true
+    "sentry-cli@claude-plugins-official": true,
+    "firebase@claude-plugins-official": true,
+    "github@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
