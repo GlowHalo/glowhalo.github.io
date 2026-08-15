@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import CharacterDefs from "./characters/CharacterDefs";
 import CharacterSprite from "./characters/CharacterSprite";
 import {
@@ -63,22 +63,9 @@ function DeskPerson({ staff, bare, flip }: { staff: Staff; bare?: boolean; flip?
   );
 }
 
-/** 지금 회의 중이라 자리를 비운 사람 — 여기(원래 자리)엔 그리지 않고, 빈 책상 +
- *  "회의중" 표시만 남긴다. 실제 모습은 회의 구역(MeetingScene)에만 존재한다
- *  — 한 사람이 두 군데 동시에 보이던 문제를 구조적으로 없앤 것. */
-function GhostDesk({ staff }: { staff: Staff }) {
-  return (
-    <div className="desk ghost">
-      <span className="ghost-tag">{(staff.name ?? staff.roleLabel)} · 회의중</span>
-      <div className="ghost-slot" />
-      <div className="surface2" />
-    </div>
-  );
-}
-
-/** 방 하나 = 바닥 위의 구역(zone) 하나. 회의 참석 중인 사람은 여기서 빠지고
- *  GhostDesk로 대체된다. */
-function Zone({ room, staff, headCount }: { room: Room; staff: Staff[]; headCount: string }) {
+/** 방 하나 = 바닥 위의 구역(zone) 하나. 회의실이 따로 없는(=roam 시뮬레이션을
+ *  안 쓰는) 회사는 이 정적 렌더링만으로 충분 — 다들 항상 자기 자리에 있다. */
+function StaticZone({ room, staff, headCount }: { room: Room; staff: Staff[]; headCount: string }) {
   return (
     <div className="zone" data-kind={room.kind}>
       <div className="zone-label">
@@ -87,21 +74,147 @@ function Zone({ room, staff, headCount }: { room: Room; staff: Staff[]; headCoun
         <span className="headcount">· {headCount}</span>
       </div>
       <div className="zone-desks">
-        {staff.map((s) => (s.inMeeting ? <GhostDesk key={s.id} staff={s} /> : <DeskPerson key={s.id} staff={s} />))}
+        {staff.map((s) => (
+          <DeskPerson key={s.id} staff={s} />
+        ))}
       </div>
     </div>
   );
 }
 
-/** 회의 구역 — 타원 테이블을 사이에 두고 두 줄이 마주보게 배치한다(안쪽 줄은
- *  좌우 반전해서 테이블 건너편에서 이쪽을 보는 것처럼). 발언 순서가 도는 것처럼
- *  말풍선 점을 사람마다 다른 타이밍으로 pulse시켜, 정적인 사진이 아니라
- *  "지금 대화 중"인 느낌을 준다. */
-function MeetingScene({ room, staff, topic }: { room: Room; staff: Staff[]; topic: string }) {
-  const mid = Math.ceil(staff.length / 2);
-  const far = staff.slice(0, mid);
-  const near = staff.slice(mid);
-  const speakDelay = (i: number) => `${((i * 3.6) / Math.max(staff.length, 1)).toFixed(2)}s`;
+// ── 아래는 "자리 ↔ 회의실"을 실제로 오가는 사무실 시뮬레이션 ──────────────
+// 방 카드마다 따로 그리는 대신, 책상/좌석은 고정된 "빈 가구"로만 그리고
+// 사람은 그 위에 절대좌표로 얹어서 자리와 회의실 사이를 실제로 걸어다니게 한다.
+
+type RoamPhase = "desk" | "toMeeting" | "meeting" | "toDesk";
+type RoamState = { phase: RoamPhase; changeAt: number; seat: number };
+type Pt = { x: number; y: number };
+
+const DESK_MS: [number, number] = [20000, 42000]; // 자리에서 일하는 시간
+const WALK_MS = 2600; // 이동 시간(아래 CSS .roam-person transition과 맞춰야 함)
+const MEETING_MS: [number, number] = [14000, 30000]; // 회의실에 머무는 시간
+const RETRY_MS: [number, number] = [3000, 7000]; // 좌석이 꽉 차서 못 갈 때 재시도 간격
+
+function randIn([a, b]: [number, number]): number {
+  return a + Math.random() * (b - a);
+}
+
+/** "자리에서 일하다 → 회의실로 걸어가서 → 좀 있다가 → 다시 자리로" 를 사람마다
+ *  독립적으로 반복하는 아주 단순한 상태기계. 데이터의 inMeeting은 "시작 상태"로만
+ *  쓰고, 그 이후 흐름은 이 타이머가 알아서 돈다 — 다들 다른 타이밍에 움직여야
+ *  진짜 사무실처럼 보인다. 좌석 수(seatCount)만큼만 동시에 회의 가능. */
+function useOfficeSim(staffIds: string[], seatCount: number, startInMeeting: Set<string>) {
+  const [state, setState] = useState<Record<string, RoamState>>(() => {
+    const now = Date.now();
+    const init: Record<string, RoamState> = {};
+    let seat = 0;
+    for (const id of staffIds) {
+      if (startInMeeting.has(id) && seat < seatCount) {
+        init[id] = { phase: "meeting", changeAt: now + randIn(MEETING_MS), seat: seat++ };
+      } else {
+        init[id] = { phase: "desk", changeAt: now + randIn(DESK_MS), seat: -1 };
+      }
+    }
+    return init;
+  });
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const loop = setInterval(() => {
+      setState((prev) => {
+        const now = Date.now();
+        const occupied = new Set(
+          Object.values(prev)
+            .filter((p) => p.phase === "toMeeting" || p.phase === "meeting")
+            .map((p) => p.seat),
+        );
+        let changed = false;
+        const next = { ...prev };
+        for (const id of staffIds) {
+          const p = prev[id];
+          if (!p || now < p.changeAt) continue;
+          changed = true;
+          if (p.phase === "desk") {
+            let freeSeat = -1;
+            for (let i = 0; i < seatCount; i++) {
+              if (!occupied.has(i)) {
+                freeSeat = i;
+                break;
+              }
+            }
+            if (freeSeat >= 0) {
+              occupied.add(freeSeat);
+              next[id] = { phase: "toMeeting", changeAt: now + WALK_MS, seat: freeSeat };
+            } else {
+              next[id] = { ...p, changeAt: now + randIn(RETRY_MS) };
+            }
+          } else if (p.phase === "toMeeting") {
+            next[id] = { ...p, phase: "meeting", changeAt: now + randIn(MEETING_MS) };
+          } else if (p.phase === "meeting") {
+            next[id] = { ...p, phase: "toDesk", changeAt: now + WALK_MS };
+          } else {
+            next[id] = { phase: "desk", changeAt: now + randIn(DESK_MS), seat: -1 };
+          }
+        }
+        return changed ? next : prev;
+      });
+    }, 900);
+    return () => clearInterval(loop);
+  }, [staffIds, seatCount]);
+
+  return state;
+}
+
+/** 책상 하나 — 항상 점선 빈 자리(가구)만 그린다. 이름표는 사람이 지금 어디
+ *  있든(자기 자리든 회의실이든) 그 사람과 함께 다니는 roam-person 쪽에만
+ *  붙인다(고정 명패를 따로 두면 둘이 겹쳐 보여서 뺐다). 실제 캐릭터는
+ *  OfficeScene의 people-layer가 절대좌표로 얹는다. */
+function ZoneFurniture({
+  room,
+  staff,
+  headCount,
+  registerDesk,
+}: {
+  room: Room;
+  staff: Staff[];
+  headCount: string;
+  registerDesk: (id: string, el: HTMLDivElement | null) => void;
+}) {
+  return (
+    <div className="zone" data-kind={room.kind}>
+      <div className="zone-label">
+        <span className="dot" />
+        {room.name}
+        <span className="headcount">· {headCount}</span>
+      </div>
+      <div className="zone-desks">
+        {staff.map((s) => (
+          <div className="desk" key={s.id}>
+            <div className="desk-anchor" ref={(el) => registerDesk(s.id, el)} />
+            <div className="surface2" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** 회의실 가구 — 타원 테이블 + 좌석(seatCount)만큼의 빈 자리. 누가 앉을지는
+ *  고정이 아니라 매 순간 시뮬레이션 상태에 따라 달라진다. */
+function MeetingFurniture({
+  room,
+  seatCount,
+  topic,
+  registerSeat,
+}: {
+  room: Room;
+  seatCount: number;
+  topic: string;
+  registerSeat: (index: number, el: HTMLDivElement | null) => void;
+}) {
+  const farCount = Math.ceil(seatCount / 2);
+  const farIdx = Array.from({ length: farCount }, (_, i) => i);
+  const nearIdx = Array.from({ length: seatCount - farCount }, (_, i) => farCount + i);
   return (
     <div className="zone meeting-zone" data-kind="meeting">
       <div className="zone-label">
@@ -110,20 +223,14 @@ function MeetingScene({ room, staff, topic }: { room: Room; staff: Staff[]; topi
       </div>
       <div className="meeting-scene">
         <div className="table-row far">
-          {far.map((s, i) => (
-            <div className="seat" key={s.id}>
-              <span className="speak-dot" style={{ "--speak-delay": speakDelay(i) } as CSSProperties} />
-              <DeskPerson staff={s} bare flip />
-            </div>
+          {farIdx.map((i) => (
+            <div className="seat-anchor" key={i} ref={(el) => registerSeat(i, el)} />
           ))}
         </div>
         <div className="oval-table" data-topic={topic} />
         <div className="table-row near">
-          {near.map((s, i) => (
-            <div className="seat" key={s.id}>
-              <DeskPerson staff={s} bare />
-              <span className="speak-dot" style={{ "--speak-delay": speakDelay(mid + i) } as CSSProperties} />
-            </div>
+          {nearIdx.map((i) => (
+            <div className="seat-anchor" key={i} ref={(el) => registerSeat(i, el)} />
           ))}
         </div>
       </div>
@@ -131,31 +238,120 @@ function MeetingScene({ room, staff, topic }: { room: Room; staff: Staff[]; topi
   );
 }
 
-/** 자리↔회의실 사이 복도 — 실제 회의 참석 여부(inMeeting)와는 무관한 순수 장식용
- *  연출이다(스냅샷 데이터에 없는 움직임이라 "지금 진짜 이동 중"이라는 뜻은 아님).
- *  몇 초마다 한 명이 조용히 지나가는 정도로 그친다 — 다 같이 우르르 움직이면
- *  오히려 산만해지므로 "한 순간에 한 명"만. prefers-reduced-motion이면 아예 끔. */
-function Corridor({ staff }: { staff: Staff[] }) {
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    if (!staff.length) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const walk = () => setTick((t) => t + 1);
-    const first = setTimeout(walk, 1500);
-    const loop = setInterval(walk, 7000);
-    return () => {
-      clearTimeout(first);
-      clearInterval(loop);
-    };
-  }, [staff.length]);
+/** 방+회의실 전체 — 가구(고정)는 흐름 레이아웃으로, 사람(움직임)은 people-layer에
+ *  절대좌표로 얹어서 자리↔회의실 사이를 실제로 걸어다니게 한다. 가구 위치를
+ *  재서 좌표를 구하고, 리사이즈되면(모바일 1열 전환 등) 다시 잰다. */
+function OfficeScene({
+  regularRooms,
+  meetingRoom,
+  staffByRoom,
+  companyStaff,
+  topic,
+}: {
+  regularRooms: Room[];
+  meetingRoom: Room;
+  staffByRoom: Map<string, Staff[]>;
+  companyStaff: Staff[];
+  topic: string;
+}) {
+  const seatCount = Math.min(4, Math.max(2, companyStaff.length));
+  const farCount = Math.ceil(seatCount / 2);
+  const staffIds = useMemo(() => companyStaff.map((s) => s.id), [companyStaff]);
+  const startInMeeting = useMemo(
+    () => new Set(companyStaff.filter((s) => s.inMeeting).map((s) => s.id)),
+    [companyStaff],
+  );
+  const sim = useOfficeSim(staffIds, seatCount, startInMeeting);
 
-  if (!staff.length) return null;
-  const person = staff[tick % staff.length];
-  const reverse = tick % 2 === 1;
+  const floorRef = useRef<HTMLDivElement | null>(null);
+  const deskRefs = useRef(new Map<string, HTMLDivElement>());
+  const seatRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [positions, setPositions] = useState<{ desks: Record<string, Pt>; seats: Pt[] }>({ desks: {}, seats: [] });
+
+  const measure = useCallback(() => {
+    const floor = floorRef.current;
+    if (!floor) return;
+    const fr = floor.getBoundingClientRect();
+    const desks: Record<string, Pt> = {};
+    deskRefs.current.forEach((el, id) => {
+      const r = el.getBoundingClientRect();
+      desks[id] = { x: r.left - fr.left + r.width / 2, y: r.top - fr.top + r.height };
+    });
+    const seats = seatRefs.current.map((el) => {
+      if (!el) return { x: 0, y: 0 };
+      const r = el.getBoundingClientRect();
+      return { x: r.left - fr.left + r.width / 2, y: r.top - fr.top + r.height };
+    });
+    setPositions({ desks, seats });
+  }, []);
+
+  useLayoutEffect(() => {
+    measure();
+    const floor = floorRef.current;
+    if (!floor) return;
+    const ro = new ResizeObserver(() => measure());
+    ro.observe(floor);
+    window.addEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [measure, staffIds]);
+
   return (
-    <div className="corridor" aria-hidden="true">
-      <div className={`walker${reverse ? " reverse" : ""}`} key={`${person.id}-${tick}`}>
-        <CharacterSprite seed={person.id} wearsBadge={person.rank !== "ceo"} size={22} flip={reverse} />
+    <div className="office-floor" ref={floorRef}>
+      {regularRooms.map((room) => (
+        <ZoneFurniture
+          key={room.id}
+          room={room}
+          staff={staffByRoom.get(room.id) ?? []}
+          headCount={room.kind === "ceo" ? "CEO OFFICE" : headCountLabel(staffByRoom.get(room.id) ?? [])}
+          registerDesk={(id, el) => {
+            if (el) deskRefs.current.set(id, el);
+            else deskRefs.current.delete(id);
+          }}
+        />
+      ))}
+      <MeetingFurniture
+        room={meetingRoom}
+        seatCount={seatCount}
+        topic={topic}
+        registerSeat={(i, el) => {
+          seatRefs.current[i] = el;
+        }}
+      />
+
+      <div className="people-layer">
+        {companyStaff.map((s) => {
+          const st = sim[s.id];
+          if (!st) return null;
+          const atMeeting = st.phase === "meeting" || st.phase === "toMeeting";
+          const target = atMeeting ? positions.seats[st.seat] : positions.desks[s.id];
+          if (!target) return null;
+          const flip = atMeeting && st.seat < farCount;
+          const style = {
+            "--stagger": staggerDelay(s.id),
+            "--walk-delay": quickStagger(s.id),
+          } as CSSProperties;
+          return (
+            <div
+              key={s.id}
+              className="roam-person"
+              style={{ transform: `translate(${target.x}px, ${target.y}px) translate(-50%, -100%)` }}
+            >
+              <div className="person" style={style}>
+                <PersonTag staff={s} />
+                <CharacterSprite seed={s.id} wearsBadge={s.rank !== "ceo"} flip={flip} size={30} />
+                {st.phase === "meeting" ? (
+                  <span
+                    className="speak-dot"
+                    style={{ "--speak-delay": quickStagger(`${s.id}-speak`) } as CSSProperties}
+                  />
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -567,9 +763,16 @@ export default function App() {
   const rooms = ROOMS.filter((r) => r.companyId === companyId);
   const regularRooms = rooms.filter((r) => r.kind !== "meeting");
   const meetingRoom = rooms.find((r) => r.kind === "meeting");
+  // 회의실 kind인 방이 그 회사의 유일한 방이면(예: brief-ai 토론실) 실제로는
+  // "자기 자리"로 쓰이는 것이니 정적 구역으로 보여준다 — roam 시뮬레이션은
+  // "자리"와 "회의실"이 둘 다 있을 때만 의미가 있다.
+  const soloRoom = regularRooms.length === 0 ? meetingRoom : undefined;
+  const hasRoam = Boolean(meetingRoom) && regularRooms.length > 0;
 
-  const companyStaff = STAFF.filter((s) => s.companyId === companyId);
-  const meetingStaff = companyStaff.filter((s) => s.inMeeting);
+  // companyId가 바뀔 때만 참조가 바뀌게 메모이즈 — 안 그러면 승인/지시함처럼
+  // 무관한 상태가 바뀔 때마다 새 배열이 만들어져서 시뮬레이션 타이머가 매번
+  // 리셋된다(진행 중이던 이동이 계속 끊기는 버그).
+  const companyStaff = useMemo(() => STAFF.filter((s) => s.companyId === companyId), [companyId]);
   const onDuty = companyStaff.length;
 
   /** 승인/지시 상태가 바뀔 때마다 서버에 전체 상태를 덮어쓴다(PUT은 통째로 저장하는 API라
@@ -644,19 +847,34 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="office-floor">
-                {regularRooms.map((room) => (
-                  <Zone
-                    key={room.id}
-                    room={room}
-                    staff={staffByRoom.get(room.id) ?? []}
-                    headCount={room.kind === "ceo" ? "CEO OFFICE" : headCountLabel(staffByRoom.get(room.id) ?? [])}
-                  />
-                ))}
-
-                {meetingRoom ? <Corridor staff={companyStaff} /> : null}
-                {meetingRoom ? <MeetingScene room={meetingRoom} staff={meetingStaff} topic={MEETING_TOPIC} /> : null}
-              </div>
+              {hasRoam && meetingRoom ? (
+                <OfficeScene
+                  key={companyId}
+                  regularRooms={regularRooms}
+                  meetingRoom={meetingRoom}
+                  staffByRoom={staffByRoom}
+                  companyStaff={companyStaff}
+                  topic={MEETING_TOPIC}
+                />
+              ) : (
+                <div className="office-floor">
+                  {regularRooms.map((room) => (
+                    <StaticZone
+                      key={room.id}
+                      room={room}
+                      staff={staffByRoom.get(room.id) ?? []}
+                      headCount={room.kind === "ceo" ? "CEO OFFICE" : headCountLabel(staffByRoom.get(room.id) ?? [])}
+                    />
+                  ))}
+                  {soloRoom ? (
+                    <StaticZone
+                      room={soloRoom}
+                      staff={staffByRoom.get(soloRoom.id) ?? []}
+                      headCount={headCountLabel(staffByRoom.get(soloRoom.id) ?? [])}
+                    />
+                  ) : null}
+                </div>
+              )}
 
               {company.isHq ? <GroupOverviewPanel approvals={approvals} instructions={instructions} /> : null}
               {company.isHq ? <FinanceHqPanel /> : <FinanceCompanyPanel companyId={companyId} />}
