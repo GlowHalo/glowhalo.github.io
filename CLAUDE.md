@@ -6,6 +6,7 @@
 - 새 프로젝트 = 루트에 **영문 slug 폴더**를 추가하고 루트에서 push. **별도 저장소를 만들지 말 것.**
 - 어떤 프로젝트가 독립 주소가 꼭 필요해지면 그것만 `git subtree split` 으로 분리한다.
 - 구조/워크플로우 상세는 `README.md` 참고.
+- **스킬·플러그인을 추가하려면** `.claude/rules/plugin-marketplace.md` 를 읽는다. 웹 세션에서 슬래시 `/plugin` 은 없지만 셸 `claude plugin ...` 은 동작하고, 마켓 검색은 `node scripts/plugin-search.js <키워드>` 로 한다 — "플러그인은 이 환경에서 못 쓴다"고 결론내지 말 것.
 - 프로젝트 목록의 정본은 **이 저장소 자체**(각 프로젝트 폴더 안 `meta.json`). `registry.js` 는 그 스냅샷이므로 **직접 수정하지 말고** `node scripts/build-registry.js` 로 재생성한다. 아직 폴더 없는 아이디어는 대화로만 다루고 별도로 기록하지 않는다.
 
 ## 공개 저장소 주의
