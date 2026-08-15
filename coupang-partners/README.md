@@ -32,9 +32,11 @@
   - 접속 링크·사용법: [`products/coupang-dealbot/README.md`](products/coupang-dealbot/README.md) "수동 브릿지 — `/seed` 폼" 섹션 참고
 - [x] Worker 상태 점검 (2026-08-12, 도현) — `/health` 200 OK 정상 응답, `/seed` 라우팅 로직 정상(키 불일치 시 404) 확인
 - [x] 누적매출 추적 체계 신설 (2026-08-12) — [`재무.md`](재무.md) "API 개방 목표 추적" 섹션, 회장이 확정 커미션 금액 알려줄 때마다 갱신
+- [x] Worker 상태 재점검 (2026-08-15, 도현) — `/health` 200 OK 재확인
+- [x] 확장 후보(C2~C4) 조사 (2026-08-15, 도현) — [`candidates.md`](candidates.md) 참고. 알리익스프레스(API 지원, 단 실명 인증 필요)·Amazon Associates(180일 3건 유지조건)·네이버 쇼핑 커넥트(오픈 API 여부 불확실) 세 후보 추가. 전부 C1 안정화 이후 착수 대상, 지금 당장 액션 아님
 - [ ] 누적매출 15만원 도달 시 API 전환 절차 진행
 - [ ] 배포된 Worker 이름(`nada-company2-coupang-dealbot`)이 여전히 "niche-api"를 참조 — 실사용에 지장 없어 그대로 두되, 재배포 계기가 생기면 개명 검토
-- [ ] 텔레그램 봇(`@nada_dealbot`) 채널 관리자 미등록 — 상세는 [`products/coupang-dealbot/README.md`](products/coupang-dealbot/README.md) "미해결 이슈" 참고, 디스코드만으로도 운영 지장 없어 급하지 않음
+- [ ] 텔레그램 봇(`@nada_dealbot`) 채널 관리자 미등록 — 상세는 [`products/coupang-dealbot/README.md`](products/coupang-dealbot/README.md) "미해결 이슈" 참고, 디스코드만으로도 운영 지장 없어 급하지 않음. **2026-08-15 시도** — 금고(`VAULT_URL`) 조회로 `telegram_bot_token`/`telegram_channel_id` 상태 확인하려 했으나 `cloudflare-vault.md`에 문서화된 기존 이슈대로 자동승인 분류기가 vault curl 호출을 차단(의도된 안전장치라 우회 안 함) — 회장이 `.claude/settings.json`의 `autoMode.allow`에 vault 도메인을 추가해주면 다음 세션이 이어서 진행 가능
 
 ## 🔄 세션 인계 메모 (2026-08-15)
 
