@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360">
   <g fill="none" stroke="#2B2B2B" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
     <path d="M180,60 C240,60 268,110 262,160 C258,196 240,214 230,230 C246,238 262,252 262,276 C262,300 232,312 180,312 C128,312 98,300 98,276 C98,252 114,238 130,230 C120,214 102,196 98,160 C92,110 120,60 180,60 Z"/>
-    <path d="M120,222 C92,196 66,164 48,176 C30,188 38,222 70,240 C92,252 112,244 120,222 M240,222 C268,196 294,164 312,176 C330,188 322,222 290,240 C268,252 248,244 240,222"/>
+    <path d="M130,224 C104,232 78,238 70,254 C64,266 78,280 96,270 C108,264 120,244 130,224 M230,224 C256,232 282,238 290,254 C296,266 282,280 264,270 C252,264 240,244 230,224"/>
   </g>
   <path d="M128,124 Q140,112 154,120" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/><path d="M232,124 Q220,112 206,120" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/>
   <circle cx="150" cy="148" r="11" fill="#2B2B2B"/><circle cx="210" cy="148" r="11" fill="#2B2B2B"/>
   <ellipse cx="180" cy="184" rx="12" ry="16" fill="#2B2B2B"/>
   <ellipse cx="134" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.7"/><ellipse cx="226" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.7"/>
-  <text x="278" y="120" font-size="38" font-family="sans-serif" fill="#E8483A" font-weight="bold">!?</text>
-  <text x="180" y="30" text-anchor="middle" font-family="Jua" font-size="30" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">휴지가</text><text x="180" y="58" text-anchor="middle" font-family="Jua" font-size="30" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">없어!!</text>
+  <path d="M300,84 L296,120" stroke="#E8483A" stroke-width="10" stroke-linecap="round"/><circle cx="299" cy="134" r="6" fill="#E8483A"/>
+  <text x="180" y="44" text-anchor="middle" font-family="Jua" font-size="32" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">급해 급해!!</text>
 </svg>

@@ -8,4 +8,5 @@
   <ellipse cx="180" cy="184" rx="12" ry="16" fill="#2B2B2B"/>
   <ellipse cx="134" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.7"/><ellipse cx="226" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.7"/>
   <path d="M300,84 L296,120" stroke="#E8483A" stroke-width="10" stroke-linecap="round"/><circle cx="299" cy="134" r="6" fill="#E8483A"/>
+  <text x="180" y="30" text-anchor="middle" font-family="Jua" font-size="30" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">화장실</text><text x="180" y="58" text-anchor="middle" font-family="Jua" font-size="30" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">급해!!</text>
 </svg>
