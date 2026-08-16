@@ -1,7 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360">
-  <g fill="none" stroke="#2B2B2B" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M180,60 C240,60 268,110 262,160 C258,196 240,214 230,230 C246,238 262,252 262,276 C262,300 232,312 180,312 C128,312 98,300 98,276 C98,252 114,238 130,230 C120,214 102,196 98,160 C92,110 120,60 180,60 Z"/>
-    <path d="M130,224 C104,232 78,238 70,254 C64,266 78,280 96,270 C108,264 120,244 130,224 M230,224 C256,232 282,238 290,254 C296,266 282,280 264,270 C252,264 240,244 230,224"/>
+  <defs>
+    <filter id="dropshadow" x="-30%" y="-20%" width="160%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#000000" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+  <!-- 몸통·팔: 흰색으로 채워서 카카오톡 다크모드 배경에서도 실루엣이 살아있게 함
+       (1차 시도는 fill:none이라 어두운 배경에서 거의 안 보이는 문제가 있었음 — 다듬으며 수정) -->
+  <g filter="url(#dropshadow)">
+    <g fill="#FFFFFF" stroke="#2B2B2B" stroke-width="9" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M130,224 C104,232 78,238 70,254 C64,266 78,280 96,270 C108,264 120,244 130,224 M230,224 C256,232 282,238 290,254 C296,266 282,280 264,270 C252,264 240,244 230,224"/>
+      <path d="M180,60 C240,60 268,110 262,160 C258,196 240,214 230,230 C246,238 262,252 262,276 C262,300 232,312 180,312 C128,312 98,300 98,276 C98,252 114,238 130,230 C120,214 102,196 98,160 C92,110 120,60 180,60 Z"/>
+    </g>
   </g>
   <path d="M136,132 L166,142" stroke="#2B2B2B" stroke-width="8" stroke-linecap="round"/><path d="M224,132 L194,142" stroke="#2B2B2B" stroke-width="8" stroke-linecap="round"/>
   <circle cx="152" cy="150" r="7" fill="#2B2B2B"/><circle cx="208" cy="150" r="7" fill="#2B2B2B"/>
