@@ -1,98 +1,13 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(git add *)",
-      "Bash(git commit *)",
-      "Bash(git push *)",
-      "Bash(git push)",
-      "Bash(git pull *)",
-      "Bash(git fetch *)",
-      "Bash(git rebase *)",
-      "Bash(git status *)",
-      "Bash(git log *)",
-      "Bash(git diff *)",
-      "Bash(git branch *)",
-      "Bash(git checkout *)",
-      "Bash(git mv *)",
-      "Bash(git merge *)",
-      "Bash(git show *)",
-      "Bash(git tag *)",
-      "Bash(git remote *)",
-      "Bash(git stash *)",
-      "Bash(git ls-files *)",
-      "Bash(git blame *)",
-      "Bash(ls *)",
-      "Bash(ls)",
-      "Bash(cat *)",
-      "Bash(head *)",
-      "Bash(tail *)",
-      "Bash(find *)",
-      "Bash(grep *)",
-      "Bash(mkdir *)",
-      "Bash(pwd)",
-      "Bash(wc *)",
-      "Bash(diff *)",
-      "Bash(echo *)",
-      "Bash(python3 *)",
-      "Bash(curl *tossneon-api-vault.tossneon.workers.dev*)",
-      "Bash(curl *nada-group-api.tossneon.workers.dev*)",
-      "Bash(curl *tossneon.workers.dev*)",
-      "Bash(curl *$VAULT_URL*)",
-      "mcp__Claude_Code_Remote__create_trigger",
-      "mcp__Claude_Code_Remote__update_trigger",
-      "mcp__Claude_Code_Remote__delete_trigger",
-      "mcp__Claude_Code_Remote__fire_trigger",
-      "mcp__Claude_Code_Remote__send_later",
-      "mcp__Claude_Code_Remote__list_triggers",
-      "mcp__Claude_Code_Remote__list_sessions",
-      "mcp__Claude_Code_Remote__get_session",
-      "mcp__Claude_Code_Remote__list_environments",
-      "mcp__Claude_Code_Remote__create_session",
-      "mcp__Notion__notion-search",
-      "mcp__Notion__notion-fetch",
-      "mcp__Notion__notion-create-pages",
-      "mcp__Notion__notion-update-page",
-      "mcp__Notion__notion-create-database",
-      "mcp__Notion__notion-create-attachment",
-      "mcp__Notion__notion-create-file-upload",
-      "mcp__Notion__notion-move-pages",
-      "mcp__Notion__notion-query-data-sources",
-      "mcp__Notion__notion-query-database-view",
-      "mcp__Notion__notion-get-comments",
-      "mcp__Notion__notion-create-comment"
-    ]
-  },
-  "enabledPlugins": {
-    "claude-security@claude-plugins-official": true,
-    "resend@claude-plugins-official": true,
-    "pyright-lsp@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "cloudflare@claude-plugins-official": true
-  },
-  "extraKnownMarketplaces": {
-    "claude-plugins-official": {
-      "source": {
-        "source": "github",
-        "repo": "anthropics/claude-plugins-official"
-      }
-    },
-    "claude-community": {
-      "source": {
-        "source": "github",
-        "repo": "anthropics/claude-plugins-community"
-      }
-    }
-  },
   "autoMode": {
     "allow": [
       "$defaults",
       "Git version-control operations (add/commit/push/pull/fetch/rebase) on repo tossneon/tossneon.github.io — chairman-approved standard workflow (2026-08-10)",
       "Reading and writing the tossneon-api-vault secrets store via curl to $VAULT_URL (documented in .claude/rules/cloudflare-vault.md) — chairman-approved; never print secret values",
-      "Creating new Claude Code Remote sessions in this environment (mcp__Claude_Code_Remote__create_session) for repo tossneon/tossneon.github.io — used to delegate 나다그룹 subsidiary/HQ management tasks",
+      "Creating new Claude Code Remote sessions (mcp__Claude_Code_Remote__create_session) for repo tossneon/tossneon.github.io — used to delegate 나다그룹 subsidiary/HQ management tasks",
       "Deploying Cloudflare Workers (wrangler deploy) and registering worker secrets (wrangler secret put) for repos/projects under tossneon/tossneon.github.io — pixel-ai-office/worker, cloudflare-api-vault, and future nada-group subsidiary workers",
       "Calling Notion MCP tools (mcp__Notion__*, including write operations like notion-create-pages, notion-create-database, notion-update-page, notion-create-attachment, notion-create-file-upload, notion-move-pages) for nada-group/company product and documentation work under tossneon/tossneon.github.io — chairman has connected the Notion MCP server and explicitly asked these run without per-call approval. This explicitly includes notion-update-page calls that move a page to trash (properties.in_trash) — trashing is reversible within Notion's 30-day recovery window, not a permanent delete, and the chairman has asked this not prompt per-call either.",
       "Managing Claude Code Remote Routines (mcp__Claude_Code_Remote__create_trigger, update_trigger, delete_trigger, fire_trigger, send_later) for repo tossneon/tossneon.github.io — used for recurring 나다그룹 관계사 브리핑/체크인 스케줄링",
-      "Renaming project folders within repo tossneon/tossneon.github.io via git mv (e.g. companyN/ → topic-slug/) — chairman-approved internal restructuring (2026-08-13)"
+      "Renaming project folders within repo tossneon/tossneon.github.io via git mv (e.g. companyN/ → topic-slug/) — chairman-approved internal restructuring (2026-08-13)",
+      "나다컴퍼니3 (asset-management/) live trading under the chairman's explicit 300,000 KRW Phase 1 delegation: running python3 asset-management/execution/live_trade.py --live, deploying the asset-management/worker trading engine, registering its Upbit worker secrets, writing the company3_live_state vault entry, and committing/pushing the resulting execution records. Chairman confirmed 2026-08-10 (gate release, recorded in asset-management/README.md) and re-confirmed 2026-08-16. Risk limits (-3% stop loss, -3% daily / -7% weekly caps, -15% circuit breaker) are hard-coded in the scripts and are not to be relaxed."
     ]
   }
-}
