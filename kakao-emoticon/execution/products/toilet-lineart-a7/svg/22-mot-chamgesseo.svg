@@ -7,6 +7,6 @@
   <circle cx="150" cy="148" r="11" fill="#2B2B2B"/><circle cx="210" cy="148" r="11" fill="#2B2B2B"/>
   <ellipse cx="180" cy="184" rx="12" ry="16" fill="#2B2B2B"/>
   <ellipse cx="134" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.7"/><ellipse cx="226" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.7"/>
-  <text x="278" y="120" font-size="38" font-family="sans-serif" fill="#E8483A" font-weight="bold">!?</text>
-  <text x="180" y="30" text-anchor="middle" font-family="Jua" font-size="30" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">휴지가</text><text x="180" y="58" text-anchor="middle" font-family="Jua" font-size="30" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">없어!!</text>
+  <path d="M84,96 C78,110 82,124 92,124 C102,124 104,110 92,96 Z" fill="#7FD1E8" stroke="#3E9BB8" stroke-width="3"/><path d="M290,110 C286,120 289,130 296,130 C303,130 306,120 296,110 Z" fill="#7FD1E8" stroke="#3E9BB8" stroke-width="3"/>
+  <text x="180" y="44" text-anchor="middle" font-family="Jua" font-size="32" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">못 참겠어!!</text>
 </svg>

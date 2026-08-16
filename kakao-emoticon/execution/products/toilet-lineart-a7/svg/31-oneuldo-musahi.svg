@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360">
+  <g fill="none" stroke="#2B2B2B" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M180,60 C240,60 268,110 262,160 C258,196 240,214 230,230 C246,238 262,252 262,276 C262,300 232,312 180,312 C128,312 98,300 98,276 C98,252 114,238 130,230 C120,214 102,196 98,160 C92,110 120,60 180,60 Z"/>
+    <path d="M130,224 C110,244 108,266 128,270 C144,273 156,258 152,244 C148,230 138,224 130,224 M230,224 C250,244 252,266 232,270 C216,273 204,258 208,244 C212,230 222,224 230,224"/>
+  </g>
+  
+  <path d="M140,148 Q152,138 164,148" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/><path d="M196,148 Q208,138 220,148" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/>
+  <path d="M162,180 Q180,190 198,180" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/>
+  <ellipse cx="134" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.7"/><ellipse cx="226" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.7"/>
+  <path d="M300,90 L305,105 L320,110 L305,115 L300,130 L295,115 L280,110 L295,105 Z" fill="#FFD24C"/>
+  <text x="180" y="44" text-anchor="middle" font-family="Jua" font-size="32" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">오늘도 무사히</text>
+</svg>

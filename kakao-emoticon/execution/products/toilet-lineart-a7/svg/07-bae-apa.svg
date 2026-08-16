@@ -8,4 +8,5 @@
   <path d="M156,180 L168,190 L180,178 L192,190 L204,180" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/>
   <ellipse cx="134" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.7"/><ellipse cx="226" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.7"/>
   <path d="M84,96 C78,110 82,124 92,124 C102,124 104,110 92,96 Z" fill="#7FD1E8" stroke="#3E9BB8" stroke-width="3"/><path d="M290,110 C286,120 289,130 296,130 C303,130 306,120 296,110 Z" fill="#7FD1E8" stroke="#3E9BB8" stroke-width="3"/>
+  <text x="180" y="44" text-anchor="middle" font-family="Jua" font-size="32" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">배 아파 ㅠㅠ</text>
 </svg>
