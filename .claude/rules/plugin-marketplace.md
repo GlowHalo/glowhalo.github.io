@@ -66,6 +66,19 @@ claude plugin uninstall <이름>@<마켓>
 
 웹 UI로 훑어보려면 <https://claude.com/plugins> (공식 카탈로그).
 
+## 현재 활성 플러그인 (2026-08-16 기준, `.claude/settings.json`의 `enabledPlugins`가 정본)
+
+`enabledPlugins`에 있어도 새 세션/컨테이너에선 `claude plugin list`에 안 뜰 수 있다 — 그때는
+`claude plugin install <이름>@claude-plugins-official`로 그 세션에 동기화만 하면 된다(설정 자체는
+이미 켜져 있으므로 재확인 없이 바로 설치해도 됨).
+
+| 플러그인 | 켜둔 이유 |
+|---|---|
+| `resend` | Resend 기반 이메일 발송(버크만 디브리핑 등) 작업에 씀 — 도메인 인증·발신 모범사례·`resend-cli` 스킬 포함 |
+| `cloudflare` | Workers/Wrangler/DNS 등 이 저장소 인프라 표준(Cloudflare)과 직결 — `cloudflare-email-service`, `wrangler` 스킬 등 포함 |
+| `claude-security` | 보안 점검용 |
+| `pyright-lsp` / `typescript-lsp` | Python/TypeScript 코드 작업 시 타입 체크 지원 |
+
 ## 보류 목록 — 이 신호가 오면 다시 켠다 (2026-08-15)
 
 토큰 낭비를 줄이려고 껐을 뿐, 나쁜 도구라서 뺀 게 아니다. 아래 신호가 보이면
