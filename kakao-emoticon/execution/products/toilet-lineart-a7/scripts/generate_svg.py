@@ -1,4 +1,4 @@
-"""A7 "변기토리" — 라인아트 캐릭터(C컨셉)로 화장실 유머 12종을 SVG로 직접 생성한다.
+"""A7 "변기토리" — 라인아트 캐릭터(C컨셉)로 화장실 유머 32종을 SVG로 직접 생성한다.
 
 Leonardo AI 등 외부 이미지 생성 API를 전혀 쓰지 않고, 몸통 실루엣 하나를 고정해두고
 표정(눈썹·눈·입)과 팔 포즈, 작은 아이콘만 문구별로 바꿔서 파이썬으로 SVG 문자열을
@@ -23,7 +23,6 @@ ARMS = {
     "up_both": 'M120,222 C92,196 66,164 48,176 C30,188 38,222 70,240 C92,252 112,244 120,222 M240,222 C268,196 294,164 312,176 C330,188 322,222 290,240 C268,252 248,244 240,222',
     "crossed": 'M120,226 C90,232 150,250 150,236 M240,226 C270,232 210,250 210,236',
     "hug_belly": 'M128,238 C104,252 96,276 122,282 C142,286 152,268 148,252 M232,238 C256,252 264,276 238,282 C218,286 208,268 212,252',
-    "point_down": 'M118,230 C86,222 58,206 46,224 C34,242 56,266 92,262 M228,224 C244,250 248,278 232,298 C224,308 210,300 214,286 C218,272 224,248 228,224',
     "wash": 'M132,220 C110,214 92,212 90,230 C88,248 112,254 134,246 M228,220 C250,214 268,212 270,230 C272,248 248,254 226,246',
     "shrug": 'M116,222 C82,208 50,208 44,228 C38,246 66,258 100,244 M244,222 C278,208 310,208 316,228 C322,246 294,258 260,244',
     "phone": 'M118,230 C86,222 58,206 46,224 C34,242 56,266 92,262 M238,214 C252,186 244,150 224,148 C210,147 204,164 214,178 C222,190 232,200 238,214',
@@ -98,7 +97,7 @@ def build_text(text):
 
 
 def build_svg(p):
-    arms = ARMS[p["arms"]]
+    arms_markup = f'<path d="{ARMS[p["arms"]]}"/>'
     eyebrows = EYEBROWS[p.get("eyebrows", "none")]
     eyes = EYES[p["eyes"]]
     mouth = MOUTHS[p["mouth"]]
@@ -106,9 +105,18 @@ def build_svg(p):
     blush = BLUSH if p.get("blush", True) else ""
     text = build_text(p.get("text", ""))
     return f'''<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360">
-  <g fill="none" stroke="#2B2B2B" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
-    <path d="{BODY}"/>
-    <path d="{arms}"/>
+  <defs>
+    <filter id="dropshadow" x="-30%" y="-20%" width="160%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#000000" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+  <!-- 몸통·팔: 흰색으로 채워서 카카오톡 다크모드 배경에서도 실루엣이 살아있게 함
+       (1차 시도는 fill:none이라 어두운 배경에서 거의 안 보이는 문제가 있었음 — 다듬으며 수정) -->
+  <g filter="url(#dropshadow)">
+    <g fill="#FFFFFF" stroke="#2B2B2B" stroke-width="9" stroke-linejoin="round" stroke-linecap="round">
+      {arms_markup}
+      <path d="{BODY}"/>
+    </g>
   </g>
   {eyebrows}
   {eyes}

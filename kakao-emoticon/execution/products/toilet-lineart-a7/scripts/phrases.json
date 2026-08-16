@@ -3,7 +3,7 @@
   {"n":2,"slug":"02-eungga-maryeowo","text":"응가 마려워...","arms":"hug_belly","eyebrows":"worried","eyes":"squeezed","mouth":"wavy_worried","icon":"sweat"},
   {"n":3,"slug":"03-ppujik","text":"뿌직... (민망)","arms":"down","eyebrows":"none","eyes":"closed_happy","mouth":"smile","icon":"puff"},
   {"n":4,"slug":"04-a-siwonhae","text":"아 시원해","arms":"down","eyebrows":"none","eyes":"closed_happy","mouth":"soft_smile","icon":"sparkle"},
-  {"n":5,"slug":"05-mul-naeryeo","text":"물 내려!!","arms":"point_down","eyebrows":"raised","eyes":"normal","mouth":"o","icon":"droplet"},
+  {"n":5,"slug":"05-mul-naeryeo","text":"물 내려!!","arms":"shrug","eyebrows":"raised","eyes":"normal","mouth":"o","icon":"droplet"},
   {"n":6,"slug":"06-son-ssiseo","text":"손 씻어!","arms":"wash","eyebrows":"none","eyes":"normal","mouth":"smile","icon":"droplet_x2"},
   {"n":7,"slug":"07-bae-apa","text":"배 아파 ㅠㅠ","arms":"hug_belly","eyebrows":"worried","eyes":"x_pain","mouth":"zigzag_pain","icon":"sweat_multi"},
   {"n":8,"slug":"08-hyuji-eopseo","text":"휴지가 없어!!","arms":"up_both","eyebrows":"worried","eyes":"wide","mouth":"o","icon":"exclaim_question"},
