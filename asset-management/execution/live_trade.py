@@ -65,7 +65,14 @@ def vault_get(name: str) -> str:
         ["curl", "-s", f"{os.environ['VAULT_URL']}/secrets/{name}",
          "-H", f"Authorization: Bearer {os.environ['VAULT_TOKEN']}"],
         capture_output=True, text=True, timeout=15).stdout
-    return json.loads(out)["value"]
+    parsed = json.loads(out)
+    if "value" not in parsed:
+        # 2026-08-17 HQ 진단: 이전엔 여기서 맨 KeyError만 나서 원인이 안 보였다
+        # (company3_live_state 자체가 한 번도 안 써진 상태였음 — 진짜 원인은
+        # live_trade.py 실행 자체가 권한 분류기에 막혀 save_state()까지 못 간 것,
+        # 아래 load_state()의 except 절이 이 메시지를 로그에 남긴다).
+        raise KeyError(f"vault key '{name}' not found: {parsed}")
+    return parsed["value"]
 
 
 def vault_put(name: str, value: str) -> None:
