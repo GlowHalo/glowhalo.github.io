@@ -8,7 +8,7 @@
 | A4 | 카카오톡 이모티콘 32종(정지형, "새침냥이") | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 제작·제출 폼 작성 완료, 회장 최종 확인 대기(2026-08-15) — 상세는 [`execution/A4-second-series.md`](execution/A4-second-series.md) |
 | A5 | 라인 스티커샵(일잘봇 32종 재활용) | LINE Creators Market | 🟡 자산 제작 완료, 회장이 계정 직접 가입 진행 중(2026-08-15) — 상세는 [`execution/A5-line-sticker-shop.md`](execution/A5-line-sticker-shop.md) |
 | A6 | 카카오톡 이모티콘 32종(정지형, "몽글곰", 가칭 — 커플/연애 타겟) | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 32종 전체 제작 완료(2026-08-15), 아이콘 제작 + 제출 남음 — 상세는 [`execution/A6-couple-bear.md`](execution/A6-couple-bear.md) |
-| A7 | 화장실 유머 32종(라인아트, "변기토리") — SVG 직접 제작, Leonardo 미사용 | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 32종+아이콘 제작 완료(2026-08-15), 회장 확인 대기 — 상세는 [`execution/A7-toilet-humor.md`](execution/A7-toilet-humor.md) |
+| A7 | 화장실 유머 32종(라인아트, "변기토리") — SVG 직접 제작, Leonardo 미사용 | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 제출 폼 작성(임시저장) 완료, 회장 최종 확인 대기(2026-08-16) — 상세는 [`execution/A7-toilet-humor.md`](execution/A7-toilet-humor.md) |
 
 ## 향후 확장 후보
 
