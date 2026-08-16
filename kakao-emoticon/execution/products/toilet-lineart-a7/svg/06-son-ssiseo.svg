@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360">
+  <g fill="none" stroke="#2B2B2B" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M180,60 C240,60 268,110 262,160 C258,196 240,214 230,230 C246,238 262,252 262,276 C262,300 232,312 180,312 C128,312 98,300 98,276 C98,252 114,238 130,230 C120,214 102,196 98,160 C92,110 120,60 180,60 Z"/>
+    <path d="M132,220 C110,214 92,212 90,230 C88,248 112,254 134,246 M228,220 C250,214 268,212 270,230 C272,248 248,254 226,246"/>
+  </g>
+  
+  <circle cx="152" cy="150" r="7" fill="#2B2B2B"/><circle cx="208" cy="150" r="7" fill="#2B2B2B"/>
+  <path d="M158,176 Q180,192 202,176" fill="none" stroke="#2B2B2B" stroke-width="7" stroke-linecap="round"/>
+  <ellipse cx="134" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.7"/><ellipse cx="226" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.7"/>
+  <path d="M96,150 C90,164 94,178 104,178 C114,178 118,164 104,150 Z" fill="#7FD1E8" stroke="#3E9BB8" stroke-width="3"/><path d="M264,150 C258,164 262,178 272,178 C282,178 286,164 272,150 Z" fill="#7FD1E8" stroke="#3E9BB8" stroke-width="3"/>
+</svg>
