@@ -152,3 +152,5 @@ graph TD
 ## 🔄 세션 인계 메모 (2026-08-15)
 
 최근 며칠간 Notion 워크스페이스 분리·계정 비밀번호 표준화·GitHub 폴더 구조 개편(companyN → 주제별 이름)이 한꺼번에 진행되면서, 오래 이어진 세션이 옛 맥락(옛 경로·옛 워크스페이스)에 헷갈릴 수 있다는 회장 판단으로 이 계열사 세션을 새로 열었다. 새 세션은 이 파일과 `candidates.md` 등 폴더 안 문서를 정본으로 삼아 현재 상태부터 파악할 것.
+
+**2026-08-17 추가 — 신규 상품/콘텐츠 아이디어 발굴할 때 참고할 스킬 2개 생김.** HQ가 외부 자료(MARGIN AI 「24시간 AI 비서 30명」) 검토 중 도출해 표준 스킬로 만들었다: [`product-idea-mining`](../.claude/skills/product-idea-mining/SKILL.md)(댓글/문의에서 팔릴 만한 문제 뽑기), [`lead-magnet-pdf`](../.claude/skills/lead-magnet-pdf/SKILL.md)(무료 리드마그넷 PDF 기획). `candidates.md`에 새 후보 추가하기 전 단계(원료 수집)에 쓸 것. 경위는 [`hq/AI비서30-백로그.md`](../hq/AI비서30-백로그.md) 참고.
