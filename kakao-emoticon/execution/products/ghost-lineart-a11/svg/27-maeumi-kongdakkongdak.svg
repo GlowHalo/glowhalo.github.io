@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360">
+  <defs>
+    <filter id="dropshadow" x="-30%" y="-20%" width="160%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#000000" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+  <!-- 몸통·손: 연라벤더빛 화이트로 채워서 다크모드 배경에서도 실루엣이 살아있게 함
+       (A7에서 확립한 규칙 — fill:none 금지, 반드시 solid fill) -->
+  <g filter="url(#dropshadow)">
+    <g fill="#F1ECFF" stroke="#2B2B2B" stroke-width="9" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="165" cy="195" rx="17" ry="14" transform="rotate(-15 165 195)"/><ellipse cx="195" cy="195" rx="17" ry="14" transform="rotate(15 195 195)"/>
+      <path d="M100,150 C100,88 135,48 180,48 C225,48 260,88 260,150 L260,210 Q240,252 220,210 Q200,252 180,210 Q160,252 140,210 Q120,252 100,210 L100,150 Z"/>
+    </g>
+  </g>
+  <path d="M128,110 Q140,98 154,106" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/><path d="M232,110 Q220,98 206,106" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="152" cy="130" r="7" fill="#2B2B2B"/><circle cx="208" cy="130" r="7" fill="#2B2B2B"/><path d="M148,140 C146,150 150,158 154,152 Z" fill="#7FD1E8"/><path d="M204,140 C202,150 206,158 210,152 Z" fill="#7FD1E8"/>
+  <ellipse cx="180" cy="160" rx="8" ry="11" fill="#2B2B2B"/>
+  <ellipse cx="132" cy="150" rx="10" ry="6" fill="#FF8FA3" opacity="0.6"/><ellipse cx="228" cy="150" rx="10" ry="6" fill="#FF8FA3" opacity="0.6"/>
+  <circle cx="300" cy="90" r="7" fill="#E8483A" opacity="0.8"/><circle cx="312" cy="104" r="5" fill="#E8483A" opacity="0.6"/>
+  <text x="180" y="26" text-anchor="middle" font-family="Jua" font-size="28" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">마음이</text><text x="180" y="52" text-anchor="middle" font-family="Jua" font-size="28" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">콩닥콩닥</text>
+</svg>
