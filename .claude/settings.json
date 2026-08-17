@@ -1,4 +1,4 @@
-"permissions": {
+  "permissions": {
     "allow": [
       "Bash(git *)",
       "Bash(curl *)",
@@ -6,6 +6,10 @@
       "Bash(python3 -m json.tool*)",
       "Bash(npx wrangler*)",
       "Bash(npx --yes wrangler*)",
+      "Bash(cd asset-management/execution*)",
+      "Bash(cd /home/user/tossneon.github.io/asset-management/execution*)",
+      "Bash(timeout * python3 asset-management/execution/*.py*)",
+      "Bash(timeout * python3 live_trade.py*)",
       "mcp__Claude_Code_Remote__*",
       "mcp__Claude_Code_Remote__add_repo",
       "mcp__Claude_Code_Remote__archive_session",
