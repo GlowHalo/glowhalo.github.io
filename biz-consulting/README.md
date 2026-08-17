@@ -33,3 +33,5 @@
 최근 며칠간 Notion 워크스페이스 분리·계정 비밀번호 표준화·GitHub 폴더 구조 개편(companyN → 주제별 이름)이 한꺼번에 진행되면서, 오래 이어진 세션이 옛 맥락(옛 경로·옛 워크스페이스)에 헷갈릴 수 있다는 회장 판단으로 이 계열사 세션을 새로 열었다. 새 세션은 이 파일과 `candidates.md` 등 폴더 안 문서를 정본으로 삼아 현재 상태부터 파악할 것.
 
 **전 세션에서 회장 확인 대기 중이던 것**: PayPal MCP 커넥터 연결(tossneon0 계정) 필요, F2(Canva 템플릿)·F3(monday.com) 진행 여부 확인, Stripe 한국 계정 개설 불가 경고 공유 확인
+
+**2026-08-17 추가 — 회장이 사업 아이디어를 들고 왔을 때 참고할 스킬 2개 생김.** HQ가 외부 자료(MARGIN AI 「24시간 AI 비서 30명」) 검토 중 도출해 표준 스킬로 만들었다: [`product-idea-mining`](../.claude/skills/product-idea-mining/SKILL.md)("이게 진짜 팔릴 만한 문제인가" 판단 보조), [`lead-magnet-pdf`](../.claude/skills/lead-magnet-pdf/SKILL.md)(무료 자료로 최소 비용 반응 검증). 경위는 [`hq/AI비서30-백로그.md`](../hq/AI비서30-백로그.md) 참고.
