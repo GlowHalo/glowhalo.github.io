@@ -54,7 +54,7 @@ CLOUDFLARE_API_TOKEN=<Workers Scripts:Edit 토큰> npx wrangler deploy
 | `/v1/summarize` 정상 트랜스크립트 3회 반복 | ✅ 매번 summary/decisions/actionItems 정상 구조로 반환 |
 | `/v1/waitlist` 정상 이메일 | ✅ KV에 저장 확인 (`wrangler kv key list`로 검증) |
 | `/v1/waitlist` 잘못된 이메일 형식 | ✅ 400 `invalid_email` |
-| `/v1/summarize` 60,000자 초과 | (아직 실측 안 함 — 로직상 400 예상, 다음 검증 대상) |
+| `/v1/summarize` 60,000자 초과(2026-08-17 실측) | ✅ `400 {"error":"transcript_too_long","maxChars":60000}` 정상 반환 |
 
 ### 발견·수정한 버그
 
@@ -63,6 +63,6 @@ CLOUDFLARE_API_TOKEN=<Workers Scripts:Edit 토큰> npx wrangler deploy
 
 ## 다음 단계
 
-- **결제 연동(Stripe 또는 Paddle) — 회장님 확인 필요.** 신규 계정 가입은 CLAUDE.md 2026-08-12 정정 원칙에 따라 회장 승인 후 진행. 그 전까지는 랜딩페이지의 대기자 등록(무료)으로 수요만 먼저 확인한다.
+- **결제 연동 — 회장님 확인 필요(2026-08-17 방향 수정).** Stripe는 한국에서 계정 개설 자체가 불가함이 확인돼 후보에서 제외(`biz-consulting/candidates.md` 2026-08-13 조사). 대안: PayPal Business(`tossneon0`, 이미 계정·API 자격증명 있음 — MCP 커넥터 연결만 필요) 또는 Paddle(MoR, 신규가입 승인 필요). 상세는 [`../../README.md`](../../README.md) "다음 액션" 참고. 그 전까지는 랜딩페이지의 대기자 등록(무료)으로 수요만 먼저 확인한다.
 - **Notion/Slack 자동 전송** — 결제 연동 이후 유료 사용자 전용 기능으로 추가 예정.
 - **한국어 로컬라이즈 품질 튜닝** — 회의 참여자 존댓말/직급 표현이 섞인 실제 회의록으로 추가 검증 필요.
