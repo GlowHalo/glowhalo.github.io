@@ -1,0 +1,17 @@
+{
+  "name": "마인드맵",
+  "short_name": "마인드맵",
+  "description": "브라우저 하나로 끝나는 마인드맵 편집기. Tab/Enter로 자식·형제 노드 추가, 드래그로 재배치, 여러 맵을 라이브러리로 관리하고 URL 하나로 공유한다.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F5F5F7",
+  "theme_color": "#14151A",
+  "lang": "ko",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
