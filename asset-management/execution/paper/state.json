@@ -6,31 +6,31 @@
       "equity": 1.0,
       "trades": 0,
       "wins": 0,
-      "settled_until": "2026-08-15"
+      "settled_until": "2026-08-16"
     },
     "KRW-ETH": {
       "equity": 1.0,
       "trades": 0,
       "wins": 0,
-      "settled_until": "2026-08-15"
+      "settled_until": "2026-08-16"
     },
     "KRW-XRP": {
       "equity": 1.0,
       "trades": 0,
       "wins": 0,
-      "settled_until": "2026-08-15"
+      "settled_until": "2026-08-16"
     },
     "KRW-DOGE": {
       "equity": 1.0,
       "trades": 0,
       "wins": 0,
-      "settled_until": "2026-08-15"
+      "settled_until": "2026-08-16"
     },
     "KRW-SOL": {
-      "equity": 0.994835,
-      "trades": 1,
+      "equity": 0.980836,
+      "trades": 2,
       "wins": 0,
-      "settled_until": "2026-08-15"
+      "settled_until": "2026-08-16"
     }
   },
   "last_settled": null,
@@ -40,35 +40,35 @@
       "equity": 1.0,
       "trades": 0,
       "wins": 0,
-      "settled_until": "2026-08-15"
+      "settled_until": "2026-08-16"
     },
     "KRW-ETH": {
       "pos": 2660000.0,
       "equity": 1.0,
       "trades": 0,
       "wins": 0,
-      "settled_until": "2026-08-15"
+      "settled_until": "2026-08-16"
     },
     "KRW-XRP": {
       "pos": null,
       "equity": 1.0,
       "trades": 0,
       "wins": 0,
-      "settled_until": "2026-08-15"
+      "settled_until": "2026-08-16"
     },
     "KRW-DOGE": {
       "pos": null,
       "equity": 1.0,
       "trades": 0,
       "wins": 0,
-      "settled_until": "2026-08-15"
+      "settled_until": "2026-08-16"
     },
     "KRW-SOL": {
       "pos": 107100.0,
-      "equity": 1.0,
-      "trades": 0,
+      "equity": 0.985928,
+      "trades": 1,
       "wins": 0,
-      "settled_until": "2026-08-15"
+      "settled_until": "2026-08-16"
     }
   }
 }
