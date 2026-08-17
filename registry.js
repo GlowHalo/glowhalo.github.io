@@ -88,14 +88,16 @@ window.REGISTRY = {
     "repo": "baby-place-registry",
     "title": "아기랑 갈곳",
     "date": "2026.07",
-    "status": "프로토타입",
+    "status": "발전중",
     "tags": [
-      "React",
+      "카카오맵",
+      "Firebase",
       "장소등록",
-      "육아"
+      "육아",
+      "PWA"
     ],
-    "description": "링크나 텍스트를 붙여넣으면 놀곳/먹을곳/카페로 자동 분류해 등록하는 장소 등록 앱.",
-    "note": ""
+    "description": "상호명 검색·지도 핀·태그·즐겨찾기·평점·실시간 공유까지 되는 아기 동반 장소 등록 앱.",
+    "note": "2026-08-12 재점검(app-portfolio/candidates.md P1)에서 자기신고보다 실제 완성도가 높다고 확인. 2026-08-17 재점검: 죽은 React 프로토타입(.jsx)·구버전 정적 사본(baby-place-registry.html) 삭제, '거리순' 정렬용으로 하드코딩돼있던 실제 자택 주소를 기기별 localStorage 설정으로 교체(첫 사용 시 지도에서 직접 위치 지정), Microsoft Store 제출용 PWA 요건(manifest.json/서비스워커/아이콘) 추가. Firestore 보안규칙 공개 여부는 아직 미확인(회장 로그인 확인 대기 중)."
   },
   {
     "id": "checknote",
@@ -104,12 +106,11 @@ window.REGISTRY = {
     "date": "2026.07",
     "status": "발전중",
     "tags": [
-      "React",
       "PWA",
-      "1:1 공유"
+      "링크 공유"
     ],
-    "description": "리스트·공유·완료 3탭뿐인 초단순 할일 메모 앱. 완료는 사라지지 않고 이동한다. localStorage 저장을 붙여서 실제 폰 홈화면에 추가해 써보는 중.",
-    "note": "최초 프로토타입은 체크노트/ 폴더에 보존. Firebase 연동 전까지는 이 기기에만 저장됨."
+    "description": "리스트·공유·완료 3탭뿐인 초단순 할일 메모 앱. 완료는 사라지지 않고 이동한다. localStorage 저장 + manifest/서비스워커로 설치 가능한 PWA.",
+    "note": "2026-08-17 재점검: manifest.json+서비스워커를 붙여 실제 설치 가능한 PWA로 만들고, 가짜 '데모 참여' 버튼이던 1:1 공유를 URL 해시 기반 실제 공유 링크(mindmap 패턴 참고)로 교체했다 — 실시간 동기화는 아니고, 링크를 여는 순간의 목록 스냅샷을 상대가 받아 '가져오기'로 병합하는 방식. Firebase 실시간 동기화는 여전히 미착수(설계는 checknote-architecture.md)."
   },
   {
     "id": "dividend-passbook",

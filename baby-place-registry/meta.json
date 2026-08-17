@@ -1,8 +1,8 @@
 {
   "title": "아기랑 갈곳",
   "date": "2026.07",
-  "status": "프로토타입",
-  "tags": ["React", "장소등록", "육아"],
-  "description": "링크나 텍스트를 붙여넣으면 놀곳/먹을곳/카페로 자동 분류해 등록하는 장소 등록 앱.",
-  "note": ""
+  "status": "발전중",
+  "tags": ["카카오맵", "Firebase", "장소등록", "육아", "PWA"],
+  "description": "상호명 검색·지도 핀·태그·즐겨찾기·평점·실시간 공유까지 되는 아기 동반 장소 등록 앱.",
+  "note": "2026-08-12 재점검(app-portfolio/candidates.md P1)에서 자기신고보다 실제 완성도가 높다고 확인. 2026-08-17 재점검: 죽은 React 프로토타입(.jsx)·구버전 정적 사본(baby-place-registry.html) 삭제, '거리순' 정렬용으로 하드코딩돼있던 실제 자택 주소를 기기별 localStorage 설정으로 교체(첫 사용 시 지도에서 직접 위치 지정), Microsoft Store 제출용 PWA 요건(manifest.json/서비스워커/아이콘) 추가. Firestore 보안규칙 공개 여부는 아직 미확인(회장 로그인 확인 대기 중)."
 }
