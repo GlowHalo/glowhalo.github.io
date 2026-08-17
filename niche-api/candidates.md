@@ -73,7 +73,7 @@ RapidAPI 인증메일은 회장이 저녁에 확인하기로 해서 대기, 그 
 
 ## 다음 단계 (2026-08-12 갱신 — 니치 API가 메인 사업으로 확정)
 
-1. **B1 플랫폼 다변화** — RapidAPI는 계정 500 에러로 지원 티켓 대기 중(Nokia 인수 이후 재편 국면). **Zyla API Hub를 1순위 대체/병행 채널로 가입 진행 승인 요청**([전략](products/니치API-플랫폼-전략.md)) — CLAUDE.md 정책상(2026-08-12) 신규 계정 가입은 회장 승인 후 진행, 승인되면 이어서 APILayer·LimitPear 순으로 확장.
+1. **B1 플랫폼 다변화** — RapidAPI는 계정 500 에러로 지원 티켓 대기 중(Nokia 인수 이후 재편 국면). ~~Zyla API Hub를 1순위 대체/병행 채널로 가입 진행 승인 요청~~ **2026-08-17 해소 — 회장이 Zyla API Hub·ApyHub·API.Market 3곳 전부 표준계정으로 가입 완료**(ApyHub·API.Market은 API 키까지 확보, 금고 `zylalabs_login_*`/`apyhub_login_*`+`apyhub_default_api_key`/`apimarket_login_*`+`apimarket_api_key`). **다음 액션은 이 세션이 3곳에 Link Preview API(B1) 리스팅을 실제로 등록하는 것** — APILayer·LimitPear는 그 다음 확장.
 2. ~~C1(쿠팡파트너스)~~ — 나다컴퍼니7(대표 도현)로 이관 완료(2026-08-12). 하윤은 이제 니치API 라인에 전념. 인수인계 자료는 [`coupang-partners/products/coupang-dealbot/README.md`](../coupang-partners/products/coupang-dealbot/README.md), 결정 기록은 [`hq/decisions/2026-08-12-쿠팡파트너스-계열사이관.md`](../hq/decisions/2026-08-12-쿠팡파트너스-계열사이관.md).
 3. B1 플랫폼 다변화가 안정되면 API 2호 상품 기획 — 3라운드 관찰대로 이 카테고리에 계속 투자, 신상품도 여러 플랫폼에 동시 등록.
 4. Framer·CrazyGames는 낮은 우선순위로 계속 보류, 자동화 인프라가 더 성숙하면 재검토.
