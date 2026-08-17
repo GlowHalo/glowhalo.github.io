@@ -99,6 +99,8 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `amazon_developer_login_email` / `amazon_developer_login_password` | Amazon Developer Console 계정(`tossneon0`, 표준 규칙, 2026-08-17 회장이 직접 가입) — 나다컴퍼니6(시우) Amazon Appstore 배포용. **신원확인(IDV) 완료(2026-08-17 회장 확인)** — 실제 앱 제출 가능 |
 | `stibee_login_email` / `stibee_login_password` | 스티비(Stibee) 계정(`tossneon0`, 표준 규칙, 2026-08-17 회장이 직접 가입) — 나다컴퍼니10(은우) 니치 뉴스레터 발행 "현재안" |
 | `beehiiv_login_email` / `beehiiv_login_password` | Beehiiv 계정(`tossneon0`, 표준 규칙, 2026-08-17 회장이 직접 가입) — 나다컴퍼니10(은우) 니치 뉴스레터 발행 대안. 스티비와 둘 다 계정이 있으므로 최종 플랫폼 선택은 `newsletter-automation/candidates.md` 비교 기준 |
+| `kofi_login_email` / `kofi_login_password` | Ko-fi 계정(`tossneon0`, 표준 규칙, 2026-08-17 회장이 직접 가입) — 나다컴퍼니1(정연) A1 신규 판매채널 |
+| `microsoft_partner_login_email` / `microsoft_partner_login_password` | Microsoft Partner Center 계정(`tossneon0`, 표준 규칙, 2026-08-17 회장이 직접 가입) — 나다컴퍼니6(시우) 웹앱 5종 PWA 배포용 |
 
 **자동화 전용 계정 vs 개인 계정 (2026-08-09)**: `kakao_login_*`/`google_login_*`은 회장이 자동화 목적으로
 **새로 만든** 계정이다 — 회장 개인 카카오톡·구글 계정이 아니다. 회장 개인 계정은 앞으로도 회장이 직접
