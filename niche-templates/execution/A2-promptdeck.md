@@ -149,3 +149,31 @@ A1과 동일 계정·동일 정산 구조(Gumroad 계좌 직접입금) 재사용
 > - 개인정보처리방침: https://tossneon.github.io/promptdeck/privacy.html
 >
 > 태그: `chrome-extension`, `productivity`, `ai`, `chatgpt`, `prompts`, `tool`
+
+## 2026-08-17 — Microsoft Edge Add-ons 게시 시도: API 사양은 확정, 계정 로그인은 이 세션 환경에서 막힘
+
+회장이 `microsoft_partner_login_email/password`(Microsoft Partner Center, `tossneon0` 표준 계정)를 금고에 신규 등록해줘서 착수. **결론: API 사양·요구사항은 리서치로 전부 확정했지만, 실제 계정 상태 확인·최초 확장 등록은 이번 회차엔 완료하지 못했다** — 아래 두 갈래.
+
+### 1. API 사양 리서치 (완료, 공식 문서 실제 확인)
+
+[Microsoft 공식 문서](https://learn.microsoft.com/en-us/microsoft-edge/extensions/update/api/using-addons-api)를 WebFetch로 직접 읽어 확정한 사실:
+
+- **API로 할 수 있는 것**: 이미 Partner Center에 존재하는 확장(product)의 **패키지 업로드(update)**·**게시(publish)**·상태 확인 — 4개 엔드포인트(`POST .../submissions/draft/package`, `GET .../operations/:id`, `POST .../submissions`, `GET .../submissions/operations/:id`).
+- **API로 할 수 없는 것(문서에 명시)**: "There aren't REST API endpoints for: Creating a new product. Updating a product's metadata, such as the description. To create a new product or update a product's metadata, you must use Microsoft Partner Center." — **최초 확장 등록(이름·설명·카테고리·개인정보처리방침 URL·초기 스크린샷 등)은 반드시 Partner Center 대시보드에서 1회 수동으로 해야 한다.** Firefox Add-ons(제출까지 API로 완전자동화 가능했음)와 다른 지점 — Edge는 Chrome 웹스토어처럼 "최초 등록은 대시보드, 이후 갱신은 API" 구조.
+- **인증**: Partner Center의 "Publish API" 페이지에서 "Create API credentials" 클릭 1회로 Client ID + Client Secret(또는 v1.1의 API Key) 발급 — 별도 Azure AD 앱 등록 절차는 불필요(우려했던 것보다 가벼움). `POST https://login.microsoftonline.com/5c9eedce-81bc-42f3-8823-48ba6258b391/oauth2/v2.0/token`으로 access token 발급.
+- **등록비**: candidates.md에 이미 기록된 대로 무료(Chrome $5·Google Play $25와 다름).
+
+### 2. 계정 로그인·상태 확인 (막힘 — 이 세션 환경 문제, 회장 액션 필요 여부는 재확인 필요)
+
+`microsoft_partner_login_email/password`로 Partner Center 대시보드(`partner.microsoft.com`)에 실제 로그인해 계정이 살아있는지, 기존 등록된 확장이 있는지 확인하려 했으나 **`partner.microsoft.com` 도메인 자체에 연결이 안 됨**:
+
+- **Cloudflare Browser Rendering**(Playwright CDP): `page.goto("https://partner.microsoft.com/...")` → `net::ERR_CONNECTION_RESET` 100% 재현(3회 재시도 전부 동일). 같은 세션에서 `www.microsoft.com`·`login.microsoftonline.com`은 정상 로드되는 것으로 대조군 확인 — **`partner.microsoft.com`만 선택적으로 막힘**, Microsoft 전체 차단이 아님.
+- **curl(이 세션 프록시 직접)**: `--cacert /root/.ccr/ca-bundle.crt`로도 `SSL certificate problem: unable to get local issuer certificate`(TLS 핸드셰이크 중 서버가 `unknown CA` alert) — 실제 브라우저와 무관하게 curl 레벨에서도 이 도메인만 재현. 다른 Microsoft 서브도메인은 이번엔 테스트 안 했지만, Cloudflare Browser Rendering 결과와 패턴이 일치.
+- **Browserbase(대체 경로)**: 이번 회차엔 무료 플랜 브라우저 시간이 이미 소진돼(`402 Payment Required`) 시도 자체가 불가.
+- **해석**: Gumroad·Stripe·Lemon Squeezy 신원인증 단계에서 반복된 "데이터센터 IP 차단" 패턴과 유사해 보이지만, 이번엔 로그인 이전 단계(TLS/연결 자체)에서 막혀 그 가설을 API 응답으로 직접 검증하진 못했다 — **다음에 이 이슈를 마주치면**: (1) Browserbase 무료 시간이 리셋된 뒤 그쪽으로 재시도해서 Cloudflare Browser Rendering 특정 문제인지 구분, (2) 그래도 안 되면 회장이 직접 `partner.microsoft.com`에 로그인해 계정 상태(신규 가입인지, 기존 확장이 있는지)만 확인해주는 게 필요.
+
+### 남은 것
+
+- **회장 액션 확인 필요**: `partner.microsoft.com`에 [직접 로그인](https://partner.microsoft.com/dashboard/microsoftedge/public/login)해서 (a) 계정이 정상 활성 상태인지, (b) Microsoft Edge 프로그램에 등록이 이미 돼 있는지(신규 가입이 필요할 수도 있음 — 이 계정은 로그인 정보만 있고 실제 Edge 프로그램 등록 여부는 미확인) 확인해주면, 그 다음부터는 **최초 확장 등록(이름·설명·zip·개인정보처리방침 URL 입력, `promptdeck/`는 Chromium용이라 코드 수정 없이 그대로 재사용 가능)만 대시보드에서 1회 수동으로 하면 이후 업데이트는 사장이 API로 전부 자동화 가능.**
+- 위 계정 상태 확인 자체도 이 세션의 브라우저 자동화가 막혀 있어, 다음 세션에서 Browserbase(시간 리셋 후)로 먼저 재시도해볼 것 — 매번 회장에게 넘기기 전에 재검증 원칙(CLAUDE.md) 준수.
+- 코드(`promptdeck/`)는 이미 Chromium 계열(Chrome/Edge/Brave)에서 그대로 동작 확인된 상태라 Edge 쪽 코드 추가 작업은 불필요.

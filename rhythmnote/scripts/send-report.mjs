@@ -3,10 +3,10 @@
 //   미리보기: node scripts/send-report.mjs --to test@example.com --pdf "out/리포트.pdf"
 //   실제발송: 위 명령 끝에 --send 추가
 //
-// ⚠ 커스텀 도메인 인증 전(onboarding@resend.dev 발신)에는 Resend 정책상 "계정 소유자 본인
-//   이메일(tossneon0@gmail.com)"에만 발송 가능하다 — 임의 고객 이메일로 --send 하면 403이 난다.
-//   실제 서비스 오픈 전 반드시 도메인 인증 필요(company9/execution/E1-웰니스리포트.md 참고,
-//   company4 Reflect Lab과 공용 이슈).
+// ✅ 2026-08-17 커스텀 도메인 nadagroup.org 인증 완료(Resend API로 status: verified 확인) —
+//   이제 발신자를 onboarding@resend.dev 샌드박스가 아니라 rhythmnote@nadagroup.org로 쓰면
+//   임의 고객 이메일로 실제 발송 가능하다. 상세: biz-scouting/execution/E1-웰니스리포트.md
+//   (assessment-products/Reflect Lab과 공용으로 풀린 그룹 인프라 이슈).
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -44,7 +44,7 @@ if (!fs.existsSync(pdf)) {
 
 const env = { ...loadEnv(), ...process.env };
 const SENDER_NAME = "RhythmNote";
-const SENDER_EMAIL = env.SENDER_EMAIL || "onboarding@resend.dev";
+const SENDER_EMAIL = env.SENDER_EMAIL || "rhythmnote@nadagroup.org";
 
 const subject = `[리듬노트] 회원님의 웰니스 인사이트 리포트가 도착했어요`;
 const body = `안녕하세요, 리듬노트입니다.
