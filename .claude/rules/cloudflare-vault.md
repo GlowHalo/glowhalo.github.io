@@ -41,7 +41,7 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 
 | 이름 | 쓰는 곳 |
 |---|---|
-| `standard_login_password` | **표준 계정 공용 비밀번호 최신값(2026-08-12 회장이 채팅으로 갱신)** — 새 자동화 계정 만들 때 이 값을 최우선으로 시도한다. 기존 계정(notion/kakao/google/sendowl/itchio/paypal_business/webshare/rapidapi/lemonsqueezy 등)은 실제 사이트 비밀번호를 아직 이 값으로 안 바꿨으므로 각자의 `*_login_password`(신버전 `notion_login_password` 또는 구버전) 그대로 유효 — 로그인 실패 시 순서: `standard_login_password` → 그 계정의 `*_login_password`(신버전) → 구버전. 특정 계정을 실제로 이 새 값으로 바꾸면 그 계정의 `*_login_password`도 갱신하고 이 줄 아래 "○○ 이전 완료" 기록 추가 |
+| `standard_login_password` | **표준 계정 공용 비밀번호 최신값(2026-08-17 회장이 채팅으로 갱신 — `tossneon0@gmail.com`과 짝지어 "표준계정"이라고 명명함)** — 새 자동화 계정 만들 때 이 값을 최우선으로 시도한다. 기존 계정(notion/kakao/google/sendowl/itchio/paypal_business/webshare/rapidapi/lemonsqueezy 등)은 실제 사이트 비밀번호를 아직 이 값으로 안 바꿨으므로 각자의 `*_login_password`(신버전 `notion_login_password` 또는 구버전) 그대로 유효 — 로그인 실패 시 순서: `standard_login_password` → 그 계정의 `*_login_password`(신버전) → 구버전. 특정 계정을 실제로 이 새 값으로 바꾸면 그 계정의 `*_login_password`도 갱신하고 이 줄 아래 "○○ 이전 완료" 기록 추가 |
 | `notion_token` | pixel-ai-office/worker (Notion 저장) |
 | `gmail_app_password` | 버크만 디브리핑 발송 스크립트 등 |
 | `gumroad_access_token` | Gumroad 상품 등록/조회 |
@@ -87,6 +87,15 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `resend_api_key_full` | Resend **Full access** API 키(2026-08-17 대시보드에서 직접 발급, 브라우저 자동화) — 도메인 등록/DNS 인증 등 관리 작업용. 기존 `resend_api_key`(발송 전용)와 별개로 유지, 발송 스크립트는 계속 그쪽을 씀 |
 | `naver_login_email` / `naver_login_password` | 네이버 개인 계정 로그인(`tossneon0@naver.com`, 표준 규칙, 2026-08-17 회장이 직접 가입·전달) — 나다컴퍼니4(채원) 네이버 스마트스토어×버크만 자동화용(`assessment-products/execution/네이버자동화-프로세스설계.md`) |
 | `naver_commerce_login_id` / `naver_commerce_login_password` | 네이버 커머스(스마트스토어 판매자센터·커머스API) 로그인(`tossneon0`, 2026-08-17). **⚠️ 스토어 개설은 2026-09-03 이후에나 가능** — 이전에 실수로 만든 스토어를 탈퇴해서 재개설 대기 기간 적용 중. 그 전까지는 로그인만 가능하고 스토어 관련 작업은 착수 불가 |
+| `appsumo_login_email` / `appsumo_login_password` | AppSumo 파트너 계정(`tossneon0`, 표준 규칙, 2026-08-17 회장이 직접 가입) — 나다컴퍼니1(정연) A1 신규 판매채널 |
+| `alternativeto_login_email` / `alternativeto_login_password` | AlternativeTo 계정(`tossneon0`, 표준 규칙, 2026-08-17 회장이 직접 가입) — 나다컴퍼니1(정연) PromptDeck 발견성 채널 |
+| `producthunt_login_email` | Product Hunt 계정 — **Google 계정 연동(tossneon0@gmail.com)으로 가입**(2026-08-17), 소셜 로그인 전용이라 별도 비밀번호 없음 — 나다컴퍼니1(정연) PromptDeck 런칭 노출용 |
+| `zylalabs_login_email` / `zylalabs_login_password` | Zyla API Hub 계정(`tossneon0`, 표준 규칙, 2026-08-17 회장이 직접 가입) — 나다컴퍼니2(하윤) RapidAPI 대체 플랫폼 |
+| `apyhub_login_email` / `apyhub_login_password` | ApyHub 계정(`tossneon0`, 표준 규칙, 2026-08-17 회장이 직접 가입) — 나다컴퍼니2(하윤) RapidAPI 대체 플랫폼 |
+| `apyhub_default_api_key` | ApyHub 워크스페이스(`nadacompany`) 기본 API 키 — 회장이 전달한 값이 `2b7d6ffe`로 짧아 전체 키가 아니라 일부(표시용 축약형)일 가능성 있음, 실제 API 호출 전 대시보드에서 전체 키 재확인 필요 |
+| `apimarket_login_email` / `apimarket_login_password` | API.Market 계정(`tossneon0`, 표준 규칙, 2026-08-17 회장이 직접 가입) — 나다컴퍼니2(하윤) RapidAPI 대체 플랫폼 |
+| `apimarket_api_key` | API.Market API 키(`cmsx0ji3j0001jx04131rji79`, 2026-08-17 발급 확인) |
+| `amazon_developer_login_email` / `amazon_developer_login_password` | Amazon Developer Console 계정(`tossneon0`, 표준 규칙, 2026-08-17 회장이 직접 가입) — 나다컴퍼니6(시우) Amazon Appstore 배포용. **신원확인(IDV) 심사 대기 중** — 완료 전까진 실제 앱 제출 불가 |
 
 **자동화 전용 계정 vs 개인 계정 (2026-08-09)**: `kakao_login_*`/`google_login_*`은 회장이 자동화 목적으로
 **새로 만든** 계정이다 — 회장 개인 카카오톡·구글 계정이 아니다. 회장 개인 계정은 앞으로도 회장이 직접
