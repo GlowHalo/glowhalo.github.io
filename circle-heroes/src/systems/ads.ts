@@ -14,10 +14,11 @@ export const REWARDED_AD_REWARD: { gold: number; gems: number } = { gold: 5000, 
  * 수정 없이 자동으로 정상 작동한다 */
 const ADSENSE_CLIENT_ID = "ca-pub-1632899465320365";
 /** 상시 배너 광고 단위 ID — AdSense 대시보드에서 디스플레이 광고 단위를 새로 만들면 발급되는
- * data-ad-slot 값(ADSENSE_CLIENT_ID와는 별개, 광고 "종류"마다 따로 발급받는 슬롯 ID). 이것도
- * 비어있는 동안은 mountBannerAd()가 아무것도 안 해서 shell.ts가 만들어둔 플레이스홀더 텍스트가
- * 그대로 보인다 */
-const AD_BANNER_SLOT_ID = "";
+ * data-ad-slot 값(ADSENSE_CLIENT_ID와는 별개, 광고 "종류"마다 따로 발급받는 슬롯 ID).
+ * §2026-08-17 스토어 배포 전 최종점검에서 금고(adsense_circleheroes_banner_slot)에 실제 값이
+ * 등록돼 있는 걸 확인해 반영. 그래도 AdSense 사이트 심사가 "검토 필요" 단계면 실제 광고 재고
+ * 없이 no-fill로 끝날 수 있고, 그 경우 shell.ts가 만들어둔 플레이스홀더 텍스트가 그대로 보인다 */
+const AD_BANNER_SLOT_ID = "5638367269";
 
 declare global {
   interface Window {
