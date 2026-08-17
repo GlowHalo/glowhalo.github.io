@@ -77,3 +77,17 @@ ICF/KCA 8대 핵심역량 중 챗봇이 실제로 구현 가능한 부분을 반
 3. Gemini API 키 발급 (구글 계정만 있으면 5분)
 
 바로 대화 화면 프로토타입부터 만들어볼까요?
+
+---
+
+## 7. 2026-08 업데이트 — 실제 Gemini 연동 완료
+
+위 3장의 시스템 프롬프트(합의→경청/반영→강력한 질문→알아차림→실행설계, "조언 금지")를
+그대로 살려 `kpc-coach-chat/worker/index.ts`(Cloudflare Worker)에 옮겼다. 5턴 고정 스크립트
+(`botReply()`)는 제거하고, `index.html`이 매 턴 전체 대화 히스토리를 이 Worker의 `POST /chat`
+으로 보내면 Worker가 Gemini(`gemini-flash-latest`)를 구조화 출력(JSON 스키마: text/isQuestion/
+stage/end/summary)으로 호출해 응답한다. API 키는 Worker 환경변수(시크릿)에만 있고 브라우저
+코드·커밋 어디에도 없다 — 대화 저장도 서버에 하지 않는(무상태) 구조를 유지했다.
+
+배포 주소: `https://nada-company6-kpc-coach-chat.tossneon.workers.dev` — 절차·API 스펙은
+`worker/README.md` 참고.
