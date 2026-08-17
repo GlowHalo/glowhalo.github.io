@@ -42,6 +42,21 @@ window.REGISTRY = {
 
   projects: [
   {
+    "id": "kpc-coach-chat",
+    "repo": "kpc-coach-chat",
+    "title": "KPC 코칭챗봇",
+    "date": "2026.08",
+    "status": "발전중",
+    "tags": [
+      "PWA",
+      "코칭",
+      "Gemini API",
+      "Cloudflare Worker"
+    ],
+    "description": "조언 대신 질문으로 스스로 답을 찾게 돕는 셀프코칭 대화 상대. ICF/KCA 역량 기반 시스템 프롬프트로 Gemini API에 실제 연동됨(Cloudflare Worker 프록시 경유, 키는 브라우저에 노출 안 됨).",
+    "note": "무료 Gemini API 키 사용 — Google이 API 입력을 서비스 개선에 활용할 수 있는 티어. 코칭 대화는 민감한 개인 성찰 내용이 오갈 수 있어 트레이드오프 인지 필요. 대화 내용은 서버에 저장하지 않고(무상태 프록시) 매 요청 브라우저가 보낸 히스토리만 사용."
+  },
+  {
     "id": "circle-heroes",
     "repo": "circle-heroes",
     "title": "Circle Heroes",
@@ -54,20 +69,6 @@ window.REGISTRY = {
     ],
     "description": "SD 히어로 수집형 자동전투 방치형 게임. 모바일 APK로 설치해서 싱글플레이로 즐기는 걸 목표로 한다. 영웅 마스터데이터는 Notion이 정본.",
     "note": "meta.json이 없어 허브에 안 뜨고 있던 걸 2026-08-13 정비에서 발견해 등록. 나다컴퍼니6(시우) 소속. 안드로이드 패키지 ID는 io.github.tossneon.circleheroes → com.nadagroup.circleheroes로 정비 완료(2026-08-13, 아직 APK 정식 배포 전이라 전환 비용 없음)."
-  },
-  {
-    "id": "kpc-coach-chat",
-    "repo": "kpc-coach-chat",
-    "title": "KPC 코칭챗봇",
-    "date": "2026.07",
-    "status": "프로토타입",
-    "tags": [
-      "React",
-      "코칭",
-      "Gemini API"
-    ],
-    "description": "조언 대신 질문으로 스스로 답을 찾게 돕는 셀프코칭 대화 상대. ICF/KCA 역량 기반 시스템 프롬프트 설계는 끝났고, 대화 화면 프로토타입 단계.",
-    "note": "Gemini 무료 티어는 대화 내용이 학습에 쓰일 수 있음 — 코칭 대화 특성상 트레이드오프 주의"
   },
   {
     "id": "mindmap",
