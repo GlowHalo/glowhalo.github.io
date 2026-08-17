@@ -5,7 +5,9 @@
       "Bash(python3 asset-management/execution/*.py*)",
       "Bash(python3 -m json.tool*)",
       "Bash(npx wrangler*)",
-      "Bash(npx --yes wrangler*)"
+      "Bash(npx --yes wrangler*)",
+      "mcp__Claude_Code_Remote__*",
+      "mcp__Notion__*"
     ]
   },
   "autoMode": {
