@@ -9,6 +9,8 @@
 | A5 | 라인 스티커샵(일잘봇 32종 재활용) | LINE Creators Market | 🟡 자산 제작 완료, 회장이 계정 직접 가입 진행 중(2026-08-15) — 상세는 [`execution/A5-line-sticker-shop.md`](execution/A5-line-sticker-shop.md) |
 | A6 | 카카오톡 이모티콘 32종(정지형, "몽글곰" — 커플/연애 타겟) | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 예슬이 완전자동 제출 완료(2026-08-17 06:47), 심사 중 — 상세는 [`execution/A6-couple-bear.md`](execution/A6-couple-bear.md) |
 | A7 | 화장실 유머 32종(라인아트, "변기토리") — SVG 직접 제작, Leonardo 미사용 | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 예슬이 직접 제출 완료(2026-08-17, 첫 완전자동 제출), 심사 중 — 상세는 [`execution/A7-toilet-humor.md`](execution/A7-toilet-humor.md) |
+| A8 | 카카오톡 이모티콘 32종(정지형, "합격토끼", Leonardo — 수험생/학생 타겟) | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 자동 루틴화 첫날 제출(2026-08-17 07:03), 심사 중 — 상세는 [`execution/A8-exam-rabbit.md`](execution/A8-exam-rabbit.md) |
+| A9 | 귀차니즘/무기력 유머 32종(라인아트, "말랑이") — SVG 직접 제작, Leonardo 미사용 | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 자동 루틴화 첫날 제출(2026-08-17 07:05), 심사 중 — 상세는 [`execution/A9-lazy-mascot.md`](execution/A9-lazy-mascot.md) |
 
 ## 향후 확장 후보
 

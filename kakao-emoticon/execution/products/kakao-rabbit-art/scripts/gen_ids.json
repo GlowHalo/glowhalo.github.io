@@ -1,0 +1,162 @@
+{
+  "01-byeorakchigi": {
+    "n": 1,
+    "phrase": "벼락치기 중 (급하게 공부)",
+    "generationId": "52dd5462-5e18-45f4-8d4f-d1bdb6e347bc"
+  },
+  "02-oneuldo-bamsaem": {
+    "n": 2,
+    "phrase": "오늘도 밤샘 각",
+    "generationId": "64315a53-8329-42e4-a781-1596084c8d2a"
+  },
+  "03-jipjungnyeok-reset": {
+    "n": 3,
+    "phrase": "집중력 리셋 완료 (딴생각)",
+    "generationId": "40884f9f-3540-4623-baf3-93dca967495a"
+  },
+  "04-keopi-eobsin": {
+    "n": 4,
+    "phrase": "커피 없인 못 살아",
+    "generationId": "b7c1ec71-ec07-461f-a4f8-d5abea8eb916"
+  },
+  "05-ihaega-andwae": {
+    "n": 5,
+    "phrase": "이해가 안 돼 (멘붕)",
+    "generationId": "b106b9cb-614c-4699-a601-418e5b89fdd5"
+  },
+  "06-nun-gamatta": {
+    "n": 6,
+    "phrase": "눈 감았다 떴는데 시험이야",
+    "generationId": "8456a79f-cec4-4782-b5da-d57de0e6f50a"
+  },
+  "07-hapgyeok-giwon": {
+    "n": 7,
+    "phrase": "합격 기원 (두 손 모아)",
+    "generationId": "e3933d3d-7d87-492d-8337-20d0f707e71b"
+  },
+  "08-manghaetda": {
+    "n": 8,
+    "phrase": "망했다...",
+    "generationId": "19dec421-996b-4bdc-b75d-07e3696bee7e"
+  },
+  "09-dasi-hwaiting": {
+    "n": 9,
+    "phrase": "다시 화이팅",
+    "generationId": "1e92737c-e6f7-4f36-bf9d-a9b7aabfd0df"
+  },
+  "10-yoyak-jeongni-kkeut": {
+    "n": 10,
+    "phrase": "요약 정리 끝",
+    "generationId": "8595546f-4958-4bed-b58a-c62204a5acc3"
+  },
+  "11-ttak-han-munje": {
+    "n": 11,
+    "phrase": "딱 한 문제만 더",
+    "generationId": "3211dbdb-d90f-4fbf-910c-dc204fffdd47"
+  },
+  "12-siheom-kkeutnatda": {
+    "n": 12,
+    "phrase": "시험 끝났다!!",
+    "generationId": "df5b93a8-3e64-4a4a-8b84-330be7b4c18a"
+  },
+  "13-chaejeom-museopda": {
+    "n": 13,
+    "phrase": "채점 무섭다",
+    "generationId": "d0c60a22-142c-468c-ad88-b9b58eb27f5a"
+  },
+  "14-manjeom-gak": {
+    "n": 14,
+    "phrase": "만점 각",
+    "generationId": "22ebf323-7d71-4009-85a5-062dd8147fde"
+  },
+  "15-mental-nagam": {
+    "n": 15,
+    "phrase": "멘탈 나감",
+    "generationId": "bb02d86f-8bcb-4229-8f18-bac32b1320a0"
+  },
+  "16-doseogwan-jari": {
+    "n": 16,
+    "phrase": "도서관 자리 뺏겼다",
+    "generationId": "1c753725-6c40-4e95-af87-0a203f235dc4"
+  },
+  "17-dark-circle": {
+    "n": 17,
+    "phrase": "다크서클 실화냐",
+    "generationId": "9fe1b114-0839-4b35-9572-00eff811bede"
+  },
+  "18-oneulman-sanda": {
+    "n": 18,
+    "phrase": "오늘만 산다",
+    "generationId": "0719f3a7-6abc-4dcd-b217-c1333e7110c2"
+  },
+  "19-hapgyeok-tongbo": {
+    "n": 19,
+    "phrase": "합격 통보 기다리는 중",
+    "generationId": "a5bbc533-c368-46e5-8f1f-f3da1f370045"
+  },
+  "20-buteotda": {
+    "n": 20,
+    "phrase": "붙었다!!!",
+    "generationId": "657657e0-860c-45d9-ba1c-7d4ea0d312ec"
+  },
+  "21-tteoreojyeotda": {
+    "n": 21,
+    "phrase": "떨어졌다... 재수한다",
+    "generationId": "484a1008-12d3-455f-8f08-2a35879036b9"
+  },
+  "22-study-cafe-gaja": {
+    "n": 22,
+    "phrase": "스터디 카페 가자",
+    "generationId": "71420513-c647-499f-af84-597439418432"
+  },
+  "23-ingang-2baesok": {
+    "n": 23,
+    "phrase": "인강 2배속",
+    "generationId": "1bc9fb49-725f-4e0e-b215-94f418b25a46"
+  },
+  "24-note-pilgi-wanbyeok": {
+    "n": 24,
+    "phrase": "노트 필기 완벽",
+    "generationId": "d3849c3a-707f-4ff4-bfb1-5abe4e54c993"
+  },
+  "25-siheom-beomwi": {
+    "n": 25,
+    "phrase": "시험범위 실화냐",
+    "generationId": "f96e380e-7c3c-46b2-8a56-30bbbceb8a75"
+  },
+  "26-jokbo-jom-jwo": {
+    "n": 26,
+    "phrase": "족보 좀 줘",
+    "generationId": "426bb282-bec0-4d82-a48f-2d23194ceb59"
+  },
+  "27-swineun-sigan": {
+    "n": 27,
+    "phrase": "쉬는 시간 최고",
+    "generationId": "a45027dd-8f6a-4ace-9ec6-cfa332f81159"
+  },
+  "28-geupage-amgi": {
+    "n": 28,
+    "phrase": "급하게 암기 중",
+    "generationId": "ae767f43-ffb6-4335-996d-f14e3b8bd515"
+  },
+  "29-ginjangdoenda": {
+    "n": 29,
+    "phrase": "긴장된다...",
+    "generationId": "d502c2b8-0c7b-4ef8-94d4-1baca141f0df"
+  },
+  "30-nado-hal-su-itda": {
+    "n": 30,
+    "phrase": "나도 할 수 있다",
+    "generationId": "aa13a137-50c2-49cf-9e98-7dbcfeb2feb5"
+  },
+  "31-banghakida": {
+    "n": 31,
+    "phrase": "방학이다!!!",
+    "generationId": "e412f61d-b503-4795-9675-179179c7ddef"
+  },
+  "32-oneuldo-sugohaesseo": {
+    "n": 32,
+    "phrase": "오늘도 수고했어",
+    "generationId": "44dc2751-c3e5-45a6-8169-42089fde66cc"
+  }
+}
