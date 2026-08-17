@@ -29,7 +29,7 @@ Beehiiv·스티비 포함 7개 플랫폼의 이용료/유료구독 조건/API/�
 - [x] Beehiiv 공식 문서로 자동화 범위 확인 — [`candidates.md`](candidates.md) 참고
 - [x] A5(스티비 뉴스레터)·E2(나다컴퍼니9)와의 관계 정리 — **흡수 확정**(회장 지시), 플랫폼만 검토 중
 - [x] 뉴스레터 발행 플랫폼 7곳 폭넓은 비교(스티비/Beehiiv/Substack/Ghost/Kit/Buttondown/MailerLite) — [`candidates.md`](candidates.md) 참고
-- [ ] 회장이 플랫폼 최종 확정하면: 신규 계정 가입 요청(회장 요청 기반) — 스티비로 확정 시 [A5 실행문서](../niche-templates/execution/A5-newsletter.md)의 "회장 액션 필요" 단계(계정 생성 → 유료구독 활성화)를 그대로 이어받아 진행
+- [x] ~~회장이 플랫폼 최종 확정하면: 신규 계정 가입 요청~~ — **2026-08-17 갱신: 회장이 스티비·Beehiiv 둘 다 표준계정(`tossneon0`)으로 직접 가입 완료**(금고 `stibee_login_*`/`beehiiv_login_*` 등록). 플랫폼 확정을 기다리지 않고 양쪽 계정이 먼저 생겨서, 이제 이 세션이 `candidates.md` 비교표를 근거로 최종 플랫폼을 정해서 진행하면 된다 — 스티비로 갈 경우 [A5 실행문서](../niche-templates/execution/A5-newsletter.md)의 남은 단계(콘텐츠 이관 → 유료구독 활성화 여부 판단)를 이어받을 것
 
 ## 🔄 세션 인계 메모 (2026-08-15)
 

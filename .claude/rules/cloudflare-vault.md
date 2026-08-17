@@ -96,7 +96,9 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `apyhub_default_api_key` | ApyHub 워크스페이스(`nadacompany`) 기본 API 키 — 회장이 전달한 값이 `2b7d6ffe`로 짧아 전체 키가 아니라 일부(표시용 축약형)일 가능성 있음, 실제 API 호출 전 대시보드에서 전체 키 재확인 필요 |
 | `apimarket_login_email` / `apimarket_login_password` | API.Market 계정(`tossneon0`, 표준 규칙, 2026-08-17 회장이 직접 가입) — 나다컴퍼니2(하윤) RapidAPI 대체 플랫폼 |
 | `apimarket_api_key` | API.Market API 키(`cmsx0ji3j0001jx04131rji79`, 2026-08-17 발급 확인) |
-| `amazon_developer_login_email` / `amazon_developer_login_password` | Amazon Developer Console 계정(`tossneon0`, 표준 규칙, 2026-08-17 회장이 직접 가입) — 나다컴퍼니6(시우) Amazon Appstore 배포용. **신원확인(IDV) 심사 대기 중** — 완료 전까진 실제 앱 제출 불가 |
+| `amazon_developer_login_email` / `amazon_developer_login_password` | Amazon Developer Console 계정(`tossneon0`, 표준 규칙, 2026-08-17 회장이 직접 가입) — 나다컴퍼니6(시우) Amazon Appstore 배포용. **신원확인(IDV) 완료(2026-08-17 회장 확인)** — 실제 앱 제출 가능 |
+| `stibee_login_email` / `stibee_login_password` | 스티비(Stibee) 계정(`tossneon0`, 표준 규칙, 2026-08-17 회장이 직접 가입) — 나다컴퍼니10(은우) 니치 뉴스레터 발행 "현재안" |
+| `beehiiv_login_email` / `beehiiv_login_password` | Beehiiv 계정(`tossneon0`, 표준 규칙, 2026-08-17 회장이 직접 가입) — 나다컴퍼니10(은우) 니치 뉴스레터 발행 대안. 스티비와 둘 다 계정이 있으므로 최종 플랫폼 선택은 `newsletter-automation/candidates.md` 비교 기준 |
 
 **자동화 전용 계정 vs 개인 계정 (2026-08-09)**: `kakao_login_*`/`google_login_*`은 회장이 자동화 목적으로
 **새로 만든** 계정이다 — 회장 개인 카카오톡·구글 계정이 아니다. 회장 개인 계정은 앞으로도 회장이 직접
