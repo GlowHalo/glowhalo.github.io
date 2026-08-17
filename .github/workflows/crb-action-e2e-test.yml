@@ -1,0 +1,24 @@
+name: Code Review Board Action E2E Test
+
+# 임시 검증용 워크플로우 — code-review-board-action의 실제 GitHub Actions 인프라 동작(체크아웃 →
+# 로컬 액션 참조 → Node 세팅 → npm install → 스크립트 실행)을 실제 PR에서 확인하기 위한 것.
+# 검증이 끝나면 이 파일과 브랜치는 삭제된다(회장이 요청한 영구 배포용 워크플로우가 아님).
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'code-review-board-action/_e2e_test/**'
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./code-review-board-action
+        with:
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
