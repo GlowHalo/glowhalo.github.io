@@ -1,0 +1,10 @@
+name = "nada-company6-kpc-coach-chat"
+main = "index.ts"
+compatibility_date = "2026-01-01"
+
+# 무료 티어(workers.dev 서브도메인)로 배포됨. 커스텀 도메인 불필요.
+#
+# 비밀값은 여기 두지 않는다 — 정본은 `tossneon-api-vault`(계정 공용 금고, 유일한 창고).
+# 값을 그 금고에서 조회한 뒤 `npx wrangler secret put <이름>` 으로 이 Worker에 등록한다:
+#   GEMINI_API_KEY
+# 자세한 절차는 `.claude/rules/cloudflare-vault.md` 참고.
