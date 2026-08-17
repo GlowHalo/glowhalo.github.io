@@ -55,8 +55,9 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `gumroad_login_password` | 위와 동일 용도 |
 | `kakao_login_email` | 카카오 자동화 전용 계정(회장 개인계정 아님) — 카카오 이모티콘 스튜디오 등 로그인 필요 작업 |
 | `kakao_login_password` | 위와 동일 용도 |
-| `google_login_email` | 구글 자동화 전용 계정(회장 개인계정 아님) — 구글 플레이 콘솔, 구글 계정 연동 로그인 등 |
-| `google_login_password` | 위와 동일 용도 |
+| `google_login_email` | 구글 자동화 전용 계정(회장 개인계정 아님) — 구글 플레이 콘솔, 구글 계정 연동 로그인 등. Cloudflare 로그인도 이 계정 연동(회장이 직접 확인, 2026-08-17) |
+| `google_login_password` | 위와 동일 용도. **2026-08-17 회장이 최신 비밀번호로 갱신 전달** — Cloudflare Email Routing 목적지 주소 인증 등에 사용. **⚠️ 2026-08-17 확인 — 이 계정으로 구글 로그인 화면(accounts.google.com) 자체를 자동화 브라우저(Cloudflare Browser Rendering/CDP)로 통과하는 건 안 됨.** 이메일 입력은 통과하지만 비밀번호 입력 단계에서 구글이 "이 브라우저 또는 앱이 안전하지 않을 수 있습니다"로 즉시 차단(비밀번호가 맞아도 동일) — 의도된 보안정책이라 우회 시도 안 함. 구글 자체 로그인이 필요한 작업(받은편지함 확인, 구글 서비스 대시보드 등)은 계속 회장이 직접 해야 하고, 이 값은 제3자 사이트가 "Continue with Google" 대신 이메일+비밀번호로 가입받아줄 때만 쓸 수 있다. 실패한 자동 로그인 시도 이력 때문에 다음 실제(회장) 로그인 때 구글이 추가 본인확인을 요구할 수 있음 |
+| `nadagroup_org_company_email` | `help@nadagroup.org` — Cloudflare Email Routing으로 `google_login_email`(tossneon0)에 포워딩 활성화됨(2026-08-17, 회장이 대시보드에서 직접 설정+인증). "회사 이메일" 요구하는 가입 폼(예: Cerberus FTP)에 쓸 것 — 개인 Gmail 주소로 막히는 가입에 대응 |
 | `browserbase_api_key` | Browserbase(클라우드 원격 브라우저) — 이 세션 프록시를 안 거치는 헤드리스 브라우저 자동화용 (무료 플랜) |
 | `whop_api_key` | Whop API — 템플릿류(A1)·앱류(A2) 공용 채널, 회장이 가입 완료(2026-08-09) |
 | `chairman_payout_account_kakaobank` | 회장 개인 정산 계좌(카카오뱅크) — **2026-08-15부터 신규 등록은 `chairman_payout_account_ibk`로 전환, 이 계좌는 기존에 이미 등록된 곳만 유지**(회장이 필요할 때 차차 변경). JSON({bank, bankEn, accountNumber, accountHolder, swiftCode}). swiftCode는 `KAKOKR22XXX`(2023-03-29 카카오뱅크가 변경한 현행 코드, 2026-08-11 등록·교차검증 완료) |
