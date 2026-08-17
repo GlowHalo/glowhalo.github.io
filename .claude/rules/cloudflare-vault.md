@@ -84,6 +84,9 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `birkman_login_id` / `birkman_login_password` | 버크만코리아(birkmankorea.co.kr) 로그인 — **회장 개인 계정, 위 "자동화 전용 계정 표준"의 예외.** 2026-08-10 회장이 나다컴퍼니4(채원)에게만 직접 로그인 사용을 허가한 예외 자격증명. 다른 계열사·범용 자동화 목적으로 재사용 금지, `birkman-automation/` 용도로만 사용. 로그인 1회 + 마이페이지(`/mypage/assessment`) 진입 시 비밀번호 재확인 1회, 총 2회 필요(같은 비밀번호로 추정, 미검증) |
 | `resend_login_email` / `resend_login_password` | Resend(resend.com) 대시보드 로그인 — 표준 계정(`tossneon0@gmail.com`, 2026-08-12 회장이 직접 가입·계정 확인 완료) |
 | `resend_api_key` | Resend 발송 API 키 — `birkman-automation/src/send-debriefing.mjs`가 HTTPS(443)로 메일 발송(SMTP 포트 차단 우회). **커스텀 도메인 인증 전엔 계정 소유자 본인 이메일에만 발송 가능**(샌드박스 제한), 상세는 `.claude/rules/birkman.md`의 "메일 발송" 절 참고 |
+| `resend_api_key_full` | Resend **Full access** API 키(2026-08-17 대시보드에서 직접 발급, 브라우저 자동화) — 도메인 등록/DNS 인증 등 관리 작업용. 기존 `resend_api_key`(발송 전용)와 별개로 유지, 발송 스크립트는 계속 그쪽을 씀 |
+| `naver_login_email` / `naver_login_password` | 네이버 개인 계정 로그인(`tossneon0@naver.com`, 표준 규칙, 2026-08-17 회장이 직접 가입·전달) — 나다컴퍼니4(채원) 네이버 스마트스토어×버크만 자동화용(`assessment-products/execution/네이버자동화-프로세스설계.md`) |
+| `naver_commerce_login_id` / `naver_commerce_login_password` | 네이버 커머스(스마트스토어 판매자센터·커머스API) 로그인(`tossneon0`, 2026-08-17). **⚠️ 스토어 개설은 2026-09-03 이후에나 가능** — 이전에 실수로 만든 스토어를 탈퇴해서 재개설 대기 기간 적용 중. 그 전까지는 로그인만 가능하고 스토어 관련 작업은 착수 불가 |
 
 **자동화 전용 계정 vs 개인 계정 (2026-08-09)**: `kakao_login_*`/`google_login_*`은 회장이 자동화 목적으로
 **새로 만든** 계정이다 — 회장 개인 카카오톡·구글 계정이 아니다. 회장 개인 계정은 앞으로도 회장이 직접
