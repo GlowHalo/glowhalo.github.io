@@ -15,32 +15,32 @@ import time
 
 BASE = (
     "cute kawaii mascot sticker character concept sheet, a small chubby round rabbit mascot with two "
-    "long rounded ears, solid flat uniform SOLID PERIWINKLE BLUE-VIOLET color (single flat color, "
-    "medium-high saturation, like a solid blueberry-violet crayon fill) covering the entire body, ears, "
-    "legs and belly with absolutely no pink, no magenta, no pastel-white patches, no gradient shading, "
-    "no color blending, no green or mint tint anywhere, short stubby arms and legs matching the exact "
-    "same solid periwinkle-violet color as the body, ears are the same solid periwinkle-violet color as "
-    "the body with only a thin black outline (no pink or light-colored ear interior), wearing small round "
-    "black-rimmed glasses, big round sparkling eyes showing {expr}, {ears}, {arms}, flat vector "
-    "illustration with completely flat uniform color fill and no fur texture strands, thick clean black "
-    "outline, minimalist flat design, centered composition, single character, plain solid bright yellow "
-    "background, chibi proportions, smooth rounded shapes, matte flat sticker look, Korean kakao talk "
-    "emoticon sticker style, professional character design, high quality"
+    "long rounded ears, solid uniform periwinkle blue-violet color from head to toe with absolutely no "
+    "pink, no tan, no green or mint tint anywhere on the body, ears, legs, or belly, short stubby arms "
+    "and legs matching the same solid periwinkle-violet color as the body, wearing small round "
+    "black-rimmed glasses, big expressive eyes showing {expr}, {ears}, {arms}, flat vector illustration "
+    "style, thick clean black outline, minimalist design, centered composition, single character, plain "
+    "solid bright yellow background, chibi proportions, smooth rounded shapes, glossy plastic toy look, "
+    "Korean kakao talk emoticon sticker style, professional character design, high quality, dynamic "
+    "expressive pose clearly different from a plain neutral sitting pose"
 )
 
 NEG = (
     "text, watermark, signature, blurry, realistic photo, 3d render, multiple characters, human face, "
-    "background scenery, gradient, color gradient, two-tone, duotone, shading, highlight glow, shadow, "
-    "extra limbs, complex background, low quality, cropped, cat, robot, bear, dog, tabby stripes, green "
-    "fur, mint fur, brown fur, tan fur, pink fur, pink ears, magenta fur, magenta accents, blush, pink "
-    "shading, green tint, brown tint, fur texture, textured fur, patterned fur, fluffy texture strands, "
-    "glossy highlight, no glasses"
+    "background scenery, shadow, extra limbs, complex background, low quality, cropped, cat, robot, "
+    "bear, dog, tabby stripes, green fur, mint fur, brown fur, tan fur, pink fur, pink ears, magenta "
+    "fur, magenta accents, green tint, brown tint, fur texture, textured fur, patterned fur, fluffy "
+    "texture strands, no glasses, plain neutral expression, identical pose"
 )
 
-# A3(87008451)·A4(51402203)·A6(68302915)와 다른 새 고정 시드. 배경도 마젠타->초록으로 변경
-# (캐릭터 색이 보라/파랑 계열이라 마젠타 배경과 색거리가 너무 가까워 크로마키가 몸통까지
-#  반투명하게 먹어버리는 문제가 1차 시도에서 발견됨 — 배경을 초록으로 바꿔 색거리 확보)
-SEED = 40217603
+# A3(87008451)·A4(51402203)·A6(68302915)와 다른 새 고정 시드. 배경은 마젠타->노란색 유지
+# (캐릭터가 보라/파랑 계열이라 마젠타와 색거리가 가까워 안전마진 확보 차원 — 다만 이제
+# postprocess.py가 flood-fill로 몸통 내부를 색거리와 무관하게 보호하므로 필수는 아님).
+# 2026-08-17 2차 수정: 1차 프롬프트가 "완전 평면·그라데이션·하이라이트 금지"를 과하게
+# 반복해서 넣었더니 32종 전부 표정·포즈가 거의 동일하게 나오는 문제가 발견됨(회장 피드백:
+# "보라토끼 다 너무 똑같은것같은데??") — 색 순도 관련 최소 지침만 남기고 나머지는 곰(A6)
+# 원본 스타일 수준으로 되돌려 표현 다양성을 회복.
+SEED = 88451207  # 표정 고착 문제로 시드도 함께 교체(기존 40217603은 폐기)
 MODEL_ID = "de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3"  # Phoenix 1.0
 
 
