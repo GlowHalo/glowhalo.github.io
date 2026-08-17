@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 <title>마인드맵</title>
 <meta name="description" content="빠르게 마인드맵을 그리고, 링크 하나로 다른 세션·기기에 그대로 보여줄 수 있는 도구." />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" href="icons/icon-192.png" />
+<meta name="theme-color" content="#14151A" />
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500;600&display=swap');
   * { box-sizing: border-box; }
@@ -291,17 +295,6 @@
     return null;
   }
 
-  function findParent(node, id, parent) {
-    if (node.id === id) return parent;
-    for (var i = 0; i < node.children.length; i++) {
-      var found = findParent(node.children[i], id, node);
-      if (found !== undefined && found !== null) return found;
-      if (node.children[i].id === id) return node;
-    }
-    return null;
-  }
-
-  // simpler explicit parent finder
   function getParentOf(id) {
     function walk(node) {
       for (var i = 0; i < node.children.length; i++) {
@@ -1097,6 +1090,12 @@
 
   // ---------- init ----------
   loadInitial();
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
+  }
 })();
 </script>
 </body>
