@@ -36,4 +36,4 @@
 
 최근 며칠간 Notion 워크스페이스 분리·계정 비밀번호 표준화·GitHub 폴더 구조 개편(companyN → 주제별 이름)이 한꺼번에 진행되면서, 오래 이어진 세션이 옛 맥락(옛 경로·옛 워크스페이스)에 헷갈릴 수 있다는 회장 판단으로 이 계열사 세션을 새로 열었다. 새 세션은 이 파일과 `candidates.md` 등 폴더 안 문서를 정본으로 삼아 현재 상태부터 파악할 것.
 
-**전 세션에서 회장 확인 대기 중이던 것**: 니치 API 플랫폼 다변화 Tier1 3곳(Zyla API Hub → ApyHub → API.Market) 가입 진행 승인 대기
+**전 세션에서 회장 확인 대기 중이던 것**: ~~니치 API 플랫폼 다변화 Tier1 3곳(Zyla API Hub → ApyHub → API.Market) 가입 진행 승인 대기~~ → **2026-08-17 해소 — 회장이 3곳 전부 표준계정(`tossneon0`)으로 직접 가입 완료.** 금고 등록: `zylalabs_login_email`/`_password`, `apyhub_login_email`/`_password`+`apyhub_default_api_key`(대시보드 값이 짧아 축약형일 가능성, 실사용 전 재확인 권장), `apimarket_login_email`/`_password`+`apimarket_api_key`. 다음 단계는 이 세션이 각 플랫폼 API로 실제 리스팅 등록 착수(상세는 `products/니치API-플랫폼-전략.md`)
