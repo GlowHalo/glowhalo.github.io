@@ -2,8 +2,17 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>아기랑 갈 곳</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="theme-color" content="#FF7B54" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="아기랑 갈 곳" />
+<meta name="description" content="링크나 상호명을 검색해 등록하는 아기 동반 장소 지도 — 태그, 즐겨찾기, 만족도, 실시간 공유" />
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
   * { box-sizing:border-box; }
@@ -237,7 +246,28 @@ const SATISFACTIONS = [
   { key:"별로", emoji:"😕", color:"#8C8378" },
 ];
 const SEOUL_CITY_HALL = { lat:37.5665, lng:126.9780 };
-const HOME = { lat:37.4871646, lng:127.0254202 }; // 서초구 효령로72길14 현대아파트 — "가까운 순" 정렬 기준점
+
+// "가까운 순" 정렬 기준점(내 집 위치) — 기기별 개인 설정이라 Firestore가 아닌 localStorage에만 저장.
+// 처음 쓸 땐 비어있고, "집에서 가까운순"을 처음 누를 때 지도에서 직접 찍어서 설정한다(ensureHome 참고).
+const HOME_KEY = "baby-place-registry:home";
+let HOME = loadHome();
+function loadHome(){
+  try {
+    const saved = JSON.parse(localStorage.getItem(HOME_KEY));
+    if(saved && Number.isFinite(saved.lat) && Number.isFinite(saved.lng)) return saved;
+  } catch(e){ /* 저장값 손상 시 미설정 취급 */ }
+  return null;
+}
+function saveHome(loc){
+  HOME = { lat:loc.lat, lng:loc.lng };
+  localStorage.setItem(HOME_KEY, JSON.stringify(HOME));
+}
+function ensureHome(onReady){
+  if(HOME){ onReady(); return; }
+  if(!mapReady){ alert("가까운 순 정렬을 쓰려면 지도가 필요해요. 카카오 지도 키가 설정되면 이용할 수 있어요."); return; }
+  alert("먼저 내 위치(집)를 지도에서 설정해주세요. 한 번 설정하면 이 기기에서 계속 기억해요.");
+  openPicker(null, loc => { saveHome(loc); onReady(); });
+}
 
 const STORAGE_KEY = "baby-place-registry:places";
 let idSeq = 10;
@@ -389,7 +419,7 @@ function groupByRegionMap(list){
 }
 function sortPlaces(list){
   if(sortMode==="name") return [...list].sort((a,b) => a.name.localeCompare(b.name, "ko"));
-  if(sortMode==="distance"){
+  if(sortMode==="distance" && HOME){
     return [...list].sort((a,b) => {
       const da = hasLoc(a) ? distanceKm(HOME,a) : Infinity;
       const db = hasLoc(b) ? distanceKm(HOME,b) : Infinity;
@@ -707,9 +737,21 @@ function renderSortRow(){
     { key:"name", label:"이름순" },
     { key:"distance", label:"집에서 가까운순" },
   ];
-  el.innerHTML = modes.map(m => `<button class="sortbtn ${sortMode===m.key?'active':''}" data-s="${m.key}">${m.label}</button>`).join("")
+  el.innerHTML = modes.map(m => `<button class="sortbtn ${sortMode===m.key?'active':''}" data-s="${m.key}">${m.label}${m.key==='distance' && !HOME ? ' 📍' : ''}</button>`).join("")
     + `<button class="sortbtn groupbtn ${groupByRegion?'active':''}" id="group-toggle">🗺️ 지역별로 묶기</button>`;
-  el.querySelectorAll(".sortbtn[data-s]").forEach(b => b.addEventListener("click", () => { sortMode = b.dataset.s; renderSortRow(); renderList(); }));
+  el.querySelectorAll(".sortbtn[data-s]").forEach(b => b.addEventListener("click", () => {
+    const mode = b.dataset.s;
+    if(mode === "distance"){
+      if(sortMode === "distance" && HOME){
+        // 이미 거리순 정렬 중일 때 다시 탭하면 내 위치(집)를 다시 설정
+        openPicker({ lat:HOME.lat, lng:HOME.lng }, loc => { saveHome(loc); renderList(); });
+        return;
+      }
+      ensureHome(() => { sortMode = mode; renderSortRow(); renderList(); });
+      return;
+    }
+    sortMode = mode; renderSortRow(); renderList();
+  }));
   document.getElementById("group-toggle").addEventListener("click", () => { groupByRegion = !groupByRegion; renderSortRow(); renderList(); });
 }
 
@@ -943,6 +985,12 @@ function boot(){
   initMapOrFallback();
 }
 if(window.cloudSync){ boot(); } else { window.addEventListener("cloudsync-ready", boot); }
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(err => console.error("SW 등록 실패", err));
+  });
+}
 </script>
 </body>
 </html>
