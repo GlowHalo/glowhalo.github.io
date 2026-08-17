@@ -3,3 +3,9 @@ dist/
 
 # Capacitor 안드로이드 네이티브 프로젝트 생성 시 로컬 SDK 경로 (환경마다 다름)
 android/local.properties
+
+# 릴리스 서명 키스토어 — 절대 커밋 금지(공개 저장소). 실제 값은 금고
+# (circleheroes_release_keystore_base64 / circleheroes_keystore_password)에 있음.
+*.keystore
+*.jks
+android/app/circleheroes-release.keystore

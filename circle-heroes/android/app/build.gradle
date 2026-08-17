@@ -1,5 +1,15 @@
 apply plugin: 'com.android.application'
 
+// §2026-08-17 스토어 배포 전 최종점검 — 릴리스 서명 설정. 키스토어 실물은 저장소에 없고(공개
+// 저장소라 커밋 금지, 금고 circleheroes_release_keystore_base64/circleheroes_keystore_password에
+// 보관) CI가 빌드 직전에 아래 환경변수로 복원해서 넘겨준다. 로컬에서 이 환경변수 없이
+// assembleRelease를 돌리면(=CI 밖) 서명 없이 빌드되고, 그 상태로는 스토어에 올릴 수 없다 —
+// 실제 배포용 APK는 반드시 이 환경변수가 설정된 CI에서만 만든다.
+def releaseKeystorePath = System.getenv("CIRCLEHEROES_RELEASE_KEYSTORE_PATH")
+def releaseKeystorePassword = System.getenv("CIRCLEHEROES_KEYSTORE_STORE_PASSWORD")
+def releaseKeyAlias = System.getenv("CIRCLEHEROES_KEYSTORE_ALIAS")
+def releaseKeyPassword = System.getenv("CIRCLEHEROES_KEYSTORE_KEY_PASSWORD")
+
 android {
     namespace = "com.nadagroup.circleheroes"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,10 +26,23 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (releaseKeystorePath) {
+                storeFile file(releaseKeystorePath)
+                storePassword releaseKeystorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (releaseKeystorePath) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }
