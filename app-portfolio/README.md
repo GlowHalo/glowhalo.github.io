@@ -60,8 +60,8 @@
 - [ ] `baby-place-registry/` — Kakao/Firebase 키가 클라이언트 코드에 있음(Kakao JS 키·Firebase 웹 config 자체는 공개돼도 되는 값이라 즉시 위험은 낮지만, **Firestore 보안규칙이 열려있는지는 Firebase 콘솔에서 직접 확인 필요** — 계정 로그인이 필요해 회장 확인 요청 예정)
 - [ ] `code-review-board-action/` — 마켓플레이스에 실제로 올리려면 `git subtree split`로 독립 저장소 분리(`action.yml`을 루트로) + 실제 Anthropic 키로 end-to-end 검증 먼저 필요
 - [ ] `output-links-hub/` — 9개 중 2개만 등록돼 있음, 나머지(다운로드 가능한 산출물이 있는 앱 위주로) 카드 추가할지 판단
-- [ ] **회장 최초 가입 4건 대기** — Google Play Console($25)·Amazon Appstore(무료)·itch.io Circle Heroes 프로젝트 페이지(무료, 계정은 있음)·Microsoft Partner Center(2026년부터 무료). 상세 링크·절차는 [`execution/유통채널-리서치.md`](execution/유통채널-리서치.md) "다음 단계" 참고
-- [ ] 가입 완료되는 대로 시우가 각 채널 API 연동(서비스 계정/토큰 발급) → 이후 자동 배포 파이프라인 구축
+- [ ] **회장 최초 가입 4건 대기 — 2026-08-17 갱신: 2/4 완료.** ~~Amazon Appstore(무료)~~ **완료**(회장 직접 가입 + 신원확인(IDV)까지 완료, 금고 `amazon_developer_login_*` — 실제 앱 제출 가능 상태), ~~Microsoft Partner Center(2026년부터 무료)~~ **완료**(회장 직접 가입, 금고 `microsoft_partner_login_*`). 남은 건 Google Play Console($25, 유료라 `hq/가입대기.md` 후순위 트랙으로 이동)·itch.io Circle Heroes 프로젝트 페이지(무료, 계정은 있음, 페이지 생성만 남음). 상세 링크·절차는 [`execution/유통채널-리서치.md`](execution/유통채널-리서치.md) "다음 단계" 참고
+- [ ] Amazon Appstore·Microsoft Partner Center 계정이 준비됐으니 시우가 각 채널 API 연동(서비스 계정/토큰 발급) → 이후 자동 배포 파이프라인 구축 착수
 - [ ] 웹앱들(아기랑갈곳·체크노트·배당현황·KPC코칭챗봇·Mindmap·Pixel AI Office) 앱별로 "무엇을 유료화할지"(Gumroad 라이선스 잠금 vs 소스코드 판매) 제품 결정 필요 — 채널은 준비됐지만 가격/무료-유료 경계는 아직 미정
 - [ ] Circle Heroes APK 배포는 Google Play·Amazon Appstore·itch.io 3채널로 우선 진행, Apple/Samsung은 각각 비용·회장물리개입/사업자등록 장벽으로 보류(기존 기록, `niche-templates/README.md` "승격형" 사례 참고). 서명 키스토어도 아직 없음(디버그 APK만 가능)
 
@@ -69,4 +69,4 @@
 
 최근 며칠간 Notion 워크스페이스 분리·계정 비밀번호 표준화·GitHub 폴더 구조 개편(companyN → 주제별 이름)이 한꺼번에 진행되면서, 오래 이어진 세션이 옛 맥락(옛 경로·옛 워크스페이스)에 헷갈릴 수 있다는 회장 판단으로 이 계열사 세션을 새로 열었다. 새 세션은 이 파일과 `candidates.md` 등 폴더 안 문서를 정본으로 삼아 현재 상태부터 파악할 것.
 
-**전 세션에서 회장 확인 대기 중이던 것**: Google Play Console vs Microsoft Partner Center — 가입 착수 우선순위 선택 필요
+**전 세션에서 회장 확인 대기 중이던 것**: ~~Google Play Console vs Microsoft Partner Center — 가입 착수 우선순위 선택 필요~~ → **2026-08-17 해소 — 회장이 Microsoft Partner Center·Amazon Appstore 둘 다 먼저 가입 완료**(Google Play Console은 유료라 후순위 보류, 위 "대기 중" 항목 참고)
