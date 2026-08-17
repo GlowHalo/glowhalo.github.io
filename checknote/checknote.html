@@ -156,7 +156,9 @@ function checkForSharedLink(){
     const cleaned = incoming
       .filter(i => i && typeof i.t === "string" && i.t.trim())
       .map(i => ({ t: i.t, c: typeof i.c === "number" ? i.c : null, a: typeof i.a === "number" ? i.a : Date.now() }));
-    const isNew = inc => !items.some(local => local.text === inc.t && local.createdAt === inc.a);
+    // 텍스트가 같은 항목은 이미 가진 것으로 보고 건너뛴다 (같은 링크를 두 번 열거나, 양쪽 다
+    // 기본 데모 항목을 그대로 갖고 있는 경우 중복 추가를 막기 위함)
+    const isNew = inc => !items.some(local => local.text === inc.t);
     const newOnes = cleaned.filter(isNew);
     pendingImport = { list: newOnes, dupCount: cleaned.length - newOnes.length, total: cleaned.length };
   } catch(e) {
