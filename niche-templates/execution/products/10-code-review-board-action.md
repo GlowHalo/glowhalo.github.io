@@ -62,12 +62,36 @@
 3. **무료 배포 자체가 다음으로 필요한 유일한 검증 단계**: Pro 훅(라이선스 검증 로직)은 이미 코드로 완성돼 있고 이번 e2e에서 로직 자체(안전한 폴백)도 이전 라운드(2026-08-10)에 실네트워크로 확인됐다 — 즉 "Pro를 켤 준비"는 이미 끝나 있고, 지금 부족한 건 "Pro를 켤 만큼의 무료 사용자 기반"이다. Gumroad 상품 페이지를 만드는 작업(가격 정하기, 커버 제작, 리시트 페이지 등)에 시간을 쓰는 대신, 그 시간을 GitHub Marketplace 등록 준비(별도 리포 분리는 회장 승인 필요하지만, README/사용 가이드 다듬기·실제 오픈소스 리포 몇 곳에 시범 적용해보기 등)에 쓰는 게 A1의 "무자본 검증 우선" 원칙에 더 맞는다.
 4. 이 판단은 되돌릴 수 없는 게 아니다 — 무료 배포 후 실사용자가 생기고 "4번째 페르소나 갖고 싶다"는 신호(GitHub 이슈, 별점, 직접 문의 등)가 실제로 관측되면 그때 Gumroad Pro 상품을 만들어도 늦지 않다. 코드는 이미 그 순간을 위해 준비돼 있다.
 
+## 별도 리포 분리 시도 (2026-08-17, 회장 승인 후) — subtree split 재검증 완료, 리포 "생성" 자체가 API로 안 되는 하드 블로커 발견
+
+회장이 "별도 GitHub 리포 신규 생성"을 채팅으로 명시 승인해 실행에 착수했다.
+
+1. `git pull --rebase origin master` → `git subtree split -P code-review-board-action -b code-review-board-action-split` 재실행 성공. `git ls-tree`로 분리된 브랜치 최상위를 확인한 결과 `action.yml`·`README.md`·`LICENSE`(MIT, 이미 존재)·`package.json`·`package-lock.json`·`src/*` 전부 **루트**에 정상 배치, 원본 폴더 히스토리(210개 커밋)도 보존됨을 재확인. `node_modules`는 애초에 `.gitignore` 대상이라 트리에 없음 — 별도 정리 불필요.
+2. **`mcp__github__create_repository`로 `tossneon/code-review-board-action` 생성 시도 → `403 Resource not accessible by integration` 반복 실패(재시도 포함 2회 동일).** 원인 조사 결과 이건 설정 누락이 아니라 **GitHub 플랫폼 자체의 구조적 제약**이다: `POST /user/repos`(개인 계정 소유 리포 생성 엔드포인트)는 OAuth 사용자 토큰만 받아들이고, GitHub App의 설치 토큰(installation token)은 애초에 이 엔드포인트를 호출할 권한을 절대 받을 수 없다 — 설치 시 "Administration" 권한을 아무리 넓게 줘도 소용없다(이건 조직(org) 리포에는 다르게 적용되지만 `tossneon`은 개인 계정). 즉 **회장이 GitHub 앱 권한 설정을 아무리 조정해도 API로는 안 풀리는 항목**이라는 뜻 — "먼저 스스로 조치를 시도한다" 원칙에 따라 대안 경로(`add_repo`/CCR 플랫폼의 별도 GitHub 연동, 순정 `git push`, 금고의 GitHub PAT 유무)까지 확인했으나 전부 막힘 확인(아래).
+3. 대안 경로 확인 결과:
+   - `add_repo`(CCR 플랫폼 자체 GitHub 연동, MCP `github` 툴과는 별개 자격증명)로 시도 → `repository ... was not found` (존재하지 않는 리포라 당연히 실패, 생성 기능은 없음).
+   - 순정 `git ls-remote https://github.com/tossneon/code-review-board-action.git` → `could not read Username, terminal prompts disabled` (이 세션의 git 프록시 자격증명은 `tossneon.github.io` 리포 전용으로 매핑돼 있고 임의 리포엔 안 먹음).
+   - 금고(`cloudflare-api-vault`)에 `github`로 시작하는 항목 자체가 없음(재확인 완료) — repo-scope가 아닌 범용 GitHub PAT를 등록해두면 다음부턴 이 블로커 자체가 안 생기지만, 지금은 없다.
+4. **결론 — 이번만큼은 진짜로 회장의 물리적 액션(GitHub 로그인)이 필요하다.** 아래 "회장 액션 필요" 참고. 리포가 일단 생성되면, `add_repo`(CCR 연동, `tossneon/family`처럼 이미 `can_push:true`로 잡히는 개인 리포도 있음 확인됨)로 push 권한을 다시 시도 → 성공하면 그 자리에서 곧바로 분리된 브랜치를 push하고 릴리스 태그(`v1.0.0`)까지 이어서 진행 가능. 안 되면(GitHub 앱이 "선택된 리포지토리"로만 설치돼 있어 신규 리포가 자동 포함 안 되는 경우) 앱의 리포 접근 범위에 새 리포를 추가하는 절차가 한 번 더 필요할 수 있다 — 그건 리포가 실제로 생긴 뒤에 재시도해서 정확히 안내하겠다.
+
+### 회장 액션 필요 (딱 1가지, 몇 클릭 안 됨)
+
+**GitHub에서 빈 공개 리포지토리 1개만 만들어주면 된다** — 아래 링크로 바로 이동 가능:
+
+👉 **https://github.com/new?owner=tossneon&name=code-review-board-action&visibility=public**
+
+이 링크를 열면 owner=`tossneon`, name=`code-review-board-action`, Public이 이미 채워져 있을 것이다(브라우저가 로그인 상태여야 함). 확인할 것:
+- **"Add a README file", ".gitignore", "Choose a license" 전부 체크 해제한 채로 "Create repository" 클릭** — 완전히 빈 저장소로 만들어야 한다(이미 만들어둔 README/LICENSE/action.yml을 그대로 push할 것이므로, GitHub가 자동으로 뭘 넣어두면 push 시 충돌이 난다).
+- 생성 후 나오는 "Quick setup" 화면은 그냥 두면 된다 — 다음 세션이 알아서 push한다.
+
+이거 하나만 되면 다음 세션이 이어서 push → 릴리스 태그 → Marketplace 제출까지 API/자동화로 계속 진행한다. (리포 생성 후에도 push가 막히면, 그건 이 세션의 GitHub 연동 범위를 넓히는 절차가 하나 더 필요하다는 뜻이고, 그때 정확한 다음 스텝을 다시 안내하겠다.)
+
 ## 남은 단계 (2026-08-17 갱신)
 
 1. ~~실사용 API 키로 진짜 PR 검증~~ → **파이프라인은 실키 없이 실제 GitHub Actions 인프라로 100% 검증 완료.** 리뷰 품질 자체 검증만 회장의 Anthropic API 키 결정 대기.
-2. **GitHub Marketplace 등록** — 정책 재확인 결과 여전히 `git subtree split` 필요(등록 자체엔 변경 없음), 분리 메커니즘도 검증 완료. **새 리포 생성은 회장 판단 필요**(위 참고).
+2. **GitHub Marketplace 등록** — 정책 재확인 결과 여전히 `git subtree split` 필요(등록 자체엔 변경 없음), 분리 메커니즘 2026-08-17에 두 번째로 재검증 완료(재현성 확인됨). **회장이 리포 신규 생성을 승인했고 실행에 착수했으나, 리포 "생성" 자체가 GitHub 플랫폼 구조상 API/자동화로 불가능한 것으로 확인됨** — 위 "별도 리포 분리 시도" 절 참고. 회장이 링크 하나로 빈 리포만 만들어주면 나머지(push·릴리스 태그·Marketplace 제출 준비)는 다음 세션이 이어서 진행.
 3. ~~Pro 상품 여부 판단~~ → **지금은 만들지 않음으로 결론(위 근거 참고).** 무료 배포로 실사용자 확보가 선행 조건.
 4. **회장 액션 필요 항목 정리**:
    - (a) Anthropic API 키 제공 또는 신규 Console 계정 가입 승인 — 리뷰 품질 검증에 필요.
-   - (b) 별도 GitHub 리포 신규 생성 승인 — GitHub Marketplace 등록에 필요. 승인 시 다음 세션이 subtree split → 신규 리포 push → Marketplace 제출까지 바로 진행 가능.
-   - 둘 다 승인 전까지는 무료 배포(README에 있는 사용법 그대로, 회장이나 다른 나다그룹 리포에 워크플로우 파일만 추가하는 방식)는 이미 가능한 상태 — Marketplace 등록 없이도 `uses: tossneon/tossneon.github.io/code-review-board-action@master` 같은 모노레포 내부 경로 참조로 즉시 시범 사용 가능(단, 외부 공개 사용성은 Marketplace 등록보다 떨어짐).
+   - (b) **[신규, 2026-08-17] 빈 GitHub 리포 1개 생성** — https://github.com/new?owner=tossneon&name=code-review-board-action&visibility=public 에서 README/gitignore/license 체크 해제하고 "Create repository"만 클릭하면 끝(리포 생성 승인 자체는 이미 받았고 실행도 시도했으나, API로는 리포를 "만들" 수가 없어서 이 한 클릭만 회장 몫으로 남음 — push·태그·Marketplace 제출 준비는 전부 자동화 가능).
+   - 둘 다 완료 전까지는 무료 배포(README에 있는 사용법 그대로, 회장이나 다른 나다그룹 리포에 워크플로우 파일만 추가하는 방식)는 이미 가능한 상태 — Marketplace 등록 없이도 `uses: tossneon/tossneon.github.io/code-review-board-action@master` 같은 모노레포 내부 경로 참조로 즉시 시범 사용 가능(단, 외부 공개 사용성은 Marketplace 등록보다 떨어짐).
