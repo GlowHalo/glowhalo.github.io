@@ -11,6 +11,8 @@
 | A7 | 화장실 유머 32종(라인아트, "변기토리") — SVG 직접 제작, Leonardo 미사용 | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 예슬이 직접 제출 완료(2026-08-17, 첫 완전자동 제출), 심사 중 — 상세는 [`execution/A7-toilet-humor.md`](execution/A7-toilet-humor.md) |
 | A8 | 카카오톡 이모티콘 32종(정지형, "합격토끼", Leonardo — 수험생/학생 타겟) | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 회장 피드백(포즈 획일화)으로 프롬프트·시드 교체 후 재제출(2026-08-17 08:11), 심사 중 — 상세는 [`execution/A8-exam-rabbit.md`](execution/A8-exam-rabbit.md) |
 | A9 | 귀차니즘/무기력 유머 32종(라인아트, "말랑이") — SVG 직접 제작, Leonardo 미사용 | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 자동 루틴화 첫날 제출(2026-08-17 07:05), 심사 중 — 상세는 [`execution/A9-lazy-mascot.md`](execution/A9-lazy-mascot.md) |
+| A10 | 카카오톡 이모티콘 32종(정지형, "댕댕이", Leonardo — 반려견 타겟) | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 회장 실시간 승인 후 제출 완료(2026-08-18 08:10), 심사 중 — 상세는 [`execution/A10-golden-puppy.md`](execution/A10-golden-puppy.md) |
+| A11 | 소심함/걱정많음 유머 32종(라인아트, "쫄보유령" — 신규 실루엣) — SVG 직접 제작, Leonardo 미사용 | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 A10과 같은 세션에서 제출 완료(2026-08-18 08:11), 심사 중 — 상세는 [`execution/A11-scaredy-ghost.md`](execution/A11-scaredy-ghost.md) |
 
 ## 향후 확장 후보
 
