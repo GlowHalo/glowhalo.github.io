@@ -1,6 +1,6 @@
 # E3 — POD 굿즈 스토어 (2026-08-17 착수)
 
-나다컴퍼니9(신사업 서칭) Tier A 후보. 방법론·필터는 [`README.md`](../README.md), 후보 요약은 [`candidates.md`](../candidates.md) 참고.
+GlowHalo 9(신사업 서칭) Tier A 후보. 방법론·필터는 [`README.md`](../README.md), 후보 요약은 [`candidates.md`](../candidates.md) 참고.
 
 ## 계정 현황 (2026-08-17 확인)
 

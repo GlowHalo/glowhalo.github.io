@@ -800,7 +800,7 @@ export default function App() {
       <CharacterDefs />
       <div className="topbar">
         <div className="topbar-title">
-          <b>🏢 나다그룹 HQ</b>
+          <b>🏢 GlowHalo Group HQ</b>
           <small>{company.name}</small>
         </div>
         <SyncPanel synced={synced} />
@@ -894,7 +894,7 @@ export default function App() {
       </div>
 
       <footer className="note">
-        나다그룹 관계사 현황을 한 화면에서 확인하는 지주사 콘솔입니다. · 사원증은 대표만
+        GlowHalo Group 관계사 현황을 한 화면에서 확인하는 지주사 콘솔입니다. · 사원증은 대표만
         미착용, 팀장 포함 나머지는 착용 · 캐릭터는 직원 ID로 항상 같은 모습이 나옵니다.
       </footer>
     </main>

@@ -1,9 +1,9 @@
 ---
 name: app-store-deploy
-description: 나다컴퍼니6(앱 개발·배포) 앱을 준비된 유통채널(Amazon Appstore, Microsoft Store PWA, itch.io, 추후 Google Play)에 실제로 제출·갱신할 때 쓰는 런북. "앱 배포", "스토어 제출", "APK 서명/키스토어", "PWA MSIX 패키징", "itch.io butler push", "Amazon 앱스토어 API" 같은 말이 나오면 발동.
+description: GlowHalo 6(앱 개발·배포) 앱을 준비된 유통채널(Amazon Appstore, Microsoft Store PWA, itch.io, 추후 Google Play)에 실제로 제출·갱신할 때 쓰는 런북. "앱 배포", "스토어 제출", "APK 서명/키스토어", "PWA MSIX 패키징", "itch.io butler push", "Amazon 앱스토어 API" 같은 말이 나오면 발동.
 ---
 
-# 앱 배포 런북 (나다컴퍼니6)
+# 앱 배포 런북 (GlowHalo 6)
 
 `app-portfolio/` 아래 앱을 실제 채널에 올릴 때 쓴다. 채널별 계정은 전부 `.claude/rules/cloudflare-vault.md`
 금고에 등록돼 있음 — 회장에게 다시 묻지 말고 `GET $VAULT_URL/secrets/<name>`으로 조회한다.

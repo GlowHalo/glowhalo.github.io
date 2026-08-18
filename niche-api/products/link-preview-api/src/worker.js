@@ -1,4 +1,4 @@
-// Link Preview API — 니치 API 프로덕트 MVP (나다컴퍼니2, 후보 B1)
+// Link Preview API — 니치 API 프로덕트 MVP (GlowHalo 2, 후보 B1)
 // URL을 주면 title/description/og:image/favicon 등 링크 미리보기 메타데이터를 반환한다.
 // RapidAPI Hub 게이트웨이 뒤에서 서비스할 걸 전제로, X-RapidAPI-Proxy-Secret 헤더 검증을 지원한다
 // (RAPIDAPI_PROXY_SECRET 시크릿이 설정 안 돼 있으면 검증을 건너뛰어 직접 테스트도 가능하게 둔다).
@@ -189,7 +189,7 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders() });
 
     if (url.pathname === "/" || url.pathname === "/health") {
-      return json({ ok: true, service: "link-preview-api", by: "나다컴퍼니2" });
+      return json({ ok: true, service: "link-preview-api", by: "GlowHalo 2" });
     }
 
     if (url.pathname === "/v1/preview" && request.method === "GET") {

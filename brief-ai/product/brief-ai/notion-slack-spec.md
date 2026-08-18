@@ -47,7 +47,7 @@ integration:<email>     → {
   slack: { webhookUrl: "https://hooks.slack.com/..." } | null
 }
 ```
-- 토큰류는 Workers KV에 저장(사용자별 자기 자신의 통합 토큰이라 저장소 커밋 대상이 아님 — `cloudflare-vault.md`의 "회장 리소스 금고"와는 별개 개념, 저 문서는 **나다그룹 자체 운영 비밀값**용이고 이건 **브리프AI 고객의 개인 토큰**이라 성격이 다르다. 다만 평문 저장 대신 Workers KV 값 자체를 최소한 애플리케이션 레벨에서 암호화(예: `AES-GCM`, 키는 `wrangler secret put ENCRYPTION_KEY`)해서 저장하는 걸 V1 구현 시 같이 반영한다).
+- 토큰류는 Workers KV에 저장(사용자별 자기 자신의 통합 토큰이라 저장소 커밋 대상이 아님 — `cloudflare-vault.md`의 "회장 리소스 금고"와는 별개 개념, 저 문서는 **GlowHalo Group 자체 운영 비밀값**용이고 이건 **브리프AI 고객의 개인 토큰**이라 성격이 다르다. 다만 평문 저장 대신 Workers KV 값 자체를 최소한 애플리케이션 레벨에서 암호화(예: `AES-GCM`, 키는 `wrangler secret put ENCRYPTION_KEY`)해서 저장하는 걸 V1 구현 시 같이 반영한다).
 
 ## API 엔드포인트 설계 (V1)
 

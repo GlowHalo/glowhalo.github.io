@@ -1,4 +1,4 @@
-# 나다그룹 HQ — 운영 결정 기록
+# GlowHalo Group HQ — 운영 결정 기록
 
 지주사(HQ, 회장+Claude) 차원에서 결정할 일들의 기록 폴더. `niche-templates/`·`niche-api/`·`asset-management/`(관계사별 경영 의사결정)와 구분되는 곳으로, **여러 관계사가 공유하는 인프라·계정·정책처럼 특정 관계사 하나의 소관이 아닌 사안**을 다룬다.
 

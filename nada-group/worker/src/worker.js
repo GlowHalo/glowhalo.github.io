@@ -1,5 +1,5 @@
 /**
- * nada-group-api — 나다그룹 HQ 대시보드의 승인/지시/실행로그 상태를 저장하는 아주 작은 Worker.
+ * nada-group-api — GlowHalo Group HQ 대시보드의 승인/지시/실행로그 상태를 저장하는 아주 작은 Worker.
  *
  * 지금까지는 화면(React useState)에만 있어서 새로고침하면 초기값으로 리셋됐다(Phase 1 한계,
  * nada-group/HANDOFF.md 참고). 이 Worker + KV 하나로 그 상태를 실제로 남긴다.

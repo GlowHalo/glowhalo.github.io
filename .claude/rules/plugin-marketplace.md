@@ -88,7 +88,7 @@ claude plugin uninstall <이름>@<마켓>
 | 플러그인 | 다시 켤 신호 |
 |---|---|
 | `hyperframes` | 유튜브 영상 제작 착수 (FFmpeg 훅도 같이 필요) |
-| `plugin-dev` | 나다그룹 전용 플러그인·스킬을 배포용으로 만들 때 |
+| `plugin-dev` | GlowHalo Group 전용 플러그인·스킬을 배포용으로 만들 때 |
 | `duckdb-skills` | 자산운용 거래로그·매출 데이터 분석 착수 |
 | `stripe` / `paypal` / `sumup` / `revenuecat` | 직접 결제·구독 연동 결정 시 |
 | `shopify-ai-toolkit` / `liquid-skills` / `noibu` | Shopify 스토어 개설 시 |
@@ -102,7 +102,7 @@ claude plugin uninstall <이름>@<마켓>
 
 **`exa` 는 유일하게 "키만 있으면 지금 것보다 확실히 나은" 항목이다.** 내장 `WebSearch`는
 키워드 검색·제목/URL 수준인데, Exa는 뉴럴 시맨틱 검색 + 본문 추출 + deep research를 한다.
-나다컴퍼니1·9·11·12가 전부 "찾고 조사하는" 일이라 검색 품질이 곧 산출물 품질이다.
+GlowHalo 1·9·11·12가 전부 "찾고 조사하는" 일이라 검색 품질이 곧 산출물 품질이다.
 무료 티어: 가입 시 $20 + 매월 $10 크레딧, 월 1,000회, 카드 등록 불필요.
 단 **신규 회원가입은 회장 승인 사항**(CLAUDE.md 2026-08-11)이라 임의로 진행하지 않는다.
 MCP 엔드포인트가 무인증으로 되는지 2026-08-15에 직접 호출해 확인했고, **인증 필수**였다.

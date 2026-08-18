@@ -1,4 +1,4 @@
-# Link Preview API — 나다컴퍼니2 B1 프로토타입
+# Link Preview API — GlowHalo 2 B1 프로토타입
 
 후보 B1(니치 API 프로덕트)의 첫 MVP. URL을 주면 title/description/og:image/favicon 등 링크 미리보기 메타데이터를 JSON으로 반환하는 API — RapidAPI Hub에 리스팅해 개발자(B2B)에게 파는 걸 목표로 한다.
 
@@ -75,7 +75,7 @@ npx wrangler secret put RAPIDAPI_PROXY_SECRET
 계정 가입은 Browserbase(원격 브라우저) + Playwright로 자동화 시도 중, 두 가지를 발견·해결하고 하나에 막혀 있다:
 
 1. **표준 공통 비밀번호가 RapidAPI 요건(대소문자 혼합) 미충족으로 가입 자체가 막혀 있었다** — 원인 규명 후 RapidAPI 전용 비밀번호를 새로 생성해 금고에 `rapidapi_login_email`/`rapidapi_login_password`로 등록 완료(이메일은 표준 `tossneon0@gmail.com` 그대로, 비밀번호만 사이트 전용값 — `cloudflare-vault.md`의 "사이트별로 비밀번호가 달라지면 별도 등록" 패턴).
-2. 새 비밀번호로 가입 폼 검증까지는 통과 확인, **제출 직전 Browserbase 무료 플랜의 월간 브라우저 사용 시간이 소진**(`402 Payment Required`)돼 막힘 — 오늘 나다컴퍼니1 쪽에서도 SendOwl·Lemon Squeezy 온보딩에 Browserbase를 많이 써서 계정 전체(그룹 공유 자원) 한도가 같이 소진된 것으로 보인다.
+2. 새 비밀번호로 가입 폼 검증까지는 통과 확인, **제출 직전 Browserbase 무료 플랜의 월간 브라우저 사용 시간이 소진**(`402 Payment Required`)돼 막힘 — 오늘 GlowHalo 1 쪽에서도 SendOwl·Lemon Squeezy 온보딩에 Browserbase를 많이 써서 계정 전체(그룹 공유 자원) 한도가 같이 소진된 것으로 보인다.
 
 3. **가입 자체는 2026-08-10 완료** — HQ가 [Cloudflare Browser Rendering(메인)+Browserbase(백업) 이중화](../../../hq/decisions/2026-08-10-헤드리스브라우저-대안-검토.md)를 확정·구현해줘서 자동화 재개. 실행해보니 그날 Cloudflare 쪽 할당량이 이미 소진돼 있어(다른 관계사도 같이 씀) **자동 폴백으로 Browserbase가 즉시 이어받는 것까지 실전 검증**됐다.
 4. 가입 폼이 계속 비활성이던 진짜 원인은 따로 있었다 — **이용약관 동의 체크박스를 안 눌렀던 것.** 이 체크박스는 Radix UI 스타일이라 실제 `<input type=checkbox">`는 화면에 숨겨진 더미(`opacity:0`)이고, 진짜 상태는 형제 `<button role="checkbox">`가 갖고 있어서 일반적인 체크박스 클릭 방식으로는 안 먹혔다 — 그 버튼을 직접 클릭하도록 수정하니 바로 해결.

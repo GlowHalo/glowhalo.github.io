@@ -1,5 +1,5 @@
 // ============================================================
-//  나다그룹 재무 데이터 — hq/재무.md · company*/재무.md 의 구조화 스냅샷.
+//  GlowHalo Group 재무 데이터 — hq/재무.md · company*/재무.md 의 구조화 스냅샷.
 //  registry.js/holdco.config.ts와 같은 패턴: 정본은 마크다운, 이 파일은 그
 //  마크다운을 대시보드에 그대로 옮긴 스냅샷이다(실시간 연동 아님, 계열사가
 //  회사(companyId)별로 실제 매출/경비 발생 시 마크다운을 먼저 갱신하고 이
@@ -48,23 +48,23 @@ export type FinanceLedgerEntry = {
 };
 
 export const FINANCE_LEDGER: FinanceLedgerEntry[] = [
-  // 나다컴퍼니1
+  // GlowHalo 1
   { id: "c1-1", companyId: "niche-templates", item: "Gumroad(AI Board/Investor Panel/Code Review Board) 판매", kind: "매출", amountLabel: "0원", amountKrw: 0, status: "확정", note: "GET /v2/sales 반복 확인, 아직 판매 없음" },
   { id: "c1-2", companyId: "niche-templates", item: "SendOwl(PromptDeck 등) 판매", kind: "매출", amountLabel: "0원", amountKrw: 0, status: "확정" },
   { id: "c1-3", companyId: "niche-templates", item: "A2(PromptDeck) Chrome 웹스토어 개발자 등록", kind: "경비", amountLabel: "$5(1회성)", amountKrw: 0, status: "승인대기", note: "회장 결제 필요" },
 
-  // 나다컴퍼니2
+  // GlowHalo 2
   { id: "c2-1", companyId: "niche-api", item: "B1 Link Preview API 판매", kind: "매출", amountLabel: "0원", amountKrw: 0, status: "확정", note: "RapidAPI Hub 리스팅 진행 중" },
   { id: "c2-2", companyId: "niche-api", item: "Cloudflare Worker(link-preview) 배포", kind: "경비", amountLabel: "0원", amountKrw: 0, status: "확정", note: "무료 티어 내" },
   { id: "c2-3", companyId: "niche-api", item: "RapidAPI Hub 계정 가입", kind: "경비", amountLabel: "0원", amountKrw: 0, status: "확정" },
   { id: "c2-4", companyId: "niche-api", item: "Webshare 프록시 구독", kind: "경비", amountLabel: "미확인", amountKrw: 0, status: "진행중", note: "유료/무료 확인 필요" },
 
-  // 나다컴퍼니3
+  // GlowHalo 3
   { id: "c3-1", companyId: "asset-management", item: "초기 출자금", kind: "자본금", amountLabel: "30만원", amountKrw: 300000, status: "확정", note: "회장 출자, 경비 아님" },
   { id: "c3-2", companyId: "asset-management", item: "실거래 Phase 1(소액 50%) 실현손익", kind: "매출", amountLabel: "미확정", amountKrw: 0, status: "진행중", note: "청산 확정되는 대로 갱신" },
   { id: "c3-3", companyId: "asset-management", item: "업비트 거래 수수료", kind: "경비", amountLabel: "0원", amountKrw: 0, status: "확정", note: "아직 실거래 없음" },
 
-  // 나다컴퍼니4
+  // GlowHalo 4
   { id: "c4-1", companyId: "assessment-products", item: "진단 디브리핑 상품 판매", kind: "매출", amountLabel: "0원", amountKrw: 0, status: "확정", note: "아직 상품 미출시" },
   { id: "c4-2", companyId: "assessment-products", item: "버크만 진단지 테스트구매(베이직/시그니처)", kind: "경비", amountLabel: "1.6만~2.6만원", amountKrw: 0, status: "승인대기", note: "리포트 종류 확정 필요 — 회장 결정 대기" },
 ];
