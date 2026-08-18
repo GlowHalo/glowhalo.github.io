@@ -1,4 +1,4 @@
-// 브리프AI — 나다컴퍼니11 1호 사업 MVP
+// 브리프AI — GlowHalo 11 1호 사업 MVP
 // 회의 텍스트(Zoom/Meet 자동 스크립트, 수기 메모 등)를 넣으면 AI가 요약·결정사항·
 // 액션아이템(담당자/기한 포함)을 자동 추출해 JSON으로 돌려준다.
 // Cloudflare Workers AI(계정 바인딩)를 써서 별도 API 키 없이 무자본으로 시작한다.
@@ -54,7 +54,7 @@ async function importEncryptionKey(env) {
 }
 // 유료 사용자가 붙여넣는 Notion 토큰/Slack 웹훅 URL은 그 자체가 실제 발행 권한을 가진
 // 비밀값이라, KV에 평문 저장하지 않고 AES-256-GCM으로 암호화한다(키는 브리프AI 전용
-// 애플리케이션 키 — 회장/나다그룹 계정 금고 값과는 성격이 다름, cloudflare-vault.md 참고).
+// 애플리케이션 키 — 회장/GlowHalo Group 계정 금고 값과는 성격이 다름, cloudflare-vault.md 참고).
 async function encryptSecret(env, plaintext) {
   const key = await importEncryptionKey(env);
   const iv = crypto.getRandomValues(new Uint8Array(12));

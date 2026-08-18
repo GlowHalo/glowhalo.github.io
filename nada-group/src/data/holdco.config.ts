@@ -23,91 +23,87 @@ export type Company = {
 export const COMPANIES: Company[] = [
   {
     id: "holdco",
-    name: "나다그룹 HQ",
+    name: "GlowHalo Group HQ",
     tagline: "회장(사람) + Claude — 지주사 그 자체. 계열사를 오가며 조망합니다.",
     mode: "op",
     isHq: true,
   },
   {
     id: "niche-templates",
-    name: "나다컴퍼니1",
-    tagline: "정연 사장 · AI 임원진이 백지상태에서 새 사업을 탐색하는 나다그룹 첫 관계사(신사업)",
+    name: "GlowHalo 1",
+    tagline: "정연 사장 · AI 임원진이 백지상태에서 새 사업을 탐색하는 GlowHalo Group 첫 관계사(신사업)",
     mode: "op",
   },
   {
     id: "niche-api",
-    name: "나다컴퍼니2",
-    tagline: "하윤 대표 · 나다컴퍼니1과 별도로 신사업을 탐색하는 두 번째 트랙 — 실행(Gumroad 업로드 등)도 병행",
+    name: "GlowHalo 2",
+    tagline: "하윤 대표 · GlowHalo 1과 별도로 신사업을 탐색하는 두 번째 트랙 — 실행(Gumroad 업로드 등)도 병행",
     mode: "op",
   },
   {
     id: "asset-management",
-    name: "나다컴퍼니3",
+    name: "GlowHalo 3",
     tagline: "은성 대표 · 코인/주식 중 택일해 30만원으로 시작하는 자산운용 실험 — 실거래는 회장 확인 후 개시",
     mode: "op",
   },
   {
     id: "assessment-products",
-    name: "나다컴퍼니4",
+    name: "GlowHalo 4",
     tagline: "채원 대표 · 버크만 진단 상품화 + 향후 무자격 진단군 확장 — 초기 세팅은 회장과 긴밀히 협의",
     mode: "op",
   },
   {
     id: "youtube-content",
-    name: "나다컴퍼니5",
+    name: "GlowHalo 5",
     tagline: "라온 대표 · 유튜브 콘텐츠 기획·제작·업로드 — 1호 사업 \"몬스터트럭 파닉스\"(유아 한글/알파벳 파닉스, 66회차 계획)",
     mode: "op",
   },
   {
     id: "app-portfolio",
-    name: "나다컴퍼니6",
+    name: "GlowHalo 6",
     tagline: "시우 대표 · 앱 개발·배포 — 기존 웹앱/유틸 포트폴리오 편입 + 신규 앱 개발",
     mode: "op",
   },
   {
     id: "coupang-partners",
-    name: "나다컴퍼니7",
-    tagline: "도현 대표 · 쿠팡파트너스 제휴 마케팅 — 나다컴퍼니2에서 분사, 누적매출 15만원 달성 후 API 완전자동 전환 목표",
+    name: "GlowHalo 7",
+    tagline: "도현 대표 · 쿠팡파트너스 제휴 마케팅 — GlowHalo 2에서 분사, 누적매출 15만원 달성 후 API 완전자동 전환 목표",
     mode: "op",
   },
   {
     id: "kakao-emoticon",
-    name: "나다컴퍼니8",
-    tagline: "예슬 대표 · 카카오톡 이모티콘 — 나다컴퍼니1에서 분사, 정지형 32종 제작·제출 완료, 카카오 심사중",
+    name: "GlowHalo 8",
+    tagline: "예슬 대표 · 카카오톡 이모티콘 — GlowHalo 1에서 분사, 정지형 32종 제작·제출 완료, 카카오 심사중",
     mode: "op",
   },
   {
     id: "biz-scouting",
-    name: "나다컴퍼니9",
+    name: "GlowHalo 9",
     tagline: "다연 대표 · 신사업 서칭 — 10인 분석가 패널이 시장크기·홍보채널접근성·자동화적합성 3단계 필터로 종합",
     mode: "op",
   },
   {
     id: "newsletter-automation",
-    name: "나다컴퍼니10",
-    tagline: "은우 대표 · 뉴스레터 자동화(Beehiiv) — 나다컴퍼니1 A5(스티비 뉴스레터)와의 관계 정리가 첫 과제",
+    name: "GlowHalo 10",
+    tagline: "은우 대표 · 뉴스레터 자동화(Beehiiv) — GlowHalo 1 A5(스티비 뉴스레터)와의 관계 정리가 첫 과제",
     mode: "op",
   },
   {
     id: "brief-ai",
-    name: "나다컴퍼니11",
+    name: "GlowHalo 11",
     tagline: "이든 대표 · 신사업 검토 — 20인 전문가 토론에서 최다 지지 받은 \"브리프AI\"(AI 회의록 자동정리·액션아이템 트래커 SaaS)로 창업",
     mode: "op",
   },
   {
     id: "biz-consulting",
-    name: "나다컴퍼니12",
+    name: "GlowHalo 12",
     tagline: "지호 대표 · 사업 아이디어 상담 — 회장이 아이디어를 가져올 때 상의하는 상시 대기 창구, 능동 탐색은 안 함",
     mode: "op",
   },
-  {
-    id: "newventure",
-    name: "pixel-ai-office (프로토타입)",
-    tagline: "이 대시보드를 만들기 전 먼저 시도했던 오피스 시뮬레이션 — 별도 사업체 아니고, 자리잡으면 정리 예정",
-    mode: "external",
-    externalUrl: "https://tossneon.github.io/pixel-ai-office/play/",
-  },
 ];
+// (2026-08-19 정리) "newventure"=pixel-ai-office 프로토타입 카드 제거 — 이 nada-group 콘솔이
+// 그 프로토타입을 대체한 지 오래고, "자리잡으면 정리 예정"이라고 미뤄뒀던 항목. GlowHalo 개명
+// 작업을 기회로 삼아 제거. pixel-ai-office/ 폴더 자체는 역사 기록으로 남겨둠(삭제 아님).
 
 export type Room = {
   id: string;
@@ -167,7 +163,7 @@ export type Staff = {
 };
 
 export const STAFF: Staff[] = [
-  // 나다그룹 HQ — 회장(사람) + Claude 둘뿐.
+  // GlowHalo Group HQ — 회장(사람) + Claude 둘뿐.
   {
     id: "chairman",
     name: "회장",
@@ -187,7 +183,7 @@ export const STAFF: Staff[] = [
     task: "관계사 운영 지원 · 자동화 · 막히면 조치",
   },
 
-  // 나다그룹 비서실 — 2026-08-12 신설. 사업 계열사 아님, 회장 개인 보좌 전담.
+  // GlowHalo Group 비서실 — 2026-08-12 신설. 사업 계열사 아님, 회장 개인 보좌 전담.
   {
     id: "secretary",
     name: "소율",
@@ -198,7 +194,7 @@ export const STAFF: Staff[] = [
     task: "브리핑 창구 · 간단한 질문 응대 · 일정 관련 대화",
   },
 
-  // 나다컴퍼니1
+  // GlowHalo 1
   {
     id: "ceo",
     name: "정연",
@@ -257,8 +253,8 @@ export const STAFF: Staff[] = [
     task: "A5 뉴스레터 컨셉·창간호 초안 완성 — 스티비 계정 생성 대기",
   },
 
-  // 나다컴퍼니2 — 2026-08-08 신설(실행 전담) → 2026-08-09 대표 선임 + 신사업 탐색 병행으로 확장.
-  // 나다컴퍼니1(정연)과 별도로 독립적인 신사업 탐색 트랙을 하나 더 돌리기 위해 CEO 세션 신설.
+  // GlowHalo 2 — 2026-08-08 신설(실행 전담) → 2026-08-09 대표 선임 + 신사업 탐색 병행으로 확장.
+  // GlowHalo 1(정연)과 별도로 독립적인 신사업 탐색 트랙을 하나 더 돌리기 위해 CEO 세션 신설.
   {
     id: "c2-ceo",
     name: "하윤",
@@ -275,10 +271,10 @@ export const STAFF: Staff[] = [
     rank: "member",
     companyId: "niche-api",
     roomId: "c2-exec-room",
-    task: "나다컴퍼니1이 검증한 콘텐츠를 Gumroad에 대량 업로드",
+    task: "GlowHalo 1이 검증한 콘텐츠를 Gumroad에 대량 업로드",
   },
 
-  // 나다컴퍼니3 — 자산운용 실험(2026-08-09 신설). 코인/주식 중 택일, 초기자본 30만원.
+  // GlowHalo 3 — 자산운용 실험(2026-08-09 신설). 코인/주식 중 택일, 초기자본 30만원.
   // 조사·전략 수립은 자율 진행하되, 실제 매매 실행은 회장이 실거래 계좌를 열고
   // 매매 권한 범위를 확정하기 전까지 보류(niche-templates/README.md 참고).
   {
@@ -291,7 +287,7 @@ export const STAFF: Staff[] = [
     task: "코인 1차 확정, 스윙/알고리즘 전략 + 페이퍼 트레이딩 진행 중 — 실거래는 회장 계좌 개설·권한 확정 후 개시",
   },
 
-  // 나다컴퍼니4 — 진단 상품화(2026-08-09 신설). 회장의 버크만 시그니처 디브리퍼 자격을 근간으로
+  // GlowHalo 4 — 진단 상품화(2026-08-09 신설). 회장의 버크만 시그니처 디브리퍼 자격을 근간으로
   // 시작, 이후 자격 불필요한 다른 진단군으로 상품 라인업 확장. 최종 목표는 회장 개입 0의 완전
   // 자동화지만, 브랜딩·스토어 개설·플랫폼 확장·상품 컨셉 등 초기 세팅은 회장과 긴밀히 협의하며 진행.
   {
@@ -304,7 +300,7 @@ export const STAFF: Staff[] = [
     task: "버크만 진단 상품 브랜딩·스토어 개설 초기 설계 — 회장과 협의 중",
   },
 
-  // 나다컴퍼니5 — 유튜브 콘텐츠(2026-08-12 신설). 회장이 개인적으로 진행하던
+  // GlowHalo 5 — 유튜브 콘텐츠(2026-08-12 신설). 회장이 개인적으로 진행하던
   // "몬스터트럭 파닉스"(유아 한글/알파벳 파닉스 시리즈, Notion에서 기획)를 승격 편입.
   {
     id: "c5-ceo",
@@ -316,7 +312,7 @@ export const STAFF: Staff[] = [
     task: "몬스터트럭 파닉스 ㅑ회차 대본/영상 제작 재개 — ㅏ회차는 업로드 완료",
   },
 
-  // 나다컴퍼니6 — 앱 개발·배포(2026-08-12 신설). 회장이 개인적으로 만든 웹앱/유틸
+  // GlowHalo 6 — 앱 개발·배포(2026-08-12 신설). 회장이 개인적으로 만든 웹앱/유틸
   // (아기랑 갈곳·체크노트·배당현황·KPC 코칭챗봇·Circle Heroes 등) 포트폴리오 편입 + 신규 앱 개발.
   {
     id: "c6-ceo",
@@ -328,7 +324,7 @@ export const STAFF: Staff[] = [
     task: "편입 앱 포트폴리오 현황 재점검 중",
   },
 
-  // 나다컴퍼니7 — 쿠팡파트너스(2026-08-12 신설, 나다컴퍼니2에서 분사). 하윤은 니치API에 집중.
+  // GlowHalo 7 — 쿠팡파트너스(2026-08-12 신설, GlowHalo 2에서 분사). 하윤은 니치API에 집중.
   {
     id: "c7-ceo",
     name: "도현",
@@ -339,7 +335,7 @@ export const STAFF: Staff[] = [
     task: "쿠팡파트너스 딥링크 수동 브릿지 운영 — 누적매출 15만원 달성 후 API 전환 목표",
   },
 
-  // 나다컴퍼니8 — 카카오톡 이모티콘(2026-08-12 신설, 나다컴퍼니1에서 분사). 정연은 템플릿(A1)에 집중.
+  // GlowHalo 8 — 카카오톡 이모티콘(2026-08-12 신설, GlowHalo 1에서 분사). 정연은 템플릿(A1)에 집중.
   {
     id: "c8-ceo",
     name: "예슬",
@@ -350,7 +346,7 @@ export const STAFF: Staff[] = [
     task: "정지형 이모티콘 32종 카카오 심사 결과 대기 중(2~4주 예상)",
   },
 
-  // 나다컴퍼니9 — 신사업 서칭(2026-08-12 신설). 10인 분석가 패널 방법론.
+  // GlowHalo 9 — 신사업 서칭(2026-08-12 신설). 10인 분석가 패널 방법론.
   {
     id: "c9-ceo",
     name: "다연",
@@ -361,7 +357,7 @@ export const STAFF: Staff[] = [
     task: "Round 1 — 10인 분석가 패널 첫 스캔 착수 예정",
   },
 
-  // 나다컴퍼니10 — 뉴스레터 자동화(Beehiiv, 2026-08-12 신설).
+  // GlowHalo 10 — 뉴스레터 자동화(Beehiiv, 2026-08-12 신설).
   {
     id: "c10-ceo",
     name: "은우",
@@ -369,10 +365,10 @@ export const STAFF: Staff[] = [
     rank: "ceo",
     companyId: "newsletter-automation",
     roomId: "c10-ceo-room",
-    task: "나다컴퍼니1 A5(스티비 뉴스레터)와의 관계 정리 중 — Beehiiv 승계 여부 회장 확인 대기",
+    task: "GlowHalo 1 A5(스티비 뉴스레터)와의 관계 정리 중 — Beehiiv 승계 여부 회장 확인 대기",
   },
 
-  // 나다컴퍼니11 — 신사업 검토(2026-08-12 신설). Round 1 20인 토론 결과(20표 중 14표)로 대표 확정.
+  // GlowHalo 11 — 신사업 검토(2026-08-12 신설). Round 1 20인 토론 결과(20표 중 14표)로 대표 확정.
   {
     id: "c11-ceo",
     name: "이든",
@@ -383,7 +379,7 @@ export const STAFF: Staff[] = [
     task: "1호 사업 \"브리프AI\"(AI 회의록 자동정리·액션아이템 트래커 SaaS) 착수 준비 — 결제 계정 개설은 회장 확인 대기",
   },
 
-  // 나다컴퍼니12 — 사업 아이디어 상담(2026-08-12 신설). 회장이 아이디어를 가져올 때만 움직임.
+  // GlowHalo 12 — 사업 아이디어 상담(2026-08-12 신설). 회장이 아이디어를 가져올 때만 움직임.
   {
     id: "c12-ceo",
     name: "지호",
@@ -394,8 +390,8 @@ export const STAFF: Staff[] = [
     task: "회장의 사업 아이디어 상담 대기 중",
   },
 
-  // 나다그룹 신사업 논의방 — 2026-08-18 신설. 사업 계열사 아님(회장 지시로 번호 없음), 정착하지 않는 게 정체성.
-  // 아이디어가 정착해서 실제로 분리되면 그때 번호(나다컴퍼니13)가 붙는 정식 계열사가 된다.
+  // GlowHalo Group 신사업 논의방 — 2026-08-18 신설. 사업 계열사 아님(회장 지시로 번호 없음), 정착하지 않는 게 정체성.
+  // 아이디어가 정착해서 실제로 분리되면 그때 번호(GlowHalo 13)가 붙는 정식 계열사가 된다.
   {
     id: "venture-lead",
     name: "다온",
@@ -488,7 +484,7 @@ export const INITIAL_INSTRUCTIONS: InstructionItem[] = [
   { id: "in2", companyId: "niche-templates", text: "A1 이번 주 판매 현황 요약해줘", status: "done" },
 ];
 
-/** 나다컴퍼니2처럼 "판단"보다 "반복 실행"이 본업인 관계사를 위한 로그 — 승인 대기 형식이 안 맞는다. */
+/** GlowHalo 2처럼 "판단"보다 "반복 실행"이 본업인 관계사를 위한 로그 — 승인 대기 형식이 안 맞는다. */
 export type ExecutionLogItem = {
   id: string;
   companyId: string;

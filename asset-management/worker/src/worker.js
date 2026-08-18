@@ -1,4 +1,4 @@
-// 나다컴퍼니3 시장 워치독 (MODE.md §5 — 24시간 모니터링 2층)
+// GlowHalo 3 시장 워치독 (MODE.md §5 — 24시간 모니터링 2층)
 //
 // Phase 0(페이퍼) 버전: 업비트 공개 API만 사용, 시크릿 없음.
 //  - 5분 크론: BTC/ETH 시세 스냅샷 → KV 링버퍼(24h) 저장, 이상 징후 감지
@@ -98,7 +98,7 @@ async function tick(env) {
       updated: new Date(now).toISOString(),
       snapshot,
       recent_anomalies: anomalies.slice(-10),
-      note: "나다컴퍼니3 워치독 — 실거래 게이트 해제 전이라 페이퍼(관측) 전용",
+      note: "GlowHalo 3 워치독 — 실거래 게이트 해제 전이라 페이퍼(관측) 전용",
     })
   );
 }

@@ -1,4 +1,4 @@
-// 리듬노트(RhythmNote) 업로드 인테이크 — 나다컴퍼니9 E1
+// 리듬노트(RhythmNote) 업로드 인테이크 — GlowHalo 9 E1
 // 고객이 웨어러블 데이터(Apple Health export, Oura/Garmin CSV, 스크린샷 등)를 업로드하면
 // KV에 원본(base64)+제출 레코드를 저장한 뒤, 다연(운영자) 앞으로 알림 메일을 보낸다.
 // 실제 리포트 생성·고객 발송은 여기서 하지 않는다 — 배치 스크립트(../scripts/)가 사람(다연) 검토를
@@ -171,7 +171,7 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders() });
 
     if (url.pathname === "/" || url.pathname === "/health") {
-      return json({ ok: true, service: "rhythmnote-intake", by: "나다컴퍼니9" });
+      return json({ ok: true, service: "rhythmnote-intake", by: "GlowHalo 9" });
     }
 
     if (url.pathname === "/submit" && request.method === "POST") {

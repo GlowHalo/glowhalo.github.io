@@ -70,7 +70,7 @@ window.REGISTRY = {
       "AI 자동생성"
     ],
     "description": "브라우저 하나로 끝나는 마인드맵 편집기. Tab/Enter로 자식·형제 노드 추가, 드래그로 재배치, 여러 맵을 라이브러리로 관리하고 URL 하나로 공유한다. 텍스트/개요를 붙여넣으면 AI가 자동으로 마인드맵을 만들어준다(BYOK, 키 없으면 기기당 3회 체험).",
-    "note": "meta.json이 없어 허브에 안 뜨고 있던 걸 2026-08-12 나다컴퍼니6 점검에서 발견해 등록. 기능은 이미 완성도 있게 동작 중(다중 문서 라이브러리, 공유 링크, AI에 붙여넣기용 텍스트 복사). 2026-08-18 \"✨ AI로 만들기\" 추가 — 붙여넣은 텍스트를 Gemini로 계층 마인드맵 JSON으로 변환해 새 문서로 추가. 사용자 자기 API 키(BYOK, localStorage에만 저장)면 브라우저에서 Google Generative Language API를 직접 호출(CORS 허용 확인됨), 키 없으면 `mindmap/worker/`(Cloudflare Worker, 우리 쪽 gemini_api_key 사용)로 기기당 3회 체험."
+    "note": "meta.json이 없어 허브에 안 뜨고 있던 걸 2026-08-12 GlowHalo 6 점검에서 발견해 등록. 기능은 이미 완성도 있게 동작 중(다중 문서 라이브러리, 공유 링크, AI에 붙여넣기용 텍스트 복사). 2026-08-18 \"✨ AI로 만들기\" 추가 — 붙여넣은 텍스트를 Gemini로 계층 마인드맵 JSON으로 변환해 새 문서로 추가. 사용자 자기 API 키(BYOK, localStorage에만 저장)면 브라우저에서 Google Generative Language API를 직접 호출(CORS 허용 확인됨), 키 없으면 `mindmap/worker/`(Cloudflare Worker, 우리 쪽 gemini_api_key 사용)로 기기당 3회 체험."
   },
   {
     "id": "checknote",
@@ -99,7 +99,7 @@ window.REGISTRY = {
       "APK"
     ],
     "description": "SD 히어로 수집형 자동전투 방치형 게임. 모바일 APK로 설치해서 싱글플레이로 즐기는 걸 목표로 한다. 영웅 마스터데이터는 Notion이 정본.",
-    "note": "meta.json이 없어 허브에 안 뜨고 있던 걸 2026-08-13 정비에서 발견해 등록. 나다컴퍼니6(시우) 소속. 안드로이드 패키지 ID는 io.github.tossneon.circleheroes → com.nadagroup.circleheroes로 정비 완료(2026-08-13, 아직 APK 정식 배포 전이라 전환 비용 없음)."
+    "note": "meta.json이 없어 허브에 안 뜨고 있던 걸 2026-08-13 정비에서 발견해 등록. GlowHalo 6(시우) 소속. 안드로이드 패키지 ID는 io.github.tossneon.circleheroes → com.nadagroup.circleheroes로 정비 완료(2026-08-13, 아직 APK 정식 배포 전이라 전환 비용 없음)."
   },
   {
     "id": "baby-place-registry",

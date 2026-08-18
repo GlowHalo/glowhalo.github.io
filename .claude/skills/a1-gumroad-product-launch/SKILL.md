@@ -5,7 +5,7 @@ description: Runbook for taking a new "3명의 독립 AI 리뷰어" Notion 템�
 
 # A1 — Gumroad 상품 발행 런북
 
-`niche-templates/`(나다컴퍼니1)의 A1 라인은 "3명의 독립 AI 리뷰어가 서로 안 보고 반박하는 Notion 템플릿"을 여러 오디언스로 반복 생산해 Gumroad에 판매하는 상품군이다. 이 스킬은 그 파이프라인을 처음부터 재설계하지 않도록 이미 검증된 절차·API 함정·검증법을 정리한 것이다. 실제 배치 기록(무엇을 왜 그렇게 했는지)은 `niche-templates/execution/products/11~14번` 문서와 `niche-templates/execution/A1-gumroad-대량생산-자동화.md` 진행 로그에 있으니, 이 스킬로 절차를 따라가다 판단이 애매하면 그 문서들을 먼저 찾아본다.
+`niche-templates/`(GlowHalo 1)의 A1 라인은 "3명의 독립 AI 리뷰어가 서로 안 보고 반박하는 Notion 템플릿"을 여러 오디언스로 반복 생산해 Gumroad에 판매하는 상품군이다. 이 스킬은 그 파이프라인을 처음부터 재설계하지 않도록 이미 검증된 절차·API 함정·검증법을 정리한 것이다. 실제 배치 기록(무엇을 왜 그렇게 했는지)은 `niche-templates/execution/products/11~14번` 문서와 `niche-templates/execution/A1-gumroad-대량생산-자동화.md` 진행 로그에 있으니, 이 스킬로 절차를 따라가다 판단이 애매하면 그 문서들을 먼저 찾아본다.
 
 ## 언제 자율로 진행해도 되는가
 

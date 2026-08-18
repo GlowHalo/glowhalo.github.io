@@ -1,4 +1,4 @@
-# 나다컴퍼니9 — 신사업 후보 현황판 (Living Doc)
+# GlowHalo 9 — 신사업 후보 현황판 (Living Doc)
 
 방법론은 [`README.md`](README.md) 참고 — 10인 분석가 패널(각자 독립 스캔) → 3단계 필터(① 시장 크기 → ② 홍보채널 접근성 → ③ 자동화 적합성, 회장 리소스 제약 반영) → 상위 후보 등재.
 원자료(10명 원안 전체)는 [`board/2026-08-12-round1-10인패널.md`](board/2026-08-12-round1-10인패널.md) 참고.
@@ -12,7 +12,7 @@
 | # | 후보 | ① 시장 크기 | ② 채널 접근성 | ③ 자동화 적합성 | 결제/유통 구조 | 리소스 제약 메모 |
 |---|---|---|---|---|---|---|
 | E1 | **웨어러블 헬스데이터 AI 웰니스 인사이트 리포트** (오라링/애플워치/갤럭시워치 업로드→비의료 패턴 분석 PDF) | 수면모니터링 앱 시장 CAGR 18%, 웰니스 앱 시장 CAGR 23%(2026 약 44억달러), 오라 매출 2026년 20억달러 근접 전망 | Reddit(r/ouraring 등), 네이버 오라링/갤럭시워치 카페, 바이오해킹 인플루언서, 헬스테크 유튜버 협업 | **5/5 (10개 중 최고)** — 마켓플레이스 종속 없는 자체 파이프라인(Stripe 웹훅→Claude 분석→PDF→이메일)이라 야간 완전 무인 운영 가능 | 자체 웹앱 + Stripe/토스페이먼츠, 사업자등록 불요 | "진단/치료"로 읽히지 않게 셋업 단계에서 비의료 문구·면책조항 설계 필요(반복운영 부담 아님). assessment-products(심리진단)와 겹치지 않음(신체데이터 vs 심리유형) |
-| E2 | ~~니치 AI 큐레이션 뉴스레터~~ (Beehiiv, 특정 버티컬 일일·주간 큐레이션) | Beehiiv ARR $30M(전년比 성장), 유료 뉴스레터 시장 2026년 말 $35M 규모로 3배 성장 전망 | X/Reddit/네이버블로그/SEO/Beehiiv Boost 크로스프로모션 — 무자본 채널 풍부 | 5/5(Beehiiv 전제 평가) — 단, 나다컴퍼니10 재검증(2026-08-12)에서 Beehiiv Create Post API 플랜조건이 문서상 상충되는 걸 발견, 유료구독도 Scale $43/월부터라 "완전 무료" 전제와 다름 | Beehiiv 내장 Stripe Connect, 사업자등록 불요 | **🔀 2026-08-12 회장 지시로 niche-templates A5에 흡수 정리** — A5(스티비 기반, "The Independent Board", 콘텐츠 완성)를 나다컴퍼니10(은우)이 승계하는 것으로 확정, E2는 별도 착수하지 않음. 플랫폼(스티비 유지 vs Beehiiv 등)은 은우가 [`newsletter-automation/candidates.md`](../newsletter-automation/candidates.md)에서 7개 플랫폼 비교 후 재검토 중(회장이 "유료 플랫폼 지금은 안 씀" 제약 제시, 현재안은 스티비) |
+| E2 | ~~니치 AI 큐레이션 뉴스레터~~ (Beehiiv, 특정 버티컬 일일·주간 큐레이션) | Beehiiv ARR $30M(전년比 성장), 유료 뉴스레터 시장 2026년 말 $35M 규모로 3배 성장 전망 | X/Reddit/네이버블로그/SEO/Beehiiv Boost 크로스프로모션 — 무자본 채널 풍부 | 5/5(Beehiiv 전제 평가) — 단, GlowHalo 10 재검증(2026-08-12)에서 Beehiiv Create Post API 플랜조건이 문서상 상충되는 걸 발견, 유료구독도 Scale $43/월부터라 "완전 무료" 전제와 다름 | Beehiiv 내장 Stripe Connect, 사업자등록 불요 | **🔀 2026-08-12 회장 지시로 niche-templates A5에 흡수 정리** — A5(스티비 기반, "The Independent Board", 콘텐츠 완성)를 GlowHalo 10(은우)이 승계하는 것으로 확정, E2는 별도 착수하지 않음. 플랫폼(스티비 유지 vs Beehiiv 등)은 은우가 [`newsletter-automation/candidates.md`](../newsletter-automation/candidates.md)에서 7개 플랫폼 비교 후 재검토 중(회장이 "유료 플랫폼 지금은 안 씀" 제약 제시, 현재안은 스티비) |
 | E3 | **POD 굿즈 스토어** (Printify/Printful + Etsy, 무재고 위탁생산) | 글로벌 POD 시장 2026년 $13~15B, CAGR 20~25%(아태지역 최고 성장) | Etsy 검색 SEO, Pinterest, TikTok/Instagram, 마이크로니치 공략 | **4/5** — Printify API로 상품 등록·게시 자동화, 주문 발생 시 인쇄·배송은 파트너가 전량 위임 처리(물리작업 완전 0). 다만 Etsy 클레임/IP 유사도 검수는 사람 개입 소폭 필요 | Etsy Payments(Payoneer 경유 필요, 완전 직접입금은 아님) + Printify/Printful | 재고·배송 물리작업 없음. Etsy 신규 계정 가입은 회장 승인 필요(A1이 이미 Etsy 가입 완료 상태라면 동일 계정 재사용 검토) |
 
 ### 🔍 참고 후보 — 검증되면 승급 가능 (2건)
