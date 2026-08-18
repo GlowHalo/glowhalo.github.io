@@ -39,7 +39,9 @@ Beehiiv·스티비 포함 7개 플랫폼의 이용료/유료구독 조건/API/�
 - [x] **구독 폼(페이지) 제작 완료(2026-08-18)** — [independentboard.stibee.com](https://independentboard.stibee.com) 공개 발행됨. "The Independent Board" 브랜딩(제목·태그라인·소개문), 기본 주소록 연결, A1(AI Board of Directors) Gumroad 링크를 SNS/웹사이트 란에 연결.
 - [ ] **회장 검수 필요** — 창간호 초안 확인([이메일 목록](https://stibee.com/lists)) + 구독 폼([independentboard.stibee.com](https://independentboard.stibee.com)) 확인 후 문제없으면 발송
 - [ ] 무료 구독자 모으기 채널 검토(A1 Gumroad 구매자 크로스셀 — 반대 방향으로 A1 상품 페이지에 이 구독 폼 링크 노출하는 것도 검토)
-- [ ] (향후) 무료 맛보기 뉴스레터 여러 종 + 유료 대량생산 확장 — [`candidates.md`](candidates.md#무료-맛보기-여러-종--유료-뉴스레터-대량생산-2026-08-18-회장-제안) 참고, N1 정비 마친 후 다음 라운드에서 착수
+- [x] **(2026-08-18) 무료 맛보기 확장 착수 — N2(The Career Board)·N3(The Builder's Board) 회장 확정.** 컨셉·창간호·주소록·이메일 초안까지 완료 — [`candidates.md`](candidates.md#니치-후보-리스트업-2026-08-18-회장-지시로-착수) 참고.
+- [x] **⚠️ 신규 발견 — 스티비 무료 플랜은 "페이지"(브랜드 구독 랜딩페이지)가 계정당 1개로 제한됨.** N1이 이미 그 1개를 쓰고 있어 N2·N3는 같은 방식으로 페이지를 못 만듦 — 대신 (1) 주소록별 무브랜드 구독 폼(`page.stibee.com/subscriptions/<id>`, 페이지 개수 제한과 무관)과 (2) 저장소 자체에 만든 랜딩페이지로 대체. [career-board](https://tossneon.github.io/newsletter-automation/career-board/), [builders-board](https://tossneon.github.io/newsletter-automation/builders-board/) 둘 다 공개 배포 완료.
+- [ ] **회장 검토 필요 — N2·N3도 N1과 같은 상태**: 창간호 초안은 있으나 발송 전, 구독 페이지는 라이브. 셋 다 한 번에 훑어보고 문제없으면 발송 판단.
 
 ## 🔄 세션 인계 메모 (2026-08-15)
 
