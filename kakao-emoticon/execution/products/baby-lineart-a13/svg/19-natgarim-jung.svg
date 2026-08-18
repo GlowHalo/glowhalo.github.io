@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360">
+  <defs>
+    <filter id="dropshadow" x="-30%" y="-20%" width="160%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#000000" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+  <!-- 몸통·손: 연한 베이비블루로 채워서 다크모드 배경에서도 실루엣이 살아있게 함
+       (A7에서 확립한 규칙 — fill:none 금지, 반드시 solid fill) -->
+  <g filter="url(#dropshadow)">
+    <g fill="#DCEEFF" stroke="#2B2B2B" stroke-width="9" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="150" cy="160" rx="17" ry="14"/><ellipse cx="210" cy="160" rx="17" ry="14"/>
+      <path d="M100,278 C72,278 60,222 70,172 C86,88 132,48 180,48 C228,48 274,88 290,172 C300,222 288,278 260,278 Z"/>
+    </g>
+  </g>
+  <path d="M128,130 Q140,118 154,126" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/><path d="M232,130 Q220,118 206,126" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="152" cy="150" r="7" fill="#2B2B2B"/><circle cx="208" cy="150" r="7" fill="#2B2B2B"/><path d="M148,160 C146,172 150,182 154,175 Z" fill="#7FD1E8"/><path d="M204,160 C202,172 206,182 210,175 Z" fill="#7FD1E8"/>
+  <path d="M164,188 L196,188" fill="none" stroke="#2B2B2B" stroke-width="7" stroke-linecap="round"/>
+  <ellipse cx="132" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.6"/><ellipse cx="228" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.6"/>
+  
+  <text x="180" y="36" text-anchor="middle" font-family="Jua" font-size="30" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">낯가림 중</text>
+</svg>

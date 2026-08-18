@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360">
+  <defs>
+    <filter id="dropshadow" x="-30%" y="-20%" width="160%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#000000" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+  <!-- 몸통·손: 연한 베이비블루로 채워서 다크모드 배경에서도 실루엣이 살아있게 함
+       (A7에서 확립한 규칙 — fill:none 금지, 반드시 solid fill) -->
+  <g filter="url(#dropshadow)">
+    <g fill="#DCEEFF" stroke="#2B2B2B" stroke-width="9" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="150" cy="160" rx="17" ry="14"/><ellipse cx="210" cy="160" rx="17" ry="14"/>
+      <path d="M100,278 C72,278 60,222 70,172 C86,88 132,48 180,48 C228,48 274,88 290,172 C300,222 288,278 260,278 Z"/>
+    </g>
+  </g>
+  <path d="M128,130 Q140,118 154,126" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/><path d="M232,130 Q220,118 206,126" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/>
+  <path d="M142,150 Q152,142 162,150" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/><path d="M198,150 Q208,142 218,150" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/>
+  <ellipse cx="180" cy="188" rx="16" ry="20" fill="#2B2B2B"/><ellipse cx="180" cy="200" rx="8" ry="6" fill="#FF8FA3" opacity="0.8"/>
+  <ellipse cx="132" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.6"/><ellipse cx="228" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.6"/>
+  <path d="M84,100 C78,114 82,128 92,128 C102,128 104,114 92,100 Z" fill="#7FD1E8" stroke="#3E9BB8" stroke-width="3"/><path d="M290,114 C286,124 289,134 296,134 C303,134 306,124 296,114 Z" fill="#7FD1E8" stroke="#3E9BB8" stroke-width="3"/>
+  <text x="180" y="36" text-anchor="middle" font-family="Jua" font-size="30" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">목욕은 싫어요</text>
+</svg>
