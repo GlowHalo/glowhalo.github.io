@@ -101,6 +101,12 @@ export const COMPANIES: Company[] = [
     mode: "op",
   },
   {
+    id: "venture-lab",
+    name: "나다컴퍼니13",
+    tagline: "다온 대표 · 신사업 논의·인큐베이션 — 자유롭게 논의하다 추진 가치가 있으면 새 계열사로 분리·신설, 이 회사 자체는 정착하지 않는 게 정체성",
+    mode: "op",
+  },
+  {
     id: "newventure",
     name: "pixel-ai-office (프로토타입)",
     tagline: "이 대시보드를 만들기 전 먼저 시도했던 오피스 시뮬레이션 — 별도 사업체 아니고, 자리잡으면 정리 예정",
@@ -148,6 +154,8 @@ export const ROOMS: Room[] = [
   { id: "c11-panel-room", name: "토론실", companyId: "brief-ai", kind: "meeting" },
 
   { id: "c12-ceo-room", name: "상담실", companyId: "biz-consulting", kind: "ceo" },
+
+  { id: "c13-ceo-room", name: "논의실", companyId: "venture-lab", kind: "ceo" },
 ];
 
 export type StaffRank = "ceo" | "lead" | "member";
@@ -391,6 +399,17 @@ export const STAFF: Staff[] = [
     companyId: "biz-consulting",
     roomId: "c12-ceo-room",
     task: "회장의 사업 아이디어 상담 대기 중",
+  },
+
+  // 나다컴퍼니13 — 신사업 논의·인큐베이션(2026-08-18 신설). 정착하지 않는 게 정체성, 추진 확정되면 새 계열사로 분리.
+  {
+    id: "c13-ceo",
+    name: "다온",
+    roleLabel: "CEO",
+    rank: "ceo",
+    companyId: "venture-lab",
+    roomId: "c13-ceo-room",
+    task: "신사업 자유토론 대기 중 — 추진 확정되는 아이디어는 즉시 새 계열사로 분리",
   },
 ];
 
