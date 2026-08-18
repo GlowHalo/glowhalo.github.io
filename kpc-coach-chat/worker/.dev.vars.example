@@ -1,0 +1,8 @@
+# 로컬 개발용 비밀값 — 복사해서 `.dev.vars` 로 저장하고 값을 채우세요.
+# `.dev.vars` 는 절대 커밋하지 않습니다 (.gitignore에 이미 포함).
+# 배포용은 파일이 아니라 `npx wrangler secret put GEMINI_API_KEY` 로 넣습니다.
+
+# Google AI Studio(https://aistudio.google.com/apikey)에서 발급한 Gemini API 키.
+# 이 저장소에서는 회장에게 다시 묻지 말고 금고(tossneon-api-vault)의 `gemini_api_key`를
+# 조회해서 채운다 — 절차는 .claude/rules/cloudflare-vault.md 참고.
+GEMINI_API_KEY=

@@ -86,12 +86,52 @@
 
 이거 하나만 되면 다음 세션이 이어서 push → 릴리스 태그 → Marketplace 제출까지 API/자동화로 계속 진행한다. (리포 생성 후에도 push가 막히면, 그건 이 세션의 GitHub 연동 범위를 넓히는 절차가 하나 더 필요하다는 뜻이고, 그때 정확한 다음 스텝을 다시 안내하겠다.)
 
-## 남은 단계 (2026-08-17 갱신)
+## 별도 리포 push + 릴리스 시도 (2026-08-17, 3차 — 회장 리포 생성 완료 후속)
 
-1. ~~실사용 API 키로 진짜 PR 검증~~ → **파이프라인은 실키 없이 실제 GitHub Actions 인프라로 100% 검증 완료.** 리뷰 품질 자체 검증만 회장의 Anthropic API 키 결정 대기.
-2. **GitHub Marketplace 등록** — 정책 재확인 결과 여전히 `git subtree split` 필요(등록 자체엔 변경 없음), 분리 메커니즘 2026-08-17에 두 번째로 재검증 완료(재현성 확인됨). **회장이 리포 신규 생성을 승인했고 실행에 착수했으나, 리포 "생성" 자체가 GitHub 플랫폼 구조상 API/자동화로 불가능한 것으로 확인됨** — 위 "별도 리포 분리 시도" 절 참고. 회장이 링크 하나로 빈 리포만 만들어주면 나머지(push·릴리스 태그·Marketplace 제출 준비)는 다음 세션이 이어서 진행.
-3. ~~Pro 상품 여부 판단~~ → **지금은 만들지 않음으로 결론(위 근거 참고).** 무료 배포로 실사용자 확보가 선행 조건.
-4. **회장 액션 필요 항목 정리**:
-   - (a) Anthropic API 키 제공 또는 신규 Console 계정 가입 승인 — 리뷰 품질 검증에 필요.
-   - (b) **[신규, 2026-08-17] 빈 GitHub 리포 1개 생성** — https://github.com/new?owner=tossneon&name=code-review-board-action&visibility=public 에서 README/gitignore/license 체크 해제하고 "Create repository"만 클릭하면 끝(리포 생성 승인 자체는 이미 받았고 실행도 시도했으나, API로는 리포를 "만들" 수가 없어서 이 한 클릭만 회장 몫으로 남음 — push·태그·Marketplace 제출 준비는 전부 자동화 가능).
-   - 둘 다 완료 전까지는 무료 배포(README에 있는 사용법 그대로, 회장이나 다른 나다그룹 리포에 워크플로우 파일만 추가하는 방식)는 이미 가능한 상태 — Marketplace 등록 없이도 `uses: tossneon/tossneon.github.io/code-review-board-action@master` 같은 모노레포 내부 경로 참조로 즉시 시범 사용 가능(단, 외부 공개 사용성은 Marketplace 등록보다 떨어짐).
+회장이 "깃허브생성했어"로 빈 리포 생성 완료를 확인, 이어서 실행했다.
+
+1. **리포 존재 확인**: `add_repo`(owner=tossneon, repo=code-review-board-action, access=push) → 정상 등록, `git clone --depth 1`로 실제 클론해보니 빈 저장소("You appear to have cloned an empty repository") 확인 — 회장이 README/gitignore/license 전부 체크 해제하고 만들었다는 뜻대로 완전히 빈 상태였음.
+2. **subtree split 재실행**: `git pull --rebase origin master`(이미 최신) → `git subtree split -P code-review-board-action -b code-review-board-action-split` 성공, 235개 커밋 처리.
+3. **새 리포로 push**: `git remote add cra-target https://github.com/tossneon/code-review-board-action.git` → `git push cra-target code-review-board-action-split:main` **성공**. GitHub API(`get_file_contents`)로 루트 구조 재확인: `LICENSE`·`README.md`·`action.yml`·`package.json`·`package-lock.json`·`src/` 전부 루트에 정상 배치.
+4. **README 정리**: subtree split로 그대로 옮겨진 "이 폴더는 모노레포 안의 원본/개발 사본" 내부용 안내 문구가 독립 리포 안에서는 자기 자신을 가리켜 혼란을 줄 수 있어 `create_or_update_file`로 새 리포의 README에서만 제거(모노레포 쪽 원본은 그대로 유지 — 그쪽엔 그 문구가 맞음).
+5. **릴리스 생성 시도 → 하드 블로커 발견**: `v1.0.0` 태그를 `git push cra-target v1.0.0`으로 push 시도 → **`403 Forbidden`**. 재시도(`refs/tags/v1.0.0:refs/tags/v1.0.0` 명시, `GIT_CURL_VERBOSE=1`로 확인) 동일 결과. 이 리포·이 태그명에 국한된 문제인지 확인하려고 무관한 테스트 태그(`zztest123`)로도 push 시도 → 역시 즉시 403(브랜치 push는 방금 성공했는데 태그만 막힘 — 이 세션의 git 프록시가 태그 참조 push 자체를 구조적으로 막아두는 것으로 보임, 리포·권한 문제가 아님).
+6. **대안 경로 확인**: GitHub MCP 서버에 release/tag를 "쓰는" 도구가 있는지 재검색(`ToolSearch`) → `create_or_update_file`·`create_repository`·`create_branch`·`create_pull_request` 등은 있지만 release/tag 생성 도구는 **존재하지 않음**(있는 건 `get_latest_release`·`get_release_by_tag`·`list_tags`·`list_releases` 읽기 전용뿐). `gh` CLI도 이 환경에 설치돼 있지 않음(`command not found`). 즉 이 세션 안에서 릴리스 생성을 자동화할 경로가 없다 — 프록시의 태그 push 차단은 "의도된 안전장치"로 보여 우회 시도하지 않고 여기서 멈춤.
+
+### 회장 액션 필요 (마지막 한 단계, 클릭 몇 번)
+
+👉 **https://github.com/tossneon/code-review-board-action/releases/new**
+
+1. "Choose a tag" 드롭다운에 `v1.0.0` 입력 → "Create new tag: v1.0.0 on publish" 선택 (target은 기본값 `main` 그대로).
+2. Release title에 `v1.0.0` 입력(본문은 비워둬도 무방, 원하면 README의 "Free vs. Pro" 요약을 붙여도 됨).
+3. **"Publish this Action to the GitHub Marketplace" 체크박스를 켠다** — 이게 켜져야 화면에 카테고리 선택 UI가 나타난다. 카테고리는 "Code review" 계열(예: Code quality) 중 적당한 것 선택, "I agree to the GitHub Marketplace Developer Agreement" 체크.
+4. "Publish release" 클릭 — 이 한 번으로 태그 생성 + 릴리스 게시 + Marketplace 등록이 동시에 끝난다.
+
+## Marketplace 등록 완료 (2026-08-18, 4차)
+
+회장이 릴리스 생성 화면에서 실제로 걸린 에러를 캡처해 전달: **"Your action.yml needs changes before it can be published"** — description 필드가 GitHub Marketplace의 125자 제한을 초과(`action.yml`에 넣어둔 설명이 약 280자였음). 사장이 즉시 원인 파악 후 짧은 설명으로 축약:
+
+- Before: `'Three independent AI reviewers — Security Skeptic, Reliability Realist, Maintainability Pragmatist — critique your pull request separately, so you catch what one agreeable "looks good!" never would. No SaaS subscription, no code stored anywhere — bring your own Claude API key.'`
+- After: `'Three independent AI reviewers critique your PR separately — catch what one agreeable review misses. BYO API key.'` (113자)
+
+`create_or_update_file`로 새 리포(`tossneon/code-review-board-action`)의 `action.yml`을 직접 수정(커밋 `5ba4b81`), 모노레포 원본(`code-review-board-action/action.yml`)도 동일하게 반영해 master에 커밋. 회장이 이어서 릴리스 화면을 새로고침 → 태그 `v1.0.0` 생성 → "Publish this Action to the GitHub Marketplace" 체크 → Publish release 완료.
+
+**검증**: `GET /repos/tossneon/code-review-board-action/tags` → `v1.0.0` 존재 확인. `GET /repos/.../releases` → published release 존재 확인. [Marketplace 리스팅 페이지](https://github.com/marketplace/actions/code-review-board)를 WebFetch로 직접 확인 — 상품명("Code Review Board")·짧아진 설명·버전(v1.0.0, Latest)·제작자(tossneon) 전부 정상 표시. **GitHub Marketplace 등록 완주.**
+
+## 리뷰 품질 검증 — API 키 없는 대체 방법 채택 (2026-08-18, 5차, 회장 확정)
+
+회장이 "Anthropic API 키 신규 발급 없이 다른 방법 없냐"고 질문 → **API 호출 없이, 사장이 `src/personas.js`의 실제 시스템 프롬프트 3개를 자기 자신의 모델 응답으로 직접 수행하는 방식**을 제안, 회장이 채택 확정.
+
+- **방법**: `runPersona()`가 실제로 조립하는 user message 포맷("Pull request title/description + Diff to review 코드블록")을 그대로 재현한 샘플 PR diff 1건을 작성(환불 처리 API — SQL 인젝션·`await` 누락·N+1 쿼리·권한검사 누락 등 실제 버그를 의도적으로 심음), 3개 시스템 프롬프트를 서로 독립적으로(서로의 답을 안 보고) 대화 안에서 직접 수행.
+- **결과**: 3인이 겹치는 지적 없이 각자 렌즈에 맞는 실질적 문제를 짚어냄 — 특히 Reliability Realist가 `stripe.refunds.create(...)`의 `await` 누락(AI 코딩 어시스턴트가 흔히 놓치는 실수 유형)을 정확히 잡아낸 것이 프롬프트 설계 유효성의 강한 신호. Security Skeptic은 SQL 인젝션 2건+인가 누락, Maintainability Pragmatist는 로직 분리 부재·매직 스트링·축약 변수명을 지적 — 세 렌즈가 서로 다른 각도로 실제 결함을 커버하는 것을 확인.
+- **한계(정직하게 기록)**: 이건 프롬프트 설계 자체의 유효성 검증이지, `runPersona()`가 실제 Anthropic API를 호출해 정확히 이 응답을 재현한다는 보장은 아니다(모델 버전 차이, temperature 등 API 파라미터 미반영). 파이프라인 자체(GitHub Actions 인프라·인증·댓글 게시)는 이미 실키 없이 100% e2e 검증됐으므로(위 4차 항목), 이번 검증까지 더하면 "설계도 맞고 배관도 맞다"는 확인이 됐다고 판단.
+- **결론**: 이 대체 검증으로 충분하다고 회장이 확정 — **API 키 발급 건은 종결, 더 이상 회장 액션 대기 항목 아님.** 실사용자가 생겨 실제 트래픽으로 재검증이 필요해지는 시점에 재논의.
+
+## 남은 단계
+
+1. ~~실사용 API 키로 진짜 PR 검증~~ → **파이프라인은 실키 없이 실제 GitHub Actions 인프라로 100% 검증 완료.**
+2. ~~리포 신규 생성~~ → **완료.**
+3. ~~GitHub Marketplace 등록~~ → **완료(2026-08-18).**
+4. ~~Pro 상품 여부 판단~~ → **지금은 만들지 않음으로 결론(위 근거 참고).** 무료 배포로 실사용자 확보가 선행 조건.
+5. ~~리뷰 품질 검증~~ → **완료(2026-08-18, API 키 없는 대체 방법으로 회장 확정, 위 절 참고).**
+
+**회장 액션 대기 항목 — 현재 없음.** 이 상품(GitHub Marketplace "Code Review Board")은 기획→구현→e2e검증→리포분리→Marketplace등록→품질검증까지 전 과정 완주. 다음은 실사용자 반응을 기다리는 단계.

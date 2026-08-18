@@ -266,6 +266,11 @@ def main():
 
     up = Upbit()
     state = load_state()
+    if args.live:
+        # 실행 하트비트: 무거래 날에도 --live가 실제로 돌았는지 금고 기록으로 증명된다.
+        # (2026-08-18 도입 — 상태 내용이 안 변하는 날엔 "루틴 성공"과 "루틴 불발"이
+        #  구분되지 않던 관측 공백을 메움. 09:40 동기화가 이 값을 저장소로 내린다.)
+        state["last_live_run"] = datetime.datetime.utcnow().isoformat() + "Z"
 
     # ---- 1회성 매수/매도 경로 검증 (회장 질문 대응, 2026-08-14) ----
     # verify_requested 플래그가 있으면 최소금액(5,500원) BTC 왕복 주문으로

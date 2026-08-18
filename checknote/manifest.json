@@ -1,0 +1,16 @@
+{
+  "name": "체크노트",
+  "short_name": "체크노트",
+  "description": "리스트·완료 2탭으로 끝나는 초단순 할 일 메모 앱. 링크 하나로 지금 목록을 다른 사람에게 공유할 수 있다.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#EDEDE6",
+  "theme_color": "#FAF9F5",
+  "lang": "ko",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

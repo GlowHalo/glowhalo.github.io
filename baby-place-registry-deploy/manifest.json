@@ -1,0 +1,16 @@
+{
+  "name": "아기랑 갈 곳",
+  "short_name": "아기랑 갈 곳",
+  "description": "링크나 상호명을 검색해 등록하는 아기 동반 장소 지도 — 태그, 즐겨찾기, 만족도, 실시간 공유",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FDF4EC",
+  "theme_color": "#FF7B54",
+  "lang": "ko",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
