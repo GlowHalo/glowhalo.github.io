@@ -5,7 +5,7 @@
 
   허브(index.html, 사이트 루트 = 홈페이지)가 이 파일을 <script src>로 읽어서 카드를 그린다.
 
-  모든 프로젝트는 이 저장소(tossneon.github.io) 안의 하위 폴더 하나로 관리·배포된다.
+  모든 프로젝트는 이 저장소(glowhalo.github.io) 안의 하위 폴더 하나로 관리·배포된다.
   폴더 안에 meta.json이 있어야 카드로 뜬다 — 없는 폴더는 자동으로 무시된다.
 
   status 값은 아래 3단계 중 하나:
@@ -16,7 +16,7 @@
   아직 폴더도 없는 아이디어는 여기 안 올린다 — 그냥 대화로 나누고, 실제로 만들기로 하면
   그때 폴더 + meta.json을 만든다. (Notion 안 씀)
 */
-const GITHUB_USER = "tossneon";
+const GITHUB_USER = "glowhalo";
 window.REGISTRY = {
   pagesUrl: repo => `https://${GITHUB_USER}.github.io/${repo}/`,
   statuses: [

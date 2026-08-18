@@ -16,7 +16,7 @@
   페르소나 조합에서 AI가 질문·조언 없이 실제 고객처럼 반응했고, 시스템 프롬프트에 숨겨둔
   hiddenIssue를 스스로 안 드러냄 — 설계 의도(AI=고객, 코치 역할 절대 안 함)대로 동작하는
   것을 확인함. 다만 표본 1개뿐이라 다른 등급/페르소나 조합에서도 일관되는지는 추가 확인 필요.
-- **Worker CORS 설정 정상**: `http://127.0.0.1:8000`, `https://tossneon.github.io` 오리진에 대해
+- **Worker CORS 설정 정상**: `http://127.0.0.1:8000`, `https://glowhalo.github.io` 오리진에 대해
   `access-control-allow-origin` 헤더가 정상 응답되는 것을 curl로 확인.
 - **`meta.json` 작성 완료**, `registry.js` 재생성 필요(아래 "남은 작업" 참고).
 - **`store-assets/` 준비 완료**: `store-logo-300.png`(300x300), 등급별 리스팅 문구 3종
@@ -42,7 +42,7 @@
 1. **curl로 `/chat`, `/feedback` 각 1회 스모크 테스트** — 정상 200 응답 확인.
    ```bash
    curl -s -X POST "https://nada-company6-coach-practice.tossneon.workers.dev/chat" \
-     -H "Content-Type: application/json" -H "Origin: https://tossneon.github.io" \
+     -H "Content-Type: application/json" -H "Origin: https://glowhalo.github.io" \
      -d '{"grade":"kac","scenarioId":"career-change","personaId":"defensive",
           "history":[{"role":"client","text":"..."},{"role":"coach","text":"..."}]}'
    ```

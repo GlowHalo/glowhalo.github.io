@@ -20,17 +20,17 @@
 
 ## 저장소 구조: 저장소 하나(모노레포)
 
-허브와 모든 프로젝트는 **하나의 GitHub 저장소 `tossneon.github.io`** 안에서 함께 관리·배포된다. 프로젝트는 그 저장소 안의 **하위 폴더 하나**씩이다. GitHub Pages 기준으로:
+허브와 모든 프로젝트는 **하나의 GitHub 저장소 `glowhalo.github.io`** 안에서 함께 관리·배포된다. 프로젝트는 그 저장소 안의 **하위 폴더 하나**씩이다. GitHub Pages 기준으로:
 
 | 위치(하위 폴더) | 라이브 주소 |
 |---|---|
-| 저장소 루트 (`index.html`, `registry.js`) | `https://tossneon.github.io/` (허브) |
-| `checknote/` | `https://tossneon.github.io/checknote/` |
-| `dividend-passbook/` | `https://tossneon.github.io/dividend-passbook/` |
-| `baby-place-registry/` | `https://tossneon.github.io/baby-place-registry/` |
-| `kpc-coach-chat/` | `https://tossneon.github.io/kpc-coach-chat/` |
+| 저장소 루트 (`index.html`, `registry.js`) | `https://glowhalo.github.io/` (허브) |
+| `checknote/` | `https://glowhalo.github.io/checknote/` |
+| `dividend-passbook/` | `https://glowhalo.github.io/dividend-passbook/` |
+| `baby-place-registry/` | `https://glowhalo.github.io/baby-place-registry/` |
+| `kpc-coach-chat/` | `https://glowhalo.github.io/kpc-coach-chat/` |
 
-저장소 이름이 정확히 `tossneon.github.io`라서 루트 주소로 서빙되고, 그 안의 폴더는 폴더명이 그대로 하위 경로가 된다(GitHub Pages 기본 규칙). 루트의 `.nojekyll` 파일은 모든 폴더의 정적 파일을 가공 없이 그대로 서빙하게 한다.
+저장소 이름이 정확히 `glowhalo.github.io`라서 루트 주소로 서빙되고, 그 안의 폴더는 폴더명이 그대로 하위 경로가 된다(GitHub Pages 기본 규칙). 루트의 `.nojekyll` 파일은 모든 폴더의 정적 파일을 가공 없이 그대로 서빙하게 한다.
 
 **관리 지점이 이 저장소 하나뿐이다** — `git push` 한 번이면 전부 백업되고 배포된다. 예전처럼 프로젝트마다 따로 `.git`을 두거나 따로 push할 필요가 없다. 각 폴더의 예전 커밋 이력은 `git subtree`로 합칠 때 그대로 보존됐다.
 
@@ -55,7 +55,7 @@
 
 ```js
 window.REGISTRY = {
-  pagesUrl: repo => `https://tossneon.github.io/${repo}/`,
+  pagesUrl: repo => `https://glowhalo.github.io/${repo}/`,
   statuses: [...],
   projects: [ { id, repo, title, date, status, tags, description, note }, ... ]
 };
@@ -69,7 +69,7 @@ window.REGISTRY = {
 2. **목업을 만들기로 하면**:
    - 이 저장소 안에 폴더 하나 새로 생성 (`{slug}/`, 영문 slug). 그 안에 `index.html`(게시본) + `{slug}.jsx`(소스) + `meta.json`(상태="프로토타입")을 넣는다.
    - `node scripts/build-registry.js` 실행해서 `registry.js` 재생성
-   - 저장소 루트에서 `git add` + `git commit` + `git push` — 그게 끝. 새 저장소를 만들 필요 없음. push되면 `https://tossneon.github.io/{slug}/` 로 1분 내 자동 배포됨.
+   - 저장소 루트에서 `git add` + `git commit` + `git push` — 그게 끝. 새 저장소를 만들 필요 없음. push되면 `https://glowhalo.github.io/{slug}/` 로 1분 내 자동 배포됨.
 
 ## 써보고 난 뒤
 

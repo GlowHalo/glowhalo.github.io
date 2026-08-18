@@ -18,7 +18,7 @@ Chrome Web Store dropped native paid-extension support in 2020, so this follows 
 
 1. Register a Chrome Web Store developer account — **one-time $5 fee, requires a Google account + payment method** (AI can't do this: it's an identity/payment step).
 2. Zip this folder's contents (excluding `README.md`, `privacy.html` stays included since it needs to be *hosted*, not zipped — see below) and upload via the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole).
-3. The store listing requires a **hosted privacy policy URL** — once this repo is deployed, that's `https://tossneon.github.io/promptdeck/privacy.html` (already written, ships with this folder).
+3. The store listing requires a **hosted privacy policy URL** — once this repo is deployed, that's `https://glowhalo.github.io/promptdeck/privacy.html` (already written, ships with this folder).
 4. Everything else (code, icons, license-key monetization wiring, the Gumroad companion product for the license key itself) is done — see execution doc for the Gumroad product status.
 
 ## Local testing

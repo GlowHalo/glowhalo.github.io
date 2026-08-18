@@ -7,7 +7,7 @@ AI 직원들이 출근하고, 자리에 앉아 일하고, 회의실에 모이고
 게임 로직(`src/game/`)은 원본 그대로이고, 서버가 있어야 하는 부분(Notion/Discord 발행)만 "정적 배포에는 없는 기능"으로
 얌전히 비활성화되어 있습니다 — 화면은 원래 도구 철학대로 "미설정"으로 정상 표시됩니다.
 
-라이브 주소: **https://tossneon.github.io/pixel-ai-office/play/**
+라이브 주소: **https://glowhalo.github.io/pixel-ai-office/play/**
 
 Notion/Discord 발행 기능을 실제로 쓰려면 `worker/` 폴더의 Cloudflare Worker를 별도로 배포해야
 합니다 — 자세한 건 [`worker/README.md`](worker/README.md) 참고. 배포 전에는 화면에

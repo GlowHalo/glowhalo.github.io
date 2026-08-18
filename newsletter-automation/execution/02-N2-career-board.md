@@ -83,7 +83,7 @@ afternoons — does your energy go up or down?"*
   제한과 무관하게 계속 쓸 수 있어 이걸로 대체.
 - **워크어라운드 — 저장소 자체에 랜딩페이지 제작.** 무브랜드 폼만으로는 전환율이 낮을 것 같아,
   `newsletter-automation/career-board/index.html`에 간단한 자체 랜딩페이지를 만들어
-  `https://tossneon.github.io/newsletter-automation/career-board/`로 배포. "구독하기" 버튼이
+  `https://glowhalo.github.io/newsletter-automation/career-board/`로 배포. "구독하기" 버튼이
   위 스티비 구독 폼으로 연결됨.
 - 구독자 첫 1명(`tossneon0@gmail.com`, 계정주 본인)을 직접 추가 — 스티비가 구독자 0명인
   주소록은 이메일 작성 단계의 주소록 선택 목록에서 아예 안 보여주는 것으로 확인돼, 이메일

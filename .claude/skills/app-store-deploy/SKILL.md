@@ -17,7 +17,7 @@ description: GlowHalo 6(앱 개발·배포) 앱을 준비된 유통채널(Amazon
 2. `<앱폴더>-deploy/meta.json`은 **만들지/두지 않는다** — `build-registry.js`가 meta.json 있는 폴더를 전부
    루트 허브에 카드로 노출시키므로, 사본이 원본과 나란히 중복 노출되는 걸 막기 위함이다.
 3. 개선 작업(죽은 코드 정리, PWA 요건 추가, 설정값 일반화 등)은 이 `-deploy` 사본에서만 진행한다.
-4. PWABuilder MSIX 패키징·스토어 제출은 `-deploy` 사본의 라이브 URL(`https://tossneon.github.io/<앱폴더>-deploy/`)을 대상으로 한다.
+4. PWABuilder MSIX 패키징·스토어 제출은 `-deploy` 사본의 라이브 URL(`https://glowhalo.github.io/<앱폴더>-deploy/`)을 대상으로 한다.
 5. 사본 폴더 안에 `README.md`로 "원본은 `../앱폴더/`, 이건 배포용 사본" 한 줄을 남겨 헷갈리지 않게 한다.
 
 실사용 여부가 불확실하면 먼저 회장에게 확인 — 실사용 중인 앱에 이 절차 없이 바로 손대면 안 된다.
@@ -74,7 +74,7 @@ curl -X POST https://api.amazon.com/auth/o2/token \
 계정 가입 완료(`microsoft_partner_login_*`, 2026-08-17). 웹앱을 그대로 못 올리고 **MSIX 패키지로 변환**해야
 한다.
 
-1. https://www.pwabuilder.com/ 에 라이브 URL(`https://tossneon.github.io/<앱>/`) 입력 → 매니페스트 점수 확인
+1. https://www.pwabuilder.com/ 에 라이브 URL(`https://glowhalo.github.io/<앱>/`) 입력 → 매니페스트 점수 확인
    (installable PWA가 아니면 먼저 `manifest.json` + 서비스워커부터 붙여야 함 — 이게 안 된 앱이 여럿 있음,
    아래 "배포 전 게이트" 참고)
 2. "Package for Stores" → Windows 탭에서 MSIX 다운로드 (Partner Center 신규 앱이면 예약된 앱 이름 필요 —

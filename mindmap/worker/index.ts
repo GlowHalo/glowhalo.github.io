@@ -19,7 +19,7 @@ interface GenerateRequestBody {
 
 // 이 Worker를 호출할 수 있는 곳. 필요해지면 여기에 오리진을 더 추가한다.
 const ALLOWED_ORIGINS = new Set([
-  "https://tossneon.github.io",
+  "https://glowhalo.github.io",
   "http://localhost:5173", // 로컬 개발 서버
   "http://localhost:3000",
   "http://127.0.0.1:5173",
@@ -54,7 +54,7 @@ const SYSTEM_INSTRUCTION = `당신은 텍스트를 계층적 마인드맵 JSON�
 - 순수 JSON 객체만 출력한다 (마크다운 코드블록, 설명 문장 금지).`;
 
 function corsHeaders(origin: string | null): HeadersInit {
-  const allow = origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://tossneon.github.io";
+  const allow = origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://glowhalo.github.io";
   return {
     "Access-Control-Allow-Origin": allow,
     "Access-Control-Allow-Methods": "POST, OPTIONS",

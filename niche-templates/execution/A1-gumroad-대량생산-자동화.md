@@ -68,7 +68,7 @@
 - **2026-08-12 — 회장 지시로 "완전자동 사이클 백로그 상시 진행" 원칙 확정, 첫 실행으로 A1/A2 결제 퍼널 감사·수정.**
   - **회장 지시 반영**: "개입 없이 완성된 자동화 사이클은 상품기획→업로드를 쉬지 않고 진행, 품질개선·구매 퍼널 점검도 백로그로 자체 진행, 그 외는 기존처럼 대화." `niche-templates/README.md` 운영원칙 7번에 확정 기록.
   - **퍼널 감사 실행**: Gumroad `GET /v2/products`로 4개 상품 전체(description/tags/covers/summary) 점검. `promptdeck-pro`가 전부 빈 값으로 몇 주째 라이브 상태였던 것 발견 — 즉시 name/description(다른 3개와 동일한 HTML 구조)/tags 8개/summary/receipt 채우고, 헤드리스 브라우저(Cloudflare Browser Rendering)로 커버 3장 신규 제작·등록.
-  - **더 근본적인 문제 발견·해소**: Firefox Add-ons(재확인 결과 여전히 Mozilla 심사중)·itch.io(회장 액션 대기)·Chrome 웹스토어(미착수) 전부 막혀 있어, **PromptDeck 라이선스를 사도 설치할 곳이 없는 상태**였음. 스토어 승인을 기다리지 않고 `promptdeck/promptdeck-extension.zip`(사이드로드 zip + INSTALL.txt)을 GitHub Pages로 직접 배포(`https://tossneon.github.io/promptdeck/promptdeck-extension.zip`)해 결제→설치까지 지금 바로 완결되도록 조치. Cloudflare Browser Rendering으로 라이브 페이지 렌더링 검증 완료(제목/가격/커버 3장/FAQ/구매버튼 전부 정상).
+  - **더 근본적인 문제 발견·해소**: Firefox Add-ons(재확인 결과 여전히 Mozilla 심사중)·itch.io(회장 액션 대기)·Chrome 웹스토어(미착수) 전부 막혀 있어, **PromptDeck 라이선스를 사도 설치할 곳이 없는 상태**였음. 스토어 승인을 기다리지 않고 `promptdeck/promptdeck-extension.zip`(사이드로드 zip + INSTALL.txt)을 GitHub Pages로 직접 배포(`https://glowhalo.github.io/promptdeck/promptdeck-extension.zip`)해 결제→설치까지 지금 바로 완결되도록 조치. Cloudflare Browser Rendering으로 라이브 페이지 렌더링 검증 완료(제목/가격/커버 3장/FAQ/구매버튼 전부 정상).
   - **부가 발견**: `investor-panel`만 커버가 2장(다른 상품은 3장) — 치명적이진 않으나 다음 백로그 항목으로 기록.
   - **매출 재확인 — 여전히 0건**(3개 상품 전부). 확인되는 즉시 최우선 보고 원칙 유지.
 - **2026-08-12 (같은 날 후속) — 회장 지시로 노션 템플릿 라인 3종→20종 확장 착수, 1차 배치(5종) 완료.**

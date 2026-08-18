@@ -77,5 +77,5 @@ N2(The Career Board)와 동일한 이슈·워크어라운드를 그대로 적용
 - 이메일 창간호 초안 작성 완료 — email id 3548776, 독립 연결로 저장 재확인.
 - 무브랜드 구독 폼: `https://page.stibee.com/subscriptions/511796`
 - 자체 랜딩페이지: `newsletter-automation/builders-board/index.html` →
-  `https://tossneon.github.io/newsletter-automation/builders-board/`
+  `https://glowhalo.github.io/newsletter-automation/builders-board/`
 - 구독자 첫 1명(`tossneon0@gmail.com`) 직접 추가.

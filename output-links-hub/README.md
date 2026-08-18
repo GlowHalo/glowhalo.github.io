@@ -1,6 +1,6 @@
 # 산출물 다운로드 허브
 
-라이브: https://tossneon.github.io/output-links-hub/
+라이브: https://glowhalo.github.io/output-links-hub/
 
 내가 만든 프로그램(오토클릭, 써클히어로즈 등)을 한곳에서 바로 받거나, 링크만 복사해서
 다른 사람에게 전달할 수 있는 페이지. 새 산출물이 생기면 `index.html`의 `OUTPUTS` 배열에

@@ -18,14 +18,14 @@
      --data '{
        "name": "Mindmap",
        "packageId": "NadaCompany6.Mindmap",
-       "url": "https://tossneon.github.io/mindmap/",
+       "url": "https://glowhalo.github.io/mindmap/",
        "version": "1.0.1",
        "allowSigning": true,
        "classicPackage": { "generate": true, "version": "1.0.0" }
      }' \
      -o mindmap-msix.zip
    ```
-   응답 200, 2.6MB zip(`Mindmap.msixbundle`·`Mindmap.classic.appxbundle`·`Mindmap.sideload.msix`·설치 스크립트 포함). 자동 발급된 퍼블리셔는 `CN=tossneon.github.io`(사이트 URL 기반 추정치) — **Partner Center에서 앱 이름을 예약하면 그쪽이 실제 Package/Identity Name과 Publisher CN을 부여하므로, 그 값으로 `packageId`/`publisher.commonName`을 바꿔서 재생성해야 최종 업로드가 통과한다** (재생성 자체는 위 curl 한 번이면 끝, 1분 이내).
+   응답 200, 2.6MB zip(`Mindmap.msixbundle`·`Mindmap.classic.appxbundle`·`Mindmap.sideload.msix`·설치 스크립트 포함). 자동 발급된 퍼블리셔는 `CN=glowhalo.github.io`(사이트 URL 기반 추정치) — **Partner Center에서 앱 이름을 예약하면 그쪽이 실제 Package/Identity Name과 Publisher CN을 부여하므로, 그 값으로 `packageId`/`publisher.commonName`을 바꿔서 재생성해야 최종 업로드가 통과한다** (재생성 자체는 위 curl 한 번이면 끝, 1분 이내).
    - 이 zip 파일은 세션 스크래치패드에만 있고 저장소에는 커밋 안 함(빌드 산출물이라 재생성이 더 빠름 + 공개저장소에 불필요한 2.6MB 바이너리를 안 두는 게 맞다고 판단) — 필요하면 위 curl로 언제든 즉시 재생성 가능.
 
 ### 막힘 — Partner Center 로그인 필요 단계 (앱 이름 예약, MSIX 업로드, 가격, 연령등급, 리스팅 제출)

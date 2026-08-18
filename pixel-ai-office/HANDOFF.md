@@ -6,7 +6,7 @@
 ## 지금 상태 (완료됨)
 
 - 구글드라이브 zip("갓생맘 AI OFFICE", 원본 Next.js+Cloudflare Workers 템플릿)을
-  GitHub Pages 정적 SPA로 이식 완료. 라이브: **https://tossneon.github.io/pixel-ai-office/play/**
+  GitHub Pages 정적 SPA로 이식 완료. 라이브: **https://glowhalo.github.io/pixel-ai-office/play/**
 - `src/game/` 안의 시뮬레이션 로직(sim.ts/staff.ts/world.ts/pathfinding.ts/OfficeWorld.tsx)은
   원본 그대로 옮김. `worker/`, `db/`, `.dev.vars` 등 서버 전용 코드는 제외.
 - 배경을 세련된 남색으로 변경 (`src/globals.css`의 `--pink-bg`/`--pink-line` 값만 교체,
@@ -94,11 +94,11 @@
    Chromium 실행파일 경로는 `/opt/pw-browsers/chromium`.)
 4. `company.config.ts`의 `STAFF_LIST`/`DEPARTMENTS`도 새 서사에 맞춰 같이 갱신.
 5. 커밋 후 `master`에 병합·push (이 저장소는 push하면 GitHub Pages가 자동 재배포,
-   보통 1~2분 걸림 — 이 세션 환경은 `tossneon.github.io`로도 아웃바운드가 막혀 있어서
+   보통 1~2분 걸림 — 이 세션 환경은 `glowhalo.github.io`로도 아웃바운드가 막혀 있어서
    라이브 확인은 회장님이 직접 브라우저로 해줘야 했음).
 
 ## 참고 — 이 세션에서 확인한 환경 제약
-- 이 원격 실행 환경은 `api.cloudflare.com`, `tossneon.github.io` 둘 다 아웃바운드 정책상 막혀있음
+- 이 원격 실행 환경은 `api.cloudflare.com`, `glowhalo.github.io` 둘 다 아웃바운드 정책상 막혀있음
   (프록시 상태: `curl -sS http://127.0.0.1:35159/__agentproxy/status`로 확인 가능).
   다음 세션이 같은 환경이라면 동일하게 막혀 있을 가능성 높음 — 안 되면 재시도하지 말고
   회장님께 환경 네트워크 정책 변경 또는 로컬 실행을 요청할 것.
