@@ -72,6 +72,21 @@ window.REGISTRY = {
     "note": "meta.json이 없어 허브에 안 뜨고 있던 걸 2026-08-12 나다컴퍼니6 점검에서 발견해 등록. 기능은 이미 완성도 있게 동작 중(다중 문서 라이브러리, 공유 링크, AI에 붙여넣기용 텍스트 복사). 2026-08-18 \"✨ AI로 만들기\" 추가 — 붙여넣은 텍스트를 Gemini로 계층 마인드맵 JSON으로 변환해 새 문서로 추가. 사용자 자기 API 키(BYOK, localStorage에만 저장)면 브라우저에서 Google Generative Language API를 직접 호출(CORS 허용 확인됨), 키 없으면 `mindmap/worker/`(Cloudflare Worker, 우리 쪽 gemini_api_key 사용)로 기기당 3회 체험."
   },
   {
+    "id": "checknote",
+    "repo": "checknote",
+    "title": "체크노트",
+    "date": "2026.08",
+    "status": "발전중",
+    "tags": [
+      "PWA",
+      "다중 리스트",
+      "실시간 공유",
+      "리마인더"
+    ],
+    "description": "캡처 우선(capture-first) 원칙의 초단순 할 일 메모 앱. 열면 곧바로 입력 가능한 상태 그대로, 다중 리스트·우선순위·리마인더·인원 제한 없는 실시간 공유는 전부 입력 이후 선택적으로만 쓴다. localStorage 저장 + manifest/서비스워커 PWA.",
+    "note": "2026-08-18 갱신: 4개 기능 추가 — (1) 다중 리스트(헤더의 작은 전환 드롭다운, 기본 진입 흐름은 그대로 마지막 리스트가 바로 열리고 입력창에 포커스), (2) 우선순위(항목의 별 아이콘, 상단 정렬+강조), (3) 리마인더(항목 탭 → 상세 모달에서 날짜/시간 선택, Notification API + sw.js로 로컬 알림, 권한은 최초 설정 시에만 요청), (4) 인원 제한 없는 실시간 공유(신규 Cloudflare Worker `checknote/worker/` + KV `ROOMS_KV`, 방 코드 12자, 버전 기반 충돌 감지 — 충돌 시 기존 '가져오기 확인' 모달 패턴을 재사용해 병합/선택). 기존 URL해시 스냅샷 공유(1회성 가져오기)는 실시간 공유로 대체·정리했다. 공유를 쓰지 않는 리스트는 네트워크 요청이 전혀 없다(Playwright로 확인). 실사용 앱 아님(app-portfolio/README.md 표 참고) — 자유롭게 정비 가능."
+  },
+  {
     "id": "circle-heroes",
     "repo": "circle-heroes",
     "title": "Circle Heroes",
@@ -98,19 +113,6 @@ window.REGISTRY = {
     ],
     "description": "링크나 텍스트를 붙여넣으면 놀곳/먹을곳/카페로 자동 분류해 등록하는 장소 등록 앱.",
     "note": ""
-  },
-  {
-    "id": "checknote",
-    "repo": "checknote",
-    "title": "체크노트",
-    "date": "2026.07",
-    "status": "발전중",
-    "tags": [
-      "PWA",
-      "링크 공유"
-    ],
-    "description": "리스트·공유·완료 3탭뿐인 초단순 할일 메모 앱. 완료는 사라지지 않고 이동한다. localStorage 저장 + manifest/서비스워커로 설치 가능한 PWA.",
-    "note": "2026-08-17 재점검: manifest.json+서비스워커를 붙여 실제 설치 가능한 PWA로 만들고, 가짜 '데모 참여' 버튼이던 1:1 공유를 URL 해시 기반 실제 공유 링크(mindmap 패턴 참고)로 교체했다 — 실시간 동기화는 아니고, 링크를 여는 순간의 목록 스냅샷을 상대가 받아 '가져오기'로 병합하는 방식. Firebase 실시간 동기화는 여전히 미착수(설계는 checknote-architecture.md)."
   },
   {
     "id": "dividend-passbook",
