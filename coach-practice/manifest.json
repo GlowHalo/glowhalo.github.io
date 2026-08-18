@@ -1,0 +1,17 @@
+{
+  "name": "코칭연습실",
+  "short_name": "코칭연습실",
+  "description": "AI가 가상 고객이 되어주는 코칭 실기 연습 도구. KAC/KPC/KSC 대비, 부담 없이 몇 번이고 반복 연습.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1E2D4A",
+  "theme_color": "#1E2D4A",
+  "lang": "ko",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
