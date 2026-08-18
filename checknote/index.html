@@ -4,6 +4,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>체크노트</title>
+<meta name="description" content="리스트·완료 2탭뿐인 초단순 할 일 메모 앱. 링크 하나로 지금 목록을 다른 사람에게 보여줄 수 있다." />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="theme-color" content="#FAF9F5" />
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;500;700&display=swap');
   * { box-sizing: border-box; }
@@ -39,22 +44,24 @@
   .share-card { border-radius:16px; padding:20px; background:#fff; border:1px solid #EBE9E0; text-align:center; margin-top:16px; }
   .share-icon { width:56px; height:56px; border-radius:999px; margin:0 auto 12px; background:#EEF3EC; display:flex; align-items:center; justify-content:center; font-size:22px; }
   .share-title { font-size:14px; color:#2B2E35; }
-  .share-sub { font-size:12px; color:#9A998F; margin-top:4px; }
+  .share-sub { font-size:12px; color:#9A998F; margin-top:4px; line-height:1.6; }
+  .share-count { font-size:11px; color:#B7B6AB; margin-top:12px; }
   .invite-btn { width:100%; margin-top:16px; padding:10px; border-radius:12px; border:none; background:#5B8C74; color:#fff; font-size:14px; font-weight:500; cursor:pointer; }
-  .invite-link { border-radius:12px; padding:10px 12px; background:#F4F2EA; border:1px dashed #D8D5C8; display:flex; align-items:center; justify-content:space-between; margin-top:16px; }
-  .invite-link span { font-size:12px; color:#5B5A52; }
-  .copy-btn { background:none; border:none; cursor:pointer; color:#5B8C74; font-size:13px; margin-left:8px; }
-  .copied-msg { font-size:11px; color:#5B8C74; margin-top:6px; }
-  .demo-btn { width:100%; margin-top:10px; padding:8px; border-radius:12px; border:1px solid #EBE9E0; background:#F4F2EA; color:#5B5A52; font-size:12px; cursor:pointer; }
-  .partner-row { display:flex; align-items:center; gap:12px; text-align:left; }
-  .partner-avatar { width:44px; height:44px; border-radius:999px; background:#EEF3EC; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
-  .partner-name { font-size:14px; font-weight:500; color:#2B2E35; }
-  .partner-sub { font-size:11px; color:#9A998F; }
-  .unshare-btn { width:100%; margin-top:16px; padding:8px; border-radius:12px; border:none; background:#F7EEEE; color:#B1585D; font-size:12px; cursor:pointer; }
+  .copied-msg { font-size:11px; color:#5B8C74; margin-top:10px; }
+  .modal-backdrop { display:none; position:fixed; inset:0; z-index:60; background:rgba(43,46,53,0.45); align-items:center; justify-content:center; padding:20px; }
+  .modal-backdrop.open { display:flex; }
+  .modal-card { background:#FAF9F5; color:#2B2E35; border-radius:18px; width:min(340px,100%); box-shadow:0 20px 60px rgba(0,0,0,0.25); }
+  .modal-head { padding:20px 20px 0; font-size:15px; font-weight:700; }
+  .modal-body { padding:8px 20px 4px; font-size:13px; line-height:1.7; color:#5B5A52; }
+  .modal-actions { display:flex; gap:8px; padding:16px 20px 20px; }
+  .modal-actions button { flex:1; border:none; border-radius:12px; padding:10px; font-size:13px; font-weight:500; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
+  .modal-actions .btn-ghost { background:#F4F2EA; color:#5B5A52; }
+  .modal-actions .btn-primary { background:#5B8C74; color:#fff; }
 </style>
 </head>
 <body>
 <div id="app" class="app"></div>
+<div id="modal-root"></div>
 
 <script>
 function todayLabel(ts) {
@@ -65,11 +72,8 @@ function todayLabel(ts) {
   if (sameDay(d, yesterday)) return "어제";
   return `${d.getMonth() + 1}월 ${d.getDate()}일`;
 }
-function genCode() {
-  const chars = "ABCDEFGHJKMNPQRSTUVWXY23456789";
-  let s = "";
-  for (let i = 0; i < 6; i++) s += chars[Math.floor(Math.random() * chars.length)];
-  return s;
+function escapeHtml(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 let idSeq = 100;
 const STORAGE_KEY = "checknote_items_v1";
@@ -98,11 +102,10 @@ function saveItems(){
 
 let items = loadItems();
 let tab = "list";
-let partner = null;
-let inviteCode = null;
 let copied = false;
+let pendingImport = null; // { list: [{t,c,a}, ...], dupCount }
 
-function setTab(t){ tab = t; render(); }
+function setTab(t){ tab = t; copied = false; render(); }
 function addItem(){
   const el = document.getElementById("todo-input");
   const text = el.value.trim();
@@ -116,15 +119,89 @@ function addItem(){
 function complete(id){ items = items.map(i => i.id===id ? {...i, completedAt: Date.now()} : i); saveItems(); render(); }
 function restore(id){ items = items.map(i => i.id===id ? {...i, completedAt: null} : i); saveItems(); render(); }
 function removeDone(id){ items = items.filter(i => i.id!==id); saveItems(); render(); }
-function makeInvite(){ inviteCode = genCode(); render(); }
-function copyInvite(){
-  const link = "checknote.app/invite/" + inviteCode;
-  if(navigator.clipboard) navigator.clipboard.writeText(link).catch(()=>{});
-  copied = true; render();
-  setTimeout(()=>{ copied=false; render(); }, 1500);
+
+/* ---------- 링크 공유 (URL 해시에 지금 목록을 그대로 담아서 공유) ---------- */
+/* 실시간 동기화는 아님 — 링크를 여는 순간의 스냅샷을 상대가 보고, "가져오기"를 눌러야 자기 목록에 합쳐진다. */
+
+function buildShareLink(){
+  const payload = items.map(i => ({ t: i.text, c: i.completedAt, a: i.createdAt }));
+  return location.origin + location.pathname + "#s=" + encodeURIComponent(JSON.stringify(payload));
 }
-function simulateAccept(){ partner = { name: "상대방" }; render(); }
-function unshare(){ partner = null; inviteCode = null; render(); }
+function fallbackCopy(text, done){
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); } catch(e) { /* 무시 */ }
+  document.body.removeChild(ta);
+  done();
+}
+function copyShareLink(){
+  const link = buildShareLink();
+  const done = () => { copied = true; render(); setTimeout(()=>{ copied=false; render(); }, 2000); };
+  if (navigator.clipboard) navigator.clipboard.writeText(link).then(done).catch(()=>fallbackCopy(link, done));
+  else fallbackCopy(link, done);
+}
+function clearShareHash(){
+  try { history.replaceState(null, "", location.pathname + location.search); } catch(e) { /* 무시 */ }
+}
+function checkForSharedLink(){
+  const hash = location.hash;
+  if(!hash || hash.indexOf("#s=") !== 0) return;
+  try {
+    const incoming = JSON.parse(decodeURIComponent(hash.slice(3)));
+    if(!Array.isArray(incoming)) throw new Error("형식 오류");
+    const cleaned = incoming
+      .filter(i => i && typeof i.t === "string" && i.t.trim())
+      .map(i => ({ t: i.t, c: typeof i.c === "number" ? i.c : null, a: typeof i.a === "number" ? i.a : Date.now() }));
+    // 텍스트가 같은 항목은 이미 가진 것으로 보고 건너뛴다 (같은 링크를 두 번 열거나, 양쪽 다
+    // 기본 데모 항목을 그대로 갖고 있는 경우 중복 추가를 막기 위함)
+    const isNew = inc => !items.some(local => local.text === inc.t);
+    const newOnes = cleaned.filter(isNew);
+    pendingImport = { list: newOnes, dupCount: cleaned.length - newOnes.length, total: cleaned.length };
+  } catch(e) {
+    console.error("공유 링크 해석 실패", e);
+  }
+}
+function acceptImport(){
+  if(pendingImport){
+    pendingImport.list.forEach(inc => {
+      items.push({ id: idSeq++, text: inc.t, completedAt: inc.c, createdAt: inc.a });
+    });
+    saveItems();
+  }
+  pendingImport = null;
+  clearShareHash();
+  tab = "list";
+  render();
+}
+function declineImport(){
+  pendingImport = null;
+  clearShareHash();
+  render();
+}
+
+function renderModal(){
+  const root = document.getElementById("modal-root");
+  if(!pendingImport){ root.innerHTML = ""; return; }
+  const { list, dupCount, total } = pendingImport;
+  const bodyText = list.length === 0
+    ? `공유된 항목 ${total}개가 모두 이미 내 목록에 있어요.`
+    : `공유된 항목 ${list.length}개를 내 목록에 추가할까요?${dupCount>0 ? ` (이미 있는 ${dupCount}개는 제외)` : ""}`;
+  root.innerHTML = `
+    <div class="modal-backdrop open">
+      <div class="modal-card">
+        <div class="modal-head">공유된 체크노트예요</div>
+        <div class="modal-body">${bodyText}<br><span style="color:#9A998F;font-size:12px;">실시간으로 계속 이어지진 않아요 — 링크를 연 순간의 목록이에요.</span></div>
+        <div class="modal-actions">
+          <button class="btn-ghost" onclick="declineImport()">무시하기</button>
+          ${list.length > 0 ? `<button class="btn-primary" onclick="acceptImport()">가져오기</button>` : `<button class="btn-primary" onclick="declineImport()">확인</button>`}
+        </div>
+      </div>
+    </div>`;
+}
 
 function render(){
   const activeItems = items.filter(i=>!i.completedAt).sort((a,b)=>b.createdAt-a.createdAt);
@@ -139,39 +216,18 @@ function render(){
       : activeItems.map(item => `
         <div class="item-card">
           <button class="checkbox" onclick="complete(${item.id})"></button>
-          <div class="item-text">${item.text.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</div>
+          <div class="item-text">${escapeHtml(item.text)}</div>
         </div>`).join("");
   } else if(tab === "shared"){
-    if(!partner){
-      contentHtml = `
-        <div class="share-card">
-          <div class="share-icon">🤝</div>
-          <div class="share-title">한 사람과만 리스트를 공유할 수 있어요</div>
-          <div class="share-sub">초대 링크를 만들어서 카톡으로 보내면 끝이에요</div>
-          ${!inviteCode ? `
-            <button class="invite-btn" onclick="makeInvite()">🔗 초대 링크 만들기</button>
-          ` : `
-            <div class="invite-link">
-              <span>checknote.app/invite/${inviteCode}</span>
-              <button class="copy-btn" onclick="copyInvite()">복사</button>
-            </div>
-            ${copied ? `<div class="copied-msg">링크를 복사했어요. 카톡에 붙여넣어 보내주세요.</div>` : ""}
-            <button class="demo-btn" onclick="simulateAccept()">(데모) 상대방이 링크를 열어 참여했다고 가정</button>
-          `}
-        </div>`;
-    } else {
-      contentHtml = `
-        <div class="share-card" style="text-align:left;">
-          <div class="partner-row">
-            <div class="partner-avatar">🤝</div>
-            <div>
-              <div class="partner-name">${partner.name}님과 공유 중</div>
-              <div class="partner-sub">서로 추가·완료한 항목이 실시간으로 보여요</div>
-            </div>
-          </div>
-          <button class="unshare-btn" onclick="unshare()">공유 해제하기</button>
-        </div>`;
-    }
+    contentHtml = `
+      <div class="share-card">
+        <div class="share-icon">🔗</div>
+        <div class="share-title">지금 목록을 링크로 공유해요</div>
+        <div class="share-sub">링크를 열면 이 순간의 목록을 그대로 볼 수 있어요.<br>실시간으로 계속 동기화되진 않으니, 항목을 추가·완료할 때마다 다시 눌러서 최신 링크를 보내주세요.</div>
+        <button class="invite-btn" onclick="copyShareLink()">🔗 공유 링크 만들어 복사하기</button>
+        ${copied ? `<div class="copied-msg">링크를 복사했어요. 카톡에 붙여넣어 보내주세요.</div>` : ""}
+        <div class="share-count">할 일 ${activeItems.length}개 · 완료 ${doneItems.length}개가 포함돼요</div>
+      </div>`;
   } else if(tab === "done"){
     if(doneItems.length===0){
       contentHtml = `<div class="empty"><div class="t1">아직 완료한 항목이 없어요.</div></div>`;
@@ -181,7 +237,7 @@ function render(){
         ${group.map(item => `
           <div class="item-card done">
             <button class="checkbox checked" onclick="restore(${item.id})">✓</button>
-            <div class="item-text done">${item.text.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</div>
+            <div class="item-text done">${escapeHtml(item.text)}</div>
             <button class="trash-btn" onclick="removeDone(${item.id})">✕</button>
           </div>`).join("")}
       `).join("") + `<div class="footer-hint">체크를 다시 누르면 리스트로 돌아가요</div>`;
@@ -190,7 +246,7 @@ function render(){
 
   const headerTitle = tab==="list" ? "체크노트" : tab==="shared" ? "공유" : "완료";
   const headerSub = tab==="list" ? `할 일 ${activeItems.length}개`
-    : tab==="shared" ? (partner ? `${partner.name}님과 공유 중` : "아직 공유한 상대가 없어요")
+    : tab==="shared" ? "링크 하나로 지금 목록을 보여줘요"
     : `완료 ${doneItems.length}개`;
 
   document.getElementById("app").innerHTML = `
@@ -220,8 +276,18 @@ function render(){
       sendBtn.classList.toggle("active", inputEl.value.trim().length>0);
     });
   }
+
+  renderModal();
 }
+
+checkForSharedLink();
 render();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
 </script>
 </body>
 </html>

@@ -42,6 +42,36 @@ window.REGISTRY = {
 
   projects: [
   {
+    "id": "kpc-coach-chat",
+    "repo": "kpc-coach-chat",
+    "title": "KPC 코칭챗봇",
+    "date": "2026.08",
+    "status": "발전중",
+    "tags": [
+      "PWA",
+      "코칭",
+      "Gemini API",
+      "Cloudflare Worker"
+    ],
+    "description": "조언 대신 질문으로 스스로 답을 찾게 돕는 셀프코칭 대화 상대. ICF/KCA 역량 기반 시스템 프롬프트로 Gemini API에 실제 연동됨(Cloudflare Worker 프록시 경유, 키는 브라우저에 노출 안 됨).",
+    "note": "무료 Gemini API 키 사용 — Google이 API 입력을 서비스 개선에 활용할 수 있는 티어. 코칭 대화는 민감한 개인 성찰 내용이 오갈 수 있어 트레이드오프 인지 필요. 대화 내용은 서버에 저장하지 않고(무상태 프록시) 매 요청 브라우저가 보낸 히스토리만 사용."
+  },
+  {
+    "id": "mindmap",
+    "repo": "mindmap",
+    "title": "마인드맵",
+    "date": "2026.08",
+    "status": "발전중",
+    "tags": [
+      "단일 페이지",
+      "로컬 저장",
+      "공유 링크",
+      "AI 자동생성"
+    ],
+    "description": "브라우저 하나로 끝나는 마인드맵 편집기. Tab/Enter로 자식·형제 노드 추가, 드래그로 재배치, 여러 맵을 라이브러리로 관리하고 URL 하나로 공유한다. 텍스트/개요를 붙여넣으면 AI가 자동으로 마인드맵을 만들어준다(BYOK, 키 없으면 기기당 3회 체험).",
+    "note": "meta.json이 없어 허브에 안 뜨고 있던 걸 2026-08-12 나다컴퍼니6 점검에서 발견해 등록. 기능은 이미 완성도 있게 동작 중(다중 문서 라이브러리, 공유 링크, AI에 붙여넣기용 텍스트 복사). 2026-08-18 \"✨ AI로 만들기\" 추가 — 붙여넣은 텍스트를 Gemini로 계층 마인드맵 JSON으로 변환해 새 문서로 추가. 사용자 자기 API 키(BYOK, localStorage에만 저장)면 브라우저에서 Google Generative Language API를 직접 호출(CORS 허용 확인됨), 키 없으면 `mindmap/worker/`(Cloudflare Worker, 우리 쪽 gemini_api_key 사용)로 기기당 3회 체험."
+  },
+  {
     "id": "circle-heroes",
     "repo": "circle-heroes",
     "title": "Circle Heroes",
@@ -54,34 +84,6 @@ window.REGISTRY = {
     ],
     "description": "SD 히어로 수집형 자동전투 방치형 게임. 모바일 APK로 설치해서 싱글플레이로 즐기는 걸 목표로 한다. 영웅 마스터데이터는 Notion이 정본.",
     "note": "meta.json이 없어 허브에 안 뜨고 있던 걸 2026-08-13 정비에서 발견해 등록. 나다컴퍼니6(시우) 소속. 안드로이드 패키지 ID는 io.github.tossneon.circleheroes → com.nadagroup.circleheroes로 정비 완료(2026-08-13, 아직 APK 정식 배포 전이라 전환 비용 없음)."
-  },
-  {
-    "id": "kpc-coach-chat",
-    "repo": "kpc-coach-chat",
-    "title": "KPC 코칭챗봇",
-    "date": "2026.07",
-    "status": "프로토타입",
-    "tags": [
-      "React",
-      "코칭",
-      "Gemini API"
-    ],
-    "description": "조언 대신 질문으로 스스로 답을 찾게 돕는 셀프코칭 대화 상대. ICF/KCA 역량 기반 시스템 프롬프트 설계는 끝났고, 대화 화면 프로토타입 단계.",
-    "note": "Gemini 무료 티어는 대화 내용이 학습에 쓰일 수 있음 — 코칭 대화 특성상 트레이드오프 주의"
-  },
-  {
-    "id": "mindmap",
-    "repo": "mindmap",
-    "title": "마인드맵",
-    "date": "2026.07",
-    "status": "발전중",
-    "tags": [
-      "단일 페이지",
-      "로컬 저장",
-      "공유 링크"
-    ],
-    "description": "브라우저 하나로 끝나는 마인드맵 편집기. Tab/Enter로 자식·형제 노드 추가, 드래그로 재배치, 여러 맵을 라이브러리로 관리하고 URL 하나로 공유한다.",
-    "note": "meta.json이 없어 허브에 안 뜨고 있던 걸 2026-08-12 나다컴퍼니6 점검에서 발견해 등록. 기능은 이미 완성도 있게 동작 중(다중 문서 라이브러리, 공유 링크, AI에 붙여넣기용 텍스트 복사)."
   },
   {
     "id": "baby-place-registry",
@@ -104,12 +106,11 @@ window.REGISTRY = {
     "date": "2026.07",
     "status": "발전중",
     "tags": [
-      "React",
       "PWA",
-      "1:1 공유"
+      "링크 공유"
     ],
-    "description": "리스트·공유·완료 3탭뿐인 초단순 할일 메모 앱. 완료는 사라지지 않고 이동한다. localStorage 저장을 붙여서 실제 폰 홈화면에 추가해 써보는 중.",
-    "note": "최초 프로토타입은 체크노트/ 폴더에 보존. Firebase 연동 전까지는 이 기기에만 저장됨."
+    "description": "리스트·공유·완료 3탭뿐인 초단순 할일 메모 앱. 완료는 사라지지 않고 이동한다. localStorage 저장 + manifest/서비스워커로 설치 가능한 PWA.",
+    "note": "2026-08-17 재점검: manifest.json+서비스워커를 붙여 실제 설치 가능한 PWA로 만들고, 가짜 '데모 참여' 버튼이던 1:1 공유를 URL 해시 기반 실제 공유 링크(mindmap 패턴 참고)로 교체했다 — 실시간 동기화는 아니고, 링크를 여는 순간의 목록 스냅샷을 상대가 받아 '가져오기'로 병합하는 방식. Firebase 실시간 동기화는 여전히 미착수(설계는 checknote-architecture.md)."
   },
   {
     "id": "dividend-passbook",

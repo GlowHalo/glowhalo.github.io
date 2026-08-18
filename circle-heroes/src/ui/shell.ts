@@ -1,9 +1,9 @@
 import "./ui.css";
 import { on, emit } from "../state/bus";
 import {
-  save, calcOfflineReward, addGold, addGems, addHero, resetSave,
+  save, calcOfflineReward, addGold, addHero, resetSave,
   unreadMailCount, markMailRead, claimMail, type MailItem, OFFLINE_CAP_HOURS,
-  grantMaxTestHero, shopFreeRewardAvailable,
+  shopFreeRewardAvailable,
 } from "../state/save";
 import { renderHeroes, renderSummon, renderShop, renderMissions, setHeroesSubView, setMissionsSubView, openPartyFormationModal } from "./screens";
 import { partyPower, counterFactionOf } from "../systems/battle";
@@ -465,29 +465,15 @@ function renderSubbar() {
 
 const HIDDEN_HERO_IDS = HEROES.filter((h) => h.grade === "Unknown").map((h) => h.id);
 
-/** 코드는 대소문자 구분 없이 매칭(숫자 코드는 그대로 비교되므로 영향 없음) */
+/** 코드는 대소문자 구분 없이 매칭(숫자 코드는 그대로 비교되므로 영향 없음)
+ * §2026-08-17 스토어 배포 전 최종점검 — "1"/GOLD/DIA는 개발 중 카드연출·잔고 확인용으로 넣었던
+ * 테스트 지름길이라 실제 유저에게 노출되면 게임 경제가 바로 붕괴한다. 배포 전 반드시 제거,
+ * 개발 중 다시 필요하면 로컬에서만 임시로 되살릴 것 — 커밋하지 말 것. "0203"은 의도된 공개
+ * 히든영웅 프로모 코드라 유지 */
 const SECRET_CODES: Record<string, { message: string; grant: () => void }> = {
   "0203": {
     message: "🎉 히든 영웅 5종을 모두 획득했습니다!",
     grant: () => HIDDEN_HERO_IDS.forEach((id) => addHero(id)),
-  },
-  // §카드 표시방식 테스트(2026-07-30) — "다 하고 코드에 1 넣으면 8성 영웅 하나 줘. 받아서
-  // 테스트하려고" 요청. 마초(UR)를 5성 만렙+초월 3단계("8성" 상당)로 즉시 지급해서
-  // 골드→보라 별 전환·발광 연출과 등급색 배경(C안)을 바로 확인할 수 있게 한다
-  "1": {
-    message: "🧪 테스트용 마초(UR) 5성+초월3 지급! 영웅 화면에서 확인하세요.",
-    grant: () => grantMaxTestHero("ma_chao_wind_001"),
-  },
-  // §2026-07-30 "테스트하게 골드 1000000, 다이아 10000 넣어달라" — 라이브 배포된 브라우저의
-  // localStorage는 서버 쪽에서 직접 쓸 수 없어서, 기존 테스트용 코드의 지급량을 요청 수치로
-  // 올려서 본인이 직접 입력해 받도록 처리
-  GOLD: {
-    message: "🪙 골드 1,000,000 획득!",
-    grant: () => addGold(1000000),
-  },
-  DIA: {
-    message: "💎 다이아몬드 10,000 획득!",
-    grant: () => addGems(10000),
   },
 };
 
