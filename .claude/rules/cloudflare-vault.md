@@ -41,6 +41,7 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 
 | 이름 | 쓰는 곳 |
 |---|---|
+| `kakao_worker_shared_secret` | `kakao-emoticon/worker`(kakao-session-keepalive, `https://kakao-session-keepalive.tossneon.workers.dev`) 호출 인증용. 이 Worker는 카카오 로그인 세션(Cloudflare Browser Run)이 유휴 타임아웃(10분)으로 죽지 않게 8분마다 핑을 보내는 역할 — 세션ID를 한 번 등록해두면 그 세션이 살아있는 동안은 재로그인 승인 없이 재사용 가능(2026-08-18 실측 확인). 사용법: `kakao-emoticon/execution/products/kakao-login-helper.mjs` 참고 |
 | `standard_login_password` | **표준 계정 공용 비밀번호 최신값(2026-08-17 회장이 채팅으로 갱신 — `tossneon0@gmail.com`과 짝지어 "표준계정"이라고 명명함)** — 새 자동화 계정 만들 때 이 값을 최우선으로 시도한다. 기존 계정(notion/kakao/google/sendowl/itchio/paypal_business/webshare/rapidapi/lemonsqueezy 등)은 실제 사이트 비밀번호를 아직 이 값으로 안 바꿨으므로 각자의 `*_login_password`(신버전 `notion_login_password` 또는 구버전) 그대로 유효 — 로그인 실패 시 순서: `standard_login_password` → 그 계정의 `*_login_password`(신버전) → 구버전. 특정 계정을 실제로 이 새 값으로 바꾸면 그 계정의 `*_login_password`도 갱신하고 이 줄 아래 "○○ 이전 완료" 기록 추가 |
 | `notion_token` | pixel-ai-office/worker (Notion 저장) |
 | `gmail_app_password` | 버크만 디브리핑 발송 스크립트 등 |
@@ -138,10 +139,14 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 브라우저 자동화가 훨씬 불안정하다(SendOwl 로그인 자동화 때 실제로 두 번 실패한 사례). 이미
 소셜 로그인으로만 가입된 계정은 계정 설정에서 "비밀번호 설정/변경" 옵션이 있는지 먼저 확인 —
 있으면 표준 비밀번호로 맞춰서 이메일+비밀번호 로그인도 같이 가능하게 만든다.
-**계정 카탈로그(사람이 보는 목록, 비밀번호는 안 적혀있음)**: Notion "🔐 나다그룹 — 자동화 계정 목록"
-(비공개 페이지, 워크스페이스 최상위 — "상품 허브" 같은 공개 페이지 하위에 절대 두지 말 것, 하위
-페이지가 자동으로 공개 상속받는 구조라서). 새 자동화 계정을 만들 때마다 이 금고 표와 그 Notion
-페이지 양쪽에 한 줄씩 추가한다.
+**계정 카탈로그**: Notion "🔐 자동화 계정 목록 (비공개)" (HQ → 나다컴퍼니 하위, 완전 비공개
+워크스페이스 — "나다컴퍼니(외부공개)" 쪽 공개 페이지 하위엔 절대 두지 말 것, 웹공유 토글도
+영구 금지).
+
+**2026-08-18 정책 변경**: 로그인 정보(이메일/아이디+해당 값)는 이제 저 Notion 페이지에도
+그대로 옮겨 적는다(회장 지시 — 매번 금고 조회 없이 확인 가능하게). **API 키·토큰·클라이언트
+시크릿류(재발급 가능한 것)는 이 정책 대상이 아니고 계속 금고에만 둔다.** 새 자동화 계정을 만들
+때마다 이 금고 표와 그 Notion 페이지 양쪽에 한 줄씩 추가한다(단, 뒤의 것들은 금고에만).
 
 **로그인 필요한데 그 서비스 계정이 금고에 없을 때 — 항상 표준 계정부터 시도 (2026-08-09, 회장 확정)**:
 회장에게 먼저 묻지 말고 `tossneon0@gmail.com` + 표준 비밀번호로 **기존 계정 로그인을** 일단 시도한다. 되면
