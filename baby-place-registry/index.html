@@ -42,14 +42,9 @@
   .draft input.name { width:100%; font-size:14px; font-weight:500; border-radius:8px; padding:8px 12px; margin-bottom:10px; border:1px solid #EDE0D2; background:#FDF9F4; color:#3B2E2A; box-sizing:border-box; }
   .draft-addr { font-size:11px; color:#A8998C; margin:-6px 0 10px 2px; }
   .draft label { font-size:11px; color:#A8998C; margin-bottom:6px; display:block; }
-  .chiprow { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
-  .chip { flex:1 1 auto; min-width:64px; padding:6px 10px; border-radius:8px; font-size:11px; font-weight:500; border:1px solid #EDE0D2; background:#FDF9F4; color:#8C8378; cursor:pointer; text-align:center; }
+  .chiprow { display:flex; gap:6px; margin-bottom:12px; }
+  .chip { flex:1; padding:6px; border-radius:8px; font-size:11px; font-weight:500; border:1px solid #EDE0D2; background:#FDF9F4; color:#8C8378; cursor:pointer; text-align:center; }
   .chip.active { color:#fff; border:none; }
-  .typeaddrow { display:flex; align-items:center; gap:6px; margin-bottom:12px; }
-  .type-emoji-input { width:36px; flex-shrink:0; text-align:center; border-radius:8px; padding:6px 4px; border:1px dashed #EDE0D2; background:#FDF9F4; font-size:13px; color:#3B2E2A; font-family:inherit; }
-  .type-name-input { flex:1; min-width:0; border-radius:8px; padding:6px 10px; border:1px dashed #EDE0D2; background:#FDF9F4; font-size:12px; color:#3B2E2A; font-family:'Noto Sans KR',sans-serif; }
-  .type-emoji-input:focus, .type-name-input:focus { outline:none; border-color:#FF7B54; }
-  .type-add-btn { flex-shrink:0; padding:6px 12px; border-radius:8px; border:none; background:#EDE0D2; color:#fff; font-size:11px; font-weight:500; cursor:pointer; }
   .draft textarea { width:100%; font-size:14px; border-radius:8px; padding:8px 12px; margin-bottom:12px; border:1px solid #EDE0D2; background:#FDF9F4; color:#3B2E2A; resize:none; box-sizing:border-box; font-family:'Noto Sans KR',sans-serif; }
   .locbtn { width:100%; padding:9px; border-radius:8px; border:1px dashed #FFB69A; background:#FFF6F1; color:#FF7B54; font-size:12px; font-weight:500; cursor:pointer; margin-bottom:12px; }
   .locbtn.set { border-style:solid; border-color:#EDE0D2; background:#FDF9F4; color:#8C8378; }
@@ -60,14 +55,6 @@
   .fbtn.active { background:#3B2E2A; color:#FDF4EC; }
   .favbtn { flex-shrink:0; width:32px; height:32px; border-radius:999px; display:flex; align-items:center; justify-content:center; border:1px solid #EDE0D2; background:#fff; cursor:pointer; font-size:14px; }
   .favbtn.active { background:#FFD966; }
-
-  .typemgr { margin:8px 20px 0; display:flex; flex-direction:column; gap:6px; }
-  .typemgr-row { display:flex; align-items:center; gap:8px; background:#fff; border:1px solid #EDE0D2; border-radius:10px; padding:8px 10px; }
-  .typemgr-badge { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; }
-  .typemgr-name { flex:1; min-width:0; border:none; border-bottom:1px solid transparent; background:transparent; font-size:12px; color:#3B2E2A; padding:4px 0; font-family:'Noto Sans KR',sans-serif; }
-  .typemgr-name:focus { outline:none; border-bottom-color:#FF7B54; }
-  .typemgr-del { flex-shrink:0; background:none; border:none; cursor:pointer; font-size:10px; color:#C9BEAE; }
-  .typemgr-del.confirm { color:#fff; background:#E0574C; padding:5px 10px; border-radius:8px; font-weight:500; font-size:11px; }
 
   .listbar { padding:10px 20px 0; }
   .searchbox { display:flex; align-items:center; gap:6px; border-radius:999px; padding:6px 6px 6px 14px; background:#fff; border:1px solid #EDE0D2; }
@@ -140,7 +127,6 @@
   <div class="addwrap" id="addwrap"></div>
 
   <div class="filters" id="filters"></div>
-  <div id="type-manager"></div>
   <div class="listbar" id="listbar"></div>
   <div class="sortrow" id="sortrow"></div>
   <div class="list" id="list"></div>
@@ -191,7 +177,6 @@ async function initCloudSync(){
     const app = initializeApp(FIREBASE_CONFIG);
     const db = getFirestore(app);
     const col = collection(db, "places");
-    const typesCol = collection(db, "types"); // 사용자 커스텀 구분값 — places와 같은 프로젝트, 별도 컬렉션
 
     window.cloudSync = {
       ready: true,
@@ -212,24 +197,6 @@ async function initCloudSync(){
       },
       deletePlace(id){
         return deleteDoc(doc(col, id));
-      },
-      subscribeTypes(cb){
-        return onSnapshot(typesCol, snap => {
-          cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        }, err => {
-          console.error("Firestore custom-type sync error", err);
-          alert("구분값 동기화 연결에 문제가 생겼어요: " + err.message);
-        });
-      },
-      addType(t){
-        const { id, createdAt, ...rest } = t;
-        return addDoc(typesCol, stripUndefined({ ...rest, createdAt: serverTimestamp() }));
-      },
-      updateType(id, patch){
-        return updateDoc(doc(typesCol, id), stripUndefined(patch));
-      },
-      deleteType(id){
-        return deleteDoc(doc(typesCol, id));
       }
     };
   } catch(err){
@@ -244,7 +211,7 @@ initCloudSync();
 <script>
 const KAKAO_APP_KEY = "391b39ae5de6f3152db3258ae09cd86b";
 
-const BASE_TYPES = [
+const TYPES = [
   { key:"야외놀이", color:"#3AAFA9", icon:"🌳" },
   { key:"실내놀이", color:"#6C8EBF", icon:"🎠" },
   { key:"식당", color:"#FF7B54", icon:"🍽️" },
@@ -254,17 +221,6 @@ const BASE_TYPES = [
 ];
 const TYPE_PRIORITY = ["야외놀이", "실내놀이", "식당", "카페", "숙소", "기타"]; // 핀 대표 아이콘 우선순위 — 노는 것 위주
 const LEGACY_TYPE_MAP = { "놀곳":"야외놀이", "먹을곳":"식당" }; // 구 분류값 호환 — 저장된 데이터는 그대로 두고 표시할 때만 변환
-const DEFAULT_TYPE_INFO = { color:"#8C8378", icon:"📍" }; // 삭제된 커스텀 구분값 등 매칭 실패 시 안전한 기본값
-const CUSTOM_TYPE_COLORS = ["#5B8C5A","#C97064","#4F86C6","#A2678A","#D4A24C","#5C9EAD","#9C6644","#6F7CB3"]; // 커스텀 구분값 자동 배정 팔레트 — 순환 배정
-
-// 사용자가 추가한 커스텀 구분값. 기본 6종(BASE_TYPES)에 이어붙여 화면에선 늘 allTypes()를 통해서만 참조한다.
-let customTypes = [];
-const TYPES_STORAGE_KEY = "baby-place-registry:customTypes";
-
-function allTypes(){ return [...BASE_TYPES, ...customTypes]; }
-function typePriorityList(){ return [...TYPE_PRIORITY, ...customTypes.map(t => t.key)]; } // 커스텀 타입은 우선순위 끝에 붙임
-function nextCustomColor(){ return CUSTOM_TYPE_COLORS[customTypes.length % CUSTOM_TYPE_COLORS.length]; }
-
 function normalizeTypes(p){
   let arr;
   if(Array.isArray(p.types) && p.types.length) arr = p.types;
@@ -273,138 +229,7 @@ function normalizeTypes(p){
   return arr.map(t => LEGACY_TYPE_MAP[t] || t);
 }
 function primaryType(types){
-  const order = typePriorityList();
-  return order.find(k => types.includes(k)) || types[0];
-}
-
-function loadLocalTypes(){
-  const saved = localStorage.getItem(TYPES_STORAGE_KEY);
-  if(saved){
-    try {
-      const parsed = JSON.parse(saved);
-      if(Array.isArray(parsed)) customTypes = parsed;
-    } catch(e){ /* 저장값 손상 시 빈 목록으로 시작 */ }
-  }
-}
-function persistTypes(){
-  if(isCloud) return;
-  localStorage.setItem(TYPES_STORAGE_KEY, JSON.stringify(customTypes));
-}
-
-function createCustomType(nameRaw, iconRaw){
-  const key = (nameRaw || "").trim();
-  if(!key) return null;
-  if(allTypes().some(t => t.key === key)){
-    alert(`"${key}" 구분값은 이미 있어요.`);
-    return null;
-  }
-  const icon = (iconRaw || "").trim() || "🏷️";
-  const color = nextCustomColor();
-  const newType = { key, icon, color };
-  if(isCloud){
-    window.cloudSync.addType(newType).catch(cloudFail);
-    return newType; // 실제 목록 반영은 실시간 구독으로 곧 들어옴 (장소 등록과 동일한 패턴)
-  }
-  newType.id = "custom-" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-  customTypes = [...customTypes, newType];
-  persistTypes();
-  renderFilters();
-  return newType;
-}
-
-function typeAddRowHtml(extraAttr){
-  return `
-    <div class="typeaddrow" ${extraAttr}>
-      <input class="type-emoji-input" maxlength="4" placeholder="🏷️" />
-      <input class="type-name-input" placeholder="+ 새 구분 추가" onkeydown="if(event.key==='Enter'){event.preventDefault(); this.closest('.typeaddrow').querySelector('.type-add-btn').click();}" />
-      <button type="button" class="type-add-btn" onclick="handleTypeAddClick(this)">추가</button>
-    </div>`;
-}
-function handleTypeAddClick(btn){
-  const row = btn.closest(".typeaddrow");
-  const nameInput = row.querySelector(".type-name-input");
-  const emojiInput = row.querySelector(".type-emoji-input");
-  const nt = createCustomType(nameInput.value, emojiInput.value);
-  if(!nt) return;
-  if(row.dataset.kind === "draft" && draft){
-    draft.types = [...draft.types, nt.key];
-    renderAdd();
-  } else if(row.dataset.kind === "edit" && editingId === row.dataset.editId && editBuffer){
-    editBuffer.types = [...editBuffer.types, nt.key];
-    renderList();
-  }
-}
-
-let typeManagerOpen = false;
-let pendingTypeDeleteKey = null;
-let pendingTypeDeleteTimer = null;
-function renderTypeManager(){
-  const el = document.getElementById("type-manager");
-  if(!el) return;
-  if(!typeManagerOpen || customTypes.length === 0){ el.innerHTML = ""; return; }
-  el.innerHTML = `<div class="typemgr">` + customTypes.map(t => `
-    <div class="typemgr-row" data-key="${esc(t.key)}">
-      <span class="typemgr-badge" style="background:${t.color}">${t.icon}</span>
-      <input class="typemgr-name" value="${esc(t.key)}" />
-      <button type="button" class="typemgr-del ${pendingTypeDeleteKey===t.key?'confirm':''}" data-key="${esc(t.key)}">${pendingTypeDeleteKey===t.key ? "삭제 확정" : "삭제"}</button>
-    </div>`).join("") + `</div>`;
-  el.querySelectorAll(".typemgr-name").forEach(input => {
-    input.addEventListener("change", e => {
-      const row = e.target.closest(".typemgr-row");
-      renameCustomType(row.dataset.key, e.target.value);
-    });
-  });
-  el.querySelectorAll(".typemgr-del").forEach(btn => {
-    btn.addEventListener("click", () => requestDeleteType(btn.dataset.key));
-  });
-}
-async function renameCustomType(oldKey, newNameRaw){
-  const newName = newNameRaw.trim();
-  if(!newName || newName === oldKey){ renderTypeManager(); return; }
-  if(allTypes().some(t => t.key === newName)){
-    alert(`"${newName}" 구분값은 이미 있어요.`);
-    renderTypeManager();
-    return;
-  }
-  const affected = places.filter(p => (p.types||[]).includes(oldKey));
-  try {
-    if(isCloud){
-      const typeDoc = customTypes.find(t => t.key === oldKey);
-      if(typeDoc) await window.cloudSync.updateType(typeDoc.id, { key: newName });
-      await Promise.all(affected.map(p => window.cloudSync.updatePlace(p.id, { types: p.types.map(t => t===oldKey ? newName : t) })));
-      // 실제 목록 반영은 places/types 실시간 구독으로 들어옴
-    } else {
-      customTypes = customTypes.map(t => t.key===oldKey ? {...t, key:newName} : t);
-      places = places.map(p => (p.types||[]).includes(oldKey) ? {...p, types:p.types.map(t => t===oldKey ? newName : t)} : p);
-      persistTypes();
-      persist();
-      renderAll();
-    }
-  } catch(err){ cloudFail(err); }
-}
-function requestDeleteType(key){
-  clearTimeout(pendingTypeDeleteTimer);
-  if(pendingTypeDeleteKey === key){
-    pendingTypeDeleteKey = null;
-    deleteCustomType(key);
-    return;
-  }
-  pendingTypeDeleteKey = key;
-  pendingTypeDeleteTimer = setTimeout(() => { pendingTypeDeleteKey = null; renderTypeManager(); }, 3000);
-  renderTypeManager();
-}
-function deleteCustomType(key){
-  // 구분값 정의만 지운다 — 이미 이 구분값을 쓰고 있는 장소의 types 문자열은 그대로 남아 데이터 손실이 없다.
-  const typeDoc = customTypes.find(t => t.key === key);
-  if(!typeDoc) return;
-  if(filterType === key) filterType = "전체";
-  if(isCloud){
-    window.cloudSync.deleteType(typeDoc.id).catch(cloudFail);
-  } else {
-    customTypes = customTypes.filter(t => t.key !== key);
-    persistTypes();
-    renderAll();
-  }
+  return TYPE_PRIORITY.find(k => types.includes(k)) || types[0];
 }
 const SATISFACTIONS = [
   { key:"최고", emoji:"😍", color:"#3AAFA9" },
@@ -682,7 +507,6 @@ function renderDraftForm(el){
       ${draft.address ? `<div class="draft-addr">${esc(draft.address)}</div>` : ""}
       <label>유형 (여러 개 선택 가능 — 놀면서 먹는 곳이면 둘 다)</label>
       <div class="chiprow" id="type-row"></div>
-      ${typeAddRowHtml('data-kind="draft"')}
       <textarea id="draft-memo" rows="2" placeholder="메모 (주차 등)">${esc(draft.memo)}</textarea>
       <button type="button" class="locbtn ${hasLoc(draft) ? 'set' : ''}" id="loc-btn">${hasLoc(draft) ? "📍 위치 수정" : "📍 위치 설정"}</button>
       <button class="save" id="save-btn">등록하기</button>
@@ -695,7 +519,7 @@ function renderDraftForm(el){
     openPicker(hasLoc(draft) ? { lat:draft.lat, lng:draft.lng } : null, loc => { draft.lat = loc.lat; draft.lng = loc.lng; renderAdd(); });
   });
 
-  document.getElementById("type-row").innerHTML = allTypes().map(t => `<div class="chip ${draft.types.includes(t.key)?'active':''}" data-t="${t.key}" style="${draft.types.includes(t.key)?`background:${t.color};`:''}">${esc(t.key)}</div>`).join("");
+  document.getElementById("type-row").innerHTML = TYPES.map(t => `<div class="chip ${draft.types.includes(t.key)?'active':''}" data-t="${t.key}" style="${draft.types.includes(t.key)?`background:${t.color};`:''}">${t.key}</div>`).join("");
   document.querySelectorAll("#type-row .chip").forEach(chip => chip.addEventListener("click", () => {
     const key = chip.dataset.t;
     if(draft.types.includes(key)){
@@ -847,16 +671,11 @@ function editSave(id){
 
 function renderFilters(){
   const el = document.getElementById("filters");
-  const types = ["전체", ...allTypes().map(t=>t.key)];
-  el.innerHTML = types.map(t => `<button class="fbtn ${filterType===t?'active':''}" data-t="${esc(t)}">${esc(t)}</button>`).join("")
-    + `<button class="favbtn ${favOnly?'active':''}" id="fav-toggle">⭐</button>`
-    + (customTypes.length ? `<button class="favbtn ${typeManagerOpen?'active':''}" id="type-manage-toggle" title="구분값 관리">⚙️</button>` : "");
+  const types = ["전체", ...TYPES.map(t=>t.key)];
+  el.innerHTML = types.map(t => `<button class="fbtn ${filterType===t?'active':''}" data-t="${t}">${t}</button>`).join("")
+    + `<button class="favbtn ${favOnly?'active':''}" id="fav-toggle">⭐</button>`;
   el.querySelectorAll(".fbtn").forEach(b => b.addEventListener("click", () => { filterType = b.dataset.t; renderFilters(); renderList(); renderMarkers(); }));
   document.getElementById("fav-toggle").addEventListener("click", () => { favOnly = !favOnly; renderFilters(); renderList(); renderMarkers(); });
-  if(customTypes.length){
-    document.getElementById("type-manage-toggle").addEventListener("click", () => { typeManagerOpen = !typeManagerOpen; renderFilters(); });
-  }
-  renderTypeManager();
 }
 
 function renderListBar(){
@@ -895,7 +714,7 @@ function renderSortRow(){
 }
 
 function editChipRowHtml(id, activeTypes){
-  return allTypes().map(t => `<div class="chip ${activeTypes.includes(t.key)?'active':''}" style="${activeTypes.includes(t.key)?`background:${t.color};`:''}" onclick="editToggleType('${id}','${t.key}')">${esc(t.key)}</div>`).join("");
+  return TYPES.map(t => `<div class="chip ${activeTypes.includes(t.key)?'active':''}" style="${activeTypes.includes(t.key)?`background:${t.color};`:''}" onclick="editToggleType('${id}','${t.key}')">${t.key}</div>`).join("");
 }
 function placeEditCardHtml(p, buf){
   return `
@@ -908,7 +727,6 @@ function placeEditCardHtml(p, buf){
       ${p.address ? `<div class="draft-addr">${esc(p.address)}</div>` : ""}
       <label>유형 (여러 개 선택 가능 — 놀면서 먹는 곳이면 둘 다)</label>
       <div class="chiprow">${editChipRowHtml(p.id, buf.types)}</div>
-      ${typeAddRowHtml(`data-kind="edit" data-edit-id="${p.id}"`)}
       <textarea rows="2" placeholder="메모 (주차 등)" oninput="editUpdateField('${p.id}','memo', this.value)">${esc(buf.memo)}</textarea>
       <button type="button" class="locbtn ${hasLoc(p) ? 'set' : ''}" onclick="setLocationFor('${p.id}')">${hasLoc(p) ? "📍 위치 수정" : "📍 위치 설정"}</button>
       <button class="save" onclick="editSave('${p.id}')">저장</button>
@@ -920,8 +738,8 @@ function placeCardHtml(p){
   const located = hasLoc(p);
   const sourceIcon = p.source==="search" ? "🔍" : p.source==="link" ? "🔗" : "";
   const badges = (p.types||[]).map(tk => {
-    const ti = allTypes().find(t=>t.key===tk) || DEFAULT_TYPE_INFO;
-    return `<span class="badge" style="background:${ti.color}">${esc(tk)}</span>`;
+    const ti = TYPES.find(t=>t.key===tk);
+    return `<span class="badge" style="background:${ti?.color}">${esc(tk)}</span>`;
   }).join("");
   return `
     <div class="pcard" data-id="${p.id}" onclick="onCardClick('${p.id}')">
@@ -1017,9 +835,9 @@ function initMap(){
 function createMarkerEl(place){
   const types = place.types && place.types.length ? place.types : ["기타"];
   const mainKey = primaryType(types);
-  const typeInfo = allTypes().find(t => t.key===mainKey) || DEFAULT_TYPE_INFO;
+  const typeInfo = TYPES.find(t => t.key===mainKey) || TYPES[TYPES.length-1];
   const subKey = types.find(t => t !== mainKey);
-  const subIcon = subKey ? (allTypes().find(t => t.key===subKey) || {}).icon : "";
+  const subIcon = subKey ? (TYPES.find(t => t.key===subKey) || {}).icon : "";
   const wrap = document.createElement("div");
   wrap.className = "pin";
   wrap.style.background = typeInfo.color;
@@ -1113,19 +931,13 @@ function boot(){
   if(window.cloudSync && window.cloudSync.ready){
     isCloud = true;
     places = []; // 첫 스냅샷 오기 전까지 하드코딩된 샘플이 잠깐 보이지 않도록
-    customTypes = [];
     window.cloudSync.subscribe(newPlaces => {
       places = newPlaces.map(p => ({...p, types: normalizeTypes(p)}));
-      renderAll();
-    });
-    window.cloudSync.subscribeTypes(newTypes => {
-      customTypes = newTypes.map(t => ({ id:t.id, key:t.key, icon:t.icon || "🏷️", color:t.color || DEFAULT_TYPE_INFO.color }));
       renderAll();
     });
   } else {
     isCloud = false;
     loadLocalState();
-    loadLocalTypes();
   }
   renderAll();
   initMapOrFallback();
