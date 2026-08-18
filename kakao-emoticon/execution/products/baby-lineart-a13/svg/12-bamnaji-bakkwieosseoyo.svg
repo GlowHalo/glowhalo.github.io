@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360">
+  <defs>
+    <filter id="dropshadow" x="-30%" y="-20%" width="160%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#000000" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+  <!-- 몸통·손: 연한 베이비블루로 채워서 다크모드 배경에서도 실루엣이 살아있게 함
+       (A7에서 확립한 규칙 — fill:none 금지, 반드시 solid fill) -->
+  <g filter="url(#dropshadow)">
+    <g fill="#DCEEFF" stroke="#2B2B2B" stroke-width="9" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="82" cy="195" rx="18" ry="14"/><ellipse cx="278" cy="195" rx="18" ry="14"/>
+      <path d="M100,278 C72,278 60,222 70,172 C86,88 132,48 180,48 C228,48 274,88 290,172 C300,222 288,278 260,278 Z"/>
+    </g>
+  </g>
+  <path d="M130,124 Q142,112 156,122" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/><path d="M230,124 Q218,112 204,122" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="150" cy="148" r="11" fill="#2B2B2B"/><circle cx="210" cy="148" r="11" fill="#2B2B2B"/>
+  <path d="M164,188 L196,188" fill="none" stroke="#2B2B2B" stroke-width="7" stroke-linecap="round"/>
+  <ellipse cx="132" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.6"/><ellipse cx="228" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.6"/>
+  <path d="M300,88 L296,124" stroke="#E8483A" stroke-width="10" stroke-linecap="round"/><circle cx="299" cy="138" r="6" fill="#E8483A"/>
+  <text x="180" y="28" text-anchor="middle" font-family="Jua" font-size="28" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">밤낮이</text><text x="180" y="54" text-anchor="middle" font-family="Jua" font-size="28" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">바뀌었어요</text>
+</svg>

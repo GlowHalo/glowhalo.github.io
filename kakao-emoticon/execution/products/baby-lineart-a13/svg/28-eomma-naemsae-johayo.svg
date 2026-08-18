@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360">
+  <defs>
+    <filter id="dropshadow" x="-30%" y="-20%" width="160%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#000000" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+  <!-- 몸통·손: 연한 베이비블루로 채워서 다크모드 배경에서도 실루엣이 살아있게 함
+       (A7에서 확립한 규칙 — fill:none 금지, 반드시 solid fill) -->
+  <g filter="url(#dropshadow)">
+    <g fill="#DCEEFF" stroke="#2B2B2B" stroke-width="9" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="150" cy="205" rx="17" ry="13" transform="rotate(-20 150 205)"/><ellipse cx="210" cy="205" rx="17" ry="13" transform="rotate(20 210 205)"/>
+      <path d="M100,278 C72,278 60,222 70,172 C86,88 132,48 180,48 C228,48 274,88 290,172 C300,222 288,278 260,278 Z"/>
+    </g>
+  </g>
+  
+  <path d="M140,148 Q152,138 164,148" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/><path d="M196,148 Q208,138 220,148" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/>
+  <path d="M158,178 Q180,194 202,178" fill="none" stroke="#2B2B2B" stroke-width="7" stroke-linecap="round"/>
+  <ellipse cx="132" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.6"/><ellipse cx="228" cy="172" rx="11" ry="7" fill="#FF8FA3" opacity="0.6"/>
+  <path d="M300,100 C294,92 282,94 282,104 C282,114 300,126 300,126 C300,126 318,114 318,104 C318,94 306,92 300,100 Z" fill="#FF8FA3"/>
+  <text x="180" y="28" text-anchor="middle" font-family="Jua" font-size="28" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">엄마 냄새</text><text x="180" y="54" text-anchor="middle" font-family="Jua" font-size="28" fill="#2B2B2B" stroke="#ffffff" stroke-width="6" paint-order="stroke" stroke-linejoin="round">좋아요</text>
+</svg>
