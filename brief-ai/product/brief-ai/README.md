@@ -8,8 +8,12 @@ Round 1 승리 아이디어("AI 회의록 자동정리·액션아이템 트래�
 
 - `GET /` — 랜딩페이지(데모 폼 + 대기자 등록 포함)
 - `GET /health` — 헬스체크
-- `POST /v1/summarize` — `{ "transcript": "...", "meetingTitle": "..." }` → `{ summary, decisions, actionItems }`
+- `POST /v1/summarize` — `{ "transcript": "...", "meetingTitle": "..." }` → `{ summary, decisions, actionItems }`. `Authorization: Bearer <session>` 헤더가 있고 그 사용자 `plan==="pro"`면 처리 후 연결된 Notion/Slack으로 자동 전송하고 `_delivery` 필드를 덧붙인다(결제 웹훅이 아직 없어 지금은 아무도 pro가 아니므로 실질적으로는 항상 미발동).
 - `POST /v1/waitlist` — `{ "email": "..." }` → 출시 알림 대기자 등록 (Workers KV 저장)
+- `GET /settings` — 연동 설정 화면(이메일 로그인 + Notion/Slack 연결 관리)
+- `POST /v1/auth/request` — `{ "email": "..." }` → 매직링크 이메일 발송(Resend, `nadagroup.org` 발신, 15분 유효)
+- `GET /v1/auth/verify?token=...` — 매직링크 검증 → 세션 발급(30일), `/settings`로 리다이렉트
+- `GET/PUT /v1/settings/integrations` — (인증 필요) Notion 토큰+DB ID, Slack 웹훅 URL 조회/저장(AES-256-GCM 암호화 후 KV 저장)
 
 ### 응답 예시
 
@@ -66,6 +70,13 @@ CLOUDFLARE_API_TOKEN=<Workers Scripts:Edit 토큰> npx wrangler deploy
 | `/v1/summarize` 60,000자 초과(2026-08-17 실측) | ✅ `400 {"error":"transcript_too_long","maxChars":60000}` 정상 반환 |
 | `/v1/summarize` 한국어 존댓말·직급 실측(2026-08-17) | ✅ "박부장님/김과장/이대리" + 존댓말 섞인 실제 회의 톤 트랜스크립트로 테스트, 화자 직급을 액션아이템 담당자로 정확히 매핑, 요약도 자연스러움. 아래 예시 참고 |
 | 랜딩페이지 리뉴얼 배포 후 렌더링(2026-08-17) | ✅ 데스크톱/모바일/다크모드 스크린샷으로 정상 렌더링 확인, 데모 폼→결과 카드 흐름 실제 클릭으로 검증 |
+| 이메일 인증(2026-08-17) — `tossneon0@gmail.com`로 실제 발송 | ✅ Resend로 메일 도착 확인(Gmail MCP 조회), 링크 클릭 → 세션 발급 → `/v1/settings/integrations` 200 |
+| 인증 없이 `/v1/settings/integrations` 접근 | ✅ 401 `unauthorized` |
+| 가짜/만료 세션·매직링크 토큰 | ✅ 각각 401 / `AUTH_FAIL_HTML`(400) |
+| 잘못된 형식 Slack 웹훅 URL(`hooks.slack.com` 아님) | ✅ 400 `invalid_slack_webhook` |
+| Notion/Slack 연동 저장 → 조회 → 해제 전체 흐름 | ✅ `connected` 상태 정상 반영, KV 원본 조회로 **평문이 아닌 암호문**(`iv.ciphertext` base64) 저장 확인 |
+| `plan="free"` 사용자가 `/v1/summarize` 호출 | ✅ `_delivery` 필드 없음(의도대로 미발동 — pro 승격 경로가 아직 없어 항상 이 상태) |
+| `/settings` 페이지 로그인 전/후 렌더링 | ✅ Playwright(Cloudflare Browser Rendering)로 두 상태 모두 스크린샷 확인 |
 
 ### 한국어 로컬라이즈 실측 예시 (2026-08-17)
 
@@ -97,7 +108,7 @@ CLOUDFLARE_API_TOKEN=<Workers Scripts:Edit 토큰> npx wrangler deploy
 
 ## 다음 단계
 
-- **결제 연동 — 회장 판단 대기 중(2026-08-17 상태).** Stripe는 한국에서 계정 개설 자체가 불가함이 확인됐고(`biz-consulting/candidates.md` 2026-08-13 조사), 회장이 직접 좀 더 확인 중이라 Claude 액션은 보류. Paddle도 회장 판단으로 지금은 보류. 최신 상태는 `hq/가입대기.md`가 정본. 그 전까지는 랜딩페이지의 대기자 등록(무료)으로 수요만 먼저 확인한다.
-- **Notion/Slack 자동 전송** — 결제 연동 이후 유료 사용자 전용 기능으로 추가 예정. 결제가 풀리면 바로 착수할 수 있게 스펙을 미리 설계해둠 → [`notion-slack-spec.md`](notion-slack-spec.md)
+- **결제 연동 — 가격 확정(2026-08-18), 결제수단은 회장이 직접 가입 확인 중.** 가격은 **월 6,900원 / 연 69,000원 + 30일 100% 환불 보장**으로 확정(경쟁사 비교·근거는 [`../../README.md`](../../README.md) "가격 정책" 참고). 결제수단은 주(직접 결제) Paddle/Creem.io/Polar.sh 중 회장이 직접 가입 확인 중, 보조(이미 승인됨) Gumroad Membership — 최신 상태는 `hq/가입대기.md`가 정본. 그 전까지는 랜딩페이지의 대기자 등록(무료)으로 수요만 먼저 확인한다.
+- **Notion/Slack 자동 전송 — 인증·설정 골격 구현 완료(2026-08-17), 실제 발동은 결제 연동 대기.** 이메일 매직링크 로그인(`/v1/auth/*`) + 연동 설정 화면(`/settings`) + 암호화 저장(`/v1/settings/integrations`) + 전송 로직(`sendToNotion`/`sendToSlack`)까지 전부 구현·배포·실측 완료. 결제 웹훅만 연결하면(수신 시 `user:<email>.plan`을 `"pro"`로 갱신) 바로 켜지는 상태. 스펙 문서 → [`notion-slack-spec.md`](notion-slack-spec.md)
 - ~~한국어 로컬라이즈 품질 튜닝~~ — 2026-08-17 실측 완료, 추가 튜닝 불필요(위 테스트 로그 참고).
 - ~~랜딩페이지 비주얼 개선~~ — 2026-08-17 완료(위 "랜딩페이지 디자인" 참고).

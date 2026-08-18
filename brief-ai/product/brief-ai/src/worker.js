@@ -9,8 +9,8 @@ const MAX_TRANSCRIPT_CHARS = 60_000; // 과금·응답시간 방어용 상한
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
   };
 }
 
@@ -23,6 +23,167 @@ function json(data, status = 200) {
 
 function isValidEmail(email) {
   return typeof email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+// ── 사용자 인증(매직링크)·연동 저장 (2026-08-17 추가) ──────────────────────
+// 결제 연동(Stripe/Paddle/PayPal)이 회장 판단으로 보류 중인 동안, 결제와 무관하게
+// 먼저 필요한 "사용자 인증 + 설정화면" 골격을 미리 만들어둔다. 지금은 로그인해도
+// plan은 항상 "free"로 시작하고(결제 웹훅이 아직 없어 "pro"로 승격시킬 방법이 없음),
+// 자동 전송은 plan==="pro"일 때만 발동하므로 지금 당장 실사용자에게 영향 없다.
+// 상세 설계는 notion-slack-spec.md 참고.
+
+function bytesToBase64(bytes) {
+  let s = "";
+  for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s);
+}
+function base64ToBytes(b64) {
+  const s = atob(b64);
+  const bytes = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) bytes[i] = s.charCodeAt(i);
+  return bytes;
+}
+function randomToken(numBytes = 32) {
+  const arr = crypto.getRandomValues(new Uint8Array(numBytes));
+  return bytesToBase64(arr).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+async function importEncryptionKey(env) {
+  const raw = base64ToBytes(env.ENCRYPTION_KEY);
+  return crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt", "decrypt"]);
+}
+// 유료 사용자가 붙여넣는 Notion 토큰/Slack 웹훅 URL은 그 자체가 실제 발행 권한을 가진
+// 비밀값이라, KV에 평문 저장하지 않고 AES-256-GCM으로 암호화한다(키는 브리프AI 전용
+// 애플리케이션 키 — 회장/나다그룹 계정 금고 값과는 성격이 다름, cloudflare-vault.md 참고).
+async function encryptSecret(env, plaintext) {
+  const key = await importEncryptionKey(env);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const cipherBuf = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(plaintext));
+  return bytesToBase64(iv) + "." + bytesToBase64(new Uint8Array(cipherBuf));
+}
+async function decryptSecret(env, blob) {
+  const [ivB64, dataB64] = String(blob).split(".");
+  const key = await importEncryptionKey(env);
+  const plainBuf = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: base64ToBytes(ivB64) },
+    key,
+    base64ToBytes(dataB64)
+  );
+  return new TextDecoder().decode(plainBuf);
+}
+
+async function sendMagicLinkEmail(env, email, link) {
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "브리프AI <no-reply@nadagroup.org>",
+      to: [email],
+      subject: "브리프AI 로그인 링크",
+      html:
+        '<p>아래 링크를 누르면 브리프AI 설정 화면으로 로그인됩니다(15분 이내 유효):</p>' +
+        `<p><a href="${link}">${link}</a></p>` +
+        "<p>요청하지 않으셨다면 이 메일은 무시하셔도 됩니다.</p>",
+    }),
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error("resend_" + res.status + (detail ? ":" + detail.slice(0, 200) : ""));
+  }
+}
+
+async function getSessionUser(request, env) {
+  const authHeader = request.headers.get("Authorization") || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+  if (!token) return null;
+  const raw = await env.USERS_KV.get(`session:${token}`);
+  if (!raw) return null;
+  const session = JSON.parse(raw);
+  const userRaw = await env.USERS_KV.get(`user:${session.email}`);
+  if (userRaw) return JSON.parse(userRaw);
+  // 세션은 있는데 사용자 레코드가 없는(이론상 불가하지만 방어적으로) 경우 free로 취급
+  return { email: session.email, plan: "free", createdAt: session.createdAt };
+}
+
+async function sendToNotion(token, databaseId, meetingTitle, summary) {
+  const blocks = [
+    { object: "block", type: "heading_3", heading_3: { rich_text: [{ text: { content: "요약" } }] } },
+    { object: "block", type: "paragraph", paragraph: { rich_text: [{ text: { content: summary.summary || "" } }] } },
+    { object: "block", type: "heading_3", heading_3: { rich_text: [{ text: { content: "결정사항" } }] } },
+  ];
+  (summary.decisions || []).forEach((d) => {
+    blocks.push({ object: "block", type: "bulleted_list_item", bulleted_list_item: { rich_text: [{ text: { content: d } }] } });
+  });
+  blocks.push({ object: "block", type: "heading_3", heading_3: { rich_text: [{ text: { content: "액션아이템" } }] } });
+  (summary.actionItems || []).forEach((a) => {
+    const line = `${a.task} — 담당: ${a.owner}, 기한: ${a.due}`;
+    blocks.push({ object: "block", type: "bulleted_list_item", bulleted_list_item: { rich_text: [{ text: { content: line } }] } });
+  });
+
+  const res = await fetch("https://api.notion.com/v1/pages", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Notion-Version": "2022-06-28",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      parent: { database_id: databaseId },
+      properties: { title: { title: [{ text: { content: meetingTitle || "브리프AI 회의록" } }] } },
+      children: blocks,
+    }),
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error("notion_" + res.status + (detail ? ":" + detail.slice(0, 200) : ""));
+  }
+}
+
+async function sendToSlack(webhookUrl, meetingTitle, summary) {
+  const lines = ["📝 *" + (meetingTitle || "회의 요약") + "*", summary.summary || ""];
+  if (summary.decisions && summary.decisions.length) {
+    lines.push("\n✅ *결정사항*\n" + summary.decisions.map((d) => "• " + d).join("\n"));
+  }
+  if (summary.actionItems && summary.actionItems.length) {
+    lines.push(
+      "\n📌 *액션아이템*\n" +
+        summary.actionItems.map((a) => "• " + a.task + " (담당: " + a.owner + ", 기한: " + a.due + ")").join("\n")
+    );
+  }
+  const res = await fetch(webhookUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: lines.join("\n") }),
+  });
+  if (!res.ok) throw new Error("slack_" + res.status);
+}
+
+// plan==="pro"인 사용자에게만 발동 — 지금은 결제 웹훅이 없어 pro 승격 경로가 없으므로
+// 실사용자에게는 아직 아무 영향 없는, 결제 연동 완료 시 바로 켜질 준비된 코드.
+async function deliverToIntegrations(env, user, meetingTitle, summary) {
+  const raw = await env.USERS_KV.get(`integration:${user.email}`);
+  if (!raw) return null;
+  const cfg = JSON.parse(raw);
+  const results = {};
+  if (cfg.notion) {
+    try {
+      const token = await decryptSecret(env, cfg.notion.tokenEnc);
+      await sendToNotion(token, cfg.notion.databaseId, meetingTitle, summary);
+      results.notion = "ok";
+    } catch (err) {
+      results.notion = "error";
+    }
+  }
+  if (cfg.slack) {
+    try {
+      const webhookUrl = await decryptSecret(env, cfg.slack.webhookUrlEnc);
+      await sendToSlack(webhookUrl, meetingTitle, summary);
+      results.slack = "ok";
+    } catch (err) {
+      results.slack = "error";
+    }
+  }
+  return Object.keys(results).length ? results : null;
 }
 
 // LLM에게 JSON만 뱉게 강하게 지시하고, 실패하면 원문 텍스트를 fallback summary로 감싼다.
@@ -243,6 +404,8 @@ const LANDING_HTML = `<!doctype html>
   #waitlist-msg { display: inline-block; margin-top: 0.6rem; font-size: 0.9rem; font-weight: 600; }
 
   footer.note { color: var(--ink-faint); font-size: 0.82rem; border-top: 1px solid var(--card-border); padding-top: 1.4rem; }
+  footer.note a { color: var(--stamp); font-weight: 600; text-decoration: none; }
+  footer.note a:hover { text-decoration: underline; }
 
   @media (max-width: 760px) {
     .hero { grid-template-columns: 1fr; gap: 2rem; }
@@ -329,6 +492,7 @@ const LANDING_HTML = `<!doctype html>
 
   <footer class="note">
     <p>베타 버전 — 요약은 AI가 자동 생성하며 부정확할 수 있습니다. 회의 내용은 저장하지 않고 처리 즉시 폐기합니다.</p>
+    <p><a href="/settings">Notion·Slack 자동 전송 미리 연결하기 →</a></p>
   </footer>
 </div>
 
@@ -438,6 +602,220 @@ $("waitlist-submit").addEventListener("click", function () {
 </body>
 </html>`;
 
+const AUTH_FAIL_HTML = `<!doctype html>
+<html lang="ko"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>브리프AI — 로그인 링크 만료</title>
+<style>body{font-family:-apple-system,"Pretendard",sans-serif;max-width:32rem;margin:4rem auto;padding:0 1.5rem;text-align:center;color:#1B2A4A;}
+a{color:#C6362E;font-weight:700;}</style></head>
+<body><h1>링크가 만료됐거나 잘못됐습니다</h1>
+<p>로그인 링크는 발급 후 15분만 유효합니다. <a href="/settings">설정 화면으로 돌아가</a> 다시 요청해주세요.</p>
+</body></html>`;
+
+function authSuccessHtml(sessionToken) {
+  const safeToken = JSON.stringify(sessionToken);
+  return `<!doctype html>
+<html lang="ko"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>브리프AI — 로그인 완료</title>
+<style>body{font-family:-apple-system,"Pretendard",sans-serif;max-width:32rem;margin:4rem auto;padding:0 1.5rem;text-align:center;color:#1B2A4A;}</style></head>
+<body><h1>✅ 로그인 완료</h1><p>설정 화면으로 이동합니다...</p>
+<script>
+localStorage.setItem("brief_ai_session", ${safeToken});
+location.replace("/settings");
+</script>
+</body></html>`;
+}
+
+const SETTINGS_HTML = `<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>브리프AI — 연동 설정</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
+<style>
+  :root {
+    color-scheme: light;
+    --paper: #F1EEE2; --paper-line: rgba(27,42,74,.09); --ink: #1B2A4A; --ink-soft: #57647F; --ink-faint: #8B93A6;
+    --stamp: #C6362E; --stamp-dark: #8E241D; --card: #FFFFFF; --card-border: rgba(27,42,74,.14);
+    --shadow: 0 14px 34px -16px rgba(27,42,74,.35); --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { color-scheme: dark; --paper: #171D2E; --paper-line: rgba(230,228,214,.08); --ink: #ECE8DA; --ink-soft: #AFB6C8; --ink-faint: #7C8398; --stamp: #E2564B; --stamp-dark: #B23A31; --card: #1F2740; --card-border: rgba(230,228,214,.14); --shadow: 0 14px 34px -16px rgba(0,0,0,.55); }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); background-image: repeating-linear-gradient(var(--paper-line) 0 1px, transparent 1px 2.6rem); color: var(--ink); font-family: "Pretendard Variable", -apple-system, sans-serif; line-height: 1.65; }
+  .page { max-width: 640px; margin: 0 auto; padding: 1.6rem 1.5rem 5rem; }
+  a { color: var(--stamp); }
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0 2rem; }
+  .wordmark { font-weight: 800; font-size: 1.05rem; text-decoration: none; color: var(--ink); }
+  h1 { font-size: 1.5rem; margin: 0 0 0.4rem; }
+  .sub { color: var(--ink-soft); margin: 0 0 1.6rem; font-size: 0.95rem; }
+  .card { background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 1.4rem 1.5rem; box-shadow: var(--shadow); margin-bottom: 1.3rem; }
+  .card h2 { font-size: 1.02rem; margin: 0 0 0.9rem; display: flex; align-items: center; gap: 0.5rem; }
+  .badge { font-size: 0.68rem; font-weight: 700; padding: 0.15rem 0.55rem; border-radius: 999px; letter-spacing: 0.03em; }
+  .badge.on { background: rgba(198,54,46,.12); color: var(--stamp); }
+  .badge.off { background: rgba(139,147,166,.16); color: var(--ink-faint); }
+  label { display: block; font-size: 0.82rem; font-weight: 700; margin: 0.8rem 0 0.35rem; }
+  label:first-of-type { margin-top: 0; }
+  input[type=text], input[type=email], input[type=password] { width: 100%; font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--card-border); border-radius: 10px; padding: 0.7rem 0.85rem; }
+  input:focus { outline: none; border-color: var(--stamp); box-shadow: 0 0 0 3px rgba(198,54,46,.14); }
+  button { background: var(--stamp); color: #fff; border: none; padding: 0.65rem 1.2rem; border-radius: 999px; font-weight: 700; font-size: 0.92rem; cursor: pointer; margin-top: 0.9rem; }
+  button:disabled { opacity: 0.55; cursor: wait; }
+  button.secondary { background: transparent; color: var(--ink-faint); border: 1px solid var(--card-border); margin-left: 0.5rem; }
+  .msg { font-size: 0.85rem; margin-top: 0.6rem; }
+  .hint { font-size: 0.8rem; color: var(--ink-faint); margin-top: 0.5rem; }
+  .plan-note { font-size: 0.85rem; color: var(--ink-soft); background: rgba(198,54,46,.06); border: 1px dashed var(--card-border); border-radius: 10px; padding: 0.8rem 1rem; margin-bottom: 1.3rem; }
+  #app-section { display: none; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="nav"><a class="wordmark" href="/">브리프AI</a></header>
+
+  <div id="login-section">
+    <h1>연동 설정</h1>
+    <p class="sub">이메일로 로그인 링크를 받아 Notion·Slack 자동 전송을 미리 연결해두세요.</p>
+    <div class="card">
+      <label for="email">이메일</label>
+      <input type="email" id="email" placeholder="you@example.com" />
+      <button id="request-link">인증 링크 받기</button>
+      <div class="msg" id="request-msg"></div>
+    </div>
+  </div>
+
+  <div id="app-section">
+    <h1>연동 설정</h1>
+    <p class="sub" id="account-line"></p>
+    <div class="plan-note" id="plan-note"></div>
+
+    <div class="card">
+      <h2>Notion <span class="badge off" id="notion-badge">연결 안 됨</span></h2>
+      <label for="notion-token">Internal Integration 토큰</label>
+      <input type="password" id="notion-token" placeholder="secret_..." />
+      <label for="notion-db">데이터베이스 ID</label>
+      <input type="text" id="notion-db" placeholder="회의록을 받을 Notion 데이터베이스 ID" />
+      <p class="hint">notion.so/my-integrations 에서 통합을 만들고, 결과를 받을 데이터베이스를 그 통합과 공유(Share)한 뒤 토큰과 데이터베이스 ID를 입력하세요.</p>
+      <button id="notion-save">저장</button>
+      <button class="secondary" id="notion-disconnect">연결 해제</button>
+      <div class="msg" id="notion-msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Slack <span class="badge off" id="slack-badge">연결 안 됨</span></h2>
+      <label for="slack-webhook">Incoming Webhook URL</label>
+      <input type="password" id="slack-webhook" placeholder="https://hooks.slack.com/services/..." />
+      <p class="hint">Slack 워크스페이스에서 Incoming Webhook을 발급해 붙여넣으세요.</p>
+      <button id="slack-save">저장</button>
+      <button class="secondary" id="slack-disconnect">연결 해제</button>
+      <div class="msg" id="slack-msg"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var SESSION_KEY = "brief_ai_session";
+
+function authHeaders() {
+  var token = localStorage.getItem(SESSION_KEY);
+  return token ? { "Authorization": "Bearer " + token } : {};
+}
+
+function showMsg(el, text, ok) {
+  el.textContent = text;
+  el.style.color = ok ? "#2E7D32" : "#8E241D";
+}
+
+$("request-link").addEventListener("click", function () {
+  var email = $("email").value.trim();
+  var msg = $("request-msg");
+  var btn = $("request-link");
+  if (!email) { showMsg(msg, "이메일을 입력해주세요.", false); return; }
+  btn.disabled = true;
+  fetch("/v1/auth/request", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email }),
+  })
+    .then(function (res) {
+      return res.json().then(function (data) {
+        if (!res.ok) throw new Error(data.error || "요청 실패");
+        showMsg(msg, "✅ " + email + " 로 로그인 링크를 보냈습니다. 메일함을 확인해주세요.", true);
+      });
+    })
+    .catch(function (e) { showMsg(msg, "❌ " + e.message, false); })
+    .finally(function () { btn.disabled = false; });
+});
+
+function renderIntegrations(data) {
+  $("account-line").textContent = data.email + " 로 로그인됨";
+  var planText = data.plan === "pro"
+    ? "구독 중 — 요약 결과가 자동으로 전송됩니다."
+    : "무료 플랜 — 연동은 지금 저장해두시면, 정식 구독 연동이 완료되는 즉시 자동으로 켜집니다.";
+  $("plan-note").textContent = planText;
+
+  var notionBadge = $("notion-badge");
+  notionBadge.textContent = data.notion.connected ? "연결됨" : "연결 안 됨";
+  notionBadge.className = "badge " + (data.notion.connected ? "on" : "off");
+  if (data.notion.connected) { $("notion-db").value = data.notion.databaseId || ""; }
+
+  var slackBadge = $("slack-badge");
+  slackBadge.textContent = data.slack.connected ? "연결됨" : "연결 안 됨";
+  slackBadge.className = "badge " + (data.slack.connected ? "on" : "off");
+}
+
+function loadIntegrations() {
+  return fetch("/v1/settings/integrations", { headers: authHeaders() }).then(function (res) {
+    if (res.status === 401) {
+      localStorage.removeItem(SESSION_KEY);
+      $("login-section").style.display = "block";
+      $("app-section").style.display = "none";
+      return null;
+    }
+    return res.json().then(function (data) {
+      $("login-section").style.display = "none";
+      $("app-section").style.display = "block";
+      renderIntegrations(data);
+      return data;
+    });
+  });
+}
+
+function saveIntegration(key, payload, msgEl) {
+  var body = {};
+  body[key] = payload;
+  return fetch("/v1/settings/integrations", {
+    method: "PUT",
+    headers: Object.assign({ "Content-Type": "application/json" }, authHeaders()),
+    body: JSON.stringify(body),
+  }).then(function (res) {
+    return res.json().then(function (data) {
+      if (!res.ok) throw new Error(data.error || "저장 실패");
+      showMsg(msgEl, "✅ 저장 완료", true);
+      return loadIntegrations();
+    });
+  }).catch(function (e) { showMsg(msgEl, "❌ " + e.message, false); });
+}
+
+$("notion-save").addEventListener("click", function () {
+  saveIntegration("notion", { token: $("notion-token").value.trim(), databaseId: $("notion-db").value.trim() }, $("notion-msg"));
+});
+$("notion-disconnect").addEventListener("click", function () {
+  saveIntegration("notion", null, $("notion-msg"));
+});
+$("slack-save").addEventListener("click", function () {
+  saveIntegration("slack", { webhookUrl: $("slack-webhook").value.trim() }, $("slack-msg"));
+});
+$("slack-disconnect").addEventListener("click", function () {
+  saveIntegration("slack", null, $("slack-msg"));
+});
+
+if (localStorage.getItem(SESSION_KEY)) { loadIntegrations(); }
+</script>
+</body>
+</html>`;
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -468,10 +846,115 @@ export default {
       }
       try {
         const summary = await summarizeTranscript(env.AI, transcript, body.meetingTitle);
+        // 유료 구독자(plan==="pro")만 자동 전송 발동 — 결제 웹훅이 아직 없어 지금은
+        // 아무도 pro가 아니므로 이 분기는 실행되지 않지만, 결제 연동 완료 즉시 켜진다.
+        const user = await getSessionUser(request, env).catch(() => null);
+        if (user && user.plan === "pro") {
+          const delivery = await deliverToIntegrations(env, user, body.meetingTitle, summary).catch(() => null);
+          if (delivery) summary._delivery = delivery;
+        }
         return json(summary);
       } catch (err) {
         return json({ error: "summarize_failed", message: String(err) }, 500);
       }
+    }
+
+    if (url.pathname === "/v1/auth/request" && request.method === "POST") {
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        return json({ error: "invalid_json" }, 400);
+      }
+      const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+      if (!isValidEmail(email)) return json({ error: "invalid_email" }, 400);
+      const token = randomToken();
+      await env.USERS_KV.put(`magiclink:${token}`, JSON.stringify({ email, createdAt: Date.now() }), {
+        expirationTtl: 900, // 15분
+      });
+      const link = `${url.origin}/v1/auth/verify?token=${token}`;
+      try {
+        await sendMagicLinkEmail(env, email, link);
+      } catch (err) {
+        return json({ error: "email_send_failed", message: String(err) }, 500);
+      }
+      return json({ ok: true });
+    }
+
+    if (url.pathname === "/v1/auth/verify" && request.method === "GET") {
+      const token = url.searchParams.get("token") || "";
+      const raw = token ? await env.USERS_KV.get(`magiclink:${token}`) : null;
+      if (!raw) {
+        return new Response(AUTH_FAIL_HTML, { status: 400, headers: { "Content-Type": "text/html; charset=utf-8" } });
+      }
+      const { email } = JSON.parse(raw);
+      await env.USERS_KV.delete(`magiclink:${token}`);
+      const userKey = `user:${email}`;
+      const existing = await env.USERS_KV.get(userKey);
+      if (!existing) {
+        await env.USERS_KV.put(userKey, JSON.stringify({ email, plan: "free", createdAt: Date.now() }));
+      }
+      const sessionToken = randomToken();
+      await env.USERS_KV.put(`session:${sessionToken}`, JSON.stringify({ email, createdAt: Date.now() }), {
+        expirationTtl: 60 * 60 * 24 * 30, // 30일
+      });
+      return new Response(authSuccessHtml(sessionToken), { headers: { "Content-Type": "text/html; charset=utf-8" } });
+    }
+
+    if (url.pathname === "/v1/settings/integrations" && request.method === "GET") {
+      const user = await getSessionUser(request, env);
+      if (!user) return json({ error: "unauthorized" }, 401);
+      const raw = await env.USERS_KV.get(`integration:${user.email}`);
+      const current = raw ? JSON.parse(raw) : { notion: null, slack: null };
+      return json({
+        email: user.email,
+        plan: user.plan || "free",
+        notion: { connected: !!current.notion, databaseId: (current.notion && current.notion.databaseId) || null },
+        slack: { connected: !!current.slack },
+      });
+    }
+
+    if (url.pathname === "/v1/settings/integrations" && request.method === "PUT") {
+      const user = await getSessionUser(request, env);
+      if (!user) return json({ error: "unauthorized" }, 401);
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        return json({ error: "invalid_json" }, 400);
+      }
+      const raw = await env.USERS_KV.get(`integration:${user.email}`);
+      const current = raw ? JSON.parse(raw) : { notion: null, slack: null };
+
+      if (Object.prototype.hasOwnProperty.call(body, "notion")) {
+        if (body.notion === null) {
+          current.notion = null;
+        } else {
+          const token = body.notion && typeof body.notion.token === "string" ? body.notion.token.trim() : "";
+          const databaseId = body.notion && typeof body.notion.databaseId === "string" ? body.notion.databaseId.trim() : "";
+          if (!token || !databaseId) return json({ error: "invalid_notion_config" }, 400);
+          current.notion = { tokenEnc: await encryptSecret(env, token), databaseId };
+        }
+      }
+      if (Object.prototype.hasOwnProperty.call(body, "slack")) {
+        if (body.slack === null) {
+          current.slack = null;
+        } else {
+          const webhookUrl = body.slack && typeof body.slack.webhookUrl === "string" ? body.slack.webhookUrl.trim() : "";
+          if (!/^https:\/\/hooks\.slack\.com\//.test(webhookUrl)) return json({ error: "invalid_slack_webhook" }, 400);
+          current.slack = { webhookUrlEnc: await encryptSecret(env, webhookUrl) };
+        }
+      }
+      await env.USERS_KV.put(`integration:${user.email}`, JSON.stringify(current));
+      return json({
+        ok: true,
+        notion: { connected: !!current.notion, databaseId: (current.notion && current.notion.databaseId) || null },
+        slack: { connected: !!current.slack },
+      });
+    }
+
+    if (url.pathname === "/settings" && request.method === "GET") {
+      return new Response(SETTINGS_HTML, { headers: { "Content-Type": "text/html; charset=utf-8" } });
     }
 
     if (url.pathname === "/v1/waitlist" && request.method === "POST") {
