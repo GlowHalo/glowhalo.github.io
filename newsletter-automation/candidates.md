@@ -5,8 +5,8 @@
 | # | 후보 | 형태 | 상태 |
 |---|---|---|---|
 | N1 | The Independent Board (나다컴퍼니1 A5 승계) | 니치 뉴스레터, 스티비(무료 시작) | 🟢 창간호 초안 작성 완료(2026-08-18), 발송 전 구독 폼 정비 중 — [`README.md`](README.md) 진행상황 참고 |
-| N2 | The Career Board — 커리어·자기이해 딜레마, Reflect Lab 톤 재사용 | 무료 맛보기 뉴스레터, 스티비 | 🟡 착수(2026-08-18 회장 확정) — [`execution/02-N2-career-board.md`](execution/02-N2-career-board.md) |
-| N3 | The Builder's Board — AI 툴 빌더용 "만들까 말까" 딜레마 | 무료 맛보기 뉴스레터, 스티비 | 🟡 착수(2026-08-18 회장 확정) — [`execution/03-N3-builders-board.md`](execution/03-N3-builders-board.md) |
+| N2 | The Career Board — 커리어·자기이해 딜레마, Reflect Lab 톤 재사용 | 무료 맛보기 뉴스레터, 스티비 | 🟢 창간호 초안+구독 페이지 완료(2026-08-18) — [tossneon.github.io/newsletter-automation/career-board](https://tossneon.github.io/newsletter-automation/career-board/), [`execution/02-N2-career-board.md`](execution/02-N2-career-board.md) |
+| N3 | The Builder's Board — AI 툴 빌더용 "만들까 말까" 딜레마 | 무료 맛보기 뉴스레터, 스티비 | 🟢 창간호 초안+구독 페이지 완료(2026-08-18) — [tossneon.github.io/newsletter-automation/builders-board](https://tossneon.github.io/newsletter-automation/builders-board/), [`execution/03-N3-builders-board.md`](execution/03-N3-builders-board.md) |
 
 ## 향후 확장 후보
 
