@@ -2,7 +2,7 @@
   "title": "KPC 코칭챗봇",
   "date": "2026.08",
   "status": "발전중",
-  "tags": ["PWA", "코칭", "Gemini API", "Cloudflare Worker"],
-  "description": "조언 대신 질문으로 스스로 답을 찾게 돕는 셀프코칭 대화 상대. ICF/KCA 역량 기반 시스템 프롬프트로 Gemini API에 실제 연동됨(Cloudflare Worker 프록시 경유, 키는 브라우저에 노출 안 됨).",
-  "note": "무료 Gemini API 키 사용 — Google이 API 입력을 서비스 개선에 활용할 수 있는 티어. 코칭 대화는 민감한 개인 성찰 내용이 오갈 수 있어 트레이드오프 인지 필요. 대화 내용은 서버에 저장하지 않고(무상태 프록시) 매 요청 브라우저가 보낸 히스토리만 사용."
+  "tags": ["PWA", "코칭", "Gemini API", "BYOK", "Cloudflare Worker"],
+  "description": "조언 대신 질문으로 스스로 답을 찾게 돕는 셀프코칭 대화 상대. ICF/KCA 역량 기반 시스템 프롬프트로 Gemini API에 실제 연동됨. 사용자 자기 API 키(BYOK, localStorage에만 저장)면 브라우저에서 Google Generative Language API를 직접 호출, 키 없으면 기기당 3세션(요약 카드가 나올 때까지)까지 Cloudflare Worker(우리 쪽 키)로 무료 체험.",
+  "note": "2026-08-18 BYOK+체험 전환 — 이전엔 우리 gemini_api_key로 요청 횟수 제한 없이 완전 무료 개방돼 있어 비용 노출 리스크가 있었음(회장 지시: 다운로드는 유료 원칙, 무료면 전략 필요). mindmap과 동일한 패턴 이식: 체험 단위는 '세션 1회(요약 카드가 나올 때까지)'로 정함 — 여러 메시지가 오가는 코칭 대화 특성상 메시지 단위보다 세션 단위가 사용자에게 더 납득하기 쉽다고 판단, 소진 시 자기 키 입력을 유도. 코칭 시스템 프롬프트·대화 톤은 그대로 유지(인증/과금 구조만 변경). 무료 Gemini API 키 사용 — Google이 API 입력을 서비스 개선에 활용할 수 있는 티어라는 점은 여전히 트레이드오프로 인지 필요. 대화 내용은 서버에 저장하지 않음(무상태 프록시, BYOK 시엔 우리 서버를 아예 거치지 않음). 실사용 앱 아님(자유 정비 가능) — Microsoft Store 유료 설치판 자산은 `store-assets/`에 준비 완료(권장가 3,900원), 실제 Partner Center 제출은 mindmap과 마찬가지로 아직 미착수."
 }
