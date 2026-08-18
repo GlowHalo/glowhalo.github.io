@@ -106,13 +106,21 @@
 3. **"Publish this Action to the GitHub Marketplace" 체크박스를 켠다** — 이게 켜져야 화면에 카테고리 선택 UI가 나타난다. 카테고리는 "Code review" 계열(예: Code quality) 중 적당한 것 선택, "I agree to the GitHub Marketplace Developer Agreement" 체크.
 4. "Publish release" 클릭 — 이 한 번으로 태그 생성 + 릴리스 게시 + Marketplace 등록이 동시에 끝난다.
 
-## 남은 단계 (2026-08-17 3차 갱신)
+## Marketplace 등록 완료 (2026-08-18, 4차)
 
-1. ~~실사용 API 키로 진짜 PR 검증~~ → **파이프라인은 실키 없이 실제 GitHub Actions 인프라로 100% 검증 완료.** 리뷰 품질 자체 검증만 회장의 Anthropic API 키 결정 대기.
-2. ~~리포 신규 생성~~ → **회장이 빈 리포 생성 완료, 코드 push·구조 재확인·README 정리까지 전부 완료.**
-3. **GitHub Marketplace 등록** — 남은 건 릴리스 생성(태그+Publish) 한 단계뿐. 이 세션의 git 프록시가 태그 push를 구조적으로 차단하고 GitHub MCP 서버에도 release 생성 도구가 없어, 이번엔 정말로 회장의 웹 UI 클릭이 필요하다(위 "회장 액션 필요" 절 참고) — 이건 어차피 "Publish to Marketplace" 체크박스 자체가 웹 UI 전용 기능이라 API로 될 가능성이 애초에 낮았던 부분과 겹친다.
+회장이 릴리스 생성 화면에서 실제로 걸린 에러를 캡처해 전달: **"Your action.yml needs changes before it can be published"** — description 필드가 GitHub Marketplace의 125자 제한을 초과(`action.yml`에 넣어둔 설명이 약 280자였음). 사장이 즉시 원인 파악 후 짧은 설명으로 축약:
+
+- Before: `'Three independent AI reviewers — Security Skeptic, Reliability Realist, Maintainability Pragmatist — critique your pull request separately, so you catch what one agreeable "looks good!" never would. No SaaS subscription, no code stored anywhere — bring your own Claude API key.'`
+- After: `'Three independent AI reviewers critique your PR separately — catch what one agreeable review misses. BYO API key.'` (113자)
+
+`create_or_update_file`로 새 리포(`tossneon/code-review-board-action`)의 `action.yml`을 직접 수정(커밋 `5ba4b81`), 모노레포 원본(`code-review-board-action/action.yml`)도 동일하게 반영해 master에 커밋. 회장이 이어서 릴리스 화면을 새로고침 → 태그 `v1.0.0` 생성 → "Publish this Action to the GitHub Marketplace" 체크 → Publish release 완료.
+
+**검증**: `GET /repos/tossneon/code-review-board-action/tags` → `v1.0.0` 존재 확인. `GET /repos/.../releases` → published release 존재 확인. [Marketplace 리스팅 페이지](https://github.com/marketplace/actions/code-review-board)를 WebFetch로 직접 확인 — 상품명("Code Review Board")·짧아진 설명·버전(v1.0.0, Latest)·제작자(tossneon) 전부 정상 표시. **GitHub Marketplace 등록 완주.**
+
+## 남은 단계
+
+1. ~~실사용 API 키로 진짜 PR 검증~~ → **파이프라인은 실키 없이 실제 GitHub Actions 인프라로 100% 검증 완료.**
+2. ~~리포 신규 생성~~ → **완료.**
+3. ~~GitHub Marketplace 등록~~ → **완료(2026-08-18).**
 4. ~~Pro 상품 여부 판단~~ → **지금은 만들지 않음으로 결론(위 근거 참고).** 무료 배포로 실사용자 확보가 선행 조건.
-5. **회장 액션 필요 항목 정리**:
-   - (a) Anthropic API 키 제공 또는 신규 Console 계정 가입 승인 — 리뷰 품질 검증에 필요.
-   - (b) **[3차, 2026-08-17] 위 릴리스 생성 링크에서 클릭 4번** — https://github.com/tossneon/code-review-board-action/releases/new (태그 `v1.0.0` 생성 → 제목 입력 → Marketplace 체크박스+카테고리 → Publish release).
-   - (b)만 끝나면 `uses: tossneon/code-review-board-action@v1`(README 안내 그대로) 참조가 바로 살아나고 Marketplace 리스팅도 동시에 완료된다.
+5. **남은 회장 판단은 1가지뿐**: 3인 리뷰의 실제 품질(설계상으로는 검증됐지만 실제 Claude 응답 품질은 아직 안 봄)을 확인하려면 Anthropic API 키(console.anthropic.com, claude.ai 구독과 별개 계정/과금)가 필요 — 이미 있으면 텍스트로 전달, 없으면 신규 Console 계정 가입 승인(2026-08-11~12 신규계정 보류 정책 대상이라 사장이 임의로 만들지 않음).
