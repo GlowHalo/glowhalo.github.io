@@ -58,6 +58,7 @@
 
 ### 대기 중
 - [ ] `baby-place-registry/` — Kakao/Firebase 키가 클라이언트 코드에 있음(Kakao JS 키·Firebase 웹 config 자체는 공개돼도 되는 값이라 즉시 위험은 낮지만, **Firestore 보안규칙이 열려있는지는 Firebase 콘솔에서 직접 확인 필요** — 계정 로그인이 필요해 회장 확인 요청 예정)
+- [x] **2026-08-17 회장 지시 — 실사용 중인 `baby-place-registry/`·`dividend-passbook/`는 원본을 건드리지 않기로 확정.** 배포용 개선(죽은 파일 정리, 하드코딩 주소 일반화, PWA 요건)은 각각 `baby-place-registry-deploy/`·`dividend-passbook-deploy/` 사본에서 진행 — 두 사본 모두 `meta.json`이 없어 루트 허브엔 안 뜨고, Microsoft Store 제출(PWABuilder)은 그 사본의 라이브 URL을 대상으로 한다. 원본은 `git checkout 8ce8429 -- baby-place-registry/`로 이전 상태 복원 완료. 앞으로 이 두 앱 외에 또 실사용 중인 앱이 나오면 같은 패턴(원본 보존 + `-deploy` 사본) 적용
 - [ ] `code-review-board-action/` — 마켓플레이스에 실제로 올리려면 `git subtree split`로 독립 저장소 분리(`action.yml`을 루트로) + 실제 Anthropic 키로 end-to-end 검증 먼저 필요
 - [ ] `output-links-hub/` — 9개 중 2개만 등록돼 있음, 나머지(다운로드 가능한 산출물이 있는 앱 위주로) 카드 추가할지 판단
 - [ ] **회장 최초 가입 4건 대기 — 2026-08-17 갱신: 2/4 완료.** ~~Amazon Appstore(무료)~~ **완료**(회장 직접 가입 + 신원확인(IDV)까지 완료, 금고 `amazon_developer_login_*` — 실제 앱 제출 가능 상태), ~~Microsoft Partner Center(2026년부터 무료)~~ **완료**(회장 직접 가입, 금고 `microsoft_partner_login_*`). 남은 건 Google Play Console($25, 유료라 `hq/가입대기.md` 후순위 트랙으로 이동)·itch.io Circle Heroes 프로젝트 페이지(무료, 계정은 있음, 페이지 생성만 남음). 상세 링크·절차는 [`execution/유통채널-리서치.md`](execution/유통채널-리서치.md) "다음 단계" 참고
