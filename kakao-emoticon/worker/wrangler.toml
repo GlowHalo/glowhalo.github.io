@@ -1,0 +1,25 @@
+name = "kakao-session-keepalive"
+main = "index.ts"
+compatibility_date = "2026-01-01"
+
+# 무료 티어(workers.dev 서브도메인)로 배포됨.
+#
+# 8분마다 카카오 로그인 승인이 걸려있는 Cloudflare Browser Run 세션에 가볍게 접속해서
+# 아이들 타임아웃(10분)으로 안 죽게 붙잡아둔다. 새 로그인은 절대 하지 않음 — 이미 회장이
+# 승인해서 열려있는 세션을 유지만 하는 역할. 상세: index.ts 상단 주석, README.md
+# "🗓️ 매일 생산 방침" 섹션.
+[triggers]
+crons = ["*/8 * * * *"]
+
+[[kv_namespaces]]
+binding = "KAKAO_SESSION_KV"
+id = "71b8c2f7cb5b44bc8ca0a9d2d9d09b3f"
+
+[vars]
+CF_ACCOUNT_ID = "2e5f3e2cfa49f7107f084c080e8eeed0"
+
+# 비밀값은 여기 두지 않는다 — 정본은 `tossneon-api-vault`(계정 공용 금고).
+# 값을 그 금고에서 조회한 뒤 `npx wrangler secret put <이름>` 으로 이 Worker에 등록한다:
+#   CF_BROWSER_TOKEN (금고의 cloudflare_api_token 값)
+#   WORKER_SHARED_SECRET (이 Worker 전용으로 새로 생성한 임의 값)
+# 자세한 절차는 `.claude/rules/cloudflare-vault.md` 참고.
