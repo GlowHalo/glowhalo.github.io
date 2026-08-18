@@ -1,7 +1,7 @@
 {
   "name": "체크노트",
   "short_name": "체크노트",
-  "description": "리스트·완료 2탭으로 끝나는 초단순 할 일 메모 앱. 링크 하나로 지금 목록을 다른 사람에게 공유할 수 있다.",
+  "description": "여러 리스트·우선순위·알림·실시간 공유를 갖춘 초단순 할 일 메모 앱. 앱을 열면 바로 타이핑할 수 있다.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

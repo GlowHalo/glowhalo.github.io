@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>체크노트</title>
-<meta name="description" content="리스트·완료 2탭뿐인 초단순 할 일 메모 앱. 링크 하나로 지금 목록을 다른 사람에게 보여줄 수 있다." />
+<meta name="description" content="여러 리스트·우선순위·알림·실시간 공유를 갖춘 초단순 할 일 메모 앱. 앱을 열면 바로 타이핑할 수 있다." />
 <link rel="manifest" href="manifest.json" />
 <link rel="icon" href="icons/icon-192.png" />
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
@@ -17,17 +17,27 @@
   .display { font-family:'Gowun Dodum', sans-serif; }
   .app { width:100%; max-width:420px; height:100vh; height:100dvh; background:#FAF9F5; box-shadow:0 0 40px rgba(0,0,0,0.06); display:flex; flex-direction:column; overflow:hidden; }
   .header { padding:12px 20px 10px; flex-shrink:0; }
-  .header h1 { font-size:20px; margin:0; color:#2B2E35; }
-  .header p { font-size:12px; margin:2px 0 0; color:#9A998F; }
+  .header-top { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .list-switch-btn { display:flex; align-items:center; gap:4px; background:none; border:none; padding:0; cursor:pointer; font-size:20px; color:#2B2E35; max-width:78%; }
+  .list-switch-btn .lsb-name { font-family:'Gowun Dodum', sans-serif; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .list-switch-btn .lsb-caret { font-size:12px; color:#B7B6AB; flex-shrink:0; }
+  .icon-btn { width:32px; height:32px; border-radius:999px; border:none; background:#EDEDE6; color:#5B5A52; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .icon-btn.on { background:#EEF3EC; color:#5B8C74; }
+  .header p { font-size:12px; margin:4px 0 0; color:#9A998F; }
   .content { flex:1; min-height:0; overflow-y:auto; padding:0 20px 16px; -webkit-overflow-scrolling:touch; }
   .empty { text-align:center; padding:60px 0; color:#B7B6AB; }
   .empty .t1 { font-size:14px; } .empty .t2{ font-size:12px; margin-top:4px; }
-  .item-card { display:flex; align-items:flex-start; gap:12px; border-radius:16px; padding:12px 16px; background:#fff; border:1px solid #EBE9E0; margin-bottom:8px; }
+  .item-card { display:flex; align-items:flex-start; gap:10px; border-radius:16px; padding:12px 16px; background:#fff; border:1px solid #EBE9E0; margin-bottom:8px; }
   .item-card.done { background:#F4F3EE; }
+  .item-card.priority { background:#FFF9EC; border-color:#F0DDA6; }
   .checkbox { margin-top:2px; flex-shrink:0; width:20px; height:20px; border-radius:6px; border:2px solid #C7C9C4; background:none; cursor:pointer; padding:0; }
   .checkbox.checked { border:2px solid #C7C9C4; background:#EDEDE6; display:flex; align-items:center; justify-content:center; color:#8A8C86; font-size:12px; font-weight:700; }
-  .item-text { font-size:14px; line-height:1.6; color:#2B2E35; white-space:pre-line; flex:1; }
-  .item-text.done { color:#A8A79C; text-decoration:line-through; }
+  .item-text { font-size:14px; line-height:1.6; color:#2B2E35; white-space:pre-line; flex:1; cursor:pointer; }
+  .item-text.done { color:#A8A79C; text-decoration:line-through; cursor:default; }
+  .item-meta { display:flex; align-items:center; gap:6px; margin-top:4px; }
+  .item-meta .remind-chip { font-size:10px; color:#8A8C86; background:#EDEDE6; border-radius:999px; padding:2px 8px; }
+  .star-btn { background:none; border:none; cursor:pointer; font-size:16px; margin-top:1px; flex-shrink:0; color:#D8D6C9; line-height:1; padding:0; }
+  .star-btn.on { color:#E0A63A; }
   .trash-btn { background:none; border:none; cursor:pointer; color:#C7A9AA; font-size:14px; margin-top:2px; flex-shrink:0; }
   .group-label { font-size:12px; font-weight:500; color:#9A998F; margin:16px 0 8px 4px; }
   .group-label:first-child { margin-top:0; }
@@ -41,22 +51,44 @@
   .tab-btn { flex:1; padding:12px 0; text-align:center; font-size:14px; font-weight:500; background:none; border:none; cursor:pointer; color:#B7B6AB; }
   .tab-btn.active { color:#5B8C74; }
   .badge { font-size:10px; margin-left:2px; }
-  .share-card { border-radius:16px; padding:20px; background:#fff; border:1px solid #EBE9E0; text-align:center; margin-top:16px; }
-  .share-icon { width:56px; height:56px; border-radius:999px; margin:0 auto 12px; background:#EEF3EC; display:flex; align-items:center; justify-content:center; font-size:22px; }
-  .share-title { font-size:14px; color:#2B2E35; }
-  .share-sub { font-size:12px; color:#9A998F; margin-top:4px; line-height:1.6; }
-  .share-count { font-size:11px; color:#B7B6AB; margin-top:12px; }
-  .invite-btn { width:100%; margin-top:16px; padding:10px; border-radius:12px; border:none; background:#5B8C74; color:#fff; font-size:14px; font-weight:500; cursor:pointer; }
-  .copied-msg { font-size:11px; color:#5B8C74; margin-top:10px; }
   .modal-backdrop { display:none; position:fixed; inset:0; z-index:60; background:rgba(43,46,53,0.45); align-items:center; justify-content:center; padding:20px; }
   .modal-backdrop.open { display:flex; }
-  .modal-card { background:#FAF9F5; color:#2B2E35; border-radius:18px; width:min(340px,100%); box-shadow:0 20px 60px rgba(0,0,0,0.25); }
+  .modal-card { background:#FAF9F5; color:#2B2E35; border-radius:18px; width:min(360px,100%); max-height:calc(100dvh - 40px); overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
   .modal-head { padding:20px 20px 0; font-size:15px; font-weight:700; }
   .modal-body { padding:8px 20px 4px; font-size:13px; line-height:1.7; color:#5B5A52; }
   .modal-actions { display:flex; gap:8px; padding:16px 20px 20px; }
   .modal-actions button { flex:1; border:none; border-radius:12px; padding:10px; font-size:13px; font-weight:500; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
   .modal-actions .btn-ghost { background:#F4F2EA; color:#5B5A52; }
   .modal-actions .btn-primary { background:#5B8C74; color:#fff; }
+  .modal-actions .btn-danger { background:#C7727A; color:#fff; }
+  .field-label { font-size:12px; font-weight:500; color:#5B5A52; margin:14px 20px 6px; }
+  .field-input { display:block; width:calc(100% - 40px); margin:0 20px; border:1px solid #E7E4DC; border-radius:10px; padding:10px 12px; font-size:14px; font-family:'Noto Sans KR',sans-serif; background:#fff; color:#2B2E35; }
+  .field-row { display:flex; gap:8px; margin:0 20px; align-items:center; }
+  .field-row .field-input { margin:0; flex:1; }
+  .field-row button { flex-shrink:0; border:none; border-radius:10px; padding:10px 14px; font-size:13px; background:#5B8C74; color:#fff; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
+  .list-row { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 20px; cursor:pointer; }
+  .list-row:hover { background:#F4F2EA; }
+  .list-row.current .lr-name { color:#5B8C74; font-weight:700; }
+  .lr-name { font-size:14px; color:#2B2E35; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .lr-count { font-size:11px; color:#B7B6AB; flex-shrink:0; }
+  .divider { height:1px; background:#EEEDE5; margin:12px 0; }
+  .section-title { font-size:11px; font-weight:700; color:#9A998F; margin:16px 20px 6px; letter-spacing:.02em; }
+  .share-status { margin:0 20px; border-radius:12px; padding:14px; background:#EEF3EC; }
+  .share-status .ss-code { font-size:18px; font-weight:700; letter-spacing:.06em; color:#2B2E35; font-family:monospace; }
+  .share-status .ss-hint { font-size:11px; color:#6C8F7B; margin-top:4px; }
+  .copy-row { display:flex; gap:8px; margin-top:10px; }
+  .copy-row button { flex:1; border:none; border-radius:10px; padding:8px; font-size:12px; background:#5B8C74; color:#fff; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
+  .copy-row button.ghost { background:#fff; color:#5B8C74; border:1px solid #C9DECF; }
+  .toggle-row { display:flex; align-items:center; justify-content:space-between; margin:0 20px; padding:12px 0; }
+  .toggle-row .tr-text { font-size:13px; color:#2B2E35; }
+  .toggle-row .tr-sub { font-size:11px; color:#9A998F; margin-top:2px; }
+  .switch { position:relative; width:42px; height:24px; border-radius:999px; background:#DEDCD1; border:none; cursor:pointer; flex-shrink:0; }
+  .switch.on { background:#5B8C74; }
+  .switch .knob { position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:999px; background:#fff; transition:left .15s ease; }
+  .switch.on .knob { left:20px; }
+  .err-text { font-size:11px; color:#C7727A; margin:8px 20px 0; }
+  .busy-text { font-size:11px; color:#9A998F; margin:8px 20px 0; }
+  .move-list-empty { font-size:12px; color:#B7B6AB; margin:0 20px 4px; }
 </style>
 </head>
 <body>
@@ -64,6 +96,35 @@
 <div id="modal-root"></div>
 
 <script>
+/* =========================================================================
+ * 체크노트 — 캡처 우선(Capture-first) 원칙
+ * 앱을 열면 리스트 선택 화면·로딩 스피너·모달 없이 곧바로 입력 가능한 상태여야 한다.
+ * 새 기능(다중 리스트/우선순위/알림/공유)은 전부 "입력을 시작한 뒤에 선택적으로" 쓰는
+ * 흐름으로만 붙인다 — 이 원칙을 어기는 변경은 하지 않는다.
+ * ========================================================================= */
+
+const WORKER_BASE = "https://nada-company6-checknote.tossneon.workers.dev";
+const SYNC_DEBOUNCE_MS = 1200;
+const SYNC_POLL_MS = 20000;
+const REMINDER_CHECK_MS = 30000;
+
+// 공유 API 호출 전용 fetch 래퍼 — 캐시를 항상 끄고(구형 요청이 최신 동기화를 가려버리는
+// 사고 방지), 클라이언트 식별 헤더를 붙여 GET을 포함한 모든 요청이 항상 CORS 프리플라이트를
+// 거치도록 통일한다(단순 요청/프리플라이트 요청이 갈리면 배포 환경에 따라 캐시 계층 동작이
+// 달라질 수 있어, 아예 모든 호출을 같은 경로로 맞춰 두는 편이 안전하다).
+function apiFetch(path, options){
+  const opts = Object.assign({ cache: "no-store" }, options || {});
+  opts.headers = Object.assign({ "X-Checknote-Client": "1" }, (options && options.headers) || {});
+  return fetch(`${WORKER_BASE}${path}`, opts);
+}
+
+const STORAGE_KEY = "checknote_store_v2";
+const OLD_STORAGE_KEY = "checknote_items_v1"; // v1(단일 리스트) 마이그레이션용
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function escapeHtml(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 function todayLabel(ts) {
   const d = new Date(ts), today = new Date(), yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
@@ -72,62 +133,331 @@ function todayLabel(ts) {
   if (sameDay(d, yesterday)) return "어제";
   return `${d.getMonth() + 1}월 ${d.getDate()}일`;
 }
-function escapeHtml(s) {
-  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function tsToLocalInputValue(ts){
+  const d = new Date(ts);
+  const pad = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
-let idSeq = 100;
-const STORAGE_KEY = "checknote_items_v1";
+function localInputValueToTs(v){
+  if(!v) return null;
+  const t = new Date(v).getTime();
+  return Number.isNaN(t) ? null : t;
+}
+function formatRemind(ts){
+  const d = new Date(ts);
+  const pad = n => String(n).padStart(2, "0");
+  return `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
-function loadItems(){
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){
-      const parsed = JSON.parse(raw);
-      idSeq = parsed.reduce((max, i) => Math.max(max, i.id), 100) + 1;
-      return parsed;
-    }
-  } catch(e) { console.error("불러오기 실패", e); }
+/* ---------- 저장/불러오기 (+ v1 단일 리스트 → v2 다중 리스트 마이그레이션) ---------- */
+
+function seedDemoItems(){
   return [
-    { id: 1, text: "테스트1", completedAt: null, createdAt: Date.now() - 1000*60*60*3 },
-    { id: 2, text: "테스트2", completedAt: null, createdAt: Date.now() - 1000*60*60*2 },
-    { id: 3, text: "테스트3-1\n테스트3-2\n테스트3-3", completedAt: null, createdAt: Date.now() - 1000*60*60 },
-    { id: 4, text: "테스트4", completedAt: Date.now() - 1000*60*60*20, createdAt: Date.now() - 1000*60*60*26 },
-    { id: 5, text: "테스트5", completedAt: Date.now() - 1000*60*60*30, createdAt: Date.now() - 1000*60*60*40 },
+    { id: uid(), text: "테스트1", completedAt: null, createdAt: Date.now() - 1000*60*60*3, priority: false, remindAt: null, notified: false },
+    { id: uid(), text: "테스트2", completedAt: null, createdAt: Date.now() - 1000*60*60*2, priority: false, remindAt: null, notified: false },
+    { id: uid(), text: "테스트3-1\n테스트3-2\n테스트3-3", completedAt: null, createdAt: Date.now() - 1000*60*60, priority: false, remindAt: null, notified: false },
+    { id: uid(), text: "테스트4", completedAt: Date.now() - 1000*60*60*20, createdAt: Date.now() - 1000*60*60*26, priority: false, remindAt: null, notified: false },
+    { id: uid(), text: "테스트5", completedAt: Date.now() - 1000*60*60*30, createdAt: Date.now() - 1000*60*60*40, priority: false, remindAt: null, notified: false },
   ];
 }
-function saveItems(){
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
+function normalizeItem(i){
+  return {
+    id: i.id != null ? i.id : uid(),
+    text: String(i.text || ""),
+    completedAt: typeof i.completedAt === "number" ? i.completedAt : null,
+    createdAt: typeof i.createdAt === "number" ? i.createdAt : Date.now(),
+    priority: !!i.priority,
+    remindAt: typeof i.remindAt === "number" ? i.remindAt : null,
+    notified: !!i.notified,
+  };
+}
+function loadStore(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.lists) && parsed.lists.length > 0) {
+        parsed.lists = parsed.lists.map(l => ({
+          id: l.id != null ? l.id : uid(),
+          name: l.name || "리스트",
+          items: Array.isArray(l.items) ? l.items.map(normalizeItem) : [],
+          share: l.share && l.share.code ? { code: l.share.code, version: l.share.version || 1, updatedAt: l.share.updatedAt || Date.now() } : null,
+        }));
+        if (!parsed.lists.some(l => l.id === parsed.currentListId)) parsed.currentListId = parsed.lists[0].id;
+        return parsed;
+      }
+    }
+  } catch(e) { console.error("불러오기 실패", e); }
+
+  // v1(단일 리스트, checknote_items_v1) 마이그레이션
+  try {
+    const oldRaw = localStorage.getItem(OLD_STORAGE_KEY);
+    if (oldRaw) {
+      const oldItems = JSON.parse(oldRaw);
+      if (Array.isArray(oldItems)) {
+        const list = { id: uid(), name: "기본 리스트", items: oldItems.map(normalizeItem), share: null };
+        return { lists: [list], currentListId: list.id };
+      }
+    }
+  } catch(e) { console.error("v1 마이그레이션 실패", e); }
+
+  // 완전 첫 실행
+  const list = { id: uid(), name: "기본 리스트", items: seedDemoItems(), share: null };
+  return { lists: [list], currentListId: list.id };
+}
+function saveStore(){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); }
   catch(e) { console.error("저장 실패", e); }
 }
 
-let items = loadItems();
+let store = loadStore();
 let tab = "list";
-let copied = false;
-let pendingImport = null; // { list: [{t,c,a}, ...], dupCount }
+let modal = null; // { type: 'switcher'|'settings'|'detail'|'conflict'|'roomJoin', ... }
+let switcherNewName = "";
+let switcherJoinCode = "";
+let shareBusy = false;
+let shareError = "";
+let joinError = "";
 
-function setTab(t){ tab = t; copied = false; render(); }
+// 공유 동기화 관련 인메모리(비영속) 상태 — 새로고침하면 초기화돼도 무방
+const syncTimers = {};      // listId -> timeoutId (디바운스 push)
+const pendingPush = {};     // listId -> bool (아직 서버에 반영 안 된 로컬 변경이 있는지)
+let notifPermissionAsked = false;
+
+function getCurrentList(){
+  return store.lists.find(l => l.id === store.currentListId) || store.lists[0];
+}
+function findList(id){ return store.lists.find(l => l.id === id); }
+
+/* ---------- 기본 CRUD (항상 즉시 localStorage 반영, 네트워크는 뒤에서만) ---------- */
+
+function markDirtyAndSync(list){
+  if (!list.share) return; // 공유 안 쓰는 리스트는 네트워크 요청 전혀 없음
+  pendingPush[list.id] = true;
+  if (syncTimers[list.id]) clearTimeout(syncTimers[list.id]);
+  syncTimers[list.id] = setTimeout(() => { pushList(list); }, SYNC_DEBOUNCE_MS);
+}
+
+function setTab(t){ tab = t; render(); }
+
 function addItem(){
   const el = document.getElementById("todo-input");
   const text = el.value.trim();
   if(!text) return;
-  items.push({ id: idSeq++, text, completedAt: null, createdAt: Date.now() });
+  const list = getCurrentList();
+  list.items.push({ id: uid(), text, completedAt: null, createdAt: Date.now(), priority: false, remindAt: null, notified: false });
   el.value = "";
-  saveItems();
+  saveStore();
   render();
-  document.getElementById("todo-input").focus();
+  markDirtyAndSync(list);
+  const refocus = document.getElementById("todo-input");
+  if (refocus) refocus.focus();
 }
-function complete(id){ items = items.map(i => i.id===id ? {...i, completedAt: Date.now()} : i); saveItems(); render(); }
-function restore(id){ items = items.map(i => i.id===id ? {...i, completedAt: null} : i); saveItems(); render(); }
-function removeDone(id){ items = items.filter(i => i.id!==id); saveItems(); render(); }
-
-/* ---------- 링크 공유 (URL 해시에 지금 목록을 그대로 담아서 공유) ---------- */
-/* 실시간 동기화는 아님 — 링크를 여는 순간의 스냅샷을 상대가 보고, "가져오기"를 눌러야 자기 목록에 합쳐진다. */
-
-function buildShareLink(){
-  const payload = items.map(i => ({ t: i.text, c: i.completedAt, a: i.createdAt }));
-  return location.origin + location.pathname + "#s=" + encodeURIComponent(JSON.stringify(payload));
+function complete(id){
+  const list = getCurrentList();
+  list.items = list.items.map(i => i.id===id ? {...i, completedAt: Date.now()} : i);
+  saveStore(); render(); markDirtyAndSync(list);
 }
-function fallbackCopy(text, done){
+function restore(id){
+  const list = getCurrentList();
+  list.items = list.items.map(i => i.id===id ? {...i, completedAt: null} : i);
+  saveStore(); render(); markDirtyAndSync(list);
+}
+function removeDone(id){
+  const list = getCurrentList();
+  list.items = list.items.filter(i => i.id!==id);
+  saveStore(); render(); markDirtyAndSync(list);
+}
+function removeItem(id){
+  const list = getCurrentList();
+  list.items = list.items.filter(i => i.id!==id);
+  saveStore(); closeModal(); render(); markDirtyAndSync(list);
+}
+function togglePriority(id){
+  const list = getCurrentList();
+  list.items = list.items.map(i => i.id===id ? {...i, priority: !i.priority} : i);
+  saveStore(); render(); markDirtyAndSync(list);
+}
+
+/* ---------- 항목 상세 모달 (탭 이후에만 등장 — 입력 흐름을 막지 않음) ---------- */
+
+function openDetail(id){
+  modal = { type: "detail", itemId: id };
+  render();
+}
+function currentDetailItem(){
+  if (!modal || modal.type !== "detail") return null;
+  const list = getCurrentList();
+  return list.items.find(i => i.id === modal.itemId) || null;
+}
+function setReminderFromInput(){
+  const item = currentDetailItem();
+  if (!item) return;
+  const val = document.getElementById("remind-input").value;
+  const ts = localInputValueToTs(val);
+  if (ts == null) return;
+  const list = getCurrentList();
+  list.items = list.items.map(i => i.id===item.id ? {...i, remindAt: ts, notified: false} : i);
+  saveStore();
+  markDirtyAndSync(list);
+  if (!notifPermissionAsked && "Notification" in window && Notification.permission === "default") {
+    notifPermissionAsked = true;
+    Notification.requestPermission().catch(()=>{});
+  }
+  render();
+}
+function clearReminder(){
+  const item = currentDetailItem();
+  if (!item) return;
+  const list = getCurrentList();
+  list.items = list.items.map(i => i.id===item.id ? {...i, remindAt: null, notified: false} : i);
+  saveStore(); markDirtyAndSync(list); render();
+}
+function moveItemToList(targetListId){
+  const item = currentDetailItem();
+  if (!item || !targetListId) return;
+  const fromList = getCurrentList();
+  const toList = findList(targetListId);
+  if (!toList) return;
+  fromList.items = fromList.items.filter(i => i.id !== item.id);
+  toList.items.push(item);
+  saveStore();
+  markDirtyAndSync(fromList);
+  markDirtyAndSync(toList);
+  closeModal();
+  render();
+}
+
+/* ---------- 리스트(다중 페이지) ---------- */
+
+function switchList(id){
+  if (!findList(id)) return;
+  store.currentListId = id;
+  saveStore();
+  closeModal();
+  render();
+  const list = getCurrentList();
+  if (list.share) pullList(list); // 배경에서만, 입력 흐름을 막지 않음
+  if (tab === "list") {
+    const el = document.getElementById("todo-input");
+    if (el) el.focus();
+  }
+}
+function createList(){
+  const name = switcherNewName.trim();
+  if (!name) return;
+  const list = { id: uid(), name, items: [], share: null };
+  store.lists.push(list);
+  store.currentListId = list.id;
+  switcherNewName = "";
+  saveStore();
+  closeModal();
+  render();
+  if (tab === "list") {
+    const el = document.getElementById("todo-input");
+    if (el) el.focus();
+  }
+}
+function deleteCurrentList(){
+  if (store.lists.length <= 1) return; // 마지막 리스트는 지울 수 없음
+  const id = store.currentListId;
+  store.lists = store.lists.filter(l => l.id !== id);
+  store.currentListId = store.lists[0].id;
+  delete syncTimers[id];
+  delete pendingPush[id];
+  saveStore();
+  closeModal();
+  render();
+}
+function onSwitcherNewNameInput(v){ switcherNewName = v; }
+function onSwitcherJoinCodeInput(v){ switcherJoinCode = v; }
+
+async function joinRoomByCode(codeArg){
+  const code = (codeArg != null ? codeArg : switcherJoinCode).trim().toUpperCase();
+  if (!code) return;
+  joinError = "";
+  render();
+  try {
+    const res = await apiFetch(`/rooms/${encodeURIComponent(code)}`);
+    if (!res.ok) {
+      joinError = res.status === 404 ? "그 코드의 공유방을 찾을 수 없어요." : "참가에 실패했어요.";
+      render();
+      return;
+    }
+    const body = await res.json();
+    const data = body.data || { name: "공유 리스트", items: [] };
+    const list = {
+      id: uid(),
+      name: data.name || "공유 리스트",
+      items: Array.isArray(data.items) ? data.items.map(normalizeItem) : [],
+      share: { code: body.code, version: body.version, updatedAt: body.updatedAt },
+    };
+    store.lists.push(list);
+    store.currentListId = list.id;
+    switcherJoinCode = "";
+    joinError = "";
+    saveStore();
+    closeModal();
+    render();
+    if (tab === "list") {
+      const el = document.getElementById("todo-input");
+      if (el) el.focus();
+    }
+  } catch(e) {
+    joinError = "네트워크 오류로 참가하지 못했어요.";
+    render();
+  }
+}
+
+/* ---------- 공유(실시간 동기화) ---------- */
+
+function openListSettings(){
+  shareBusy = false; shareError = "";
+  modal = { type: "settings" };
+  render();
+}
+function openListSwitcher(){
+  switcherNewName = ""; switcherJoinCode = ""; joinError = "";
+  modal = { type: "switcher" };
+  render();
+}
+function closeModal(){ modal = null; render(); }
+
+async function enableShare(){
+  const list = getCurrentList();
+  if (list.share || shareBusy) return;
+  shareBusy = true; shareError = "";
+  render();
+  try {
+    const res = await apiFetch(`/rooms`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: { name: list.name, items: list.items } }),
+    });
+    if (!res.ok) throw new Error("create failed");
+    const body = await res.json();
+    list.share = { code: body.code, version: body.version, updatedAt: body.updatedAt };
+    saveStore();
+  } catch(e) {
+    shareError = "공유방을 만들지 못했어요. 잠시 후 다시 시도해주세요.";
+  } finally {
+    shareBusy = false;
+    render();
+  }
+}
+function disableShare(){
+  const list = getCurrentList();
+  if (!list.share) return;
+  if (syncTimers[list.id]) clearTimeout(syncTimers[list.id]);
+  delete pendingPush[list.id];
+  list.share = null;
+  saveStore();
+  render();
+}
+function shareLinkFor(code){
+  return location.origin + location.pathname + "#room=" + encodeURIComponent(code);
+}
+function fallbackCopy(text){
   const ta = document.createElement("textarea");
   ta.value = text;
   ta.style.position = "fixed";
@@ -136,76 +466,207 @@ function fallbackCopy(text, done){
   ta.select();
   try { document.execCommand("copy"); } catch(e) { /* 무시 */ }
   document.body.removeChild(ta);
-  done();
 }
-function copyShareLink(){
-  const link = buildShareLink();
-  const done = () => { copied = true; render(); setTimeout(()=>{ copied=false; render(); }, 2000); };
-  if (navigator.clipboard) navigator.clipboard.writeText(link).then(done).catch(()=>fallbackCopy(link, done));
-  else fallbackCopy(link, done);
-}
-function clearShareHash(){
-  try { history.replaceState(null, "", location.pathname + location.search); } catch(e) { /* 무시 */ }
-}
-function checkForSharedLink(){
-  const hash = location.hash;
-  if(!hash || hash.indexOf("#s=") !== 0) return;
-  try {
-    const incoming = JSON.parse(decodeURIComponent(hash.slice(3)));
-    if(!Array.isArray(incoming)) throw new Error("형식 오류");
-    const cleaned = incoming
-      .filter(i => i && typeof i.t === "string" && i.t.trim())
-      .map(i => ({ t: i.t, c: typeof i.c === "number" ? i.c : null, a: typeof i.a === "number" ? i.a : Date.now() }));
-    // 텍스트가 같은 항목은 이미 가진 것으로 보고 건너뛴다 (같은 링크를 두 번 열거나, 양쪽 다
-    // 기본 데모 항목을 그대로 갖고 있는 경우 중복 추가를 막기 위함)
-    const isNew = inc => !items.some(local => local.text === inc.t);
-    const newOnes = cleaned.filter(isNew);
-    pendingImport = { list: newOnes, dupCount: cleaned.length - newOnes.length, total: cleaned.length };
-  } catch(e) {
-    console.error("공유 링크 해석 실패", e);
-  }
-}
-function acceptImport(){
-  if(pendingImport){
-    pendingImport.list.forEach(inc => {
-      items.push({ id: idSeq++, text: inc.t, completedAt: inc.c, createdAt: inc.a });
-    });
-    saveItems();
-  }
-  pendingImport = null;
-  clearShareHash();
-  tab = "list";
-  render();
-}
-function declineImport(){
-  pendingImport = null;
-  clearShareHash();
-  render();
+function copyText(text){
+  if (navigator.clipboard) navigator.clipboard.writeText(text).catch(()=>fallbackCopy(text));
+  else fallbackCopy(text);
 }
 
-function renderModal(){
-  const root = document.getElementById("modal-root");
-  if(!pendingImport){ root.innerHTML = ""; return; }
-  const { list, dupCount, total } = pendingImport;
-  const bodyText = list.length === 0
-    ? `공유된 항목 ${total}개가 모두 이미 내 목록에 있어요.`
-    : `공유된 항목 ${list.length}개를 내 목록에 추가할까요?${dupCount>0 ? ` (이미 있는 ${dupCount}개는 제외)` : ""}`;
-  root.innerHTML = `
-    <div class="modal-backdrop open">
-      <div class="modal-card">
-        <div class="modal-head">공유된 체크노트예요</div>
-        <div class="modal-body">${bodyText}<br><span style="color:#9A998F;font-size:12px;">실시간으로 계속 이어지진 않아요 — 링크를 연 순간의 목록이에요.</span></div>
-        <div class="modal-actions">
-          <button class="btn-ghost" onclick="declineImport()">무시하기</button>
-          ${list.length > 0 ? `<button class="btn-primary" onclick="acceptImport()">가져오기</button>` : `<button class="btn-primary" onclick="declineImport()">확인</button>`}
+async function pushList(list){
+  if (!list.share) return;
+  try {
+    const res = await apiFetch(`/rooms/${encodeURIComponent(list.share.code)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        data: { name: list.name, items: list.items },
+        expectedVersion: list.share.version,
+      }),
+    });
+    if (res.status === 409) {
+      const body = await res.json();
+      modal = { type: "conflict", listId: list.id, remote: { data: body.data, version: body.version, updatedAt: body.updatedAt } };
+      render();
+      return;
+    }
+    if (!res.ok) return; // 조용히 재시도(다음 변경 때 다시 시도됨) — 입력 흐름과 무관
+    const body = await res.json();
+    list.share.version = body.version;
+    list.share.updatedAt = body.updatedAt;
+    pendingPush[list.id] = false;
+    saveStore();
+  } catch(e) {
+    // 네트워크 오류 — 조용히 무시, 다음 변경/폴링 때 다시 시도
+  }
+}
+
+async function pullList(list){
+  if (!list.share) return;
+  try {
+    const res = await apiFetch(`/rooms/${encodeURIComponent(list.share.code)}`);
+    if (!res.ok) return;
+    const body = await res.json();
+    if (body.version === list.share.version) return; // 변경 없음
+    if (body.version < list.share.version) return; // 서버가 뒤로 갈 일은 없음(방어)
+
+    if (pendingPush[list.id]) {
+      // 내가 아직 안 올린 로컬 변경이 있는데 서버도 그 사이 바뀌었다 — 조용히 덮어쓰지 않고
+      // 기존 "가져오기 확인" 모달 패턴을 재사용해 사용자가 고르게 한다.
+      modal = { type: "conflict", listId: list.id, remote: { data: body.data, version: body.version, updatedAt: body.updatedAt } };
+      render();
+      return;
+    }
+    // 로컬에 아직 반영 안 된 변경이 없으면, 다른 기기가 보낸 최신 내용을 그대로 반영.
+    const data = body.data || { name: list.name, items: [] };
+    list.name = data.name || list.name;
+    list.items = Array.isArray(data.items) ? data.items.map(normalizeItem) : list.items;
+    list.share.version = body.version;
+    list.share.updatedAt = body.updatedAt;
+    saveStore();
+    render();
+  } catch(e) {
+    // 네트워크 오류 — 조용히 무시, 다음 폴링 때 다시 시도
+  }
+}
+
+async function resolveConflictAcceptRemote(){
+  if (!modal || modal.type !== "conflict") return;
+  const list = findList(modal.listId);
+  if (!list) { closeModal(); return; }
+  const data = modal.remote.data || { name: list.name, items: [] };
+  list.name = data.name || list.name;
+  list.items = Array.isArray(data.items) ? data.items.map(normalizeItem) : [];
+  list.share.version = modal.remote.version;
+  list.share.updatedAt = modal.remote.updatedAt;
+  pendingPush[list.id] = false;
+  if (syncTimers[list.id]) clearTimeout(syncTimers[list.id]);
+  saveStore();
+  closeModal();
+}
+async function resolveConflictKeepLocal(){
+  if (!modal || modal.type !== "conflict") return;
+  const list = findList(modal.listId);
+  if (!list) { closeModal(); return; }
+  try {
+    const res = await apiFetch(`/rooms/${encodeURIComponent(list.share.code)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: { name: list.name, items: list.items }, force: true }),
+    });
+    if (res.ok) {
+      const body = await res.json();
+      list.share.version = body.version;
+      list.share.updatedAt = body.updatedAt;
+      pendingPush[list.id] = false;
+      saveStore();
+    }
+  } catch(e) { /* 무시 — 다음 동기화 때 재시도 */ }
+  closeModal();
+}
+
+/* ---------- 공유 링크(#room=코드)로 열었을 때 — 참여 확인 모달 ---------- */
+
+function checkForSharedRoomHash(){
+  const hash = location.hash;
+  if (!hash || hash.indexOf("#room=") !== 0) return;
+  const code = decodeURIComponent(hash.slice(6)).trim().toUpperCase();
+  try { history.replaceState(null, "", location.pathname + location.search); } catch(e) { /* 무시 */ }
+  if (!code) return;
+  // 이미 이 코드로 참여 중인 리스트가 있으면 새로 만들지 않고 그 리스트로 이동만 한다.
+  const already = store.lists.find(l => l.share && l.share.code === code);
+  if (already) { switchList(already.id); return; }
+
+  apiFetch(`/rooms/${encodeURIComponent(code)}`)
+    .then(res => res.ok ? res.json() : Promise.reject(new Error(String(res.status))))
+    .then(body => {
+      modal = { type: "roomJoin", code, body };
+      render();
+    })
+    .catch(() => {
+      modal = { type: "roomJoin", code, error: true };
+      render();
+    });
+}
+function acceptRoomJoin(){
+  if (!modal || modal.type !== "roomJoin" || !modal.body) return;
+  const body = modal.body;
+  const data = body.data || { name: "공유 리스트", items: [] };
+  const list = {
+    id: uid(),
+    name: data.name || "공유 리스트",
+    items: Array.isArray(data.items) ? data.items.map(normalizeItem) : [],
+    share: { code: body.code, version: body.version, updatedAt: body.updatedAt },
+  };
+  store.lists.push(list);
+  store.currentListId = list.id;
+  saveStore();
+  closeModal();
+  render();
+}
+function declineRoomJoin(){ closeModal(); }
+
+/* ---------- 알림(리마인더) — 항목 추가 시점엔 절대 관여하지 않음 ---------- */
+
+function fireNotification(item, listName){
+  item.notified = true;
+  saveStore();
+  const title = "체크노트 알림";
+  const body = (listName ? `[${listName}] ` : "") + item.text;
+  const opts = { body, icon: "icons/icon-192.png", tag: "checknote-" + item.id };
+  if ("serviceWorker" in navigator && navigator.serviceWorker.ready) {
+    navigator.serviceWorker.ready.then(reg => reg.showNotification(title, opts)).catch(() => {
+      try { new Notification(title, opts); } catch(e) { /* 무시 */ }
+    });
+  } else if ("Notification" in window) {
+    try { new Notification(title, opts); } catch(e) { /* 무시 */ }
+  }
+}
+function checkReminders(){
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  const now = Date.now();
+  let changed = false;
+  store.lists.forEach(list => {
+    list.items.forEach(item => {
+      if (item.remindAt && !item.notified && !item.completedAt && item.remindAt <= now) {
+        fireNotification(item, list.name);
+        changed = true;
+      }
+    });
+  });
+  if (changed) render();
+}
+
+/* ---------- 렌더 ---------- */
+
+function renderItemCard(item, isDone){
+  const star = !isDone ? `<button class="star-btn ${item.priority?'on':''}" onclick="event.stopPropagation();togglePriority('${item.id}')" title="우선순위" aria-label="우선순위">${item.priority?'★':'☆'}</button>` : "";
+  const remindChip = item.remindAt ? `<span class="remind-chip">⏰ ${formatRemind(item.remindAt)}${item.notified ? " · 알림됨" : ""}</span>` : "";
+  const meta = (!isDone && remindChip) ? `<div class="item-meta">${remindChip}</div>` : "";
+  if (isDone) {
+    return `
+      <div class="item-card done">
+        <button class="checkbox checked" onclick="restore('${item.id}')">✓</button>
+        <div style="flex:1;">
+          <div class="item-text done">${escapeHtml(item.text)}</div>
         </div>
+        <button class="trash-btn" onclick="removeDone('${item.id}')">✕</button>
+      </div>`;
+  }
+  return `
+    <div class="item-card ${item.priority?'priority':''}">
+      <button class="checkbox" onclick="complete('${item.id}')"></button>
+      <div style="flex:1;">
+        <div class="item-text" onclick="openDetail('${item.id}')">${escapeHtml(item.text)}</div>
+        ${meta}
       </div>
+      ${star}
     </div>`;
 }
 
 function render(){
-  const activeItems = items.filter(i=>!i.completedAt).sort((a,b)=>b.createdAt-a.createdAt);
-  const doneItems = items.filter(i=>i.completedAt).sort((a,b)=>b.completedAt-a.completedAt);
+  const list = getCurrentList();
+  const activeItems = list.items.filter(i=>!i.completedAt).sort((a,b)=> (b.priority - a.priority) || (b.createdAt-a.createdAt));
+  const doneItems = list.items.filter(i=>i.completedAt).sort((a,b)=>b.completedAt-a.completedAt);
   const doneGroups = {};
   doneItems.forEach(i=>{ const l = todayLabel(i.completedAt); (doneGroups[l] = doneGroups[l]||[]).push(i); });
 
@@ -213,45 +674,31 @@ function render(){
   if(tab === "list"){
     contentHtml = activeItems.length===0
       ? `<div class="empty"><div class="t1">할 일이 없어요.</div><div class="t2">아래 입력창에 새 항목을 적어보세요.</div></div>`
-      : activeItems.map(item => `
-        <div class="item-card">
-          <button class="checkbox" onclick="complete(${item.id})"></button>
-          <div class="item-text">${escapeHtml(item.text)}</div>
-        </div>`).join("");
-  } else if(tab === "shared"){
-    contentHtml = `
-      <div class="share-card">
-        <div class="share-icon">🔗</div>
-        <div class="share-title">지금 목록을 링크로 공유해요</div>
-        <div class="share-sub">링크를 열면 이 순간의 목록을 그대로 볼 수 있어요.<br>실시간으로 계속 동기화되진 않으니, 항목을 추가·완료할 때마다 다시 눌러서 최신 링크를 보내주세요.</div>
-        <button class="invite-btn" onclick="copyShareLink()">🔗 공유 링크 만들어 복사하기</button>
-        ${copied ? `<div class="copied-msg">링크를 복사했어요. 카톡에 붙여넣어 보내주세요.</div>` : ""}
-        <div class="share-count">할 일 ${activeItems.length}개 · 완료 ${doneItems.length}개가 포함돼요</div>
-      </div>`;
+      : activeItems.map(item => renderItemCard(item, false)).join("");
   } else if(tab === "done"){
     if(doneItems.length===0){
       contentHtml = `<div class="empty"><div class="t1">아직 완료한 항목이 없어요.</div></div>`;
     } else {
       contentHtml = Object.entries(doneGroups).map(([label, group]) => `
         <div class="group-label">${label}</div>
-        ${group.map(item => `
-          <div class="item-card done">
-            <button class="checkbox checked" onclick="restore(${item.id})">✓</button>
-            <div class="item-text done">${escapeHtml(item.text)}</div>
-            <button class="trash-btn" onclick="removeDone(${item.id})">✕</button>
-          </div>`).join("")}
+        ${group.map(item => renderItemCard(item, true)).join("")}
       `).join("") + `<div class="footer-hint">체크를 다시 누르면 리스트로 돌아가요</div>`;
     }
   }
 
-  const headerTitle = tab==="list" ? "체크노트" : tab==="shared" ? "공유" : "완료";
-  const headerSub = tab==="list" ? `할 일 ${activeItems.length}개`
-    : tab==="shared" ? "링크 하나로 지금 목록을 보여줘요"
+  const headerSub = tab==="list"
+    ? `할 일 ${activeItems.length}개${list.share ? " · 🔗 공유 중" : ""}`
     : `완료 ${doneItems.length}개`;
 
   document.getElementById("app").innerHTML = `
     <div class="header">
-      <h1 class="display">${headerTitle}</h1>
+      <div class="header-top">
+        <button class="list-switch-btn" onclick="openListSwitcher()" aria-label="리스트 전환">
+          <span class="lsb-name display">${escapeHtml(list.name)}</span>
+          <span class="lsb-caret">▾</span>
+        </button>
+        <button class="icon-btn ${list.share?'on':''}" onclick="openListSettings()" title="리스트 설정" aria-label="리스트 설정">${list.share ? "🔗" : "⚙"}</button>
+      </div>
       <p>${headerSub}</p>
     </div>
     <div class="content">${contentHtml}</div>
@@ -264,7 +711,6 @@ function render(){
       </div>` : ""}
     <div class="tabbar">
       <button class="tab-btn ${tab==='list'?'active':''}" onclick="setTab('list')">리스트</button>
-      <button class="tab-btn ${tab==='shared'?'active':''}" onclick="setTab('shared')">공유</button>
       <button class="tab-btn ${tab==='done'?'active':''}" onclick="setTab('done')">완료${doneItems.length>0?`<span class="badge">${doneItems.length}</span>`:""}</button>
     </div>
   `;
@@ -278,16 +724,213 @@ function render(){
   }
 
   renderModal();
+
+  if (!initialFocusDone && tab === "list") {
+    const el = document.getElementById("todo-input");
+    if (el) { el.focus(); initialFocusDone = true; }
+  }
 }
 
-checkForSharedLink();
+function renderModal(){
+  const root = document.getElementById("modal-root");
+  if (!modal) { root.innerHTML = ""; return; }
+
+  if (modal.type === "switcher") {
+    const rows = store.lists.map(l => `
+      <div class="list-row ${l.id===store.currentListId?'current':''}" onclick="switchList('${l.id}')">
+        <span class="lr-name">${escapeHtml(l.name)}${l.share ? " 🔗" : ""}</span>
+        <span class="lr-count">${l.items.filter(i=>!i.completedAt).length}개</span>
+      </div>`).join("");
+    root.innerHTML = `
+      <div class="modal-backdrop open" onclick="if(event.target===this) closeModal()">
+        <div class="modal-card">
+          <div class="modal-head">리스트</div>
+          <div style="padding-top:8px;">${rows}</div>
+          <div class="divider"></div>
+          <div class="field-label">새 리스트 만들기</div>
+          <div class="field-row">
+            <input class="field-input" id="new-list-name" placeholder="리스트 이름" value="${escapeHtml(switcherNewName)}" oninput="onSwitcherNewNameInput(this.value)" onkeydown="if(event.key==='Enter') createList()" />
+            <button onclick="createList()">만들기</button>
+          </div>
+          <div class="field-label">공유 코드로 참가하기</div>
+          <div class="field-row">
+            <input class="field-input" id="join-code" placeholder="예: AB12CD34EFGH" value="${escapeHtml(switcherJoinCode)}" oninput="onSwitcherJoinCodeInput(this.value.toUpperCase())" onkeydown="if(event.key==='Enter') joinRoomByCode()" style="text-transform:uppercase;" />
+            <button onclick="joinRoomByCode()">참가</button>
+          </div>
+          ${joinError ? `<div class="err-text">${escapeHtml(joinError)}</div>` : ""}
+          <div class="modal-actions"><button class="btn-ghost" onclick="closeModal()">닫기</button></div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  if (modal.type === "settings") {
+    const list = getCurrentList();
+    const canDelete = store.lists.length > 1;
+    const shareBlock = list.share ? `
+      <div class="section-title">공유</div>
+      <div class="share-status">
+        <div class="ss-code">${escapeHtml(list.share.code)}</div>
+        <div class="ss-hint">이 코드(또는 링크)를 아는 사람은 누구나 이 리스트를 읽고 쓸 수 있어요. 인원 제한은 없어요.</div>
+        <div class="copy-row">
+          <button onclick="copyText('${escapeHtml(list.share.code)}')">코드 복사</button>
+          <button class="ghost" onclick="copyText('${escapeHtml(shareLinkFor(list.share.code))}')">링크 복사</button>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <div><div class="tr-text">공유 끄기</div><div class="tr-sub">내 기기는 더 이상 동기화하지 않아요(공유방 자체는 남아요)</div></div>
+        <button class="switch on" onclick="disableShare()" aria-label="공유 끄기"><span class="knob"></span></button>
+      </div>
+    ` : `
+      <div class="section-title">공유</div>
+      <div class="toggle-row">
+        <div><div class="tr-text">이 리스트 공유하기</div><div class="tr-sub">방 코드를 만들어 다른 사람과 실시간으로 같이 써요</div></div>
+        <button class="switch" onclick="enableShare()" aria-label="공유 켜기" ${shareBusy?'disabled':''}><span class="knob"></span></button>
+      </div>
+      ${shareBusy ? `<div class="busy-text">공유방 만드는 중…</div>` : ""}
+      ${shareError ? `<div class="err-text">${escapeHtml(shareError)}</div>` : ""}
+    `;
+    root.innerHTML = `
+      <div class="modal-backdrop open" onclick="if(event.target===this) closeModal()">
+        <div class="modal-card">
+          <div class="modal-head">${escapeHtml(list.name)}</div>
+          ${shareBlock}
+          <div class="modal-actions">
+            ${canDelete ? `<button class="btn-danger" onclick="deleteCurrentList()">리스트 삭제</button>` : ""}
+            <button class="btn-primary" onclick="closeModal()">닫기</button>
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  if (modal.type === "detail") {
+    const item = currentDetailItem();
+    if (!item) { root.innerHTML = ""; return; }
+    const list = getCurrentList();
+    const others = store.lists.filter(l => l.id !== list.id);
+    const moveBlock = others.length > 0 ? `
+      <div class="field-label">다른 리스트로 옮기기</div>
+      <div class="field-row">
+        <select class="field-input" id="move-target">
+          ${others.map(l => `<option value="${l.id}">${escapeHtml(l.name)}</option>`).join("")}
+        </select>
+        <button onclick="moveItemToList(document.getElementById('move-target').value)">이동</button>
+      </div>
+    ` : `<div class="move-list-empty">옮길 다른 리스트가 아직 없어요.</div>`;
+    root.innerHTML = `
+      <div class="modal-backdrop open" onclick="if(event.target===this) closeModal()">
+        <div class="modal-card">
+          <div class="modal-head">항목</div>
+          <div class="modal-body">${escapeHtml(item.text)}</div>
+          <div class="toggle-row">
+            <div class="tr-text">우선순위</div>
+            <button class="switch ${item.priority?'on':''}" onclick="togglePriority('${item.id}')" aria-label="우선순위 토글"><span class="knob"></span></button>
+          </div>
+          <div class="field-label">알림</div>
+          <div class="field-row">
+            <input class="field-input" type="datetime-local" id="remind-input" value="${item.remindAt ? tsToLocalInputValue(item.remindAt) : ''}" />
+            <button onclick="setReminderFromInput()">설정</button>
+          </div>
+          ${item.remindAt ? `<div style="margin:8px 20px 0;"><button class="btn-ghost" style="border:none;border-radius:10px;padding:6px 12px;font-size:12px;background:#F4F2EA;color:#5B5A52;cursor:pointer;" onclick="clearReminder()">알림 해제</button></div>` : ""}
+          ${moveBlock}
+          <div class="modal-actions">
+            <button class="btn-danger" onclick="removeItem('${item.id}')">삭제</button>
+            <button class="btn-primary" onclick="closeModal()">닫기</button>
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  if (modal.type === "conflict") {
+    root.innerHTML = `
+      <div class="modal-backdrop open">
+        <div class="modal-card">
+          <div class="modal-head">다른 기기에서도 이 리스트가 바뀌었어요</div>
+          <div class="modal-body">내 기기와 다른 기기 양쪽에서 같은 리스트를 수정했어요. 조용히 덮어쓰지 않을게요 — 어느 쪽을 남길지 골라주세요.<br><span style="color:#9A998F;font-size:12px;">"받은 내용 적용"은 다른 기기의 최신 내용으로, "내 것으로 유지"는 지금 내 화면 그대로 서버에 덮어써요.</span></div>
+          <div class="modal-actions">
+            <button class="btn-ghost" onclick="resolveConflictAcceptRemote()">받은 내용 적용</button>
+            <button class="btn-primary" onclick="resolveConflictKeepLocal()">내 것으로 유지</button>
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  if (modal.type === "roomJoin") {
+    if (modal.error) {
+      root.innerHTML = `
+        <div class="modal-backdrop open">
+          <div class="modal-card">
+            <div class="modal-head">공유 링크를 열 수 없어요</div>
+            <div class="modal-body">코드가 잘못됐거나 공유방을 찾을 수 없어요.</div>
+            <div class="modal-actions"><button class="btn-primary" onclick="declineRoomJoin()">확인</button></div>
+          </div>
+        </div>`;
+      return;
+    }
+    const data = modal.body && modal.body.data ? modal.body.data : { name: "공유 리스트", items: [] };
+    const count = Array.isArray(data.items) ? data.items.length : 0;
+    root.innerHTML = `
+      <div class="modal-backdrop open">
+        <div class="modal-card">
+          <div class="modal-head">공유된 체크노트예요</div>
+          <div class="modal-body">"${escapeHtml(data.name || '공유 리스트')}" 리스트(${count}개 항목)에 참여할까요? 참여하면 새 리스트로 추가되고, 이후 변경사항이 서로 실시간으로 동기화돼요.</div>
+          <div class="modal-actions">
+            <button class="btn-ghost" onclick="declineRoomJoin()">무시하기</button>
+            <button class="btn-primary" onclick="acceptRoomJoin()">참여하기</button>
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  root.innerHTML = "";
+}
+
+/* ---------- 시작 ---------- */
+
+let initialFocusDone = false;
+
+// 1) 지금 있는 화면부터 바로 그린다 — 로딩 스피너도, 모달도, 클릭도 필요 없이 곧장 입력 가능.
 render();
 
+// 2) 서비스워커 등록(오프라인 캐싱) — 입력 흐름과 무관하게 백그라운드에서.
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("sw.js").catch(() => {});
   });
 }
+
+// 3) 공유 링크(#room=코드)로 열렸는지는 렌더 이후 비동기로만 확인 — 있어도 모달은 나중에
+//    뜨고, 그 사이에도 입력창은 이미 포커스 가능한 상태다.
+checkForSharedRoomHash();
+
+// 4) 현재 리스트가 이미 공유 중이면 배경에서 최신 상태를 한 번 당겨온다(네트워크는
+//    "공유 켜진 리스트"에서만 발생 — 공유 안 쓰는 대다수 사용자에겐 아무 요청도 없다).
+if (getCurrentList().share) pullList(getCurrentList());
+
+// 5) 공유 중인 "현재" 리스트만 주기적으로 폴링한다(전체 리스트를 다 찌르지 않음 — 최소 요청).
+setInterval(() => {
+  const list = getCurrentList();
+  if (list.share && document.visibilityState === "visible") pullList(list);
+}, SYNC_POLL_MS);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    const list = getCurrentList();
+    if (list.share) pullList(list);
+  }
+});
+window.addEventListener("focus", () => {
+  const list = getCurrentList();
+  if (list.share) pullList(list);
+});
+
+// 6) 리마인더는 30초 간격으로 확인(브라우저 Notification API + 등록된 서비스워커로 로컬 알림).
+//    최초 알림은 사용자가 "알림 설정"을 눌렀을 때만 권한을 요청한다 — 페이지 로드 시점엔 절대 묻지 않음.
+setInterval(checkReminders, REMINDER_CHECK_MS);
+checkReminders();
 </script>
 </body>
 </html>
