@@ -86,12 +86,33 @@
 
 이거 하나만 되면 다음 세션이 이어서 push → 릴리스 태그 → Marketplace 제출까지 API/자동화로 계속 진행한다. (리포 생성 후에도 push가 막히면, 그건 이 세션의 GitHub 연동 범위를 넓히는 절차가 하나 더 필요하다는 뜻이고, 그때 정확한 다음 스텝을 다시 안내하겠다.)
 
-## 남은 단계 (2026-08-17 갱신)
+## 별도 리포 push + 릴리스 시도 (2026-08-17, 3차 — 회장 리포 생성 완료 후속)
+
+회장이 "깃허브생성했어"로 빈 리포 생성 완료를 확인, 이어서 실행했다.
+
+1. **리포 존재 확인**: `add_repo`(owner=tossneon, repo=code-review-board-action, access=push) → 정상 등록, `git clone --depth 1`로 실제 클론해보니 빈 저장소("You appear to have cloned an empty repository") 확인 — 회장이 README/gitignore/license 전부 체크 해제하고 만들었다는 뜻대로 완전히 빈 상태였음.
+2. **subtree split 재실행**: `git pull --rebase origin master`(이미 최신) → `git subtree split -P code-review-board-action -b code-review-board-action-split` 성공, 235개 커밋 처리.
+3. **새 리포로 push**: `git remote add cra-target https://github.com/tossneon/code-review-board-action.git` → `git push cra-target code-review-board-action-split:main` **성공**. GitHub API(`get_file_contents`)로 루트 구조 재확인: `LICENSE`·`README.md`·`action.yml`·`package.json`·`package-lock.json`·`src/` 전부 루트에 정상 배치.
+4. **README 정리**: subtree split로 그대로 옮겨진 "이 폴더는 모노레포 안의 원본/개발 사본" 내부용 안내 문구가 독립 리포 안에서는 자기 자신을 가리켜 혼란을 줄 수 있어 `create_or_update_file`로 새 리포의 README에서만 제거(모노레포 쪽 원본은 그대로 유지 — 그쪽엔 그 문구가 맞음).
+5. **릴리스 생성 시도 → 하드 블로커 발견**: `v1.0.0` 태그를 `git push cra-target v1.0.0`으로 push 시도 → **`403 Forbidden`**. 재시도(`refs/tags/v1.0.0:refs/tags/v1.0.0` 명시, `GIT_CURL_VERBOSE=1`로 확인) 동일 결과. 이 리포·이 태그명에 국한된 문제인지 확인하려고 무관한 테스트 태그(`zztest123`)로도 push 시도 → 역시 즉시 403(브랜치 push는 방금 성공했는데 태그만 막힘 — 이 세션의 git 프록시가 태그 참조 push 자체를 구조적으로 막아두는 것으로 보임, 리포·권한 문제가 아님).
+6. **대안 경로 확인**: GitHub MCP 서버에 release/tag를 "쓰는" 도구가 있는지 재검색(`ToolSearch`) → `create_or_update_file`·`create_repository`·`create_branch`·`create_pull_request` 등은 있지만 release/tag 생성 도구는 **존재하지 않음**(있는 건 `get_latest_release`·`get_release_by_tag`·`list_tags`·`list_releases` 읽기 전용뿐). `gh` CLI도 이 환경에 설치돼 있지 않음(`command not found`). 즉 이 세션 안에서 릴리스 생성을 자동화할 경로가 없다 — 프록시의 태그 push 차단은 "의도된 안전장치"로 보여 우회 시도하지 않고 여기서 멈춤.
+
+### 회장 액션 필요 (마지막 한 단계, 클릭 몇 번)
+
+👉 **https://github.com/tossneon/code-review-board-action/releases/new**
+
+1. "Choose a tag" 드롭다운에 `v1.0.0` 입력 → "Create new tag: v1.0.0 on publish" 선택 (target은 기본값 `main` 그대로).
+2. Release title에 `v1.0.0` 입력(본문은 비워둬도 무방, 원하면 README의 "Free vs. Pro" 요약을 붙여도 됨).
+3. **"Publish this Action to the GitHub Marketplace" 체크박스를 켠다** — 이게 켜져야 화면에 카테고리 선택 UI가 나타난다. 카테고리는 "Code review" 계열(예: Code quality) 중 적당한 것 선택, "I agree to the GitHub Marketplace Developer Agreement" 체크.
+4. "Publish release" 클릭 — 이 한 번으로 태그 생성 + 릴리스 게시 + Marketplace 등록이 동시에 끝난다.
+
+## 남은 단계 (2026-08-17 3차 갱신)
 
 1. ~~실사용 API 키로 진짜 PR 검증~~ → **파이프라인은 실키 없이 실제 GitHub Actions 인프라로 100% 검증 완료.** 리뷰 품질 자체 검증만 회장의 Anthropic API 키 결정 대기.
-2. **GitHub Marketplace 등록** — 정책 재확인 결과 여전히 `git subtree split` 필요(등록 자체엔 변경 없음), 분리 메커니즘 2026-08-17에 두 번째로 재검증 완료(재현성 확인됨). **회장이 리포 신규 생성을 승인했고 실행에 착수했으나, 리포 "생성" 자체가 GitHub 플랫폼 구조상 API/자동화로 불가능한 것으로 확인됨** — 위 "별도 리포 분리 시도" 절 참고. 회장이 링크 하나로 빈 리포만 만들어주면 나머지(push·릴리스 태그·Marketplace 제출 준비)는 다음 세션이 이어서 진행.
-3. ~~Pro 상품 여부 판단~~ → **지금은 만들지 않음으로 결론(위 근거 참고).** 무료 배포로 실사용자 확보가 선행 조건.
-4. **회장 액션 필요 항목 정리**:
+2. ~~리포 신규 생성~~ → **회장이 빈 리포 생성 완료, 코드 push·구조 재확인·README 정리까지 전부 완료.**
+3. **GitHub Marketplace 등록** — 남은 건 릴리스 생성(태그+Publish) 한 단계뿐. 이 세션의 git 프록시가 태그 push를 구조적으로 차단하고 GitHub MCP 서버에도 release 생성 도구가 없어, 이번엔 정말로 회장의 웹 UI 클릭이 필요하다(위 "회장 액션 필요" 절 참고) — 이건 어차피 "Publish to Marketplace" 체크박스 자체가 웹 UI 전용 기능이라 API로 될 가능성이 애초에 낮았던 부분과 겹친다.
+4. ~~Pro 상품 여부 판단~~ → **지금은 만들지 않음으로 결론(위 근거 참고).** 무료 배포로 실사용자 확보가 선행 조건.
+5. **회장 액션 필요 항목 정리**:
    - (a) Anthropic API 키 제공 또는 신규 Console 계정 가입 승인 — 리뷰 품질 검증에 필요.
-   - (b) **[신규, 2026-08-17] 빈 GitHub 리포 1개 생성** — https://github.com/new?owner=tossneon&name=code-review-board-action&visibility=public 에서 README/gitignore/license 체크 해제하고 "Create repository"만 클릭하면 끝(리포 생성 승인 자체는 이미 받았고 실행도 시도했으나, API로는 리포를 "만들" 수가 없어서 이 한 클릭만 회장 몫으로 남음 — push·태그·Marketplace 제출 준비는 전부 자동화 가능).
-   - 둘 다 완료 전까지는 무료 배포(README에 있는 사용법 그대로, 회장이나 다른 나다그룹 리포에 워크플로우 파일만 추가하는 방식)는 이미 가능한 상태 — Marketplace 등록 없이도 `uses: tossneon/tossneon.github.io/code-review-board-action@master` 같은 모노레포 내부 경로 참조로 즉시 시범 사용 가능(단, 외부 공개 사용성은 Marketplace 등록보다 떨어짐).
+   - (b) **[3차, 2026-08-17] 위 릴리스 생성 링크에서 클릭 4번** — https://github.com/tossneon/code-review-board-action/releases/new (태그 `v1.0.0` 생성 → 제목 입력 → Marketplace 체크박스+카테고리 → Publish release).
+   - (b)만 끝나면 `uses: tossneon/code-review-board-action@v1`(README 안내 그대로) 참조가 바로 살아나고 Marketplace 리스팅도 동시에 완료된다.
