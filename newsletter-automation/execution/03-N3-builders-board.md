@@ -68,9 +68,14 @@ who want the full set now.
 
 ---
 
-## 스티비 세팅
+## 스티비 세팅 (2026-08-18 완료)
 
-- 이메일 창간호 초안: 위 카피 그대로 (N1과 동일 워크플로)
-- 신규 주소록: "The Builder's Board" 별도 생성
-- 구독 페이지: 별도 슬러그로 생성 예정(예: `buildersboard.stibee.com`)
-- 진행 상태는 아래에 기록
+N2(The Career Board)와 동일한 이슈·워크어라운드를 그대로 적용 — 상세 배경은
+[`02-N2-career-board.md`](02-N2-career-board.md#스티비-세팅-2026-08-18-완료) 참고.
+
+- 신규 주소록 "The Builder's Board" 생성 완료(기본 주소록 복사 후 이름 변경 방식).
+- 이메일 창간호 초안 작성 완료 — email id 3548776, 독립 연결로 저장 재확인.
+- 무브랜드 구독 폼: `https://page.stibee.com/subscriptions/511796`
+- 자체 랜딩페이지: `newsletter-automation/builders-board/index.html` →
+  `https://tossneon.github.io/newsletter-automation/builders-board/`
+- 구독자 첫 1명(`tossneon0@gmail.com`) 직접 추가.
