@@ -1,0 +1,8 @@
+name = "nada-company6-baby-place-registry"
+main = "index.ts"
+compatibility_date = "2026-01-01"
+
+# 무료 티어(workers.dev 서브도메인)로 배포됨. 커스텀 도메인 불필요.
+#
+# 이 Worker는 AI를 쓰지 않는다(키워드 매칭만) — 등록해야 할 비밀값(시크릿)이 없다.
+# 링크 fetch만 하므로 API 키 자체가 필요 없음.

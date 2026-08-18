@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="아기랑 갈 곳" />
-<meta name="description" content="링크나 상호명을 검색해 등록하는 아기 동반 장소 지도 — 태그, 즐겨찾기, 만족도, 실시간 공유" />
+<meta name="description" content="애기야가자·맘카페·인스타에서 발견한 곳을, 링크만 붙여넣으면 바로 저장해두는 육아 전용 지도 메모장 — 자동 구분값 제안, 만족도, 즐겨찾기, 실시간 공유" />
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
   * { box-sizing:border-box; }
@@ -51,9 +51,14 @@
   .draft input.name { width:100%; font-size:14px; font-weight:500; border-radius:8px; padding:8px 12px; margin-bottom:10px; border:1px solid #EDE0D2; background:#FDF9F4; color:#3B2E2A; box-sizing:border-box; }
   .draft-addr { font-size:11px; color:#A8998C; margin:-6px 0 10px 2px; }
   .draft label { font-size:11px; color:#A8998C; margin-bottom:6px; display:block; }
-  .chiprow { display:flex; gap:6px; margin-bottom:12px; }
-  .chip { flex:1; padding:6px; border-radius:8px; font-size:11px; font-weight:500; border:1px solid #EDE0D2; background:#FDF9F4; color:#8C8378; cursor:pointer; text-align:center; }
+  .chiprow { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .chip { flex:1 1 auto; min-width:64px; padding:6px 10px; border-radius:8px; font-size:11px; font-weight:500; border:1px solid #EDE0D2; background:#FDF9F4; color:#8C8378; cursor:pointer; text-align:center; }
   .chip.active { color:#fff; border:none; }
+  .typeaddrow { display:flex; align-items:center; gap:6px; margin-bottom:12px; }
+  .type-emoji-input { width:36px; flex-shrink:0; text-align:center; border-radius:8px; padding:6px 4px; border:1px dashed #EDE0D2; background:#FDF9F4; font-size:13px; color:#3B2E2A; font-family:inherit; }
+  .type-name-input { flex:1; min-width:0; border-radius:8px; padding:6px 10px; border:1px dashed #EDE0D2; background:#FDF9F4; font-size:12px; color:#3B2E2A; font-family:'Noto Sans KR',sans-serif; }
+  .type-emoji-input:focus, .type-name-input:focus { outline:none; border-color:#FF7B54; }
+  .type-add-btn { flex-shrink:0; padding:6px 12px; border-radius:8px; border:none; background:#EDE0D2; color:#fff; font-size:11px; font-weight:500; cursor:pointer; }
   .draft textarea { width:100%; font-size:14px; border-radius:8px; padding:8px 12px; margin-bottom:12px; border:1px solid #EDE0D2; background:#FDF9F4; color:#3B2E2A; resize:none; box-sizing:border-box; font-family:'Noto Sans KR',sans-serif; }
   .locbtn { width:100%; padding:9px; border-radius:8px; border:1px dashed #FFB69A; background:#FFF6F1; color:#FF7B54; font-size:12px; font-weight:500; cursor:pointer; margin-bottom:12px; }
   .locbtn.set { border-style:solid; border-color:#EDE0D2; background:#FDF9F4; color:#8C8378; }
@@ -64,6 +69,14 @@
   .fbtn.active { background:#3B2E2A; color:#FDF4EC; }
   .favbtn { flex-shrink:0; width:32px; height:32px; border-radius:999px; display:flex; align-items:center; justify-content:center; border:1px solid #EDE0D2; background:#fff; cursor:pointer; font-size:14px; }
   .favbtn.active { background:#FFD966; }
+
+  .typemgr { margin:8px 20px 0; display:flex; flex-direction:column; gap:6px; }
+  .typemgr-row { display:flex; align-items:center; gap:8px; background:#fff; border:1px solid #EDE0D2; border-radius:10px; padding:8px 10px; }
+  .typemgr-badge { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; }
+  .typemgr-name { flex:1; min-width:0; border:none; border-bottom:1px solid transparent; background:transparent; font-size:12px; color:#3B2E2A; padding:4px 0; font-family:'Noto Sans KR',sans-serif; }
+  .typemgr-name:focus { outline:none; border-bottom-color:#FF7B54; }
+  .typemgr-del { flex-shrink:0; background:none; border:none; cursor:pointer; font-size:10px; color:#C9BEAE; }
+  .typemgr-del.confirm { color:#fff; background:#E0574C; padding:5px 10px; border-radius:8px; font-weight:500; font-size:11px; }
 
   .listbar { padding:10px 20px 0; }
   .searchbox { display:flex; align-items:center; gap:6px; border-radius:999px; padding:6px 6px 6px 14px; background:#fff; border:1px solid #EDE0D2; }
@@ -86,6 +99,7 @@
   .pcard-meta { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
   .badge { font-size:10px; font-weight:600; padding:2px 8px; border-radius:999px; color:#fff; }
   .noloc { font-size:10px; font-weight:500; color:#FF7B54; }
+  .autotag { font-size:10px; font-weight:500; color:#8C8378; }
   .pname { font-size:14px; font-weight:500; margin-top:6px; color:#3B2E2A; }
   .paddr { font-size:11px; margin-top:2px; color:#B98B4E; }
   .pmemo { font-size:12px; margin-top:4px; line-height:1.5; color:#A8998C; }
@@ -125,7 +139,7 @@
       <button class="sharebtn" id="share-btn">🔗 공유</button>
     </div>
     <h1 class="display">아기랑 갈 곳</h1>
-    <p class="sub">상호명을 검색하면 바로 등록돼요</p>
+    <p class="sub">다른 데서 본 곳, 링크만 붙여넣으면 저장돼요</p>
   </div>
 
   <div class="map-wrap">
@@ -136,6 +150,7 @@
   <div class="addwrap" id="addwrap"></div>
 
   <div class="filters" id="filters"></div>
+  <div id="type-manager"></div>
   <div class="listbar" id="listbar"></div>
   <div class="sortrow" id="sortrow"></div>
   <div class="list" id="list"></div>
@@ -186,6 +201,7 @@ async function initCloudSync(){
     const app = initializeApp(FIREBASE_CONFIG);
     const db = getFirestore(app);
     const col = collection(db, "places");
+    const typesCol = collection(db, "types"); // 사용자 커스텀 구분값 — places와 같은 프로젝트, 별도 컬렉션
 
     window.cloudSync = {
       ready: true,
@@ -206,6 +222,24 @@ async function initCloudSync(){
       },
       deletePlace(id){
         return deleteDoc(doc(col, id));
+      },
+      subscribeTypes(cb){
+        return onSnapshot(typesCol, snap => {
+          cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        }, err => {
+          console.error("Firestore custom-type sync error", err);
+          alert("구분값 동기화 연결에 문제가 생겼어요: " + err.message);
+        });
+      },
+      addType(t){
+        const { id, createdAt, ...rest } = t;
+        return addDoc(typesCol, stripUndefined({ ...rest, createdAt: serverTimestamp() }));
+      },
+      updateType(id, patch){
+        return updateDoc(doc(typesCol, id), stripUndefined(patch));
+      },
+      deleteType(id){
+        return deleteDoc(doc(typesCol, id));
       }
     };
   } catch(err){
@@ -220,7 +254,7 @@ initCloudSync();
 <script>
 const KAKAO_APP_KEY = "391b39ae5de6f3152db3258ae09cd86b";
 
-const TYPES = [
+const BASE_TYPES = [
   { key:"야외놀이", color:"#3AAFA9", icon:"🌳" },
   { key:"실내놀이", color:"#6C8EBF", icon:"🎠" },
   { key:"식당", color:"#FF7B54", icon:"🍽️" },
@@ -230,6 +264,17 @@ const TYPES = [
 ];
 const TYPE_PRIORITY = ["야외놀이", "실내놀이", "식당", "카페", "숙소", "기타"]; // 핀 대표 아이콘 우선순위 — 노는 것 위주
 const LEGACY_TYPE_MAP = { "놀곳":"야외놀이", "먹을곳":"식당" }; // 구 분류값 호환 — 저장된 데이터는 그대로 두고 표시할 때만 변환
+const DEFAULT_TYPE_INFO = { color:"#8C8378", icon:"📍" }; // 삭제된 커스텀 구분값 등 매칭 실패 시 안전한 기본값
+const CUSTOM_TYPE_COLORS = ["#5B8C5A","#C97064","#4F86C6","#A2678A","#D4A24C","#5C9EAD","#9C6644","#6F7CB3"]; // 커스텀 구분값 자동 배정 팔레트 — 순환 배정
+
+// 사용자가 추가한 커스텀 구분값. 기본 6종(BASE_TYPES)에 이어붙여 화면에선 늘 allTypes()를 통해서만 참조한다.
+let customTypes = [];
+const TYPES_STORAGE_KEY = "baby-place-registry:customTypes";
+
+function allTypes(){ return [...BASE_TYPES, ...customTypes]; }
+function typePriorityList(){ return [...TYPE_PRIORITY, ...customTypes.map(t => t.key)]; } // 커스텀 타입은 우선순위 끝에 붙임
+function nextCustomColor(){ return CUSTOM_TYPE_COLORS[customTypes.length % CUSTOM_TYPE_COLORS.length]; }
+
 function normalizeTypes(p){
   let arr;
   if(Array.isArray(p.types) && p.types.length) arr = p.types;
@@ -238,7 +283,138 @@ function normalizeTypes(p){
   return arr.map(t => LEGACY_TYPE_MAP[t] || t);
 }
 function primaryType(types){
-  return TYPE_PRIORITY.find(k => types.includes(k)) || types[0];
+  const order = typePriorityList();
+  return order.find(k => types.includes(k)) || types[0];
+}
+
+function loadLocalTypes(){
+  const saved = localStorage.getItem(TYPES_STORAGE_KEY);
+  if(saved){
+    try {
+      const parsed = JSON.parse(saved);
+      if(Array.isArray(parsed)) customTypes = parsed;
+    } catch(e){ /* 저장값 손상 시 빈 목록으로 시작 */ }
+  }
+}
+function persistTypes(){
+  if(isCloud) return;
+  localStorage.setItem(TYPES_STORAGE_KEY, JSON.stringify(customTypes));
+}
+
+function createCustomType(nameRaw, iconRaw){
+  const key = (nameRaw || "").trim();
+  if(!key) return null;
+  if(allTypes().some(t => t.key === key)){
+    alert(`"${key}" 구분값은 이미 있어요.`);
+    return null;
+  }
+  const icon = (iconRaw || "").trim() || "🏷️";
+  const color = nextCustomColor();
+  const newType = { key, icon, color };
+  if(isCloud){
+    window.cloudSync.addType(newType).catch(cloudFail);
+    return newType; // 실제 목록 반영은 실시간 구독으로 곧 들어옴 (장소 등록과 동일한 패턴)
+  }
+  newType.id = "custom-" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+  customTypes = [...customTypes, newType];
+  persistTypes();
+  renderFilters();
+  return newType;
+}
+
+function typeAddRowHtml(extraAttr){
+  return `
+    <div class="typeaddrow" ${extraAttr}>
+      <input class="type-emoji-input" maxlength="4" placeholder="🏷️" />
+      <input class="type-name-input" placeholder="+ 새 구분 추가" onkeydown="if(event.key==='Enter'){event.preventDefault(); this.closest('.typeaddrow').querySelector('.type-add-btn').click();}" />
+      <button type="button" class="type-add-btn" onclick="handleTypeAddClick(this)">추가</button>
+    </div>`;
+}
+function handleTypeAddClick(btn){
+  const row = btn.closest(".typeaddrow");
+  const nameInput = row.querySelector(".type-name-input");
+  const emojiInput = row.querySelector(".type-emoji-input");
+  const nt = createCustomType(nameInput.value, emojiInput.value);
+  if(!nt) return;
+  if(row.dataset.kind === "draft" && draft){
+    draft.types = [...draft.types, nt.key];
+    renderAdd();
+  } else if(row.dataset.kind === "edit" && editingId === row.dataset.editId && editBuffer){
+    editBuffer.types = [...editBuffer.types, nt.key];
+    renderList();
+  }
+}
+
+let typeManagerOpen = false;
+let pendingTypeDeleteKey = null;
+let pendingTypeDeleteTimer = null;
+function renderTypeManager(){
+  const el = document.getElementById("type-manager");
+  if(!el) return;
+  if(!typeManagerOpen || customTypes.length === 0){ el.innerHTML = ""; return; }
+  el.innerHTML = `<div class="typemgr">` + customTypes.map(t => `
+    <div class="typemgr-row" data-key="${esc(t.key)}">
+      <span class="typemgr-badge" style="background:${t.color}">${t.icon}</span>
+      <input class="typemgr-name" value="${esc(t.key)}" />
+      <button type="button" class="typemgr-del ${pendingTypeDeleteKey===t.key?'confirm':''}" data-key="${esc(t.key)}">${pendingTypeDeleteKey===t.key ? "삭제 확정" : "삭제"}</button>
+    </div>`).join("") + `</div>`;
+  el.querySelectorAll(".typemgr-name").forEach(input => {
+    input.addEventListener("change", e => {
+      const row = e.target.closest(".typemgr-row");
+      renameCustomType(row.dataset.key, e.target.value);
+    });
+  });
+  el.querySelectorAll(".typemgr-del").forEach(btn => {
+    btn.addEventListener("click", () => requestDeleteType(btn.dataset.key));
+  });
+}
+async function renameCustomType(oldKey, newNameRaw){
+  const newName = newNameRaw.trim();
+  if(!newName || newName === oldKey){ renderTypeManager(); return; }
+  if(allTypes().some(t => t.key === newName)){
+    alert(`"${newName}" 구분값은 이미 있어요.`);
+    renderTypeManager();
+    return;
+  }
+  const affected = places.filter(p => (p.types||[]).includes(oldKey));
+  try {
+    if(isCloud){
+      const typeDoc = customTypes.find(t => t.key === oldKey);
+      if(typeDoc) await window.cloudSync.updateType(typeDoc.id, { key: newName });
+      await Promise.all(affected.map(p => window.cloudSync.updatePlace(p.id, { types: p.types.map(t => t===oldKey ? newName : t) })));
+      // 실제 목록 반영은 places/types 실시간 구독으로 들어옴
+    } else {
+      customTypes = customTypes.map(t => t.key===oldKey ? {...t, key:newName} : t);
+      places = places.map(p => (p.types||[]).includes(oldKey) ? {...p, types:p.types.map(t => t===oldKey ? newName : t)} : p);
+      persistTypes();
+      persist();
+      renderAll();
+    }
+  } catch(err){ cloudFail(err); }
+}
+function requestDeleteType(key){
+  clearTimeout(pendingTypeDeleteTimer);
+  if(pendingTypeDeleteKey === key){
+    pendingTypeDeleteKey = null;
+    deleteCustomType(key);
+    return;
+  }
+  pendingTypeDeleteKey = key;
+  pendingTypeDeleteTimer = setTimeout(() => { pendingTypeDeleteKey = null; renderTypeManager(); }, 3000);
+  renderTypeManager();
+}
+function deleteCustomType(key){
+  // 구분값 정의만 지운다 — 이미 이 구분값을 쓰고 있는 장소의 types 문자열은 그대로 남아 데이터 손실이 없다.
+  const typeDoc = customTypes.find(t => t.key === key);
+  if(!typeDoc) return;
+  if(filterType === key) filterType = "전체";
+  if(isCloud){
+    window.cloudSync.deleteType(typeDoc.id).catch(cloudFail);
+  } else {
+    customTypes = customTypes.filter(t => t.key !== key);
+    persistTypes();
+    renderAll();
+  }
 }
 const SATISFACTIONS = [
   { key:"최고", emoji:"😍", color:"#3AAFA9" },
@@ -352,6 +528,60 @@ function guessName(raw){
     catch { return "붙여넣은 링크"; }
   }
   return raw.trim();
+}
+
+/* ---- "진짜" 자동 분류: 키워드 매칭 (AI 호출 없음, 즉시 판단) ----
+   순서가 중요하다 — "키즈카페"는 "카페" 문자열을 포함하므로, 더 구체적인
+   실내/야외 규칙을 먼저 검사해야 엉뚱하게 "카페"로 먼저 잡히지 않는다. */
+const TYPE_KEYWORD_RULES = [
+  { type:"실내놀이", keywords:["키즈카페","실내놀이터","키즈풀","볼풀","트램폴린","실내체험","키즈룸","놀이방","실내키즈","베이비카페"] },
+  { type:"야외놀이", keywords:["놀이터","공원","테마파크","동물원","수목원","체험농장","캠핑장","물놀이장","워터파크","전망대","목장","식물원","분수광장"] },
+  { type:"식당", keywords:["맛집","식당","국수","분식","레스토랑","고깃집","한식","중식","일식","해물","곱창","냉면","돈까스","김밥","백반","이유식","키즈메뉴"] },
+  { type:"카페", keywords:["카페","커피","베이커리","디저트","브런치","제과점","빵집"] },
+  { type:"숙소", keywords:["호텔","펜션","리조트","스테이","모텔","게스트하우스","글램핑","풀빌라","숙박"] },
+];
+function guessTypeFromText(text){
+  if(!text) return null;
+  const hay = text.toLowerCase();
+  const hit = TYPE_KEYWORD_RULES.find(rule => rule.keywords.some(k => hay.includes(k.toLowerCase())));
+  return hit ? hit.type : null;
+}
+
+/* ---- "진짜" 자동 분류: 링크는 Worker가 대신 열어서 제목/설명을 가져온다 ----
+   저장 자체는 절대 기다리지 않는다 — 카드는 즉시 생기고, 이 함수는 그 뒤 백그라운드에서
+   실행돼 이름·구분값을 조용히 갱신한다. 사용자가 그 사이 직접 수정하면(classifying:false)
+   더 이상 덮어쓰지 않는다. */
+const LINK_EXTRACT_URL = "https://nada-company6-baby-place-registry.tossneon.workers.dev/extract";
+const CLASSIFY_STALE_MS = 2 * 60 * 1000; // 이보다 오래 "분류중"이면 UI에서 스피너를 그만 보여준다(새로고침 타이밍 등으로 영영 안 끝날 수 있어서)
+
+async function classifyLinkInBackground(id, url){
+  try {
+    const res = await fetch(`${LINK_EXTRACT_URL}?url=${encodeURIComponent(url)}`);
+    const json = await res.json().catch(() => ({}));
+    if(!res.ok || json.error) throw new Error(json.error || `추출 실패 (${res.status})`);
+    const meta = json.data || {};
+    const guessedType = guessTypeFromText([meta.title, meta.description].filter(Boolean).join(" "));
+    const patch = { classifying:false };
+    if(meta.title && meta.title.trim()) patch.name = meta.title.trim().slice(0,80);
+    if(guessedType) patch.types = [guessedType];
+    applyAutoClassifyPatch(id, patch);
+  } catch(err){
+    console.warn("링크 자동분류 실패(수동으로 채우면 돼요)", err);
+    applyAutoClassifyPatch(id, { classifying:false });
+  }
+}
+function applyAutoClassifyPatch(id, patch){
+  const current = places.find(p => p.id===id);
+  if(current && current.classifying === false) return; // 그 사이 사용자가 이미 직접 수정 — 자동분류 결과로 덮어쓰지 않음
+  if(isCloud){
+    window.cloudSync.updatePlace(id, patch).catch(() => {});
+  } else {
+    if(!current) return; // 로컬 모드는 배열이 정본이라 이미 삭제됐으면 더 할 게 없음
+    places = places.map(x => x.id===id ? {...x, ...patch} : x);
+    renderList();
+    renderMarkers();
+    persist();
+  }
 }
 
 function visiblePlaces(){
@@ -505,12 +735,14 @@ function runSearch(query){
 }
 
 function pickSearchResult(item){
+  // 검색 결과는 이미 카카오가 준 상호명·카테고리가 있어서 즉시(네트워크 대기 없이) 키워드 추정 가능
+  const guessedType = guessTypeFromText([item.place_name, item.category_name].filter(Boolean).join(" "));
   draft = {
     raw: item.place_name,
     source: "search",
     name: item.place_name,
     address: item.road_address_name || item.address_name || "",
-    types: ["야외놀이"],
+    types: [guessedType || "야외놀이"],
     memo: "",
     lat: parseFloat(item.y),
     lng: parseFloat(item.x)
@@ -537,6 +769,7 @@ function renderDraftForm(el){
       ${draft.address ? `<div class="draft-addr">${esc(draft.address)}</div>` : ""}
       <label>유형 (여러 개 선택 가능 — 놀면서 먹는 곳이면 둘 다)</label>
       <div class="chiprow" id="type-row"></div>
+      ${typeAddRowHtml('data-kind="draft"')}
       <textarea id="draft-memo" rows="2" placeholder="메모 (주차 등)">${esc(draft.memo)}</textarea>
       <button type="button" class="locbtn ${hasLoc(draft) ? 'set' : ''}" id="loc-btn">${hasLoc(draft) ? "📍 위치 수정" : "📍 위치 설정"}</button>
       <button class="save" id="save-btn">등록하기</button>
@@ -549,7 +782,7 @@ function renderDraftForm(el){
     openPicker(hasLoc(draft) ? { lat:draft.lat, lng:draft.lng } : null, loc => { draft.lat = loc.lat; draft.lng = loc.lng; renderAdd(); });
   });
 
-  document.getElementById("type-row").innerHTML = TYPES.map(t => `<div class="chip ${draft.types.includes(t.key)?'active':''}" data-t="${t.key}" style="${draft.types.includes(t.key)?`background:${t.color};`:''}">${t.key}</div>`).join("");
+  document.getElementById("type-row").innerHTML = allTypes().map(t => `<div class="chip ${draft.types.includes(t.key)?'active':''}" data-t="${t.key}" style="${draft.types.includes(t.key)?`background:${t.color};`:''}">${esc(t.key)}</div>`).join("");
   document.querySelectorAll("#type-row .chip").forEach(chip => chip.addEventListener("click", () => {
     const key = chip.dataset.t;
     if(draft.types.includes(key)){
@@ -565,7 +798,11 @@ function startRegister(){
   const raw = rawInput.trim();
   if(!raw) return;
   const center = mapReady ? currentMapCenter() : null;
-  draft = { raw, source: detectSource(raw), name: guessName(raw), types:["야외놀이"], memo:"", lat: center ? center.lat : undefined, lng: center ? center.lng : undefined };
+  const source = detectSource(raw);
+  // 텍스트/링크 원문 자체에서 바로 뽑을 수 있는 힌트가 있으면 즉시 반영(네트워크 대기 없음).
+  // 링크는 이후 confirmRegister에서 저장 직후 백그라운드로 실제 페이지 내용까지 한 번 더 확인한다.
+  const guessedType = guessTypeFromText(raw);
+  draft = { raw, source, name: guessName(raw), types: guessedType ? [guessedType] : ["야외놀이"], memo:"", lat: center ? center.lat : undefined, lng: center ? center.lng : undefined };
   rawInput = "";
   renderAdd();
 }
@@ -575,16 +812,22 @@ function confirmRegister(){
   if(!draft || !draft.name.trim()) return;
   const dup = findDuplicate(draft);
   if(dup && !confirm(`"${dup.name}"(으)로 이미 등록되어 있어요${dup.address ? "\n" + dup.address : ""}\n그래도 등록할까요?`)) return;
-  const newPlace = { favorite:false, createdAt: Date.now(), ...draft };
+  const shouldClassify = draft.source === "link"; // 링크만 백그라운드에서 실제 페이지를 열어 재확인
+  const rawUrl = draft.raw;
+  const newPlace = { favorite:false, createdAt: Date.now(), classifying: shouldClassify, ...draft };
   draft = null;
   renderAdd();
   if(isCloud){
-    window.cloudSync.addPlace(newPlace).catch(cloudFail);
+    window.cloudSync.addPlace(newPlace).then(ref => {
+      if(shouldClassify) classifyLinkInBackground(ref.id, rawUrl);
+    }).catch(cloudFail);
   } else {
-    places.unshift({ id: String(idSeq++), ...newPlace });
+    const id = String(idSeq++);
+    places.unshift({ id, ...newPlace });
     renderList();
     renderMarkers();
     persist();
+    if(shouldClassify) classifyLinkInBackground(id, rawUrl);
   }
 }
 function toggleFav(id){
@@ -684,7 +927,8 @@ function editSave(id){
   const patch = {
     name: editBuffer.name.trim() || "이름 없음",
     types: editBuffer.types.length ? editBuffer.types : ["기타"],
-    memo: editBuffer.memo
+    memo: editBuffer.memo,
+    classifying: false // 사용자가 직접 저장했으니 이후 백그라운드 자동분류 결과로 덮어쓰지 않음
   };
   editingId = null;
   editBuffer = null;
@@ -701,11 +945,16 @@ function editSave(id){
 
 function renderFilters(){
   const el = document.getElementById("filters");
-  const types = ["전체", ...TYPES.map(t=>t.key)];
-  el.innerHTML = types.map(t => `<button class="fbtn ${filterType===t?'active':''}" data-t="${t}">${t}</button>`).join("")
-    + `<button class="favbtn ${favOnly?'active':''}" id="fav-toggle">⭐</button>`;
+  const types = ["전체", ...allTypes().map(t=>t.key)];
+  el.innerHTML = types.map(t => `<button class="fbtn ${filterType===t?'active':''}" data-t="${esc(t)}">${esc(t)}</button>`).join("")
+    + `<button class="favbtn ${favOnly?'active':''}" id="fav-toggle">⭐</button>`
+    + (customTypes.length ? `<button class="favbtn ${typeManagerOpen?'active':''}" id="type-manage-toggle" title="구분값 관리">⚙️</button>` : "");
   el.querySelectorAll(".fbtn").forEach(b => b.addEventListener("click", () => { filterType = b.dataset.t; renderFilters(); renderList(); renderMarkers(); }));
   document.getElementById("fav-toggle").addEventListener("click", () => { favOnly = !favOnly; renderFilters(); renderList(); renderMarkers(); });
+  if(customTypes.length){
+    document.getElementById("type-manage-toggle").addEventListener("click", () => { typeManagerOpen = !typeManagerOpen; renderFilters(); });
+  }
+  renderTypeManager();
 }
 
 function renderListBar(){
@@ -756,7 +1005,7 @@ function renderSortRow(){
 }
 
 function editChipRowHtml(id, activeTypes){
-  return TYPES.map(t => `<div class="chip ${activeTypes.includes(t.key)?'active':''}" style="${activeTypes.includes(t.key)?`background:${t.color};`:''}" onclick="editToggleType('${id}','${t.key}')">${t.key}</div>`).join("");
+  return allTypes().map(t => `<div class="chip ${activeTypes.includes(t.key)?'active':''}" style="${activeTypes.includes(t.key)?`background:${t.color};`:''}" onclick="editToggleType('${id}','${t.key}')">${esc(t.key)}</div>`).join("");
 }
 function placeEditCardHtml(p, buf){
   return `
@@ -769,6 +1018,7 @@ function placeEditCardHtml(p, buf){
       ${p.address ? `<div class="draft-addr">${esc(p.address)}</div>` : ""}
       <label>유형 (여러 개 선택 가능 — 놀면서 먹는 곳이면 둘 다)</label>
       <div class="chiprow">${editChipRowHtml(p.id, buf.types)}</div>
+      ${typeAddRowHtml(`data-kind="edit" data-edit-id="${p.id}"`)}
       <textarea rows="2" placeholder="메모 (주차 등)" oninput="editUpdateField('${p.id}','memo', this.value)">${esc(buf.memo)}</textarea>
       <button type="button" class="locbtn ${hasLoc(p) ? 'set' : ''}" onclick="setLocationFor('${p.id}')">${hasLoc(p) ? "📍 위치 수정" : "📍 위치 설정"}</button>
       <button class="save" onclick="editSave('${p.id}')">저장</button>
@@ -779,9 +1029,10 @@ function placeCardHtml(p){
   if(p.id === editingId && editBuffer) return placeEditCardHtml(p, editBuffer);
   const located = hasLoc(p);
   const sourceIcon = p.source==="search" ? "🔍" : p.source==="link" ? "🔗" : "";
+  const stillClassifying = p.classifying && (Date.now() - getCreatedAt(p) < CLASSIFY_STALE_MS);
   const badges = (p.types||[]).map(tk => {
-    const ti = TYPES.find(t=>t.key===tk);
-    return `<span class="badge" style="background:${ti?.color}">${esc(tk)}</span>`;
+    const ti = allTypes().find(t=>t.key===tk) || DEFAULT_TYPE_INFO;
+    return `<span class="badge" style="background:${ti.color}">${esc(tk)}</span>`;
   }).join("");
   return `
     <div class="pcard" data-id="${p.id}" onclick="onCardClick('${p.id}')">
@@ -790,6 +1041,7 @@ function placeCardHtml(p){
           <div class="pcard-meta">
             ${badges}
             ${sourceIcon ? `<span style="font-size:10px;color:#C9BEAE;">${sourceIcon}</span>` : ""}
+            ${stillClassifying ? `<span class="autotag">🔎 분류중…</span>` : ""}
             ${!located ? `<span class="noloc">📍 위치 미지정 · 탭해서 설정</span>` : ""}
           </div>
           <div class="pname">${esc(p.name)}</div>
@@ -877,9 +1129,9 @@ function initMap(){
 function createMarkerEl(place){
   const types = place.types && place.types.length ? place.types : ["기타"];
   const mainKey = primaryType(types);
-  const typeInfo = TYPES.find(t => t.key===mainKey) || TYPES[TYPES.length-1];
+  const typeInfo = allTypes().find(t => t.key===mainKey) || DEFAULT_TYPE_INFO;
   const subKey = types.find(t => t !== mainKey);
-  const subIcon = subKey ? (TYPES.find(t => t.key===subKey) || {}).icon : "";
+  const subIcon = subKey ? (allTypes().find(t => t.key===subKey) || {}).icon : "";
   const wrap = document.createElement("div");
   wrap.className = "pin";
   wrap.style.background = typeInfo.color;
@@ -973,13 +1225,19 @@ function boot(){
   if(window.cloudSync && window.cloudSync.ready){
     isCloud = true;
     places = []; // 첫 스냅샷 오기 전까지 하드코딩된 샘플이 잠깐 보이지 않도록
+    customTypes = [];
     window.cloudSync.subscribe(newPlaces => {
       places = newPlaces.map(p => ({...p, types: normalizeTypes(p)}));
+      renderAll();
+    });
+    window.cloudSync.subscribeTypes(newTypes => {
+      customTypes = newTypes.map(t => ({ id:t.id, key:t.key, icon:t.icon || "🏷️", color:t.color || DEFAULT_TYPE_INFO.color }));
       renderAll();
     });
   } else {
     isCloud = false;
     loadLocalState();
+    loadLocalTypes();
   }
   renderAll();
   initMapOrFallback();
