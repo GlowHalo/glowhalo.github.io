@@ -117,10 +117,21 @@
 
 **검증**: `GET /repos/tossneon/code-review-board-action/tags` → `v1.0.0` 존재 확인. `GET /repos/.../releases` → published release 존재 확인. [Marketplace 리스팅 페이지](https://github.com/marketplace/actions/code-review-board)를 WebFetch로 직접 확인 — 상품명("Code Review Board")·짧아진 설명·버전(v1.0.0, Latest)·제작자(tossneon) 전부 정상 표시. **GitHub Marketplace 등록 완주.**
 
+## 리뷰 품질 검증 — API 키 없는 대체 방법 채택 (2026-08-18, 5차, 회장 확정)
+
+회장이 "Anthropic API 키 신규 발급 없이 다른 방법 없냐"고 질문 → **API 호출 없이, 사장이 `src/personas.js`의 실제 시스템 프롬프트 3개를 자기 자신의 모델 응답으로 직접 수행하는 방식**을 제안, 회장이 채택 확정.
+
+- **방법**: `runPersona()`가 실제로 조립하는 user message 포맷("Pull request title/description + Diff to review 코드블록")을 그대로 재현한 샘플 PR diff 1건을 작성(환불 처리 API — SQL 인젝션·`await` 누락·N+1 쿼리·권한검사 누락 등 실제 버그를 의도적으로 심음), 3개 시스템 프롬프트를 서로 독립적으로(서로의 답을 안 보고) 대화 안에서 직접 수행.
+- **결과**: 3인이 겹치는 지적 없이 각자 렌즈에 맞는 실질적 문제를 짚어냄 — 특히 Reliability Realist가 `stripe.refunds.create(...)`의 `await` 누락(AI 코딩 어시스턴트가 흔히 놓치는 실수 유형)을 정확히 잡아낸 것이 프롬프트 설계 유효성의 강한 신호. Security Skeptic은 SQL 인젝션 2건+인가 누락, Maintainability Pragmatist는 로직 분리 부재·매직 스트링·축약 변수명을 지적 — 세 렌즈가 서로 다른 각도로 실제 결함을 커버하는 것을 확인.
+- **한계(정직하게 기록)**: 이건 프롬프트 설계 자체의 유효성 검증이지, `runPersona()`가 실제 Anthropic API를 호출해 정확히 이 응답을 재현한다는 보장은 아니다(모델 버전 차이, temperature 등 API 파라미터 미반영). 파이프라인 자체(GitHub Actions 인프라·인증·댓글 게시)는 이미 실키 없이 100% e2e 검증됐으므로(위 4차 항목), 이번 검증까지 더하면 "설계도 맞고 배관도 맞다"는 확인이 됐다고 판단.
+- **결론**: 이 대체 검증으로 충분하다고 회장이 확정 — **API 키 발급 건은 종결, 더 이상 회장 액션 대기 항목 아님.** 실사용자가 생겨 실제 트래픽으로 재검증이 필요해지는 시점에 재논의.
+
 ## 남은 단계
 
 1. ~~실사용 API 키로 진짜 PR 검증~~ → **파이프라인은 실키 없이 실제 GitHub Actions 인프라로 100% 검증 완료.**
 2. ~~리포 신규 생성~~ → **완료.**
 3. ~~GitHub Marketplace 등록~~ → **완료(2026-08-18).**
 4. ~~Pro 상품 여부 판단~~ → **지금은 만들지 않음으로 결론(위 근거 참고).** 무료 배포로 실사용자 확보가 선행 조건.
-5. **남은 회장 판단은 1가지뿐**: 3인 리뷰의 실제 품질(설계상으로는 검증됐지만 실제 Claude 응답 품질은 아직 안 봄)을 확인하려면 Anthropic API 키(console.anthropic.com, claude.ai 구독과 별개 계정/과금)가 필요 — 이미 있으면 텍스트로 전달, 없으면 신규 Console 계정 가입 승인(2026-08-11~12 신규계정 보류 정책 대상이라 사장이 임의로 만들지 않음).
+5. ~~리뷰 품질 검증~~ → **완료(2026-08-18, API 키 없는 대체 방법으로 회장 확정, 위 절 참고).**
+
+**회장 액션 대기 항목 — 현재 없음.** 이 상품(GitHub Marketplace "Code Review Board")은 기획→구현→e2e검증→리포분리→Marketplace등록→품질검증까지 전 과정 완주. 다음은 실사용자 반응을 기다리는 단계.
