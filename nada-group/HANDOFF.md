@@ -71,7 +71,7 @@
 ## 지금 구현 상태 (Phase 1 — 완료)
 
 - `Vite + React + TS`, `pixel-ai-office`와 동일 빌드 패턴(`base: "./"`, `outDir: "play"`).
-  라이브 예정 주소: `https://tossneon.github.io/holdco/play/`
+  라이브 예정 주소: `https://glowhalo.github.io/holdco/play/`
 - 파일 구조:
   - `src/characters/` — 트레잇 팔레트·해시(`traits.ts`), SVG 심볼 정의(`CharacterDefs.tsx`),
     합성 렌더 컴포넌트(`CharacterSprite.tsx`)

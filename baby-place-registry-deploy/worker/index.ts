@@ -12,7 +12,7 @@ export interface Env {}
 
 // 이 Worker를 호출할 수 있는 곳. 필요해지면 여기에 오리진을 더 추가한다.
 const ALLOWED_ORIGINS = new Set([
-  "https://tossneon.github.io",
+  "https://glowhalo.github.io",
   "http://localhost:5173",
   "http://localhost:3000",
   "http://127.0.0.1:5173",
@@ -22,10 +22,10 @@ const ALLOWED_ORIGINS = new Set([
 const FETCH_TIMEOUT_MS = 8000;
 const MAX_BODY_BYTES = 2_000_000; // 2MB — 메타태그는 보통 <head>에 있으니 전체를 다 받을 필요 없음
 const USER_AGENT =
-  "Mozilla/5.0 (compatible; BabyPlaceRegistryBot/1.0; +https://tossneon.github.io/baby-place-registry-deploy/)";
+  "Mozilla/5.0 (compatible; BabyPlaceRegistryBot/1.0; +https://glowhalo.github.io/baby-place-registry-deploy/)";
 
 function corsHeaders(origin: string | null): HeadersInit {
-  const allow = origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://tossneon.github.io";
+  const allow = origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://glowhalo.github.io";
   return {
     "Access-Control-Allow-Origin": allow,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",

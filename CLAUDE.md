@@ -1,7 +1,7 @@
 # 작업실 허브 (모노레포)
 
-이 폴더 하나가 GitHub 저장소 `tossneon/tossneon.github.io` (**public**, user-site repo) 이다.
-하위 폴더 하나 = 프로젝트 하나이고, `https://tossneon.github.io/<폴더>/` 로 배포된다. push 한 번 = 백업 + 배포.
+이 폴더 하나가 GitHub 저장소 `glowhalo/GlowHalo.github.io` (**public**, user-site repo) 이다.
+하위 폴더 하나 = 프로젝트 하나이고, `https://glowhalo.github.io/<폴더>/` 로 배포된다. push 한 번 = 백업 + 배포.
 
 - 새 프로젝트 = 루트에 **영문 slug 폴더**를 추가하고 루트에서 push. **별도 저장소를 만들지 말 것.**
 - 어떤 프로젝트가 독립 주소가 꼭 필요해지면 그것만 `git subtree split` 으로 분리한다.

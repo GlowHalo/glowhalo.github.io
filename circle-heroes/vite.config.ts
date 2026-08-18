@@ -2,9 +2,9 @@ import { defineConfig } from "vite";
 import { existsSync, mkdirSync, readdirSync, cpSync, statSync, createReadStream } from "node:fs";
 import { resolve, extname } from "node:path";
 
-// GitHub Pages는 이 폴더를 https://tossneon.github.io/circle-heroes/ 로 정적 서빙하므로
+// GitHub Pages는 이 폴더를 https://glowhalo.github.io/circle-heroes/ 로 정적 서빙하므로
 // 빌드 산출물을 상대경로(base './')로 만들어 play/ 폴더에 커밋한다.
-// 라이브 주소: https://tossneon.github.io/circle-heroes/play/
+// 라이브 주소: https://glowhalo.github.io/circle-heroes/play/
 
 // 코드에서 실제로 쓰는 에셋 폴더만 루트에 평평하게 서빙(dev+build 공통).
 // cards/(116MB, 원본 PNG)는 아직 코드에서 참조하지 않으므로 제외 — cards-webp(6.8MB, 압축본)는

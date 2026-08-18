@@ -20,7 +20,7 @@
 
 - 코드 전체: `promptdeck/` 폴더 (manifest V3, popup, options, content script, background service worker, 공유 storage 헬퍼, 15개 프롬프트 프리셋)
 - 아이콘 3종(16/48/128px) — 헤드리스 브라우저로 HTML/CSS를 직접 렌더링해 생성(이미지 생성 도구 없이도 충분히 만들 수 있는 방식 확인)
-- `privacy.html` — 크롬 웹스토어 심사에 필수인 개인정보처리방침, 배포되면 `https://tossneon.github.io/promptdeck/privacy.html`
+- `privacy.html` — 크롬 웹스토어 심사에 필수인 개인정보처리방침, 배포되면 `https://glowhalo.github.io/promptdeck/privacy.html`
 - 로컬 테스트 방법 포함 README
 
 ## ⚠️ 막힌 것 — Gumroad 라이선스 상품(`promptdeck-pro`) 생성이 하네스에 막힘
@@ -97,7 +97,7 @@ A1과 동일 계정·동일 정산 구조(Gumroad 계좌 직접입금) 재사용
 **발견 2 — 더 근본적인 문제: 라이선스를 사도 "설치할 곳"이 없었음.** Firefox Add-ons 심사 상태를 API로 재확인(`GET /api/v5/addons/addon/promptdeck/`) → 여전히 `status: nominated, file status: unreviewed`(미승인). itch.io는 A2 문서 위 섹션에 기록된 대로 회장이 프로젝트 페이지를 만들어야 진행 가능한 상태로 계속 대기 중. Chrome 웹스토어는 미착수. **즉 이 시점까지 PromptDeck 확장을 실제로 설치할 수 있는 공개 경로가 어디에도 없었다** — 상품을 완벽하게 꾸며도 "설치가 안 되는 라이선스"를 파는 셈이라 근본 수정이 필요했다.
 
 **조치 — 스토어 승인을 기다리지 않고 지금 바로 완결되는 경로로 우회:**
-- `promptdeck/promptdeck-extension.zip`(사이드로드용 zip) + `INSTALL.txt`(설치 안내: Chrome/Edge/Brave "개발자 모드 → 압축해제된 확장 프로그램 로드", Firefox 임시 로드 방법, 라이선스 잠금해제 방법)를 저장소에 커밋 → GitHub Pages로 `https://tossneon.github.io/promptdeck/promptdeck-extension.zip`에서 즉시 다운로드 가능하게 배포(배포 반영까지 약 30~40초 확인).
+- `promptdeck/promptdeck-extension.zip`(사이드로드용 zip) + `INSTALL.txt`(설치 안내: Chrome/Edge/Brave "개발자 모드 → 압축해제된 확장 프로그램 로드", Firefox 임시 로드 방법, 라이선스 잠금해제 방법)를 저장소에 커밋 → GitHub Pages로 `https://glowhalo.github.io/promptdeck/promptdeck-extension.zip`에서 즉시 다운로드 가능하게 배포(배포 반영까지 약 30~40초 확인).
 - 이걸로 **심사·승인 대기 없이 결제→설치→사용까지 전 과정이 지금 당장 완결됨.** Firefox/itch.io/Chrome 스토어 승인이 나면 그건 추가 배포 채널이 되는 것이지, 더 이상 구매 가능 여부의 전제조건이 아님.
 - 커버 이미지 3장 신규 제작(`promptdeck-exhibits/01-hero.png`~`03-crosssell.png`) — 헤드리스 브라우저로 HTML/CSS 렌더링(Cloudflare Browser Rendering, `page.setContent()`+스크린샷). 실제 확장 스크린샷이 아니라 디자인한 목업(팝업 UI 재현 + Free/Pro 비교 + A1 크로스셀 유도)이지만, 이전 세션들의 카카오 목업·아이콘 제작과 동일한 "이미지 생성 도구 없이 헤드리스 브라우저로 그려서 만드는" 검증된 방식.
 - Gumroad `PUT /v2/products/:id`로 name("PromptDeck Pro — Save AI Prompts Once, Insert Them Anywhere")·description(다른 3개와 동일한 HTML 구조: 훅→Free/Pro 비교→3단계 사용법→"왜 사이드로드인가"→FAQ→가격/환불)·tags(8개)·custom_summary·custom_receipt(설치 zip 링크+단계별 안내) 전부 채움. `POST /v2/products/:id/covers`로 커버 3장 raw.githubusercontent.com URL 임포트.
@@ -146,7 +146,7 @@ A1과 동일 계정·동일 정산 구조(Gumroad 계좌 직접입금) 재사용
 > - 계정·백엔드 없음 — `chrome.storage.sync`(브라우저 자체 동기화)만 사용.
 > - Free: 프롬프트 3개까지 저장. **Pro**(Gumroad 라이선스 키, 원타임 결제): 무제한 저장 + "AI Board of Directors" 15개 프롬프트팩 원클릭 임포트.
 > - **설치 방법(사이드로드)**: 이 페이지의 zip을 내려받아 압축을 풀고, `chrome://extensions`(또는 각 브라우저의 확장 관리 페이지)에서 **개발자 모드**를 켠 뒤 **"압축해제된 확장 프로그램을 로드"**로 방금 푼 폴더를 선택하면 바로 사용 가능. Chrome/Edge/Brave 등 Chromium 계열 대상.
-> - 개인정보처리방침: https://tossneon.github.io/promptdeck/privacy.html
+> - 개인정보처리방침: https://glowhalo.github.io/promptdeck/privacy.html
 >
 > 태그: `chrome-extension`, `productivity`, `ai`, `chatgpt`, `prompts`, `tool`
 

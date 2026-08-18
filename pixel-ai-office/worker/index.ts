@@ -8,12 +8,12 @@ import { integrationStatus, publishReport, type DayReport, type PublishEnv } fro
 
 // 이 Worker를 호출할 수 있는 곳. 필요해지면 여기에 오리진을 더 추가한다.
 const ALLOWED_ORIGINS = new Set([
-  "https://tossneon.github.io",
+  "https://glowhalo.github.io",
   "http://localhost:5173", // npm run dev 로컬 테스트용
 ]);
 
 function corsHeaders(origin: string | null): HeadersInit {
-  const allow = origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://tossneon.github.io";
+  const allow = origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://glowhalo.github.io";
   return {
     "Access-Control-Allow-Origin": allow,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",

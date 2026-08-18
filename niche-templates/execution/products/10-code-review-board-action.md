@@ -70,7 +70,7 @@
 2. **`mcp__github__create_repository`로 `tossneon/code-review-board-action` 생성 시도 → `403 Resource not accessible by integration` 반복 실패(재시도 포함 2회 동일).** 원인 조사 결과 이건 설정 누락이 아니라 **GitHub 플랫폼 자체의 구조적 제약**이다: `POST /user/repos`(개인 계정 소유 리포 생성 엔드포인트)는 OAuth 사용자 토큰만 받아들이고, GitHub App의 설치 토큰(installation token)은 애초에 이 엔드포인트를 호출할 권한을 절대 받을 수 없다 — 설치 시 "Administration" 권한을 아무리 넓게 줘도 소용없다(이건 조직(org) 리포에는 다르게 적용되지만 `tossneon`은 개인 계정). 즉 **회장이 GitHub 앱 권한 설정을 아무리 조정해도 API로는 안 풀리는 항목**이라는 뜻 — "먼저 스스로 조치를 시도한다" 원칙에 따라 대안 경로(`add_repo`/CCR 플랫폼의 별도 GitHub 연동, 순정 `git push`, 금고의 GitHub PAT 유무)까지 확인했으나 전부 막힘 확인(아래).
 3. 대안 경로 확인 결과:
    - `add_repo`(CCR 플랫폼 자체 GitHub 연동, MCP `github` 툴과는 별개 자격증명)로 시도 → `repository ... was not found` (존재하지 않는 리포라 당연히 실패, 생성 기능은 없음).
-   - 순정 `git ls-remote https://github.com/tossneon/code-review-board-action.git` → `could not read Username, terminal prompts disabled` (이 세션의 git 프록시 자격증명은 `tossneon.github.io` 리포 전용으로 매핑돼 있고 임의 리포엔 안 먹음).
+   - 순정 `git ls-remote https://github.com/tossneon/code-review-board-action.git` → `could not read Username, terminal prompts disabled` (이 세션의 git 프록시 자격증명은 `glowhalo.github.io` 리포 전용으로 매핑돼 있고 임의 리포엔 안 먹음).
    - 금고(`cloudflare-api-vault`)에 `github`로 시작하는 항목 자체가 없음(재확인 완료) — repo-scope가 아닌 범용 GitHub PAT를 등록해두면 다음부턴 이 블로커 자체가 안 생기지만, 지금은 없다.
 4. **결론 — 이번만큼은 진짜로 회장의 물리적 액션(GitHub 로그인)이 필요하다.** 아래 "회장 액션 필요" 참고. 리포가 일단 생성되면, `add_repo`(CCR 연동, `tossneon/family`처럼 이미 `can_push:true`로 잡히는 개인 리포도 있음 확인됨)로 push 권한을 다시 시도 → 성공하면 그 자리에서 곧바로 분리된 브랜치를 push하고 릴리스 태그(`v1.0.0`)까지 이어서 진행 가능. 안 되면(GitHub 앱이 "선택된 리포지토리"로만 설치돼 있어 신규 리포가 자동 포함 안 되는 경우) 앱의 리포 접근 범위에 새 리포를 추가하는 절차가 한 번 더 필요할 수 있다 — 그건 리포가 실제로 생긴 뒤에 재시도해서 정확히 안내하겠다.
 

@@ -3,7 +3,7 @@
 GlowHalo 9(신사업 서칭) E1 — 웨어러블 헬스데이터 AI 웰니스 인사이트 리포트.
 경영 의사결정·진행 상황은 [`biz-scouting/execution/E1-웰니스리포트.md`](../biz-scouting/execution/E1-웰니스리포트.md)가 정본. 이 문서는 코드/운영 방법만.
 
-라이브: `https://tossneon.github.io/rhythmnote/`
+라이브: `https://glowhalo.github.io/rhythmnote/`
 
 ## 지금 상태 — 무료 베타 (2026-08-12)
 

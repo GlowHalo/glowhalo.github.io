@@ -30,7 +30,7 @@ interface RoomRecord {
 }
 
 const ALLOWED_ORIGINS = new Set([
-  "https://tossneon.github.io",
+  "https://glowhalo.github.io",
   "http://localhost:5173",
   "http://localhost:3000",
   "http://127.0.0.1:5173",
@@ -43,7 +43,7 @@ const CODE_LENGTH = 12;
 const MAX_BODY_BYTES = 512 * 1024; // 리스트 하나가 이보다 커질 일은 없다 — 방어적 상한
 
 function corsHeaders(origin: string | null): HeadersInit {
-  const allow = origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://tossneon.github.io";
+  const allow = origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://glowhalo.github.io";
   return {
     "Access-Control-Allow-Origin": allow,
     "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",

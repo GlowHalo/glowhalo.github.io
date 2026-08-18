@@ -2,7 +2,7 @@
 
 SD 히어로 수집형 자동전투 방치형 게임. 모바일 APK로 설치해서 싱글플레이로 즐기는 걸 목표로 한다.
 
-라이브(웹 프로토타입): `https://tossneon.github.io/circle-heroes/`
+라이브(웹 프로토타입): `https://glowhalo.github.io/circle-heroes/`
 
 ## 확정된 방향 (기획)
 
@@ -72,7 +72,7 @@ SD 히어로 수집형 자동전투 방치형 게임. 모바일 APK로 설치해
 Capacitor로 안드로이드 프로젝트(`android/`)를 초기화했다(appId `io.github.tossneon.circleheroes`). 이 개발 컨테이너에는 **Android SDK가 없어** 로컬에서 직접 `gradlew assembleDebug`를 돌릴 수 없다.
 대신 **GitHub Actions**(`.github/workflows/circle-heroes-android.yml`)로 빌드한다 — 웹 빌드→`cap sync android`→`gradlew assembleDebug`를 러너에서 실행하고 결과 APK를 아티팩트로 올린다.
 
-- **폰에서 바로 받기**: https://github.com/tossneon/tossneon.github.io/releases/download/circle-heroes-latest/app-debug.apk
+- **폰에서 바로 받기**: https://github.com/glowhalo/GlowHalo.github.io/releases/download/circle-heroes-latest/app-debug.apk
   (로그인·압축해제 불필요, 링크 탭하면 바로 apk 다운로드. 매 빌드마다 이 링크가 최신 버전으로 자동 갱신됨)
 - 또는 GitHub 저장소 → **Actions** 탭 → "Circle Heroes — Android APK" 워크플로 → 완료된 실행 클릭 → 하단 Artifacts에서 `circle-heroes-debug-apk` 다운로드 (로그인 필요, zip 압축 해제 필요)
 - 트리거: `circle-heroes/**` 변경 푸시마다 자동 실행 + 수동 실행(workflow_dispatch)도 가능
