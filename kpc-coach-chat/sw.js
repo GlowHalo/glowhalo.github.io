@@ -1,4 +1,4 @@
-const CACHE_NAME = "kpc-coach-chat-v1";
+const CACHE_NAME = "kpc-coach-chat-v2"; // v2: BYOK + 체험 3회 전환(2026-08-18)
 const APP_SHELL = ["./", "./index.html", "./manifest.json", "./icons/icon-192.png", "./icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {

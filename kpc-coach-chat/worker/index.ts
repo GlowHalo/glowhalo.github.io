@@ -2,8 +2,11 @@
  * kpc-coach-chat 전용 소형 API — 딱 한 가지만 한다: 대화 히스토리를 받아 Gemini API를
  * ICF/KCA 코칭 시스템 프롬프트로 호출하고, 다음 코치 응답(JSON)을 돌려준다.
  *
- * kpc-coach-chat(GitHub Pages, 정적)은 이 Worker를 크로스오리진으로 호출한다.
- * Gemini API 키는 이 Worker 환경변수(시크릿)에만 있고 브라우저로는 절대 전달되지 않는다.
+ * kpc-coach-chat(GitHub Pages, 정적)은 자기 Gemini API 키(BYOK)가 있으면 이 Worker를 거치지
+ * 않고 브라우저에서 Google API를 직접 호출한다(mindmap과 동일 패턴). 키가 없는 사용자는
+ * 기기당 3회(세션 단위)까지 이 Worker를 통해 "우리 키"로 체험할 수 있다(횟수 제한은 클라이언트
+ * localStorage 기준, 완벽한 어뷰징 방지는 필요 없음). Gemini API 키는 이 Worker 환경변수
+ * (시크릿)에만 있고 브라우저로는 절대 전달되지 않는다.
  */
 
 export interface Env {
@@ -24,6 +27,8 @@ const ALLOWED_ORIGINS = new Set([
   "https://tossneon.github.io",
   "http://localhost:5173", // 로컬 개발 서버
   "http://localhost:3000",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:8000",
 ]);
 
 // 안정적인 별칭(alias) 모델명 — Google이 내부적으로 최신 flash 모델을 계속 가리켜준다.
