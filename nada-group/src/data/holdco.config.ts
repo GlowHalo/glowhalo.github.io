@@ -101,12 +101,6 @@ export const COMPANIES: Company[] = [
     mode: "op",
   },
   {
-    id: "venture-lab",
-    name: "나다컴퍼니13",
-    tagline: "다온 대표 · 신사업 논의·인큐베이션 — 자유롭게 논의하다 추진 가치가 있으면 새 계열사로 분리·신설, 이 회사 자체는 정착하지 않는 게 정체성",
-    mode: "op",
-  },
-  {
     id: "newventure",
     name: "pixel-ai-office (프로토타입)",
     tagline: "이 대시보드를 만들기 전 먼저 시도했던 오피스 시뮬레이션 — 별도 사업체 아니고, 자리잡으면 정리 예정",
@@ -126,6 +120,7 @@ export type Room = {
 export const ROOMS: Room[] = [
   { id: "holdco-room", name: "HQ 오피스", companyId: "holdco", kind: "ceo" },
   { id: "secretariat-room", name: "비서실", companyId: "holdco", kind: "team" },
+  { id: "venture-room", name: "신사업 논의방", companyId: "holdco", kind: "team" },
 
   { id: "ceo-room", name: "대표실", companyId: "niche-templates", kind: "ceo" },
   { id: "strategy-room", name: "전략팀", companyId: "niche-templates", kind: "team" },
@@ -154,8 +149,6 @@ export const ROOMS: Room[] = [
   { id: "c11-panel-room", name: "토론실", companyId: "brief-ai", kind: "meeting" },
 
   { id: "c12-ceo-room", name: "상담실", companyId: "biz-consulting", kind: "ceo" },
-
-  { id: "c13-ceo-room", name: "논의실", companyId: "venture-lab", kind: "ceo" },
 ];
 
 export type StaffRank = "ceo" | "lead" | "member";
@@ -401,15 +394,16 @@ export const STAFF: Staff[] = [
     task: "회장의 사업 아이디어 상담 대기 중",
   },
 
-  // 나다컴퍼니13 — 신사업 논의·인큐베이션(2026-08-18 신설). 정착하지 않는 게 정체성, 추진 확정되면 새 계열사로 분리.
+  // 나다그룹 신사업 논의방 — 2026-08-18 신설. 사업 계열사 아님(회장 지시로 번호 없음), 정착하지 않는 게 정체성.
+  // 아이디어가 정착해서 실제로 분리되면 그때 번호(나다컴퍼니13)가 붙는 정식 계열사가 된다.
   {
-    id: "c13-ceo",
+    id: "venture-lead",
     name: "다온",
-    roleLabel: "CEO",
-    rank: "ceo",
-    companyId: "venture-lab",
-    roomId: "c13-ceo-room",
-    task: "신사업 자유토론 대기 중 — 추진 확정되는 아이디어는 즉시 새 계열사로 분리",
+    roleLabel: "신사업 논의방",
+    rank: "lead",
+    companyId: "holdco",
+    roomId: "venture-room",
+    task: "신사업 자유토론 대기 중 — 추진 확정되는 아이디어는 새 계열사로 분리",
   },
 ];
 
