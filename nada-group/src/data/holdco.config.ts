@@ -85,7 +85,7 @@ export const COMPANIES: Company[] = [
   {
     id: "newsletter-automation",
     name: "GlowHalo 10",
-    tagline: "은우 대표 · 뉴스레터 자동화(Beehiiv) — GlowHalo 1 A5(스티비 뉴스레터)와의 관계 정리가 첫 과제",
+    tagline: "은우 대표 · 뉴스레터 자동화(스티비) — N1·N2·N3 창간호 작성 완료, 발송 승인 대기",
     mode: "op",
   },
   {
@@ -357,7 +357,7 @@ export const STAFF: Staff[] = [
     task: "Round 1 — 10인 분석가 패널 첫 스캔 착수 예정",
   },
 
-  // GlowHalo 10 — 뉴스레터 자동화(Beehiiv, 2026-08-12 신설).
+  // GlowHalo 10 — 뉴스레터 자동화(스티비, 2026-08-12 신설, 2026-08-17 플랫폼 확정).
   {
     id: "c10-ceo",
     name: "은우",
@@ -365,7 +365,7 @@ export const STAFF: Staff[] = [
     rank: "ceo",
     companyId: "newsletter-automation",
     roomId: "c10-ceo-room",
-    task: "GlowHalo 1 A5(스티비 뉴스레터)와의 관계 정리 중 — Beehiiv 승계 여부 회장 확인 대기",
+    task: "N1·N2·N3 창간호 작성 완료 — 발송 승인 대기",
   },
 
   // GlowHalo 11 — 신사업 검토(2026-08-12 신설). Round 1 20인 토론 결과(20표 중 14표)로 대표 확정.
