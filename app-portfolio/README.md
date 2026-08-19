@@ -77,6 +77,15 @@ GlowHalo Group 산하 여섯 번째 관계사. 대표: **시우** (2026-08-12 �
 - [ ] 웹앱들(아기랑갈곳·체크노트·배당현황·KPC코칭챗봇·Mindmap·Pixel AI Office) 앱별로 "무엇을 유료화할지"(Gumroad 라이선스 잠금 vs 소스코드 판매) 제품 결정 필요 — 채널은 준비됐지만 가격/무료-유료 경계는 아직 미정
 - [ ] Circle Heroes APK 배포는 Google Play·Amazon Appstore·itch.io 3채널로 우선 진행, Apple/Samsung은 각각 비용·회장물리개입/사업자등록 장벽으로 보류(기존 기록, `niche-templates/README.md` "승격형" 사례 참고). 서명 키스토어도 아직 없음(디버그 APK만 가능)
 
+## 🔄 세션 인계 메모 (2026-08-19)
+
+저장소 이전(`tossneon/tossneon.github.io` → `glowhalo/glowhalo.github.io`, claude.ai 연결 GitHub 계정 전환에 따름) 후속 세션. 인수 점검 결과:
+
+- `registry.js`의 `GITHUB_USER`는 이미 `"glowhalo"`로 반영돼 있었음(재확인 완료).
+- 이 세션(구 session_01Eeb5gVXExvWA9MFQCf4L2W)에 self-bind된 Routine은 없었음(`list_triggers` 직접 확인).
+- `app-portfolio/` 산하 앱들의 GitHub Pages 링크(`glowhalo.github.io`)·CORS allowlist는 전부 이미 정상. Circle Heroes 안드로이드 패키지 ID도 코드상 `com.glowhalo.circleheroes`로 이미 정비돼 있었음 — README APK 섹션의 문구만 옛 `io.github.tossneon.circleheroes`로 남아있던 걸 발견해 정정(커밋 `c967b78`).
+- Cloudflare `*.tossneon.workers.dev` 서브도메인(mindmap·checknote·kpc-coach-chat·baby-place-registry 등 Worker URL)은 **의도적으로 그대로 둠** — 이건 GitHub 계정과 무관한 Cloudflare 계정 네임스페이스이고, 실제 라이브 워커가 그 이름으로 배포돼 있어 URL을 바꾸려면 재배포가 필요하다(범위 밖 + 손대면 서비스가 끊길 위험). 이름 자체를 바꿀지는 별도 판단 필요.
+
 ## 🔄 세션 인계 메모 (2026-08-15)
 
 최근 며칠간 Notion 워크스페이스 분리·계정 비밀번호 표준화·GitHub 폴더 구조 개편(companyN → 주제별 이름)이 한꺼번에 진행되면서, 오래 이어진 세션이 옛 맥락(옛 경로·옛 워크스페이스)에 헷갈릴 수 있다는 회장 판단으로 이 계열사 세션을 새로 열었다. 새 세션은 이 파일과 `candidates.md` 등 폴더 안 문서를 정본으로 삼아 현재 상태부터 파악할 것.
