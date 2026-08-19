@@ -70,11 +70,16 @@ GlowHalo Group 산하 여섯 번째 관계사. 대표: **시우** (2026-08-12 �
 ### 대기 중
 - [ ] `baby-place-registry/` — Kakao/Firebase 키가 클라이언트 코드에 있음(Kakao JS 키·Firebase 웹 config 자체는 공개돼도 되는 값이라 즉시 위험은 낮지만, **Firestore 보안규칙이 열려있는지는 Firebase 콘솔에서 직접 확인 필요** — 계정 로그인이 필요해 회장 확인 요청 예정)
 - [x] **2026-08-17 회장 지시 — 실사용 중인 `baby-place-registry/`·`dividend-passbook/`는 원본을 건드리지 않기로 확정.** 배포용 개선(죽은 파일 정리, 하드코딩 주소 일반화, PWA 요건)은 각각 `baby-place-registry-deploy/`·`dividend-passbook-deploy/` 사본에서 진행 — 두 사본 모두 `meta.json`이 없어 루트 허브엔 안 뜨고, Microsoft Store 제출(PWABuilder)은 그 사본의 라이브 URL을 대상으로 한다. 원본은 `git checkout 8ce8429 -- baby-place-registry/`로 이전 상태 복원 완료. 앞으로 이 두 앱 외에 또 실사용 중인 앱이 나오면 같은 패턴(원본 보존 + `-deploy` 사본) 적용
-- [ ] `code-review-board-action/` — 마켓플레이스에 실제로 올리려면 `git subtree split`로 독립 저장소 분리(`action.yml`을 루트로) + 실제 Anthropic 키로 end-to-end 검증 먼저 필요
-- [ ] `output-links-hub/` — 9개 중 2개만 등록돼 있음, 나머지(다운로드 가능한 산출물이 있는 앱 위주로) 카드 추가할지 판단
-- [ ] **회장 최초 가입 4건 대기 — 2026-08-17 갱신: 2/4 완료.** ~~Amazon Appstore(무료)~~ **완료**(회장 직접 가입 + 신원확인(IDV)까지 완료, 금고 `amazon_developer_login_*` — 실제 앱 제출 가능 상태), ~~Microsoft Partner Center(2026년부터 무료)~~ **완료**(회장 직접 가입, 금고 `microsoft_partner_login_*`). 남은 건 Google Play Console($25, 유료라 `hq/가입대기.md` 후순위 트랙으로 이동)·itch.io Circle Heroes 프로젝트 페이지(무료, 계정은 있음, 페이지 생성만 남음). 상세 링크·절차는 [`execution/유통채널-리서치.md`](execution/유통채널-리서치.md) "다음 단계" 참고
+- [ ] `code-review-board-action/` — 마켓플레이스에 실제로 올리려면 `git subtree split`로 독립 저장소 분리(`action.yml`을 루트로) + 실제 Anthropic 키로 end-to-end 검증 먼저 필요. **2026-08-19 재시도 — 둘 다 여전히 막힘**: 금고에 `anthropic_api_key` 없음(e2e 검증 불가) + `mcp__github__create_repository`로 새 저장소 생성 시도 → `403 Resource not accessible by integration`(이 세션 GitHub 연결 권한이 기존 저장소로 제한돼 있어 신규 저장소 생성 자체가 안 됨, 우회 시도 안 함). **회장 액션 필요**: 계정에서 빈 저장소(`code-review-board-action`, public) 하나만 만들어주시면 이후 subtree split·push는 이어서 진행. 상세는 `candidates.md` P7 항목
+- [x] `output-links-hub/` — **2026-08-19 판단 완료**: 지금은 추가할 카드가 없는 게 맞음(9개 중 나머지 7개는 전부 설치형 패키지가 아닌 URL 웹앱이라 이 허브 성격과 안 맞음). 웹앱 중 하나가 실제 설치형 패키지(MSIX·PWA 설치 등)를 갖추는 순간 그때 추가 — 상세는 `candidates.md` 참고
+- [ ] **회장 최초 가입 4건 대기 — 2026-08-17 갱신: 2/4 완료.** ~~Amazon Appstore(무료)~~ **완료**(회장 직접 가입 + 신원확인(IDV)까지 완료, 금고 `amazon_developer_login_*` — 실제 앱 제출 가능 상태), ~~Microsoft Partner Center(2026년부터 무료)~~ **완료**(회장 직접 가입, 금고 `microsoft_partner_login_*`). 남은 건 Google Play Console($25, 유료라 `hq/가입대기.md` 후순위 트랙으로 이동)·itch.io Circle Heroes 프로젝트 페이지(무료, 계정은 있음, 페이지 생성만 남음 — 2026-08-19 재확인, `itch.io/game/new`는 API로 못 만들어 회장 웹폼 1회 필요, `hq/가입대기.md`에 계속 추적 중). 상세 링크·절차는 [`execution/유통채널-리서치.md`](execution/유통채널-리서치.md) "다음 단계" 참고
 - [ ] Amazon Appstore·Microsoft Partner Center 계정이 준비됐으니 시우가 각 채널 API 연동(서비스 계정/토큰 발급) → 이후 자동 배포 파이프라인 구축 착수
-- [ ] 웹앱들(아기랑갈곳·체크노트·배당현황·KPC코칭챗봇·Mindmap·Pixel AI Office) 앱별로 "무엇을 유료화할지"(Gumroad 라이선스 잠금 vs 소스코드 판매) 제품 결정 필요 — 채널은 준비됐지만 가격/무료-유료 경계는 아직 미정
+- [ ] 웹앱들(아기랑갈곳·체크노트·배당현황·KPC코칭챗봇·Mindmap·Pixel AI Office) 앱별로 "무엇을 유료화할지" 제품 결정 필요. **2026-08-19 1차 제안(회장 확인 대기, 아직 확정 아님)** — 2026-08-18 확정된 기본 수익화 원칙(웹 무료·스토어 설치판 소액유료·AI는 BYOK)을 그대로 적용하면:
+  - **아기랑갈곳·초간단배당현황**(실사용 중, AI 기능 없음): 웹 계속 무료, PWA 요건 갖춰 `-deploy` 사본으로 Microsoft Store 설치판만 소액(2~4천원) 유료화. 이미 이 패턴으로 작업 진행 중(위 2026-08-17 항목).
+  - **체크노트**: 1:1 공유가 아직 목업이라 유료화 논의는 그 기능부터 실제로 만든 뒤로 미루는 게 순서. PWA 붙이면 아기랑갈곳과 동일 패턴 적용 가능.
+  - **KPC코칭챗봇**: AI 기능(Gemini)이 우리 키로 무제한 무료인 상태라 원칙 위반 — **재작업 우선순위 1순위**로 BYOK 전환(체험 N회 후 본인 키 유도)부터. 유료화는 그 이후.
+  - **Mindmap**: 이미 이 원칙이 최초로 정립된 곳이라 별도 결정 불필요(기존 패턴 유지).
+  - **Pixel AI Office**: 회장 확정대로 상품화 계획 없는 레퍼런스 프로젝트라 유료화 논의 대상 제외.
 - [ ] Circle Heroes APK 배포는 Google Play·Amazon Appstore·itch.io 3채널로 우선 진행, Apple/Samsung은 각각 비용·회장물리개입/사업자등록 장벽으로 보류(기존 기록, `niche-templates/README.md` "승격형" 사례 참고). 서명 키스토어도 아직 없음(디버그 APK만 가능)
 
 ## 🔄 세션 인계 메모 (2026-08-19)
