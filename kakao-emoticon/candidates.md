@@ -15,6 +15,8 @@
 | A11 | 소심함/걱정많음 유머 32종(라인아트, "쫄보유령" — 신규 실루엣) — SVG 직접 제작, Leonardo 미사용 | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 A10과 같은 세션에서 제출 완료(2026-08-18 08:11), 심사 중 — 상세는 [`execution/A11-scaredy-ghost.md`](execution/A11-scaredy-ghost.md) |
 | A12 | 헬스/다이어트 초보 유머 32종(정지형, "헬린이", Leonardo) | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 세션 재사용 로그인으로 제출 완료(2026-08-18 08:22), 심사 중 — 상세는 [`execution/A12-fitness-newbie.md`](execution/A12-fitness-newbie.md) |
 | A13 | 육아/신생아 유머 32종(라인아트, "칭얼이" — 신규 실루엣) — SVG 직접 제작, Leonardo 미사용 | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 A12와 같은 세션에서 제출 완료(2026-08-18 08:24), 심사 중 — 상세는 [`execution/A13-fussy-baby.md`](execution/A13-fussy-baby.md) |
+| A14 | 피곤함/다크서클/커피 유머 32종(정지형, "눈밑이", Leonardo — 라쿤) | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 06:30 자동 루틴 제출 완료(2026-08-19 22:09 UTC), 심사 중 — 상세는 [`execution/A14-tired-raccoon.md`](execution/A14-tired-raccoon.md) |
+| A15 | 건망증/덜렁이 유머 32종(라인아트, "깜빡이" — 신규 실루엣) — SVG 직접 제작, Leonardo 미사용 | 카카오 이모티콘 스튜디오 개인 창작자 | 🟡 A14와 같은 세션에서 제출 완료(2026-08-19 22:09 UTC), 심사 중 — 상세는 [`execution/A15-forgetful-sparkle.md`](execution/A15-forgetful-sparkle.md) |
 
 ## 향후 확장 후보
 
