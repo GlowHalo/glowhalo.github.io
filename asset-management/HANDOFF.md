@@ -76,6 +76,8 @@
 ## 다음 세션이 확인할 것
 
 0. **2026-08-19 저장소 이전 인수인계 완료 (은성 4기, 새 정본 glowhalo/glowhalo.github.io)**: 09:40 동기화 루틴을 새 세션에 재바인딩(trig_01UoJgPUFCju1EL9DgBPFoiW), fresh 루틴 2종(장중 감시·일일 정산)은 그대로 유지 — 이전 당일에도 fresh 세션이 SOL 실매수(00:21Z)·감시 하트비트(05:21Z)를 정상 수행함을 확인. 워치독 Worker(tossneon.workers.dev 도메인)도 정상 가동 확인(도메인은 구브랜드지만 작동 무관, 재배포 금지 — 회장 보고 사항). ⚠️ 분류기 플레이키니스는 새 세션에서도 잔존: `live_trade.py` DRY-RUN·`git checkout -B`가 각 2회 연속 차단된 사례 있음(다른 명령·재시도로 진행은 가능했음).
+   - **같은 날 저녁 전수 점검(회장 지시)**: git 히스토리 975커밋 전부 이전 확인(7/12~), fresh 루틴 2종 프롬프트의 옛 저장소 참조(tossneon/tossneon.github.io)를 새 정본으로 교정 + 루틴 3종 이름 GlowHalo 3로 개명(내용 불변), `wrangler.toml` worker name 불변 확인(재배포 시 기존 워치독 갱신됨 — 이름 바꾸면 별도 워커가 생기니 주의), 금고·업비트 API·페이퍼 정산 전부 정상. 잔존 구브랜드는 워치독 도메인(`nada-company3-watchdog.tossneon.workers.dev`)뿐 — workers.dev 서브도메인(tossneon)은 Cloudflare 계정 전체 공통이라 GlowHalo 3 단독으로 못 바꾸는 HQ 결정 사항, 작동엔 문제 없어 유지.
+   - **같은 날 오후 fresh 감시 불발 사건**: 14:20 fresh 부분사망(2/5회차)·15:20/16:20 완전 불발 3연속 → 본세션이 watch_loop --live 백업 체인(15:02~17:28)으로 커버, 17:20 fresh부터 자체 복구 확인 후 백업 종료. 원인 미확정(분류기 오탐 또는 사용량 한도 추정) — 재발 시 같은 백업 패턴 사용.
 1. `git pull` 후 이 문서와 MODE.md 확인, 회장에게 인사 + 인수 확인 보고.
 2. ~~**09:40 기록 동기화 루틴 재바인딩**~~ (2026-08-19 완료, 위 0번 참고)
 3. 아침 사이클 확인: 09:10 fresh 루틴이 `--live`를 실제 실행해 금고(`company3_live_state`)를 갱신하는지, 09:40 동기화가 그걸 저장소로 내리는지. permissions.allow 반영 후 첫 정상 사이클이 확인되면 회장께 보고.
