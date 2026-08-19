@@ -88,3 +88,11 @@ GlowHalo 1(정연)이 A1(템플릿)·A2(PromptDeck)·A3(카카오 이모티콘) 
 최근 며칠간 Notion 워크스페이스 분리·계정 비밀번호 표준화·GitHub 폴더 구조 개편(companyN → 주제별 이름)이 한꺼번에 진행되면서, 오래 이어진 세션이 옛 맥락(옛 경로·옛 워크스페이스)에 헷갈릴 수 있다는 회장 판단으로 이 계열사 세션을 새로 열었다. 새 세션은 이 파일과 `candidates.md` 등 폴더 안 문서를 정본으로 삼아 현재 상태부터 파악할 것.
 
 **✅ 해결됨 (같은 날 후속) — 카카오 해외접속 차단 해제 확인 + 완전자동 로그인 실제 성공.** 회장이 카카오 계정의 해외접속 차단을 직접 해제 → Cloudflare Browser Rendering으로 재시도한 결과 국가차단 화면 자체가 사라짐, 대신 카카오톡 실시간 본인확인(회장 승인 1회)만으로 대시보드 로그인까지 완료했다. 상세: [`execution/A3-kakao-emoticon.md`](execution/A3-kakao-emoticon.md#-완전자동-로그인-실제-성공-2026-08-15-예슬--국가차단-해제-이후-재검증). 단, Cloudflare Browser Rendering은 세션마다 쿠키가 초기화돼 **매번 이 절차(회장 실시간 승인 포함)를 다시 거쳐야 함** — 완전 무인화는 아직 아님.
+
+## 🔄 세션 인계 메모 (2026-08-19 — 저장소 이전)
+
+claude.ai 연결 GitHub 계정이 tossneon → glowhalo로 바뀌면서 옛 저장소(`tossneon/tossneon.github.io`)로는 더 이상 push가 안 돼(구조적 차단, 확인됨), 정본 저장소를 `glowhalo/glowhalo.github.io`로 옮기고 이 후속 세션(`session_01PuaHCS2QAxf8mmxbcYoUm2`)을 새로 열었다. 옛 세션(`session_01NZd3MjbmU73aPRGXXuiu8y`, "[8/19oldGlowHalo8] 카카오이모티콘 예슬"로 이름 변경됨)은 백업용으로 접혔고 다시 손대지 않는다. 옛 세션 마지막 상태: "06:30 unified trigger deployed; 2 submissions processed, Leonardo token: 330 remaining".
+
+- **루틴 재바인딩 완료**: 옛 세션에 self-bind돼 있던 트리거 2개(`trig_01JKaCuBcDVFr5y6g44LyaY5` 06:30 KST 제작+제출+보고 통합, `trig_0113NQTbHetb8jsywSDsRabS` 8/26 심사결과 리마인더)를 삭제하고 이 세션 앞으로 동일 내용으로 재생성함(각각 `trig_01HeTKv3RdchKD9KpyDGXFmn`, `trig_01DEN73Cdu6gib9oBDHS4WiU`). 06:30 루틴은 08-19 21:36 UTC(08-20 06:36 KST경) 다음 실행 예정.
+- **링크 점검**: `tossneon.github.io` 하드코딩된 링크는 문서 전체에서 검색했으나 없었음(재점검 불요). 이미 카카오 이모티콘 스튜디오에 제출된 시리즈(A3~A13)는 손대지 않음.
+- **미확인 리스크**: `kakao-login-helper.mjs`가 저장해둔 카카오 세션ID가 이 새 세션 컨테이너에서도 재사용되는지는 다음 06:30 루틴 실행 때 실측 확인 필요 — 안 되면 그 실행에서 진짜 로그인(회장 실시간 승인)으로 자동 폴백한다.
