@@ -69,7 +69,7 @@ SD 히어로 수집형 자동전투 방치형 게임. 모바일 APK로 설치해
 
 ## APK 빌드
 
-Capacitor로 안드로이드 프로젝트(`android/`)를 초기화했다(appId `io.github.tossneon.circleheroes`). 이 개발 컨테이너에는 **Android SDK가 없어** 로컬에서 직접 `gradlew assembleDebug`를 돌릴 수 없다.
+Capacitor로 안드로이드 프로젝트(`android/`)를 초기화했다(appId `com.glowhalo.circleheroes`, 2026-08-19 GlowHalo 전면개명 반영 — 최초 초기화 당시엔 `io.github.tossneon.circleheroes`였음). 이 개발 컨테이너에는 **Android SDK가 없어** 로컬에서 직접 `gradlew assembleDebug`를 돌릴 수 없다.
 대신 **GitHub Actions**(`.github/workflows/circle-heroes-android.yml`)로 빌드한다 — 웹 빌드→`cap sync android`→`gradlew assembleDebug`를 러너에서 실행하고 결과 APK를 아티팩트로 올린다.
 
 - **폰에서 바로 받기**: https://github.com/glowhalo/GlowHalo.github.io/releases/download/circle-heroes-latest/app-debug.apk
