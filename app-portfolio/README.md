@@ -91,6 +91,27 @@ GlowHalo Group 산하 여섯 번째 관계사. 대표: **시우** (2026-08-12 �
 - `app-portfolio/` 산하 앱들의 GitHub Pages 링크(`glowhalo.github.io`)·CORS allowlist는 전부 이미 정상. Circle Heroes 안드로이드 패키지 ID도 코드상 `com.glowhalo.circleheroes`로 이미 정비돼 있었음 — README APK 섹션의 문구만 옛 `io.github.tossneon.circleheroes`로 남아있던 걸 발견해 정정(커밋 `c967b78`).
 - Cloudflare `*.tossneon.workers.dev` 서브도메인(mindmap·checknote·kpc-coach-chat·baby-place-registry 등 Worker URL)은 **의도적으로 그대로 둠** — 이건 GitHub 계정과 무관한 Cloudflare 계정 네임스페이스이고, 실제 라이브 워커가 그 이름으로 배포돼 있어 URL을 바꾸려면 재배포가 필요하다(범위 밖 + 손대면 서비스가 끊길 위험). 이름 자체를 바꿀지는 별도 판단 필요.
 
+## 🔄 GitHub·Cloudflare 계정 통합 후속 점검 (2026-08-19, 회장 지시)
+
+회장이 GitHub 계정 이전 + 이메일 도메인 신규 구매 + 계정 표준화(`tossneon0@gmail.com`)를 진행 중이라, GlowHalo 6 소관 전체를 훑어 옛 브랜드 흔적(`tossneon`/`nadacompany`/`나다컴퍼니`/`NadaGroup`)을 점검·정리했다.
+
+**실제로 고친 것**
+- **Cloudflare Worker 이름 4개 개명·재배포 완료** — `nada-company6-*` → `glowhalo6-*`로 이름을 바꿔 새로 배포하고, Gemini 시크릿(`GEMINI_API_KEY`)도 새 이름으로 재등록, 프론트엔드 하드코딩 URL도 전부 갱신·라이브 확인(200/400 응답 = 정상 동작, 404 아님):
+  - `mindmap/worker` → `glowhalo6-mindmap.tossneon.workers.dev`
+  - `kpc-coach-chat/worker` → `glowhalo6-kpc-coach-chat.tossneon.workers.dev`
+  - `coach-practice/worker` → `glowhalo6-coach-practice.tossneon.workers.dev`
+  - `baby-place-registry-deploy/worker` → `glowhalo6-baby-place-registry.tossneon.workers.dev`
+  - **옛 이름의 Worker 4개는 삭제 못 함** — Cloudflare API로 삭제 시도 시 Claude Code 자동모드 분류기가 파괴적 작업으로 판단해 차단(재시도도 막힘, 우회 시도 안 함). 지금은 아무도 참조 안 하는 죽은 워커로 방치 중 — 대시보드에서 회장이 직접 지워주시거나, 삭제 권한을 열어주시면 다음에 정리하겠습니다. (Workers & Pages → 각 `nada-company6-*` 스크립트 → Delete)
+  - **`checknote/worker`는 의도적으로 보류** — 지금 회장이 실제로 테스트 중인 앱이라 재배포로 흐름을 끊고 싶지 않았음. 테스트 끝나면 같은 방식으로 이어서 진행.
+- **`code-review-board-action`**: GitHub 소유자 표기(`action.yml` author, `LICENSE` copyright, README의 `uses:` 예시·저장소 링크) `tossneon` → `glowhalo`로 정정. GitHub 계정 자체가 이미 `glowhalo`로 이전 완료된 걸 `get_me`로 재확인 후 반영.
+- **itch.io 사용자명 참조 정정** — `app-portfolio/execution/유통채널-리서치.md`·배포 스킬 문서의 butler push 예시가 옛 `tossneon0`으로 남아있던 걸, 실제 라이브 상태(curl로 직접 확인: `nadacompany.itch.io` 200, `glowhalo.itch.io` 아직 404)에 맞춰 `nadacompany`로 정정 — **아직 `glowhalo`가 아님**, 회장이 itch.io 사용자명을 실제로 바꾸면 그때 다시 갱신 필요(2026-08-22까지 itch.io 자체 재변경 제한 있음).
+- `mindmap-microsoft-store-제출.md`의 임시 packageId 예시(`NadaCompany6.Mindmap` 등)도 `GlowHalo6.Mindmap`으로 정정(아직 실제 제출 전이라 최종 식별자는 Partner Center에서 새로 받게 됨, 영향 없음).
+
+**확인만 하고 손대지 않은 것 (의도적)**
+- **`tossneon-api-vault`**: 이 이름 자체가 지금도 정확한 라이브 값(저장소 전체 공용 금고). 브랜드 잔재가 아니라 아직 실제로 안 바뀐 실제 리소스명 — 함부로 손대면 전 계열사가 동시에 끊긴다. 회장이 이 금고 자체를 개명할지 결정하시면 그때 전사 차원에서 조율해서 진행.
+- **Cloudflare workers.dev 서브도메인 자체(`tossneon`)**: `GET /accounts/{id}/workers/subdomain`로 확인한 결과 계정 표시 이름은 이미 "GlowHalo"로 바뀌어 있었지만, workers.dev 서브도메인은 여전히 `tossneon`. 이건 **계정 전체가 공유하는 단일 설정**이라 바꾸는 순간 다른 계열사(GlowHalo 2/3/9/11 등, 최소 13개 워커)의 URL이 전부 동시에 끊긴다 — GlowHalo 6 혼자 판단할 범위가 아니어서 그대로 뒀다. **회장 판단 필요**: 바꾸시려면 전 계열사 프론트엔드 URL을 동시에 갱신하는 조율된 작업이 따로 필요합니다.
+- **Gumroad(`nadacompany.gumroad.com`, code-review-board-action Pro 라이선스 링크)**: curl로 라이브 확인 결과 여전히 `nadacompany`가 실제 사용자명(200 응답), `glowhalo.gumroad.com`은 아직 404 — 링크를 미리 바꾸면 깨지므로 그대로 둠. Gumroad 사용자명을 실제로 바꾸시면 알려주세요, 바로 갱신하겠습니다.
+
 ## 🔄 세션 인계 메모 (2026-08-15)
 
 최근 며칠간 Notion 워크스페이스 분리·계정 비밀번호 표준화·GitHub 폴더 구조 개편(companyN → 주제별 이름)이 한꺼번에 진행되면서, 오래 이어진 세션이 옛 맥락(옛 경로·옛 워크스페이스)에 헷갈릴 수 있다는 회장 판단으로 이 계열사 세션을 새로 열었다. 새 세션은 이 파일과 `candidates.md` 등 폴더 안 문서를 정본으로 삼아 현재 상태부터 파악할 것.

@@ -1,4 +1,4 @@
-# nada-company6-kpc-coach-chat
+# glowhalo6-kpc-coach-chat
 
 `kpc-coach-chat/`(정적 페이지, GitHub Pages)의 "AI 코치 응답" 기능만 담당하는 아주 작은
 Cloudflare Worker다. 화면은 그대로 GitHub Pages에 있고, 이 Worker는 브라우저가
@@ -25,7 +25,7 @@ cd kpc-coach-chat/worker
 npm install
 CLOUDFLARE_API_TOKEN=<Workers Scripts:Edit 토큰> npx wrangler deploy
 ```
-성공하면 `https://nada-company6-kpc-coach-chat.<subdomain>.workers.dev` 형태의 주소가 출력된다.
+성공하면 `https://glowhalo6-kpc-coach-chat.<subdomain>.workers.dev` 형태의 주소가 출력된다.
 
 ### 2. 비밀값 등록 — `tossneon-api-vault`가 유일한 정본
 이 저장소 전체가 비밀값을 하나의 금고(`tossneon-api-vault`)에서만 관리한다. 절차는

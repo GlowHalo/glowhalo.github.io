@@ -17,7 +17,7 @@
      -H "platform-identifier-version: 1.0.0" \
      --data '{
        "name": "Mindmap",
-       "packageId": "NadaCompany6.Mindmap",
+       "packageId": "GlowHalo6.Mindmap",
        "url": "https://glowhalo.github.io/mindmap/",
        "version": "1.0.1",
        "allowSigning": true,
@@ -40,7 +40,7 @@ Partner Center(`partner.microsoft.com`)는 **로그인 세션이 필요한 SPA**
 ### 다음 세션 / 회장이 할 일
 
 **옵션 A (권장, 비용 없음)**: 회장이 직접 `partner.microsoft.com`에 로그인(`microsoft_partner_login_email`/`_password`, 금고에 이미 있음)해서:
-1. Windows 앱 → 새 제품 → "Mindmap" 이름 예약(중복 시 "Mindmap by NadaCompany")
+1. Windows 앱 → 새 제품 → "Mindmap" 이름 예약(중복 시 "Mindmap by GlowHalo")
 2. "앱 ID" 페이지에서 **Package/Identity Name**과 **Publisher ID(CN=...)** 확인해서 Claude에게 전달 → Claude가 위 curl 명령으로 정확한 식별자로 MSIX 재생성
 3. 재생성된 msixbundle을 회장이 Partner Center 제출 페이지에 업로드
 4. 가격(2,000~4,000원, 권장 2,900원)·연령등급(전체 이용가)·스토어 리스팅(`mindmap/store-assets/store-listing-ko.md`의 문구·스크린샷·로고 그대로 사용)까지 채우고 제출

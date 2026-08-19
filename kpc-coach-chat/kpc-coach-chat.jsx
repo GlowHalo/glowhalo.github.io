@@ -7,7 +7,7 @@ import { Send, HelpCircle, Sparkles } from "lucide-react";
    보내 Gemini API(ICF/KCA 코칭 시스템 프롬프트) 응답을 받아온다. API 키는
    Worker 환경변수에만 있고 이 파일(브라우저 코드)에는 절대 없다.
 ----------------------------------------------------------------------- */
-const WORKER_URL = "https://nada-company6-kpc-coach-chat.tossneon.workers.dev/chat";
+const WORKER_URL = "https://glowhalo6-kpc-coach-chat.tossneon.workers.dev/chat";
 const STAGE_LABEL = ["합의", "경청·반영", "강력한 질문", "알아차림", "실행 설계"];
 
 async function askCoach(history) {
