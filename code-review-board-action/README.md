@@ -1,6 +1,6 @@
 # Code Review Board — GitHub Action
 
-> **참고 (내부용):** 이 폴더는 모노레포 안의 원본/개발 사본이다. 정식 배포·GitHub Marketplace 등록은 별도 리포 [`tossneon/code-review-board-action`](https://github.com/tossneon/code-review-board-action)에서 이루어진다(`git subtree split -P code-review-board-action`으로 분리). 실제 사용자에게 안내할 `uses:` 참조는 이 모노레포 경로가 아니라 그 별도 리포를 기준으로 한다. 진행 상황: [`niche-templates/execution/products/10-code-review-board-action.md`](../niche-templates/execution/products/10-code-review-board-action.md).
+> **참고 (내부용):** 이 폴더는 모노레포 안의 원본/개발 사본이다. 정식 배포·GitHub Marketplace 등록은 별도 리포 [`glowhalo/code-review-board-action`](https://github.com/glowhalo/code-review-board-action)에서 이루어진다(`git subtree split -P code-review-board-action`으로 분리, 2026-08-19 tossneon→glowhalo 계정 이전 완료). 실제 사용자에게 안내할 `uses:` 참조는 이 모노레포 경로가 아니라 그 별도 리포를 기준으로 한다. 진행 상황: [`niche-templates/execution/products/10-code-review-board-action.md`](../niche-templates/execution/products/10-code-review-board-action.md).
 
 > Your AI coding assistant already said "looks good!" That's exactly the problem.
 
@@ -31,7 +31,7 @@ jobs:
   review:
     runs-on: ubuntu-latest
     steps:
-      - uses: tossneon/code-review-board-action@v1
+      - uses: glowhalo/code-review-board-action@v1
         with:
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
