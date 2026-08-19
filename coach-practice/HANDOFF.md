@@ -10,7 +10,7 @@
   카드 전체 SPA), `manifest.json`, `sw.js`, `icons/`(192/512/512-maskable/apple-touch),
   `worker/index.ts`(`/chat`, `/feedback` 두 엔드포인트, 등급별 시나리오·페르소나 데이터,
   시스템 프롬프트) — TypeScript 컴파일 에러 없음(`npx tsc --noEmit` 통과).
-- **Worker 배포 완료**: `https://nada-company6-coach-practice.tossneon.workers.dev`
+- **Worker 배포 완료**: `https://glowhalo6-coach-practice.tossneon.workers.dev`
   (`wrangler deploy` 성공, `GEMINI_API_KEY` 시크릿도 금고 값으로 등록 완료).
 - **`/chat` 엔드포인트 최소 1회 실제 성공 확인**(curl, 쿼터 소진 전): KAC/이직고민/"방어적"
   페르소나 조합에서 AI가 질문·조언 없이 실제 고객처럼 반응했고, 시스템 프롬프트에 숨겨둔
@@ -41,7 +41,7 @@
 
 1. **curl로 `/chat`, `/feedback` 각 1회 스모크 테스트** — 정상 200 응답 확인.
    ```bash
-   curl -s -X POST "https://nada-company6-coach-practice.tossneon.workers.dev/chat" \
+   curl -s -X POST "https://glowhalo6-coach-practice.tossneon.workers.dev/chat" \
      -H "Content-Type: application/json" -H "Origin: https://glowhalo.github.io" \
      -d '{"grade":"kac","scenarioId":"career-change","personaId":"defensive",
           "history":[{"role":"client","text":"..."},{"role":"coach","text":"..."}]}'

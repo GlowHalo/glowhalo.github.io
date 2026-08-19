@@ -1,4 +1,4 @@
-# nada-company6-coach-practice
+# glowhalo6-coach-practice
 
 `coach-practice/`(정적 페이지, GitHub Pages)의 "가상 고객 AI" 기능만 담당하는 아주 작은
 Cloudflare Worker다. 화면은 그대로 GitHub Pages에 있고, 이 Worker는 브라우저가
@@ -32,7 +32,7 @@ ICF/KCA 핵심역량 6가지 기준으로 평가한 JSON을 돌려준다(턴별 
 
 ## ⚠️ 2026-08-18 세션 인계 메모 — 미완료 검증
 
-Worker는 배포 완료(`https://nada-company6-coach-practice.tossneon.workers.dev`), `/chat`은 curl로
+Worker는 배포 완료(`https://glowhalo6-coach-practice.tossneon.workers.dev`), `/chat`은 curl로
 1회 실제 성공 응답 확인(AI가 코치 역할 안 하고 고객처럼 정상 반응). 그 이후 **우리 공용
 `gemini_api_key`(무료 티어)의 일일 한도(모델당 하루 20회, `GenerateRequestsPerDayPerProjectPerModel-FreeTier`)가
 Mindmap·kpc-coach-chat 체험 트래픽과 합쳐져 소진**돼서, 아래가 아직 실측 검증 안 됨:
@@ -56,7 +56,7 @@ cd coach-practice/worker
 npm install
 CLOUDFLARE_API_TOKEN=<Workers Scripts:Edit 토큰> npx wrangler deploy
 ```
-성공하면 `https://nada-company6-coach-practice.<subdomain>.workers.dev` 형태의 주소가 출력된다.
+성공하면 `https://glowhalo6-coach-practice.<subdomain>.workers.dev` 형태의 주소가 출력된다.
 
 ### 2. 비밀값 등록 — `tossneon-api-vault`가 유일한 정본
 이 저장소 전체가 비밀값을 하나의 금고(`tossneon-api-vault`)에서만 관리한다. 절차는

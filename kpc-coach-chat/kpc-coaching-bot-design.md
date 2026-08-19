@@ -89,5 +89,5 @@ ICF/KCA 8대 핵심역량 중 챗봇이 실제로 구현 가능한 부분을 반
 stage/end/summary)으로 호출해 응답한다. API 키는 Worker 환경변수(시크릿)에만 있고 브라우저
 코드·커밋 어디에도 없다 — 대화 저장도 서버에 하지 않는(무상태) 구조를 유지했다.
 
-배포 주소: `https://nada-company6-kpc-coach-chat.tossneon.workers.dev` — 절차·API 스펙은
+배포 주소: `https://glowhalo6-kpc-coach-chat.tossneon.workers.dev` — 절차·API 스펙은
 `worker/README.md` 참고.
