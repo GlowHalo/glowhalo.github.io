@@ -32,7 +32,7 @@ export const HQ_SHARED_COSTS: HqSharedCost[] = [
   { id: "hq2", item: "Browserbase", purpose: "헤드리스 브라우저 백업(메인 소진 시)", amountLabel: "$0", cycle: "월", status: "무료 플랜 유지" },
   { id: "hq3", item: "Cloudflare Workers(그 외)", purpose: "금고·nada-group API 등", amountLabel: "$0", cycle: "-", status: "무료 티어 내" },
   { id: "hq4", item: "GitHub Pages", purpose: "전체 사이트 호스팅", amountLabel: "$0", cycle: "-", status: "무료" },
-  { id: "hq5", item: "Notion", purpose: "나다컴퍼니 전용 워크스페이스", amountLabel: "$0", cycle: "-", status: "개인 워크스페이스 무료 플랜" },
+  { id: "hq5", item: "Notion", purpose: "GlowHalo 전용 워크스페이스", amountLabel: "$0", cycle: "-", status: "개인 워크스페이스 무료 플랜" },
 ];
 
 export type FinanceLedgerEntry = {

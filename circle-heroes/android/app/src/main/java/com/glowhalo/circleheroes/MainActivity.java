@@ -1,4 +1,4 @@
-package com.nadagroup.circleheroes;
+package com.glowhalo.circleheroes;
 
 import com.getcapacitor.BridgeActivity;
 

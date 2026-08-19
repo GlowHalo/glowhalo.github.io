@@ -2,7 +2,7 @@ name = "rhythmnote-intake"
 main = "src/worker.js"
 compatibility_date = "2026-01-01"
 
-# 나다컴퍼니9 E1 — 웨어러블 헬스데이터 업로드 인테이크. 무료 티어(workers.dev 서브도메인)로 배포.
+# GlowHalo 9 E1 — 웨어러블 헬스데이터 업로드 인테이크. 무료 티어(workers.dev 서브도메인)로 배포.
 #
 # KV 네임스페이스/R2 버킷 ID는 비밀 아님 — 계정 API 토큰 없이는 무용지물이라 커밋해도 안전
 # (nada-group/worker/wrangler.toml과 같은 이유).

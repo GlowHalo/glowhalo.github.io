@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const GITHUB_USER = "tossneon";
+const GITHUB_USER = "glowhalo";
 
 // 프로젝트 폴더가 아닌 것들 (허브 인프라, 설정 폴더 등)
 const EXCLUDE = new Set([

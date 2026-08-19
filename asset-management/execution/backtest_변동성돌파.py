@@ -107,7 +107,7 @@ def main():
         print(f"누적 수익률: {result['total_return_pct']}% (원금 1.0 -> {result['final_equity']})")
         print(f"최대 낙폭(MDD): {result['max_drawdown_pct']}%")
 
-    out_path = "/home/user/tossneon.github.io/asset-management/execution/backtest_result_변동성돌파.json"
+    out_path = "/home/user/glowhalo.github.io/asset-management/execution/backtest_result_변동성돌파.json"
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
     print(f"\n상세 결과 저장: {out_path}")

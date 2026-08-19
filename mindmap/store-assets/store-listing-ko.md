@@ -2,8 +2,8 @@
 
 ## 앱 이름 (우선순위)
 1. `Mindmap`
-2. (중복 시) `Mindmap by NadaCompany`
-3. (그래도 중복 시) `마인드맵 - NadaCompany`
+2. (중복 시) `Mindmap by GlowHalo`
+3. (그래도 중복 시) `마인드맵 - GlowHalo`
 
 ## 가격
 2,000원 ~ 4,000원 승인 범위 내 권장가: **2,900원**
