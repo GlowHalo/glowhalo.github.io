@@ -15,6 +15,21 @@ paths:
 라이브: `https://tossneon-api-vault.tossneon.workers.dev` (소스: `cloudflare-api-vault/`)
 접근에 필요한 `VAULT_URL`/`VAULT_TOKEN`은 Claude Code 환경(Environment) 변수로 등록돼 있다.
 
+## Cloudflare 대시보드 링크 — 반드시 계정 ID를 박아서 줄 것 (2026-08-19)
+
+`tossneon0@gmail.com` 로그인 계정에는 Cloudflare 계정이 **두 개** 물려있다 — 실제 GlowHalo 인프라가 있는 계정과, 가입할 때 자동 생성된 빈 개인 계정. `dash.cloudflare.com/profile/...`처럼 계정 ID 없는 링크를 주면, 대시보드가 임의로(보통 최근에 선택했던) 계정으로 열려서 회장이 엉뚱한(빈) 계정 화면을 보게 되는 사고가 실제로 있었다.
+
+**그래서 회장에게 Cloudflare 링크를 줄 때는 항상 GlowHalo 계정 ID를 경로에 넣는다**:
+
+```
+https://dash.cloudflare.com/2e5f3e2cfa49f7107f084c080e8eeed0/<나머지 경로>
+```
+
+- GlowHalo 계정 ID: `2e5f3e2cfa49f7107f084c080e8eeed0` (대시보드 계정명 "GlowHalo", 로그인은 `tossneon0@gmail.com`)
+- 예: API 토큰 관리 → `https://dash.cloudflare.com/2e5f3e2cfa49f7107f084c080e8eeed0/api-tokens`
+- 예: DNS 레코드 → `https://dash.cloudflare.com/2e5f3e2cfa49f7107f084c080e8eeed0/glowhalo.org/dns/records`
+- `dash.cloudflare.com/profile/...`(프로필 전역 설정, 계정과 무관한 페이지)는 계정 ID가 없어도 되지만, Workers·DNS·Members처럼 **계정에 속한 화면은 전부 계정 ID를 넣어서 링크할 것.**
+
 ## API
 
 ```
