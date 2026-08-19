@@ -155,3 +155,7 @@ graph TD
 최근 며칠간 Notion 워크스페이스 분리·계정 비밀번호 표준화·GitHub 폴더 구조 개편(companyN → 주제별 이름)이 한꺼번에 진행되면서, 오래 이어진 세션이 옛 맥락(옛 경로·옛 워크스페이스)에 헷갈릴 수 있다는 회장 판단으로 이 계열사 세션을 새로 열었다. 새 세션은 이 파일과 `candidates.md` 등 폴더 안 문서를 정본으로 삼아 현재 상태부터 파악할 것.
 
 **2026-08-17 추가 — 신규 상품/콘텐츠 아이디어 발굴할 때 참고할 스킬 2개 생김.** HQ가 외부 자료(MARGIN AI 「24시간 AI 비서 30명」) 검토 중 도출해 표준 스킬로 만들었다: [`product-idea-mining`](../.claude/skills/product-idea-mining/SKILL.md)(댓글/문의에서 팔릴 만한 문제 뽑기), [`lead-magnet-pdf`](../.claude/skills/lead-magnet-pdf/SKILL.md)(무료 리드마그넷 PDF 기획). `candidates.md`에 새 후보 추가하기 전 단계(원료 수집)에 쓸 것. 경위는 [`hq/AI비서30-백로그.md`](../hq/AI비서30-백로그.md) 참고.
+
+**2026-08-19 추가 — GitHub 계정 이전(tossneon→glowhalo) 후속 점검 완료 + Gumroad 계정도 조만간 개명 예정(⚠️ 다음 세션 확인 필요).**
+- GitHub 쪽: 3개 루틴 재바인딩, `code-review-board-action` 리포 이전 확인(회장이 직접 처리, Marketplace 리스팅 자동 갱신), 소스 내 잔여 `tossneon` 브랜딩(README/action.yml/LICENSE) 정리, PromptDeck 확장 내부 링크·Firefox Add-ons(AMO) Homepage URL 정정 — 전부 완료.
+- **회장 예고: Gumroad 판매자 계정도 곧 `nadacompany` → `glowhalo`로 개명 예정.** 그 시점에 `nadacompany.gumroad.com/l/...` 형태로 박혀있는 모든 상품 링크(A1 46+종 receipt·상품 설명 내 크로스셀 링크, PromptDeck/`privacy.html`·`options.html`의 Gumroad 링크, `code-review-board-action` README의 Gumroad 언급 등)가 다시 한번 전수 점검 대상이 된다. **개명 시점에 다음 세션이 해야 할 일**: (1) 새 서브도메인이 실제로 살아있는지 확인, (2) 위 목록 전체를 새 도메인으로 일괄 치환, (3) 이번에 발견한 것처럼 상품 설명 안 크로스셀 링크(다른 상품을 소개하는 하드코딩 URL)까지 놓치지 말고 Gumroad API로 전 상품 description을 문자열 검색해서 훑을 것 — 이번 점검에서 `investor-update-board`·`promptdeck-pro` 두 곳에서 도메인 오타(당시엔 `tossneon.gumroad.com`, 존재한 적 없는 서브도메인)가 발견된 전례가 있다.
