@@ -11,10 +11,10 @@ def releaseKeyAlias = System.getenv("CIRCLEHEROES_KEYSTORE_ALIAS")
 def releaseKeyPassword = System.getenv("CIRCLEHEROES_KEYSTORE_KEY_PASSWORD")
 
 android {
-    namespace = "com.nadagroup.circleheroes"
+    namespace = "com.glowhalo.circleheroes"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.nadagroup.circleheroes"
+        applicationId "com.glowhalo.circleheroes"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

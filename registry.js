@@ -88,6 +88,22 @@ window.REGISTRY = {
     "note": "2026-08-18 갱신: 4개 기능 추가 — (1) 다중 리스트(헤더의 작은 전환 드롭다운, 기본 진입 흐름은 그대로 마지막 리스트가 바로 열리고 입력창에 포커스), (2) 우선순위(항목의 별 아이콘, 상단 정렬+강조), (3) 리마인더(항목 탭 → 상세 모달에서 날짜/시간 선택, Notification API + sw.js로 로컬 알림, 권한은 최초 설정 시에만 요청), (4) 인원 제한 없는 실시간 공유(신규 Cloudflare Worker `checknote/worker/` + KV `ROOMS_KV`, 방 코드 12자, 버전 기반 충돌 감지 — 충돌 시 기존 '가져오기 확인' 모달 패턴을 재사용해 병합/선택). 기존 URL해시 스냅샷 공유(1회성 가져오기)는 실시간 공유로 대체·정리했다. 공유를 쓰지 않는 리스트는 네트워크 요청이 전혀 없다(Playwright로 확인). 실사용 앱 아님(app-portfolio/README.md 표 참고) — 자유롭게 정비 가능."
   },
   {
+    "id": "coach-practice",
+    "repo": "coach-practice",
+    "title": "코칭연습실",
+    "date": "2026.08",
+    "status": "발전중",
+    "tags": [
+      "PWA",
+      "코칭",
+      "Gemini API",
+      "BYOK",
+      "Cloudflare Worker"
+    ],
+    "description": "코칭 자격증(KAC/KPC/KSC) 준비생이 AI를 상대로 코칭 실기를 연습하는 도구. kpc-coach-chat과 정반대로 AI가 가상 고객, 사람이 코치 역할을 연습한다. 등급별 시나리오·페르소나(방어적/장황함/감정적/과묵함 등)를 고르면 AI가 절대 코치처럼 질문·조언하지 않고 실제 고객처럼 감정·저항을 드러내며 대화하고, 세션 종료 후 ICF/KCA 핵심역량 6가지 기준(합의·경청·열린질문·판단배제·알아차림·실행설계) 피드백 카드를 받는다. BYOK+체험 3회 패턴은 mindmap·kpc-coach-chat과 동일.",
+    "note": "2026-08-18 신규 개발(GlowHalo 6/시우). 배경 리서치는 app-portfolio/execution/코칭연습앱-시장조사.md — 핵심 인사이트는 '실습 상대를 못 구해서'가 아니라 '사람과 연결되는 사회적 피로함' 때문에 AI 연습 니즈가 있다는 것(회장 1차 확인), 그래서 카피는 '부담 없이 몇 번이고 반복 연습'을 중심에 둠. Worker는 kpc-coach-chat/mindmap과 동일한 Cloudflare Worker+Gemini+BYOK 패턴을 재사용, 시스템 프롬프트만 정반대 방향(AI=고객, 사람=코치)으로 설계. KCA 공식 실습시간으로 인정되지 않는다는 면책 문구를 첫 화면과 BYOK 설정 모달 양쪽에 명시, KCA 로고 등 공식 마크는 사용하지 않음(텍스트 표현만). store-assets/에 등급별(KAC/KPC/KSC) 스토어 리스팅 문구 3종 준비 완료(권장가 2,900/3,400/3,900원), 실제 Partner Center 제출은 미착수."
+  },
+  {
     "id": "circle-heroes",
     "repo": "circle-heroes",
     "title": "Circle Heroes",
@@ -99,7 +115,7 @@ window.REGISTRY = {
       "APK"
     ],
     "description": "SD 히어로 수집형 자동전투 방치형 게임. 모바일 APK로 설치해서 싱글플레이로 즐기는 걸 목표로 한다. 영웅 마스터데이터는 Notion이 정본.",
-    "note": "meta.json이 없어 허브에 안 뜨고 있던 걸 2026-08-13 정비에서 발견해 등록. GlowHalo 6(시우) 소속. 안드로이드 패키지 ID는 io.github.tossneon.circleheroes → com.nadagroup.circleheroes로 정비 완료(2026-08-13, 아직 APK 정식 배포 전이라 전환 비용 없음)."
+    "note": "meta.json이 없어 허브에 안 뜨고 있던 걸 2026-08-13 정비에서 발견해 등록. GlowHalo 6(시우) 소속. 안드로이드 패키지 ID는 io.github.tossneon.circleheroes → com.nadagroup.circleheroes(2026-08-13) → com.glowhalo.circleheroes(2026-08-19, GlowHalo 전면개명 반영)로 정비 완료. 아직 APK 정식 배포 전이라 전환 비용 없음."
   },
   {
     "id": "baby-place-registry",

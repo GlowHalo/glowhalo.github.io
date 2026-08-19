@@ -46,8 +46,8 @@ curl -L -o butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive/
 unzip butler.zip -d butler && chmod +x butler/butler
 
 # 로그인 (API 키를 환경변수로)
-BUTLER_API_KEY=<vault: itchio_api_key> ./butler/butler push <빌드경로> nadacompany/<프로젝트슬러그>:<채널명>
-# 예: ./butler/butler push circle-heroes.apk nadacompany/circle-heroes:android
+BUTLER_API_KEY=<vault: itchio_api_key> ./butler/butler push <빌드경로> tossneon0/<프로젝트슬러그>:<채널명>
+# 예: ./butler/butler push circle-heroes.apk tossneon0/circle-heroes:android
 ```
 
 **주의**: 프로젝트 페이지 자체(예: `itch.io/game/new`)는 API로 못 만든다 — 회장이 웹폼으로 1회 생성해야

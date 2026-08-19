@@ -62,14 +62,14 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `browserbase_api_key` | Browserbase(클라우드 원격 브라우저) — 이 세션 프록시를 안 거치는 헤드리스 브라우저 자동화용 (무료 플랜) |
 | `whop_api_key` | Whop API — 템플릿류(A1)·앱류(A2) 공용 채널, 회장이 가입 완료(2026-08-09) |
 | `chairman_payout_account_kakaobank` | 회장 개인 정산 계좌(카카오뱅크) — **2026-08-15부터 신규 등록은 `chairman_payout_account_ibk`로 전환, 이 계좌는 기존에 이미 등록된 곳만 유지**(회장이 필요할 때 차차 변경). JSON({bank, bankEn, accountNumber, accountHolder, swiftCode}). swiftCode는 `KAKOKR22XXX`(2023-03-29 카카오뱅크가 변경한 현행 코드, 2026-08-11 등록·교차검증 완료) |
-| `chairman_payout_account_ibk` | **나다컴퍼니 공식 정산 계좌(기업은행, 2026-08-15 회장 확정)** — 앞으로 새로 등록하는 플랫폼은 이 계좌를 우선 사용. JSON({bank, bankEn, accountNumber, accountHolder, swiftCode}). **swiftCode는 `IBKOKRSEXXX`**(2026-08-15 등록 시 웹서치로 교차검증 완료 — 회장이 전달한 값 `IBK0KRSEXXX`은 O/0 오타였음, 정정해서 등록) |
+| `chairman_payout_account_ibk` | **GlowHalo 공식 정산 계좌(기업은행, 2026-08-15 회장 확정)** — 앞으로 새로 등록하는 플랫폼은 이 계좌를 우선 사용. JSON({bank, bankEn, accountNumber, accountHolder, swiftCode}). **swiftCode는 `IBKOKRSEXXX`**(2026-08-15 등록 시 웹서치로 교차검증 완료 — 회장이 전달한 값 `IBK0KRSEXXX`은 O/0 오타였음, 정정해서 등록) |
 | `firefox_addons_jwt_issuer` | Firefox Add-ons(Mozilla) API 인증 — JWT 발급자, 앱류(A2 PromptDeck) 신규 제출까지 API로 완전자동화 가능한 채널. 회장이 개발자 계정 가입 완료(2026-08-09) |
 | `firefox_addons_jwt_secret` | 위와 동일 용도 — JWT 시크릿 |
 | `paypal_business_email` / `paypal_business_password` | 나다컴퍼니용 PayPal **Business** 계정(tossneon0, 2026-08-09 신규 생성) — 자유롭게 활용(회장 지시). 예전 개인계정(`chairman_paypal_*`)은 폐기·삭제됨 |
 | `paypal_sandbox_client_id` / `paypal_sandbox_secret` | PayPal REST API 자격증명 — Business 계정("Default Application") 값, OAuth 토큰 발급 테스트 성공(HTTP 200) 확인됨. **Sandbox 전용이라 실결제 불가** |
 | `paypal_live_client_id` / `paypal_live_secret` | PayPal REST API **Live(실결제)** 자격증명 — "sendowl" 앱, 프로덕션 OAuth 토큰 발급 테스트 성공(HTTP 200) 확인됨. SendOwl 등 실연동에 사용 |
 | `mozilla_account_backup_codes` | Mozilla 계정(tossneon0@gmail.com) 패스키 백업코드 8개(줄바꿈 구분, 각 1회용) — 회장이 직접 확인해준 계정, `firefox_addons_jwt_*`와 같은 Mozilla 개발자 계정 |
-| `github_recovery_codes` | GitHub 계정(`tossneon`, 이 저장소 소유 계정) 2FA 복구코드 16개(각 1회용) — 회장이 2026-08-18 직접 전달. 2FA 기기 분실 시에만 사용, 평상시 로그인엔 불필요 |
+| `github_recovery_codes` | GitHub 계정(`tossneon`, 개명 전 원 계정 — **2026-08-19 저장소가 `glowhalo` 계정으로 이전**돼 지금은 이 계정이 저장소 소유가 아님, 상세는 [`hq/decisions/2026-08-19-glowhalo-전면개명.md`](../../hq/decisions/2026-08-19-glowhalo-전면개명.md)) 2FA 복구코드 16개(각 1회용) — 회장이 2026-08-18 직접 전달. 2FA 기기 분실 시에만 사용, 평상시 로그인엔 불필요. `glowhalo` 계정용 2FA 복구코드는 아직 별도 등록 안 됨 — 필요해지면 회장에게 확인 |
 | `sendowl_login_email` / `sendowl_login_password` | SendOwl 계정(`tossneon0`, 표준 규칙) — 원래 Google 전용 가입이었으나 표준 비밀번호 로그인 확인 완료(2026-08-09). 대시보드 화면 진입 시 Cloudflare "사람 확인" 캡차가 뜰 수 있음(우회 안 함). **2026-08-12 회장 확인 — API 발급에 카드(결제수단) 등록이 필수라는 게 확인됨.** Etsy와 동일하게 지금은 활용 보류, 매출 늘면 그때 카드 등록하고 확장하는 채널로 관리(회장 지시) |
 | `itchio_login_email` / `itchio_login_password` | itch.io 자동화 전용 계정(`tossneon0`, 표준 규칙 준수) — 앱류(A2 PromptDeck)·템플릿류 공용 채널, 회장이 가입 완료(2026-08-09) |
 | `itchio_api_key` | itch.io API 키 — Butler CLI로 업로드·버전관리 자동화용 |

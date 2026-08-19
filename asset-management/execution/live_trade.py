@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-나다컴퍼니3 — 실거래 집행 모듈 v2 (기본 DRY-RUN)
+GlowHalo 3 — 실거래 집행 모듈 v2 (기본 DRY-RUN)
 
 전략 v2 (MODE.md §3): MA20 필터 + 변동성 돌파 k=0.5, 보유 1일.
 Phase 1 (MODE.md §6): 원금 30만원 중 최대 50%(15만원)만 투입.
@@ -262,7 +262,7 @@ def main():
     args = ap.parse_args()
     mode = "LIVE" if args.live else "DRY-RUN"
     today, week = kst_today(), kst_week()
-    print(f"=== 나다컴퍼니3 실거래 집행 v2 [{mode}] {today} ===")
+    print(f"=== GlowHalo 3 실거래 집행 v2 [{mode}] {today} ===")
 
     up = Upbit()
     state = load_state()
