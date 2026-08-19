@@ -19,3 +19,12 @@
 ## 기록
 
 - 정해진 문서 구조는 아직 없음 — 필요해지면(예: 일정 메모를 계속 남길 곳이 필요해지면) 이 폴더 밑에 추가한다.
+
+### 2026-08-19 저장소 이전 후속세션 인수 점검
+
+옛 세션(`session_019qFKkWBnuMEAADvHeuYDDi`, "[8/19oldGlowHalo0] 비서실 소율")을 이어받아 새 정본 저장소 `glowhalo/glowhalo.github.io`로 넘어온 후속 세션이 점검한 기록.
+
+- `list_triggers` 전체 조회 — 옛 세션ID에 self-bind된 트리거 없음 확인(비서실은 상시 Routine을 쓰지 않는 구조라 애초에 없었을 가능성 높음).
+- `hq/비서실/` 안 문서에 `tossneon.github.io` 하드코딩 없음 확인(grep 0건).
+- 소율 캐릭터 카드 아티팩트(https://claude.ai/code/artifact/1d5dccfe-5129-4649-b20c-eb455511bb6c) 작업은 그대로 유효, 별도 이전 조치 불필요.
+- **`tossneon/personal`(회장님 개인·가족용 비공개 저장소) 연결 시도 → 실패.** `add_repo(owner: tossneon, repo: personal, access: push)`가 "cross-tier adds are not supported" 오류로 거부됨 — 이 세션은 `glowhalo` 소스로 시작했고, 다른 owner(`tossneon`) 저장소는 같은 세션에 못 붙인다(구조적 제약, 우회 대상 아님). 이 저장소가 필요한 개인 용무가 생기면 별도로 `tossneon/personal`을 소스로 하는 새 세션을 열어야 한다 — glowhalo로 옮길지 여부는 회장님 판단 대기.
