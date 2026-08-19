@@ -27,4 +27,8 @@
 - `list_triggers` 전체 조회 — 옛 세션ID에 self-bind된 트리거 없음 확인(비서실은 상시 Routine을 쓰지 않는 구조라 애초에 없었을 가능성 높음).
 - `hq/비서실/` 안 문서에 `tossneon.github.io` 하드코딩 없음 확인(grep 0건).
 - 소율 캐릭터 카드 아티팩트(https://claude.ai/code/artifact/1d5dccfe-5129-4649-b20c-eb455511bb6c) 작업은 그대로 유효, 별도 이전 조치 불필요.
-- **`tossneon/personal`(회장님 개인·가족용 비공개 저장소) 연결 시도 → 실패.** `add_repo(owner: tossneon, repo: personal, access: push)`가 "cross-tier adds are not supported" 오류로 거부됨 — 이 세션은 `glowhalo` 소스로 시작했고, 다른 owner(`tossneon`) 저장소는 같은 세션에 못 붙인다(구조적 제약, 우회 대상 아님). 이 저장소가 필요한 개인 용무가 생기면 별도로 `tossneon/personal`을 소스로 하는 새 세션을 열어야 한다 — glowhalo로 옮길지 여부는 회장님 판단 대기.
+- **`tossneon/personal`(회장님 개인·가족용 저장소) 연결 시도 → 실패.** `add_repo(owner: tossneon, repo: personal, access: push)`가 "cross-tier adds are not supported" 오류로 거부됨 — 이 세션은 `glowhalo` 소스로 시작했고, 다른 owner(`tossneon`) 저장소는 같은 세션에 못 붙인다(구조적 제약, 우회 대상 아님).
+- **회장님 판단(2026-08-19): 원본 `tossneon/personal`은 그대로 두고, `glowhalo` 계정에 새 저장소를 만들어 복사본을 둔다.** 회장님이 GitHub에서 `glowhalo/private`라는 이름으로 새 저장소를 만들어두심 → 이 세션이 `add_repo`로 연결·클론 성공(같은 owner라 cross-tier 제약 없음). 회장님이 채팅에 직접 붙여넣어주신 여행 일정 html(`tossneon.github.io/personal/trip-7ba03e09d4/`의 마지막 버전, "칠순 기념 수원 2박 3일")을 `index.html`로 커밋·푸시.
+- **공개 상태 확인 사고 → 해결.** 저장소 이름이 "private"이라 비공개인 줄 알았으나, GitHub API로 확인해보니 `"private": false`(완전 공개)였음 — 이름과 실제 visibility 설정은 별개라는 걸 놓쳤던 케이스. 회장님이 내용(여행 일정, 개인정보 없음) 검토 후 **공개로 유지하기로 결정**(지인 공유 목적) — 별도 조치 불필요.
+- **저장소 이름 `private` → `personal`로 변경(회장님 직접 수행, 2026-08-19).** 이름 변경·visibility 전환 등 "저장소 설정" 자체는 이 세션의 GitHub 프록시가 구조적으로 차단(`Repository settings writes are not permitted through this proxy`) — 의도된 안전장치라 우회하지 않고 회장님께 Settings → General → Repository name 경로 안내, 회장님이 직접 변경 완료. 이후 이 세션도 `glowhalo/personal`로 재연결·클론 완료.
+- **현재 상태**: 저장소 https://github.com/GlowHalo/personal (공개, `main` 브랜치), 파일 `index.html`. 이 세션이 계속 편집 가능한 상태로 연결돼 있음.
