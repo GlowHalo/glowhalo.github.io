@@ -135,3 +135,12 @@
 5. ~~리뷰 품질 검증~~ → **완료(2026-08-18, API 키 없는 대체 방법으로 회장 확정, 위 절 참고).**
 
 **회장 액션 대기 항목 — 현재 없음.** 이 상품(GitHub Marketplace "Code Review Board")은 기획→구현→e2e검증→리포분리→Marketplace등록→품질검증까지 전 과정 완주. 다음은 실사용자 반응을 기다리는 단계.
+
+## 계정 이전 — tossneon → glowhalo (2026-08-19)
+
+claude.ai 연결 GitHub 계정이 tossneon→glowhalo로 바뀌면서(모노레포 저장소도 `glowhalo/glowhalo.github.io`로 이전) 이 독립 리포도 회장이 직접 `glowhalo/code-review-board-action`로 이전 완료. 확인한 내용:
+- `add_repo`(owner=glowhalo, repo=code-review-board-action, access=push) 정상 등록·클론 성공, 커밋 `5ba4b81`(위 4차 항목의 action.yml 축약 커밋) 그대로 보존.
+- 구 URL `github.com/tossneon/code-review-board-action`은 GitHub 소유권 이전 시 자동 생성되는 리다이렉트로 지금도 정상 열림(WebFetch로 확인, nav에 "GlowHalo / code-review-board-action"으로 표시).
+- [Marketplace 리스팅](https://github.com/marketplace/actions/code-review-board)도 별도 재게시 없이 제작자(Publisher)만 **GlowHalo**로 자동 갱신, 버전은 v1.0.0(Latest) 그대로 유지.
+
+위 본문(1~5차)의 `tossneon/...` 링크·경로 표기는 **그 시점에 실제로 있었던 사실 그대로**라 수정하지 않고 남겨둔다 — 현재 정본 위치는 `glowhalo/code-review-board-action`.
