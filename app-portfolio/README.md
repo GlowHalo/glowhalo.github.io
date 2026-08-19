@@ -70,7 +70,7 @@ GlowHalo Group 산하 여섯 번째 관계사. 대표: **시우** (2026-08-12 �
 ### 대기 중
 - [ ] `baby-place-registry/` — Kakao/Firebase 키가 클라이언트 코드에 있음(Kakao JS 키·Firebase 웹 config 자체는 공개돼도 되는 값이라 즉시 위험은 낮지만, **Firestore 보안규칙이 열려있는지는 Firebase 콘솔에서 직접 확인 필요** — 계정 로그인이 필요해 회장 확인 요청 예정)
 - [x] **2026-08-17 회장 지시 — 실사용 중인 `baby-place-registry/`·`dividend-passbook/`는 원본을 건드리지 않기로 확정.** 배포용 개선(죽은 파일 정리, 하드코딩 주소 일반화, PWA 요건)은 각각 `baby-place-registry-deploy/`·`dividend-passbook-deploy/` 사본에서 진행 — 두 사본 모두 `meta.json`이 없어 루트 허브엔 안 뜨고, Microsoft Store 제출(PWABuilder)은 그 사본의 라이브 URL을 대상으로 한다. 원본은 `git checkout 8ce8429 -- baby-place-registry/`로 이전 상태 복원 완료. 앞으로 이 두 앱 외에 또 실사용 중인 앱이 나오면 같은 패턴(원본 보존 + `-deploy` 사본) 적용
-- [ ] `code-review-board-action/` — 마켓플레이스에 실제로 올리려면 `git subtree split`로 독립 저장소 분리(`action.yml`을 루트로) + 실제 Anthropic 키로 end-to-end 검증 먼저 필요. **2026-08-19 재시도 — 둘 다 여전히 막힘**: 금고에 `anthropic_api_key` 없음(e2e 검증 불가) + `mcp__github__create_repository`로 새 저장소 생성 시도 → `403 Resource not accessible by integration`(이 세션 GitHub 연결 권한이 기존 저장소로 제한돼 있어 신규 저장소 생성 자체가 안 됨, 우회 시도 안 함). **회장 액션 필요**: 계정에서 빈 저장소(`code-review-board-action`, public) 하나만 만들어주시면 이후 subtree split·push는 이어서 진행. 상세는 `candidates.md` P7 항목
+- [x] `code-review-board-action/` **독립 저장소 분리 완료(2026-08-19)** — `github.com/glowhalo/code-review-board-action`(public)이 이미 생성돼 있었고(누가 만들었는지는 불명, 회장이 직접 만드셨거나 다른 세션), 내용을 대조해보니 모노레포 소스와 완전히 동일(내부용 안내 문구만 제외, 의도대로). `mcp__github__create_repository`로 이 세션이 직접 새 저장소를 만드는 건 여전히 `403 Resource not accessible by integration`으로 막혀있음(2026-08-19 재시도, 이 세션의 GitHub 연결이 신규 저장소 생성 권한은 없는 것으로 보임 — 회장이 권한을 새로 주셨다고 해도 재시도 결과 동일) — 다만 이번엔 저장소가 이미 존재해서 실질적으로 문제 안 됨. **남은 블로커는 e2e 검증 하나**: 금고에 `anthropic_api_key`가 아직 없어 실제 PR로 돌려보는 검증을 못 함. 있으면 금고에 등록해주시면 바로 검증 후 GitHub Marketplace 등록까지 진행 가능. 상세는 `candidates.md` P7 항목
 - [x] `output-links-hub/` — **2026-08-19 판단 완료**: 지금은 추가할 카드가 없는 게 맞음(9개 중 나머지 7개는 전부 설치형 패키지가 아닌 URL 웹앱이라 이 허브 성격과 안 맞음). 웹앱 중 하나가 실제 설치형 패키지(MSIX·PWA 설치 등)를 갖추는 순간 그때 추가 — 상세는 `candidates.md` 참고
 - [ ] **회장 최초 가입 4건 대기 — 2026-08-17 갱신: 2/4 완료.** ~~Amazon Appstore(무료)~~ **완료**(회장 직접 가입 + 신원확인(IDV)까지 완료, 금고 `amazon_developer_login_*` — 실제 앱 제출 가능 상태), ~~Microsoft Partner Center(2026년부터 무료)~~ **완료**(회장 직접 가입, 금고 `microsoft_partner_login_*`). 남은 건 Google Play Console($25, 유료라 `hq/가입대기.md` 후순위 트랙으로 이동)·itch.io Circle Heroes 프로젝트 페이지(무료, 계정은 있음, 페이지 생성만 남음 — 2026-08-19 재확인, `itch.io/game/new`는 API로 못 만들어 회장 웹폼 1회 필요, `hq/가입대기.md`에 계속 추적 중). 상세 링크·절차는 [`execution/유통채널-리서치.md`](execution/유통채널-리서치.md) "다음 단계" 참고
 - [ ] Amazon Appstore·Microsoft Partner Center 계정이 준비됐으니 시우가 각 채널 API 연동(서비스 계정/토큰 발급) → 이후 자동 배포 파이프라인 구축 착수
@@ -96,14 +96,14 @@ GlowHalo Group 산하 여섯 번째 관계사. 대표: **시우** (2026-08-12 �
 회장이 GitHub 계정 이전 + 이메일 도메인 신규 구매 + 계정 표준화(`tossneon0@gmail.com`)를 진행 중이라, GlowHalo 6 소관 전체를 훑어 옛 브랜드 흔적(`tossneon`/`nadacompany`/`나다컴퍼니`/`NadaGroup`)을 점검·정리했다.
 
 **실제로 고친 것**
-- **Cloudflare Worker 이름 4개 개명·재배포 완료** — `nada-company6-*` → `glowhalo6-*`로 이름을 바꿔 새로 배포하고, Gemini 시크릿(`GEMINI_API_KEY`)도 새 이름으로 재등록, 프론트엔드 하드코딩 URL도 전부 갱신·라이브 확인(200/400 응답 = 정상 동작, 404 아님):
+- **Cloudflare Worker 이름 5개 개명·재배포 완료** — `nada-company6-*` → `glowhalo6-*`로 이름을 바꿔 새로 배포하고, 시크릿(`GEMINI_API_KEY`)·KV 바인딩도 그대로 재등록, 프론트엔드 하드코딩 URL도 전부 갱신·라이브 확인(200/201/400 응답 = 정상 동작, 404 아님):
   - `mindmap/worker` → `glowhalo6-mindmap.tossneon.workers.dev`
   - `kpc-coach-chat/worker` → `glowhalo6-kpc-coach-chat.tossneon.workers.dev`
   - `coach-practice/worker` → `glowhalo6-coach-practice.tossneon.workers.dev`
   - `baby-place-registry-deploy/worker` → `glowhalo6-baby-place-registry.tossneon.workers.dev`
-  - **옛 이름의 Worker 4개는 삭제 못 함** — Cloudflare API로 삭제 시도 시 Claude Code 자동모드 분류기가 파괴적 작업으로 판단해 차단(재시도도 막힘, 우회 시도 안 함). 지금은 아무도 참조 안 하는 죽은 워커로 방치 중 — 대시보드에서 회장이 직접 지워주시거나, 삭제 권한을 열어주시면 다음에 정리하겠습니다. (Workers & Pages → 각 `nada-company6-*` 스크립트 → Delete)
-  - **`checknote/worker`는 의도적으로 보류** — 지금 회장이 실제로 테스트 중인 앱이라 재배포로 흐름을 끊고 싶지 않았음. 테스트 끝나면 같은 방식으로 이어서 진행.
-- **`code-review-board-action`**: GitHub 소유자 표기(`action.yml` author, `LICENSE` copyright, README의 `uses:` 예시·저장소 링크) `tossneon` → `glowhalo`로 정정. GitHub 계정 자체가 이미 `glowhalo`로 이전 완료된 걸 `get_me`로 재확인 후 반영.
+  - `checknote/worker` → `glowhalo6-checknote.tossneon.workers.dev` (2026-08-19 회장 테스트 완료 후 이어서 진행, KV 데이터는 네임스페이스 ID가 그대로라 유실 없음)
+  - **옛 이름의 Worker 5개는 삭제 못 함** — Cloudflare API로 삭제 시도 시 Claude Code 자동모드 분류기가 파괴적 작업으로 판단해 차단(재시도도 막힘, 우회 시도 안 함). 지금은 아무도 참조 안 하는 죽은 워커로 방치 중 — 대시보드에서 회장이 직접 지워주시거나, 삭제 권한을 열어주시면 다음에 정리하겠습니다. (Workers & Pages → 각 `nada-company6-*` 스크립트 → Delete)
+- **`code-review-board-action`**: GitHub 소유자 표기(`action.yml` author, `LICENSE` copyright, README의 `uses:` 예시·저장소 링크) `tossneon` → `glowhalo`로 정정. GitHub 계정 자체가 이미 `glowhalo`로 이전 완료된 걸 `get_me`로 재확인 후 반영. **독립 저장소(`github.com/glowhalo/code-review-board-action`)도 이미 존재·내용 동일함을 확인** — 아래 "대기 중" 항목 참고.
 - **itch.io 사용자명 참조 정정** — `app-portfolio/execution/유통채널-리서치.md`·배포 스킬 문서의 butler push 예시가 옛 `tossneon0`으로 남아있던 걸, 실제 라이브 상태(curl로 직접 확인: `nadacompany.itch.io` 200, `glowhalo.itch.io` 아직 404)에 맞춰 `nadacompany`로 정정 — **아직 `glowhalo`가 아님**, 회장이 itch.io 사용자명을 실제로 바꾸면 그때 다시 갱신 필요(2026-08-22까지 itch.io 자체 재변경 제한 있음).
 - `mindmap-microsoft-store-제출.md`의 임시 packageId 예시(`NadaCompany6.Mindmap` 등)도 `GlowHalo6.Mindmap`으로 정정(아직 실제 제출 전이라 최종 식별자는 Partner Center에서 새로 받게 됨, 영향 없음).
 
