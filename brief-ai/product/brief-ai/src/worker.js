@@ -77,7 +77,7 @@ async function sendMagicLinkEmail(env, email, link) {
     method: "POST",
     headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      from: "브리프AI <no-reply@send.glowhalo.org>",
+      from: "브리프AI <no-reply@glowhalo.org>",
       to: [email],
       subject: "브리프AI 로그인 링크",
       html:
