@@ -1,7 +1,15 @@
 {
-  "positions": {},
-  "traded_dates": {},
+  "positions": {
+    "KRW-SOL": {
+      "entry_price": 108300.0,
+      "entry_date": "2026-08-19",
+      "krw": 75000
+    }
+  },
+  "traded_dates": {
+    "KRW-SOL": "2026-08-19"
+  },
   "realized": {},
   "halt": null,
-  "last_live_run": "2026-08-18T02:22:26.118912Z"
+  "last_live_run": "2026-08-19T00:21:47.471173Z"
 }
