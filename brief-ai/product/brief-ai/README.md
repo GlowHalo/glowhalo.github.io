@@ -11,7 +11,7 @@ Round 1 승리 아이디어("AI 회의록 자동정리·액션아이템 트래�
 - `POST /v1/summarize` — `{ "transcript": "...", "meetingTitle": "..." }` → `{ summary, decisions, actionItems }`. `Authorization: Bearer <session>` 헤더가 있고 그 사용자 `plan==="pro"`면 처리 후 연결된 Notion/Slack으로 자동 전송하고 `_delivery` 필드를 덧붙인다(결제 웹훅이 아직 없어 지금은 아무도 pro가 아니므로 실질적으로는 항상 미발동).
 - `POST /v1/waitlist` — `{ "email": "..." }` → 출시 알림 대기자 등록 (Workers KV 저장)
 - `GET /settings` — 연동 설정 화면(이메일 로그인 + Notion/Slack 연결 관리)
-- `POST /v1/auth/request` — `{ "email": "..." }` → 매직링크 이메일 발송(Resend, `nadagroup.org` 발신, 15분 유효)
+- `POST /v1/auth/request` — `{ "email": "..." }` → 매직링크 이메일 발송(Resend, `glowhalo.org` 발신, 15분 유효, 2026-08-19 `nadagroup.org`에서 전환)
 - `GET /v1/auth/verify?token=...` — 매직링크 검증 → 세션 발급(30일), `/settings`로 리다이렉트
 - `GET/PUT /v1/settings/integrations` — (인증 필요) Notion 토큰+DB ID, Slack 웹훅 URL 조회/저장(AES-256-GCM 암호화 후 KV 저장)
 
