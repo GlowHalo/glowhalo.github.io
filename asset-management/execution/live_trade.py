@@ -3,7 +3,7 @@
 GlowHalo 3 — 실거래 집행 모듈 v2 (기본 DRY-RUN)
 
 전략 v2 (MODE.md §3): MA20 필터 + 변동성 돌파 k=0.5, 보유 1일.
-Phase 1 (MODE.md §6): 원금 30만원 중 최대 50%(15만원)만 투입.
+Phase 2 (MODE.md §6, 2026-08-20 회장 지시 "예산 상한 해제"): 잔고 전액 운용 — 총 투입 상한 없음.
 리스크 헌법(§4) 하드룰 내장: 포지션 손절 -3%, 일 한도 -3%, 주 한도 -7%,
 서킷브레이커 -15%(총자산 기준) — 위반하는 주문은 만들어질 수 없다.
 
@@ -42,7 +42,8 @@ K = 0.5
 MA_WINDOW = 20
 
 PRINCIPAL = 300_000
-PHASE1_CAP = PRINCIPAL // 2      # 15만원
+# Phase 2 (2026-08-20 회장 지시 "예산 상한 해제 — 업비트 잔고 전액 활용"):
+# 총 투입 상한(구 PHASE1_CAP, 원금의 50%) 제거. 종목당 상한·손실 한도·서킷브레이커는 유지.
 PER_MARKET_CAP = PRINCIPAL // 2  # 종목당 상한(리스크 헌법 50%)
 MIN_ORDER_KRW = 5_500
 STOP_LOSS = -0.03                # 포지션 손절
@@ -378,7 +379,7 @@ def main():
     # ---- 3) 진입: v2 신호 (당일 재진입 금지) ----
     accounts = {a["currency"]: float(a["balance"]) for a in up.accounts()}
     krw = accounts.get("KRW", 0.0)
-    budget = min(krw, PHASE1_CAP)
+    budget = krw  # Phase 2: 잔고 전액이 예산 (총 상한 없음)
     invested = sum(p["krw"] for p in state["positions"].values())
     for market in MARKETS:
         if market in state["positions"]:
@@ -392,7 +393,7 @@ def main():
         if not sig["breakout"]:
             status.append("미돌파")
         if not status:
-            size = int(min(budget // 2, PER_MARKET_CAP, PHASE1_CAP - invested))
+            size = int(min(budget // 2, PER_MARKET_CAP))
             if size < MIN_ORDER_KRW:
                 status.append(f"예산 소진(가용 {size:,}원)")
             else:
@@ -402,6 +403,7 @@ def main():
                                                   "entry_date": today, "krw": size}
                     state["traded_dates"][market] = today
                     invested += size
+                    budget -= size  # 연속 매수 시 잔고 초과 주문 방지
                     log_event({"mode": "LIVE", "action": "buy", "market": market,
                                "krw": size, "price": sig["price_now"], "uuid": resp.get("uuid")})
                     print(f"[LIVE] ✅ {market} 진입: 시장가 매수 {size:,}원 @≈{sig['price_now']:,}")
@@ -413,7 +415,7 @@ def main():
 
     if args.live:
         save_state(state)
-    print(f"\n[{mode}] 완료 | 일 실현손익 {day_pnl:+,.0f}원 | 주 {week_pnl:+,.0f}원 | 투입 {invested:,}원/{PHASE1_CAP:,}원")
+    print(f"\n[{mode}] 완료 | 일 실현손익 {day_pnl:+,.0f}원 | 주 {week_pnl:+,.0f}원 | 투입 {invested:,}원 (Phase 2: 총 상한 없음)")
 
 
 if __name__ == "__main__":
