@@ -50,3 +50,17 @@ Diff to review:
 **한계**: 이것도 프롬프트 설계 자체의 유효성 검증이지, `runPersona()`가 실제 Anthropic API를 호출했을 때 토씨까지 이 응답을 재현한다는 보장은 아니다(모델 버전·temperature 등 API 파라미터 미반영). 파이프라인(GitHub Actions 인프라·인증·댓글 게시)은 이미 실키 없이 100% e2e 검증됐으므로(2026-08-18, 4차), 종합하면 "설계도 맞고 배관도 맞다"는 확인이 이번에도 유지된다.
 
 **다음 단계**: 위에서 찾은 `coach-practice/worker/index.ts` 결함(특히 서버 측 rate limit 부재)은 별도로 회장께 보고 후 고칠지 판단 필요 — 이 문서는 리뷰 방법 검증이 목적이라 코드 수정은 포함하지 않았다.
+
+## 결함 수정 (2026-08-19, 회장 지시로 이어서 진행)
+
+찾은 결함 중 실제 코드 수정으로 이어진 항목:
+
+- **🔒 서버측 요청량 제한 부재** → `RATE_LIMIT_KV`(신규 KV 네임스페이스) 추가, IP당 일일 상한(`/chat` 150회, `/feedback` 30회) 도입. 클라이언트(localStorage) "기기당 3회" 한도를 대체하는 게 아니라 그게 우회됐을 때의 백업. 초과 시 429 응답. KV `get→put`이 원자적 증가가 아니라는 한계는 주석으로 명시(정밀 과금 통제가 아니라 남용 방지 백업이므로 감수).
+- **⚙️ 재시도·타임아웃 부재** → Gemini 호출에 `AbortController` 20초 타임아웃 + 429/5xx/타임아웃에 한해 짧은 backoff로 최대 2회 재시도 추가.
+- **⚙️ 마지막 발화 role 미검증** → `/chat`에서 `history`의 마지막 메시지가 `coach`가 아니면 400으로 명시 거부.
+- **🧹 400/502 미구분** → `BadRequestError` 타입 도입, "알 수 없는 grade/scenario/persona 조합"은 이제 400, 그 외(Gemini 쪽 실패 등)만 502.
+- **🧹 `callGeminiWithKey` 위치 인자 5개** → 이름 붙은 옵션 객체로 교체.
+- **🧹 GRADE_DATA 중복 동기화 위험** → 구조적 재설계(공유 데이터 소스 분리)는 이번 범위에 포함하지 않음(정적 GitHub Pages·Cloudflare Worker 두 런타임 사이에 빌드 파이프라인이 없어 더 큰 구조 변경이 필요 — 지금은 주석으로 위험을 강조하는 데 그침).
+- **모델 alias(`gemini-flash-latest`) 무고정** → 의도적으로 그대로 둠. 고정 버전으로 바꾸면 Google 신모델 자동 반영이라는 원래 의도를 없애는 트레이드오프라, 결함이라기보단 인지된 리스크로 판단 — 코드 수정 대신 주석으로만 남김.
+
+**검증**: `npm install` + `@cloudflare/workers-types` 추가 후 `npx tsc --noEmit` 클린 통과(이전엔 `KVNamespace` 타입 자체가 안 잡혀 있었음 — 이 저장소의 다른 KV 사용 Worker(`checknote`)에도 같은 갭이 있으나 이번 수정 범위 밖이라 손대지 않음). `npm audit` 0 vulnerabilities. `wrangler deploy`로 실배포 후 라이브 워커에 실제 요청 3건으로 검증: (1) 알 수 없는 조합 → 400 확인, (2) 마지막 발화가 client → 400 확인, (3) 정상 요청 → 200 + 실제 Gemini 응답 확인. `wrangler kv key list`로 rate-limit 카운터가 실제로 KV에 기록되는 것도 확인.

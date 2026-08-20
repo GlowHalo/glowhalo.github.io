@@ -8,3 +8,9 @@ compatibility_date = "2026-01-01"
 # 값을 그 금고에서 조회한 뒤 `npx wrangler secret put <이름>` 으로 이 Worker에 등록한다:
 #   GEMINI_API_KEY
 # 자세한 절차는 `.claude/rules/cloudflare-vault.md` 참고.
+
+# 2026-08-19 리뷰(code-review-board 방법)에서 발견된 "서버측 요청량 제한 부재" 수정용 —
+# IP당 일일 호출 횟수 카운터 저장소(KV 값 자체는 비밀 아님, 계정 API 토큰 없이는 무용지물).
+kv_namespaces = [
+  { binding = "RATE_LIMIT_KV", id = "c7fc84e9cbbb413492d8884aacedcea5" }
+]
