@@ -7,6 +7,7 @@
 | N1 | The Independent Board (GlowHalo 1 A5 승계) | 니치 뉴스레터, 스티비(무료 시작) | 🟢 창간호 초안 작성 완료(2026-08-18), 발송 전 구독 폼 정비 중 — [`README.md`](README.md) 진행상황 참고 |
 | N2 | The Career Board — 커리어·자기이해 딜레마, Reflect Lab 톤 재사용 | 무료 맛보기 뉴스레터, 스티비 | 🟢 창간호 초안+구독 페이지 완료(2026-08-18) — [glowhalo.github.io/newsletter-automation/career-board](https://glowhalo.github.io/newsletter-automation/career-board/), [`execution/02-N2-career-board.md`](execution/02-N2-career-board.md) |
 | N3 | The Builder's Board — AI 툴 빌더용 "만들까 말까" 딜레마 | 무료 맛보기 뉴스레터, 스티비 | 🟢 창간호 초안+구독 페이지 완료(2026-08-18) — [glowhalo.github.io/newsletter-automation/builders-board](https://glowhalo.github.io/newsletter-automation/builders-board/), [`execution/03-N3-builders-board.md`](execution/03-N3-builders-board.md) |
+| N6 | The Leadership Board — 기업 리더 대상 "이 사람·팀을 어떻게 이끌까" 딜레마 (회장 지시, 2026-08-20) | 무료 맛보기 뉴스레터, 스티비 | 🟡 컨셉·창간호 초안 완료, **스티비 SMS 2단계 인증 블로커로 세팅 중단** — [`execution/04-N6-leadership-board.md`](execution/04-N6-leadership-board.md) |
 
 ## 향후 확장 후보
 
@@ -58,6 +59,10 @@ N1과 같은 "서로 안 보고 반박하는 AI 임원진" 메커니즘을 다�
 `execution/03-N3-builders-board.md`.
 
 N4(파닉스)·N5(투자)는 보류 상태 유지 — N5는 규제 리스크 재검토 없이는 착수하지 않는다.
+
+**✅ 2026-08-20 회장 지시로 N6(The Leadership Board) 착수.** N4·N5는 번호만 예약된 채 보류
+중이라 다음 번호인 N6를 씀 — 위 1호 후보 표 참고, 상세는
+[`execution/04-N6-leadership-board.md`](execution/04-N6-leadership-board.md).
 
 ---
 
