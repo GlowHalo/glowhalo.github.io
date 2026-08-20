@@ -42,6 +42,8 @@ Beehiiv·스티비 포함 7개 플랫폼의 이용료/유료구독 조건/API/�
 - [x] **(2026-08-18) 무료 맛보기 확장 착수 — N2(The Career Board)·N3(The Builder's Board) 회장 확정.** 컨셉·창간호·주소록·이메일 초안까지 완료 — [`candidates.md`](candidates.md#니치-후보-리스트업-2026-08-18-회장-지시로-착수) 참고.
 - [x] **⚠️ 신규 발견 — 스티비 무료 플랜은 "페이지"(브랜드 구독 랜딩페이지)가 계정당 1개로 제한됨.** N1이 이미 그 1개를 쓰고 있어 N2·N3는 같은 방식으로 페이지를 못 만듦 — 대신 (1) 주소록별 무브랜드 구독 폼(`page.stibee.com/subscriptions/<id>`, 페이지 개수 제한과 무관)과 (2) 저장소 자체에 만든 랜딩페이지로 대체. [career-board](https://glowhalo.github.io/newsletter-automation/career-board/), [builders-board](https://glowhalo.github.io/newsletter-automation/builders-board/) 둘 다 공개 배포 완료.
 - [ ] **회장 검토 필요 — N2·N3도 N1과 같은 상태**: 창간호 초안은 있으나 발송 전, 구독 페이지는 라이브. 셋 다 한 번에 훑어보고 문제없으면 발송 판단.
+- [x] **(2026-08-20) N6(The Leadership Board) 착수 — 회장 지시, 회장 본인이 실사용자로 검수·구독 예정.** 기업 리더 대상 "이 사람·팀을 어떻게 이끌까" 딜레마, 컨셉·창간호 초안 완료 — [`candidates.md`](candidates.md#니치-후보-리스트업-2026-08-18-회장-지시로-착수), [`execution/04-N6-leadership-board.md`](execution/04-N6-leadership-board.md) 참고.
+- [ ] **🔴 회장 확인 필요 — N6 스티비 세팅이 SMS 2단계 인증에서 멈춤.** 로그인까지는 정상 진행했으나 등록된 휴대폰(`***-****-0452`)으로 발송되는 인증번호가 필요해 여기서 중단. 인증번호를 알려주시면 그 자리에서 이어서(주소록 생성→창간호 등록→구독 페이지 배포) 진행하고, 번거로우시면 스티비 로그인 후 2단계 인증 수단을 이메일로 바꿔주시면 다음부턴 이 블로커 없이 진행할 수 있습니다.
 
 ## 🔄 세션 인계 메모 (2026-08-15)
 
