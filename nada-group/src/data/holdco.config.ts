@@ -468,8 +468,11 @@ export type ApprovalItem = {
 
 export const INITIAL_APPROVALS: ApprovalItem[] = [
   { id: "ap1", companyId: "niche-templates", title: "A2 · 웹스토어 등록 결제", detail: "재현 · 회장 액션 필요", needsChairman: true },
-  { id: "ap2", companyId: "niche-templates", title: "A1 · 2호 상품(Investor Panel) 공개", detail: "정연 · Notion 웹공개 토글만 하면 됨", needsChairman: false },
-  { id: "ap3", companyId: "niche-templates", title: "A5 · 스티비 계정 생성", detail: "윤슬 · 발행 준비 끝, 계정만 필요", needsChairman: true },
+  // ap2(A1 2호 상품 공개)·ap3(A5 스티비 계정 생성)는 2026-08-21 정기점검에서 제거 —
+  // ap2는 이미 실제 KV 상태(nada-group-api)에서 예전에 처리·제거돼 있었고,
+  // ap3(스티비 계정)는 2026-08-17에 실제로 가입 완료됐고 A5 자체도 2026-08-12 GlowHalo10으로
+  // 이관됐다(hq/가입대기.md, niche-templates/candidates.md 참고). 이 배열은 KV가 비어있을 때만
+  // 쓰이는 폴백 시드라 실제 화면엔 이미 반영 안 됐었지만, 재시드 시 되살아나지 않도록 정리.
 ];
 
 export type InstructionItem = {
@@ -480,7 +483,9 @@ export type InstructionItem = {
 };
 
 export const INITIAL_INSTRUCTIONS: InstructionItem[] = [
-  { id: "in1", companyId: "niche-templates", text: "A3 아트워크 외주처 후보 3곳 비교해줘", status: "queued" },
+  // in1(A3 아트워크 외주처 비교)은 2026-08-21 정기점검에서 제거 — A3(카카오톡 이모티콘)은
+  // 2026-08-12에 GlowHalo1(니치템플릿)에서 GlowHalo8(카카오이모티콘)로 완전히 이관돼
+  // niche-templates 소관이 아니게 됐다(niche-templates/candidates.md 참고).
   { id: "in2", companyId: "niche-templates", text: "A1 이번 주 판매 현황 요약해줘", status: "done" },
 ];
 
