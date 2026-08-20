@@ -31,6 +31,8 @@ GlowHalo Group 산하 여덟 번째 관계사. 대표: **예슬** (2026-08-12 �
 - Leonardo 파이프라인의 일관성 담보를 시드 고정보다 더 강하게 가져갈지(예: 레퍼런스 이미지+img2img, 생성 후 개체차 큰 것만 골라 재생성하는 검수 단계 추가)는 신규 생산 재개 시점에 재검토.
 - 새 시리즈 생산은 회장이 재개를 지시할 때까지 하지 않는다.
 
+**✅ 2026-08-20 추가 확정 — "대기하며 지켜보자"(회장 지시).** 나머지 11건 심사 결과가 하나씩 나오는 걸 지켜보고 그때그때 회장과 상의하기로 함. 기존 8/26 1회성 리마인더(`trig_01DEN73Cdu6gib9oBDHS4WiU`, A3 전용으로 만들어졌던 것)는 삭제하고, **매일 09:00 KST 심사결과 확인 루틴**(`trig_01F1hjcVd9CJHxvnu5ZMh6ND`, 이 세션 앞으로 self-bind)으로 대체 — 새 결과 없으면 조용히 종료, 있으면 문서 갱신+회장 보고. 신규 제작·제출은 이 루틴에서도 하지 않는다(06:30 생산 루틴은 계속 비활성 상태 유지).
+
 ## 계열사 신설 배경 — GlowHalo 1(A3)에서 분사
 
 GlowHalo 1(정연)이 A1(템플릿)·A2(PromptDeck)·A3(카카오 이모티콘) 등을 병행하고 있었는데, 회장 지시(2026-08-12)로 **정연은 템플릿 라인(A1)에 집중**하고 **카카오 이모티콘은 신규 담당자 "예슬"에게 완전히 이관**한다. `niche-templates/execution/A3-kakao-emoticon.md`, `niche-templates/execution/products/kakao-emoticon-art/`, `niche-templates/execution/products/kakao-mockups/`를 그대로 이동했다(git mv, 히스토리 보존).
