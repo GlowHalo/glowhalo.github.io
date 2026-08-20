@@ -9,3 +9,11 @@
 {"mode": "DRY-RUN", "action": "would_buy", "market": "KRW-BTC", "krw": 38005, "ts": "2026-08-20T09:23:35.455179Z"}
 {"mode": "DRY-RUN", "action": "would_buy", "market": "KRW-DOGE", "krw": 38005, "ts": "2026-08-20T09:23:38.027146Z"}
 {"mode": "LIVE", "action": "buy", "market": "KRW-XRP", "krw": 18984, "price": 1598.0, "uuid": "1ef6e472-19ff-453e-8104-b3e922914e1c", "ts": "2026-08-20T09:27:56.574344Z"}
+{"mode": "LIVE", "action": "sell", "market": "KRW-ETH", "reason": "morning_exit", "volume": 0.02753303, "price": 3158000.0, "pnl_krw": 11949, "uuid": "8218f6f2-38a6-4d05-8313-c6f1619f34be", "ts": "2026-08-20T15:15:35.905412Z"}
+{"mode": "LIVE", "action": "sell", "market": "KRW-SOL", "reason": "morning_exit", "volume": 0.67028126, "price": 119700.0, "pnl_krw": 5233, "uuid": "9c028737-b15f-4dd9-bff8-06cdf2ebf167", "ts": "2026-08-20T15:15:37.433658Z"}
+{"mode": "LIVE", "action": "sell", "market": "KRW-BTC", "reason": "morning_exit", "volume": 0.0007638, "price": 99350000.0, "pnl_krw": -162, "uuid": "7a7314bc-ebbe-456b-8a0f-84bc068d7bbc", "ts": "2026-08-20T15:15:38.877553Z"}
+{"mode": "LIVE", "action": "sell", "market": "KRW-DOGE", "reason": "morning_exit", "volume": 355.35514018, "price": 109.0, "pnl_krw": 711, "uuid": "651efc43-a8da-461d-8601-2572e2934eae", "ts": "2026-08-20T15:15:40.307448Z"}
+{"mode": "LIVE", "action": "sell", "market": "KRW-XRP", "reason": "morning_exit", "volume": 11.87984981, "price": 1734.0, "pnl_krw": 1616, "uuid": "a89705a5-cc55-4d79-a8fd-fa7151c96fd9", "ts": "2026-08-20T15:15:41.714036Z"}
+{"mode": "LIVE", "action": "buy", "market": "KRW-BTC", "krw": 150000, "price": 99326000.0, "uuid": "0795d246-1ca9-403d-95f9-840bfa9288d0", "ts": "2026-08-20T15:15:44.490545Z"}
+{"mode": "LIVE", "action": "buy", "market": "KRW-XRP", "krw": 85529, "price": 1733.0, "uuid": "620c1174-b4ea-4540-99f6-869ab97b3d24", "ts": "2026-08-20T15:15:47.960120Z"}
+{"mode": "LIVE", "action": "buy", "market": "KRW-DOGE", "krw": 42764, "price": 109.0, "uuid": "bf7e3686-01bc-4438-9364-68000a664532", "ts": "2026-08-20T15:15:51.067103Z"}
