@@ -56,3 +56,8 @@
 {"date": "2026-08-18", "market": "KRW-XRP", "target": 1425, "ma20": 1471, "action": "filtered"}
 {"date": "2026-08-18", "market": "KRW-DOGE", "target": 100, "ma20": 99, "action": "filtered"}
 {"date": "2026-08-18", "market": "KRW-SOL", "target": 108250, "ma20": 105785, "action": "closed", "exit": 108300, "net_return_pct": -0.054, "equity": 0.980308}
+{"date": "2026-08-19", "market": "KRW-BTC", "target": 91504500, "ma20": 90522950, "action": "closed", "exit": 95347000, "net_return_pct": 4.099, "equity": 1.040992}
+{"date": "2026-08-19", "market": "KRW-ETH", "target": 2715500, "ma20": 2675800, "action": "closed", "exit": 3096000, "net_return_pct": 13.912, "equity": 1.139122}
+{"date": "2026-08-19", "market": "KRW-XRP", "target": 1419, "ma20": 1465, "action": "filtered"}
+{"date": "2026-08-19", "market": "KRW-DOGE", "target": 99, "ma20": 99, "action": "filtered"}
+{"date": "2026-08-19", "market": "KRW-SOL", "target": 109700, "ma20": 105930, "action": "closed", "exit": 117400, "net_return_pct": 6.919, "equity": 1.048137}
