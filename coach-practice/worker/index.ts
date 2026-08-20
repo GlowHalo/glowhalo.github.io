@@ -14,7 +14,13 @@
 
 export interface Env {
   GEMINI_API_KEY: string;
+  RATE_LIMIT_KV: KVNamespace;
 }
+
+// 요청 자체가 잘못된 경우(알 수 없는 grade/scenario/persona 조합 등)를 서버 내부 오류와
+// 구분하기 위한 에러 타입 — 2026-08-19 리뷰 지적: 이전엔 둘 다 502로 뭉뚱그려져서 상태
+// 코드만 보고 원인을 추정할 수 없었다. 이제 이 타입이면 400, 아니면 502로 응답한다.
+class BadRequestError extends Error {}
 
 type Grade = "kac" | "kpc" | "ksc";
 
@@ -53,9 +59,33 @@ const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GE
 const MAX_HISTORY_MESSAGES = 60;
 const MAX_MESSAGE_LENGTH = 2000;
 
+// 2026-08-19 리뷰(code-review-board 방법)에서 발견 — "기기당 3회 체험" 한도는 클라이언트
+// (localStorage)에서만 걸려있고 이 Worker 자체엔 아무 제한이 없었다. Worker URL만 알면
+// 스크립트로 무제한 호출해 공용 GEMINI_API_KEY 예산을 소진시킬 수 있는 문제라 IP당 일일
+// 상한을 서버측에도 추가한다(클라이언트 한도를 대체하는 게 아니라, 그게 우회됐을 때의 백업).
+// KV의 get→put은 원자적 증가가 아니라 아주 드물게 동시 요청 시 카운트가 살짝 덜 늘 수 있지만
+// (레이스), 이건 정확한 과금 통제가 아니라 남용 방지 백업이라 이 정도 오차는 감수한다.
+const RATE_LIMIT_DAILY = { chat: 150, feedback: 30 } as const;
+const RATE_LIMIT_TTL_SECONDS = 60 * 60 * 26; // 하루+여유(자정 경계에 걸친 요청도 안전하게)
+
+async function checkAndBumpRateLimit(
+  kv: KVNamespace,
+  ip: string,
+  bucket: keyof typeof RATE_LIMIT_DAILY
+): Promise<boolean> {
+  const day = new Date().toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
+  const key = `rl:${bucket}:${ip}:${day}`;
+  const current = Number((await kv.get(key)) ?? "0");
+  if (current >= RATE_LIMIT_DAILY[bucket]) return false;
+  await kv.put(key, String(current + 1), { expirationTtl: RATE_LIMIT_TTL_SECONDS });
+  return true;
+}
+
 // ---------------------------------------------------------------------------
 // 시나리오 · 페르소나 데이터 — index.html의 동일한 상수와 반드시 내용을 맞춰 유지한다
 // (BYOK로 브라우저가 직접 호출하든, 체험으로 이 Worker를 거치든 같은 고객이 나와야 한다).
+// ⚠️ 이 둘을 자동으로 동기화 검증하는 장치는 없다 — 한쪽만 고치면 조용히 어긋난다
+// (2026-08-19 리뷰 지적). 시나리오/페르소나를 바꿀 땐 반드시 두 파일을 같이 고칠 것.
 // ---------------------------------------------------------------------------
 
 interface ScenarioDef {
@@ -239,7 +269,7 @@ function buildChatSystemInstruction(grade: Grade, scenarioId: string, personaId:
   const gradeDef = GRADE_DATA[grade];
   const scenario = findScenario(grade, scenarioId);
   const persona = findPersona(grade, personaId);
-  if (!gradeDef || !scenario || !persona) throw new Error("알 수 없는 grade/scenarioId/personaId 조합입니다.");
+  if (!gradeDef || !scenario || !persona) throw new BadRequestError("알 수 없는 grade/scenarioId/personaId 조합입니다.");
 
   return `당신은 지금부터 AI가 아니라, 코칭 자격증(${gradeDef.name}) 실기를 연습하는 코치 지망생을 상대하는
 가상의 코칭 고객 역할을 완벽하게 연기합니다.
@@ -283,7 +313,7 @@ function buildFeedbackSystemInstruction(grade: Grade, scenarioId: string, person
   const gradeDef = GRADE_DATA[grade];
   const scenario = findScenario(grade, scenarioId);
   const persona = findPersona(grade, personaId);
-  if (!gradeDef || !scenario || !persona) throw new Error("알 수 없는 grade/scenarioId/personaId 조합입니다.");
+  if (!gradeDef || !scenario || !persona) throw new BadRequestError("알 수 없는 grade/scenarioId/personaId 조합입니다.");
 
   return `당신은 한국코치협회(KCA)/국제코칭연맹(ICF) 핵심역량 평가위원입니다. 아래 대화는 코치
 지망생(${gradeDef.name} 준비생)이 가상 고객(주제: "${scenario.title}", 페르소나: ${persona.label})을
@@ -379,34 +409,80 @@ function buildTranscriptForFeedback(history: ChatMessage[]): string {
     .join("\n");
 }
 
-async function callGeminiWithKey(systemInstruction: string, contents: any[], schema: any, temperature: number, apiKey: string) {
-  const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemInstruction }] },
-      contents,
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: schema,
-        thinkingConfig: { thinkingBudget: 0 },
-        temperature,
-      },
-    }),
-  });
+// 2026-08-19 리뷰 지적 반영 — (1) 위치 인자 5개짜리라 호출부에서 순서를 실수로 바꿔도
+// 타입체크가 못 잡는 문제 → 이름 붙은 옵션 객체로 교체. (2) 타임아웃·재시도가 전혀 없어
+// Gemini 쪽 일시적 오류/응답 지연 한 번에 세션이 그냥 끊기던 문제 → AbortController 타임아웃 +
+// 5xx/429/네트워크 오류에 한해 짧은 backoff로 최대 2회 재시도(멱등한 GET이 아니라 POST지만,
+// 매 요청이 "이번 발화에 대한 응답 생성"이라는 순수 조회성 호출이라 재시도로 인한 부작용은 없음).
+const GEMINI_TIMEOUT_MS = 20_000;
+const GEMINI_MAX_RETRIES = 2;
+const GEMINI_RETRY_BASE_MS = 400;
 
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Gemini API error ${res.status}: ${errText.slice(0, 300)}`);
-  }
+interface CallGeminiOptions {
+  systemInstruction: string;
+  contents: any[];
+  schema: any;
+  temperature: number;
+  apiKey: string;
+}
 
-  const data = (await res.json()) as any;
-  const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!raw) {
-    const blockReason = data?.promptFeedback?.blockReason;
-    throw new Error(blockReason ? `Gemini가 응답을 차단했습니다: ${blockReason}` : "Gemini 응답에 텍스트가 없습니다.");
+function isRetryableGeminiStatus(status: number): boolean {
+  return status === 429 || status >= 500;
+}
+
+async function callGeminiOnce({ systemInstruction, contents, schema, temperature, apiKey }: CallGeminiOptions) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemInstruction }] },
+        contents,
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: schema,
+          thinkingConfig: { thinkingBudget: 0 },
+          temperature,
+        },
+      }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      const err = new Error(`Gemini API error ${res.status}: ${errText.slice(0, 300)}`);
+      (err as any).retryable = isRetryableGeminiStatus(res.status);
+      throw err;
+    }
+
+    const data = (await res.json()) as any;
+    const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!raw) {
+      const blockReason = data?.promptFeedback?.blockReason;
+      throw new Error(blockReason ? `Gemini가 응답을 차단했습니다: ${blockReason}` : "Gemini 응답에 텍스트가 없습니다.");
+    }
+    return JSON.parse(raw);
+  } finally {
+    clearTimeout(timeout);
   }
-  return JSON.parse(raw);
+}
+
+async function callGeminiWithKey(options: CallGeminiOptions) {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= GEMINI_MAX_RETRIES; attempt++) {
+    try {
+      return await callGeminiOnce(options);
+    } catch (error) {
+      lastError = error;
+      const isAbort = error instanceof Error && error.name === "AbortError";
+      const retryable = isAbort || (error as any)?.retryable === true;
+      if (!retryable || attempt === GEMINI_MAX_RETRIES) break;
+      await new Promise((resolve) => setTimeout(resolve, GEMINI_RETRY_BASE_MS * (attempt + 1)));
+    }
+  }
+  throw lastError;
 }
 
 const worker = {
@@ -423,9 +499,20 @@ const worker = {
       return Response.json({ error: "GEMINI_API_KEY not configured" }, { status: 500, headers: cors });
     }
 
+    // 클라이언트(localStorage) 한도가 우회됐을 때의 서버측 백업 상한. IP를 못 얻는 예외적인
+    // 경우(로컬 개발 등)엔 "unknown"으로 묶어서 카운트 — 실제 배포 환경(Cloudflare)에선 항상
+    // CF-Connecting-IP가 온다.
+    const clientIp = request.headers.get("CF-Connecting-IP") || "unknown";
+
     if (url.pathname === "/chat") {
       if (request.method !== "POST") return new Response("POST only", { status: 405, headers: cors });
       try {
+        if (!(await checkAndBumpRateLimit(env.RATE_LIMIT_KV, clientIp, "chat"))) {
+          return Response.json(
+            { error: "오늘 체험 가능 횟수를 넘었습니다. 잠시 후 다시 시도하거나 본인 Gemini API 키를 등록해 주세요." },
+            { status: 429, headers: cors }
+          );
+        }
         const body = (await request.json()) as ChatRequestBody;
         if (!body.grade || !body.scenarioId || !body.personaId) {
           return Response.json({ error: "grade, scenarioId, personaId가 필요합니다" }, { status: 400, headers: cors });
@@ -434,23 +521,39 @@ const worker = {
           return Response.json({ error: "history is required" }, { status: 400, headers: cors });
         }
         const history = sanitizeHistory(body.history);
+        // 2026-08-19 리뷰 지적 — 마지막 발화가 실제로 코치(사람) 것인지 확인 없이 그대로
+        // 넘기면, 클라이언트 버그로 client 발화가 마지막에 온 채 호출될 때 AI가 AI 자신에게
+        // 이어 말하는 응답을 만들 수 있었다.
+        if (history[history.length - 1]?.role !== "coach") {
+          return Response.json(
+            { error: "history의 마지막 발화는 coach(사람)여야 합니다" },
+            { status: 400, headers: cors }
+          );
+        }
         const systemInstruction = buildChatSystemInstruction(body.grade, body.scenarioId, body.personaId);
-        const result = await callGeminiWithKey(
+        const result = await callGeminiWithKey({
           systemInstruction,
-          buildContents(history),
-          CHAT_RESPONSE_SCHEMA,
-          0.95,
-          env.GEMINI_API_KEY
-        );
+          contents: buildContents(history),
+          schema: CHAT_RESPONSE_SCHEMA,
+          temperature: 0.95,
+          apiKey: env.GEMINI_API_KEY,
+        });
         return Response.json(result, { headers: cors });
       } catch (error) {
-        return Response.json({ error: String(error instanceof Error ? error.message : error) }, { status: 502, headers: cors });
+        const status = error instanceof BadRequestError ? 400 : 502;
+        return Response.json({ error: String(error instanceof Error ? error.message : error) }, { status, headers: cors });
       }
     }
 
     if (url.pathname === "/feedback") {
       if (request.method !== "POST") return new Response("POST only", { status: 405, headers: cors });
       try {
+        if (!(await checkAndBumpRateLimit(env.RATE_LIMIT_KV, clientIp, "feedback"))) {
+          return Response.json(
+            { error: "오늘 체험 가능 횟수를 넘었습니다. 잠시 후 다시 시도하거나 본인 Gemini API 키를 등록해 주세요." },
+            { status: 429, headers: cors }
+          );
+        }
         const body = (await request.json()) as FeedbackRequestBody;
         if (!body.grade || !body.scenarioId || !body.personaId) {
           return Response.json({ error: "grade, scenarioId, personaId가 필요합니다" }, { status: 400, headers: cors });
@@ -461,16 +564,17 @@ const worker = {
         const history = sanitizeHistory(body.history);
         const systemInstruction = buildFeedbackSystemInstruction(body.grade, body.scenarioId, body.personaId);
         const transcript = buildTranscriptForFeedback(history);
-        const result = await callGeminiWithKey(
+        const result = await callGeminiWithKey({
           systemInstruction,
-          [{ role: "user", parts: [{ text: transcript }] }],
-          FEEDBACK_RESPONSE_SCHEMA,
-          0.4,
-          env.GEMINI_API_KEY
-        );
+          contents: [{ role: "user", parts: [{ text: transcript }] }],
+          schema: FEEDBACK_RESPONSE_SCHEMA,
+          temperature: 0.4,
+          apiKey: env.GEMINI_API_KEY,
+        });
         return Response.json(result, { headers: cors });
       } catch (error) {
-        return Response.json({ error: String(error instanceof Error ? error.message : error) }, { status: 502, headers: cors });
+        const status = error instanceof BadRequestError ? 400 : 502;
+        return Response.json({ error: String(error instanceof Error ? error.message : error) }, { status, headers: cors });
       }
     }
 

@@ -9,6 +9,7 @@
     "secret": "wrangler secret put"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260819.1",
     "typescript": "^5.9.3",
     "wrangler": "^4.92.0"
   }
