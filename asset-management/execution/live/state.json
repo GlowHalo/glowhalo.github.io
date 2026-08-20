@@ -1,15 +1,24 @@
 {
   "positions": {
+    "KRW-ETH": {
+      "entry_price": 2723000.0,
+      "entry_date": "2026-08-20",
+      "krw": 75000
+    },
     "KRW-SOL": {
-      "entry_price": 108300.0,
-      "entry_date": "2026-08-19",
+      "entry_price": 111800.0,
+      "entry_date": "2026-08-20",
       "krw": 75000
     }
   },
   "traded_dates": {
-    "KRW-SOL": "2026-08-19"
+    "KRW-SOL": "2026-08-20",
+    "KRW-ETH": "2026-08-20"
   },
-  "realized": {},
+  "realized": {
+    "2026-08-20": 2352.0,
+    "2026-W34": 2352.0
+  },
   "halt": null,
-  "last_live_run": "2026-08-19T09:31:04.129816Z"
+  "last_live_run": "2026-08-19T23:59:16.966125Z"
 }
