@@ -1,38 +1,44 @@
 {
   "positions": {
     "KRW-BTC": {
-      "entry_price": 99326000.0,
-      "entry_date": "2026-08-21",
+      "entry_price": 106343000.0,
+      "entry_date": "2026-08-22",
       "krw": 150000
     },
-    "KRW-DOGE": {
-      "entry_price": 109.0,
-      "entry_date": "2026-08-21",
-      "krw": 42764
+    "KRW-XRP": {
+      "entry_price": 1921.0,
+      "entry_date": "2026-08-22",
+      "krw": 90801
     },
     "KRW-SOL": {
-      "entry_price": 124000.0,
-      "entry_date": "2026-08-21",
-      "krw": 62749
+      "entry_price": 126200.0,
+      "entry_date": "2026-08-22",
+      "krw": 45400
     },
     "KRW-ETH": {
-      "entry_price": 3293000.0,
-      "entry_date": "2026-08-21",
-      "krw": 31358
+      "entry_price": 3295000.0,
+      "entry_date": "2026-08-22",
+      "krw": 22629
+    },
+    "KRW-DOGE": {
+      "entry_price": 117.0,
+      "entry_date": "2026-08-22",
+      "krw": 11308
     }
   },
   "traded_dates": {
-    "KRW-SOL": "2026-08-21",
-    "KRW-ETH": "2026-08-21",
-    "KRW-BTC": "2026-08-21",
-    "KRW-DOGE": "2026-08-21",
-    "KRW-XRP": "2026-08-21"
+    "KRW-SOL": "2026-08-22",
+    "KRW-ETH": "2026-08-22",
+    "KRW-BTC": "2026-08-22",
+    "KRW-DOGE": "2026-08-22",
+    "KRW-XRP": "2026-08-22"
   },
   "realized": {
     "2026-08-20": 2352.0,
-    "2026-W34": 19083.0,
-    "2026-08-21": 16731.0
+    "2026-W34": 33062.0,
+    "2026-08-21": 16731.0,
+    "2026-08-22": 13979.0
   },
   "halt": null,
-  "last_live_run": "2026-08-21T14:22:35.794271Z"
+  "last_live_run": "2026-08-21T15:18:07.186460Z"
 }
