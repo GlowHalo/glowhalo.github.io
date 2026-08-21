@@ -70,7 +70,8 @@ GlowHalo Group 산하 네 번째 관계사. 대표: **채원** (2026-08-09 선�
 버크만 구매대행 파이프라인을 실제 판매 채널(네이버 스마트스토어, 커머스API)과 엮는 자동화 설계에 착수. 10단계 프로세스 점검·예외처리·아키텍처 제안을 [`execution/네이버자동화-프로세스설계.md`](execution/네이버자동화-프로세스설계.md)에 정리해뒀다 — 다음 세션은 이 파일부터 볼 것.
 
 - 도메인: **`nadagroup.org`**(2026-08-16 회장 구매, Cloudflare Registrar, HQ 공용 zone) — Reflect Lab 전용 도메인이 아니라 GlowHalo Group 공용 도메인이었다. Resend SPF/DKIM 인증까지 완료해 `verified` 상태(2026-08-17).
-  - **⚠️ 2026-08-19 갱신 — 회장이 GlowHalo 정식 개명에 맞춰 신규 도메인 `glowhalo.org`를 구입, Resend 발신용 서브도메인 `send.glowhalo.org`도 같은 날(15:40 UTC) 인증 완료(Resend API로 직접 재조회해 `verified`·`sending: enabled` 확인).** `nadagroup.org`도 아직 verified 상태로 살아있지만, 옛 브랜드명이 도메인에 그대로 남아있으니 **앞으로 디브리핑 발신 주소는 `send.glowhalo.org` 기준으로 잡는다** — 예: `debrief@send.glowhalo.org`. `nadagroup.org` 폐기·리다이렉트 여부는 HQ 공용 자산이라 채원이 임의로 결정하지 않고 회장 확정 대기.
+  - **⚠️ 2026-08-19 갱신 — 회장이 GlowHalo 정식 개명에 맞춰 신규 도메인 `glowhalo.org`를 구입, Resend 발신용 서브도메인 `send.glowhalo.org`도 같은 날(15:40 UTC) 인증 완료(Resend API로 직접 재조회해 `verified`·`sending: enabled` 확인).** **앞으로 디브리핑 발신 주소는 `send.glowhalo.org` 기준으로 잡는다** — 예: `debrief@send.glowhalo.org`.
+  - **✅ 2026-08-20 해소 — `nadagroup.org`는 폐기 확정, 회장 확정 대기 상태 아님.** HQ가 5일 Add Grace Period 내 환불 지원 티켓을 제출했고(P4), 답변 대기 중 그 사이 Resend 발신 도메인 등록은 이미 전부 `glowhalo.org` 계열로 이전 완료했다(`hq/계정현황-2026-08-19.md` 참고). 이 계열사가 이 도메인으로 뭘 새로 만들 필요는 없다 — 위 `send.glowhalo.org` 기준만 따르면 됨.
 - 버크만 사이트가 진단 초대 메일 + 결과 리포트 메일을 **둘 다 자동발송**하는 것으로 잠정 확인 — **2026-08-17 재정찰(로그인 자동화 성공, `birkman.md` 참고)로 정황 증거 추가**: 기존 완료 주문 전부 "진단결과 공유: 전송" 상태였음. 다만 100% 확정은 아니라 실주문 1건으로 이메일 수신 직접 확인이 남아있음. 이게 맞으면 우리가 실제로 보내는 메일은 **디브리핑 하나뿐**이라 Resend 도메인 인증 범위가 좁아진다.
 - **카카오톡 알림톡 — 2026-08-17 조사 완료, 회장 확정.**
   - **버크만코리아 알림톡(진단 초대용)은 사용** — 주문 시 옵션만 켜면 됨, 우리 쪽 인증 불필요.
@@ -103,5 +104,7 @@ GlowHalo Group 산하 네 번째 관계사. 대표: **채원** (2026-08-09 선�
 최근 며칠간 Notion 워크스페이스 분리·계정 비밀번호 표준화·GitHub 폴더 구조 개편(companyN → 주제별 이름)이 한꺼번에 진행되면서, 오래 이어진 세션이 옛 맥락(옛 경로·옛 워크스페이스)에 헷갈릴 수 있다는 회장 판단으로 이 계열사 세션을 새로 열었다. 새 세션은 이 파일과 `candidates.md` 등 폴더 안 문서를 정본으로 삼아 현재 상태부터 파악할 것.
 
 **2026-08-16 후속** — 위 "전 세션 대기 항목"(도메인 구매/인증 vs Gmail 백업)은 해소됨: 회장이 도메인을 구매했으나 Reflect Lab 전용이 아니라 GlowHalo Group 공용 `nadagroup.org`로 결정 — 위 "네이버 스마트스토어 판매 자동화" 절 참고. Notion도 같은 날 워크스페이스가 내부용(`나다컴퍼니`)/외부공개용(`나다컴퍼니(외부공개)`)으로 분리됐음을 확인 — 이 회사(진단 상품화)는 아직 외부공개 콘텐츠가 없어 옮길 것 없음, 내부 페이지의 GitHub 경로 참조(`company4/` → `assessment-products/`)만 정정함.
+
+**2026-08-21 정정 판단 — 바로 위 문장의 "나다컴퍼니"는 개명 대상 아님.** 이 문장은 2026-08-16 당시 워크스페이스가 실제로 그 이름으로 분리됐다는 **역사적 사실**을 서술하는 것이라 CLAUDE.md 구브랜드 정정 규칙의 "역사 기록은 예외" 조항에 해당한다 — 임의로 "GlowHalo"로 바꾸지 않는다. GitHub 조직명은 저장소 전체가 `glowhalo/glowhalo.github.io`로 이전 완료된 상태이며(루트 `CLAUDE.md` 참고) 별도 재확인 불필요.
 
 **2026-08-17 추가 — 신규 상품/콘텐츠 아이디어 발굴할 때 참고할 스킬 2개 생김.** HQ가 외부 자료(MARGIN AI 「24시간 AI 비서 30명」) 검토 중 도출해 표준 스킬로 만들었다: [`product-idea-mining`](../.claude/skills/product-idea-mining/SKILL.md)(고객 문의/후기에서 다음 상품 후보 뽑기), [`lead-magnet-pdf`](../.claude/skills/lead-magnet-pdf/SKILL.md)(무료 자가진단 체크리스트 등 리드마그넷 기획). 경위는 [`hq/AI비서30-백로그.md`](../hq/AI비서30-백로그.md) 참고.
