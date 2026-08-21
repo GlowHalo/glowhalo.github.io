@@ -18,3 +18,4 @@
 {"mode": "LIVE", "action": "buy", "market": "KRW-XRP", "krw": 85529, "price": 1733.0, "uuid": "620c1174-b4ea-4540-99f6-869ab97b3d24", "ts": "2026-08-20T15:15:47.960120Z"}
 {"mode": "LIVE", "action": "buy", "market": "KRW-DOGE", "krw": 42764, "price": 109.0, "uuid": "bf7e3686-01bc-4438-9364-68000a664532", "ts": "2026-08-20T15:15:51.067103Z"}
 {"mode": "LIVE", "action": "sell", "market": "KRW-XRP", "reason": "stop_loss", "volume": 49.35314483, "price": 1680.0, "pnl_krw": -2616, "uuid": "714f0945-e09f-4589-9b8b-0f359d031abf", "ts": "2026-08-20T19:56:39.986493Z"}
+{"mode": "LIVE", "action": "buy", "market": "KRW-SOL", "krw": 62749, "price": 124000.0, "uuid": "aab73689-1ac3-4ce8-8bee-1894d19cc777", "ts": "2026-08-21T02:39:44.648505Z"}
