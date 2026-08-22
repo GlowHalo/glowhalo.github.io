@@ -3,72 +3,72 @@
   "strategy": "v2: MA20 filter + vol-breakout k=0.5, stop -3%",
   "markets": {
     "KRW-BTC": {
-      "equity": 1.008721,
-      "trades": 2,
-      "wins": 1,
-      "settled_until": "2026-08-20"
+      "equity": 1.045007,
+      "trades": 3,
+      "wins": 2,
+      "settled_until": "2026-08-21"
     },
     "KRW-ETH": {
-      "equity": 1.139122,
-      "trades": 1,
-      "wins": 1,
-      "settled_until": "2026-08-20"
+      "equity": 1.192985,
+      "trades": 2,
+      "wins": 2,
+      "settled_until": "2026-08-21"
     },
     "KRW-XRP": {
-      "equity": 0.969,
-      "trades": 1,
+      "equity": 0.938961,
+      "trades": 2,
       "wins": 0,
-      "settled_until": "2026-08-20"
+      "settled_until": "2026-08-21"
     },
     "KRW-DOGE": {
-      "equity": 0.969,
-      "trades": 1,
+      "equity": 0.938961,
+      "trades": 2,
       "wins": 0,
-      "settled_until": "2026-08-20"
+      "settled_until": "2026-08-21"
     },
     "KRW-SOL": {
-      "equity": 1.048137,
-      "trades": 4,
-      "wins": 1,
-      "settled_until": "2026-08-20"
+      "equity": 1.087255,
+      "trades": 5,
+      "wins": 2,
+      "settled_until": "2026-08-21"
     }
   },
   "last_settled": null,
   "v3": {
     "KRW-BTC": {
-      "pos": null,
+      "pos": 107449000.0,
       "equity": 1.0,
       "trades": 0,
       "wins": 0,
-      "settled_until": "2026-08-20"
+      "settled_until": "2026-08-21"
     },
     "KRW-ETH": {
       "pos": 2660000.0,
       "equity": 1.0,
       "trades": 0,
       "wins": 0,
-      "settled_until": "2026-08-20"
+      "settled_until": "2026-08-21"
     },
     "KRW-XRP": {
-      "pos": null,
+      "pos": 1997.0,
       "equity": 1.0,
       "trades": 0,
       "wins": 0,
-      "settled_until": "2026-08-20"
+      "settled_until": "2026-08-21"
     },
     "KRW-DOGE": {
-      "pos": null,
+      "pos": 125.0,
       "equity": 1.0,
       "trades": 0,
       "wins": 0,
-      "settled_until": "2026-08-20"
+      "settled_until": "2026-08-21"
     },
     "KRW-SOL": {
       "pos": 107100.0,
       "equity": 0.985928,
       "trades": 1,
       "wins": 0,
-      "settled_until": "2026-08-20"
+      "settled_until": "2026-08-21"
     }
   }
 }
