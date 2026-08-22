@@ -1,4 +1,4 @@
-param(
+﻿param(
   [Parameter(Mandatory=$true)][string]$Vrew,
   [Parameter(Mandatory=$true)][string]$Script,
   [Parameter(Mandatory=$true)][string]$Out
@@ -35,9 +35,9 @@ $j = $raw | ConvertFrom-Json
 $imgCount = 0
 foreach ($t in $j.props.tracks.PSObject.Properties) { if ($t.Value.type -eq 'image') { $imgCount++ } }
 if ($imgCount -gt 0) {
-  throw ("STOP: 이 vrew에는 이미 이미지가 {0}장 들어있습니다. 이 스크립트는 '이미지 생성 전' 파일에만 사용하세요. (Vrew 3단계에서 AI 이미지 토글을 OFF로 두고 만든 파일)" -f $imgCount)
+  throw ("STOP: this vrew already has {0} images. Use this script only on a draft made with [AI image] toggled OFF on Vrew step 3." -f $imgCount)
 }
-Write-Host "[i] 이미지 0장 확인 - 병합 진행"
+Write-Host "[i] 0 images confirmed - merging"
 
 # ---- 대본을 "빈 줄 기준 블록"으로 묶기 ----
 $allLines = @([System.IO.File]::ReadAllLines($Script, [System.Text.Encoding]::UTF8))
