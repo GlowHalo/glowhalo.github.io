@@ -15,6 +15,19 @@ paths:
 라이브: `https://tossneon-api-vault.tossneon.workers.dev` (소스: `cloudflare-api-vault/`)
 접근에 필요한 `VAULT_URL`/`VAULT_TOKEN`은 Claude Code 환경(Environment) 변수로 등록돼 있다.
 
+## 대용량 파일 주고받기 — R2 버킷 `glowhalo-file-drop` (2026-08-22)
+
+채팅 첨부나 구글드라이브의 "파일을 읽어서 전달"하는 방식은 전부 파일을 텍스트(또는 base64)로
+변환해 context에 넣는 구조라 용량 한계에 걸린다. **텍스트 변환 없이 바이트 그대로 주고받으려면
+이 R2 버킷을 쓴다** — 세션이 `curl`로 직접 받으면 GB 단위도 무리 없다.
+
+- 버킷: `glowhalo-file-drop` (GlowHalo 계정, R2 무료 티어 10GB)
+- 공개 URL(r2.dev, **인증 없이 누구나 접근 가능**): `https://pub-fcfaaf4e15ba4600bc88091a079b3641.r2.dev/<오브젝트 키>`
+- 회장이 파일을 줄 때: [R2 대시보드](https://dash.cloudflare.com/2e5f3e2cfa49f7107f084c080e8eeed0/r2/default/buckets/glowhalo-file-drop)에서 드래그드롭 업로드 → 오브젝트 클릭 → 위 공개 URL 패턴으로 조합해서(또는 대시보드의 "Copy URL") 세션에 전달 → 세션이 `curl -O`로 로컬에 받는다.
+- 세션이 회장에게 파일을 줄 때(내보내기 등): `CLOUDFLARE_API_TOKEN=<금고 cloudflare_api_token> CLOUDFLARE_ACCOUNT_ID=2e5f3e2cfa49f7107f084c080e8eeed0 npx wrangler r2 object put glowhalo-file-drop/<키> --file=<로컬경로> --remote` 후(**`--remote` 필수 — 안 붙이면 로컬 시뮬레이터에만 올라가고 실제 공개 URL에서는 404가 뜬다**, 2026-08-22 실측 확인) 위 공개 URL 패턴으로 안내.
+- ⚠️ **공개 버킷이라 비밀값·개인정보·민감 문서는 절대 올리지 않는다** — `.gitignore` 대상 데이터와 동일한 기준. 완전한 랜덤/무의미한 키 이름을 쓰면(예: `_test/hello.txt`가 아니라 uuid 등) 링크를 모르는 사람이 우연히 접근할 가능성은 낮아지지만, 그래도 민감 자료는 이 경로를 쓰지 않는다 — 순수 임시 파일 전달용.
+- 정리 안 하면 계속 쌓이므로, 전달 끝난 임시 오브젝트는 `wrangler r2 object delete glowhalo-file-drop/<키> --remote`로 지운다.
+
 ## Cloudflare 대시보드 링크 — 반드시 계정 ID를 박아서 줄 것 (2026-08-19)
 
 `tossneon0@gmail.com` 로그인 계정에는 Cloudflare 계정이 **두 개** 물려있다 — 실제 GlowHalo 인프라가 있는 계정과, 가입할 때 자동 생성된 빈 개인 계정. `dash.cloudflare.com/profile/...`처럼 계정 ID 없는 링크를 주면, 대시보드가 임의로(보통 최근에 선택했던) 계정으로 열려서 회장이 엉뚱한(빈) 계정 화면을 보게 되는 사고가 실제로 있었다.
