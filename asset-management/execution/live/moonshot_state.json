@@ -1,0 +1,13 @@
+{
+  "position": {
+    "market": "KRW-ONG",
+    "entry_price": 123.0,
+    "entry_month": "2026-08",
+    "krw": 10000,
+    "half_sold": false,
+    "peak": 123.0
+  },
+  "bet_months": [
+    "2026-08"
+  ]
+}
