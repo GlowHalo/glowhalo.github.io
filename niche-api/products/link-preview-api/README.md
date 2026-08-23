@@ -86,3 +86,22 @@ npx wrangler secret put RAPIDAPI_PROXY_SECRET
 9. 가입 완료(또는 이메일 인증 확인)되면 Platform REST API로 `openapi.json` 업로드해 리스팅 생성.
 10. 리스팅 후 `RAPIDAPI_PROXY_SECRET` 발급받아 시크릿 등록, 게이트웨이 경유 호출만 허용하도록 잠금.
 11. 실제 RapidAPI 테스트 콘솔로 종단 검증.
+
+## Zyla API Hub 리스팅 진행 상황 (2026-08-23) — 엔드포인트 등록 전 아키텍처 이슈 발견, 저장 안 함
+
+HQ(소율) 세션이 회장 스크린샷 확인 요청을 계기로 Cloudflare Browser Rendering CDP + Playwright(`niche-templates/execution/헤드리스브라우저-프록시-이슈.md`에 검증된 패턴 그대로 재사용)로 **직접 Zyla에 로그인해서 확인**했다 — 회장에게 매번 화면 캡처를 요청하지 않고 세션이 스스로 admin 화면을 조작할 수 있음을 실증.
+
+**확인된 것**:
+- 리스팅 이름은 "GlowHalo API"(회장이 본 "c API"는 카드 UI가 잘려 보인 것 — 실제 전체 이름은 정상), API id `13530`, 상태 `PENDING APPROVAL`(Zyla 자체 마켓 심사 대기, 정상 경로).
+- "My APIs" → "Edit API" → "2. Endpoints" 탭까지 진입 확인, 아직 **등록된 엔드포인트 0개** — "Add New Endpoint" 폼에 이름("Get Link Preview")과 설명(40자 이상 요건 충족)까지 실제로 입력해서 정상 렌더링 확인함(스크린샷 검증 완료). **다만 여기서 저장(SAVE)하지 않고 멈췄다** — 아래 이슈 때문.
+- Provider Settings(`https://zylalabs.com/provider_status`) 확인 — Tax Information·Payout Method 둘 다 "Pending"(미제출). **API가 승인돼도 정산계좌·세금정보를 별도로 제출해야 실제 수익화(Payouts)가 열린다** — RapidAPI에 없던 별도 온보딩 단계.
+
+**막힌 지점 — 백엔드 인증 아키텍처 미해결**: 현재 Worker(`verifyRapidApiSecret`)는 `RAPIDAPI_PROXY_SECRET`이 설정된 이후로 `X-RapidAPI-Proxy-Secret` 헤더가 일치해야만 `/v1/preview`를 허용한다(RapidAPI 게이트웨이 경유만 통과). **Zyla가 이 헤더를 실제 고객 요청에 실어 보내는지 확인하지 못했다** — Endpoints 탭의 Params/Headers/Body는 "예시 응답 생성용 1회성 테스트 호출" 섹션으로 보이고(저장 전 "submit the request first" 안내), 실제 프로덕션 트래픽에 영구 백엔드 헤더를 주입하는 설정(RapidAPI의 "Secret Key" 개념에 대응하는 것)이 Zyla 어디에 있는지 이번엔 못 찾았다(Provider Settings는 세금/정산 전용, Headers 탭도 실제로 열어보지 못함 — 클릭이 반복 실패함, 아래 참고). **이대로 저장하면 Zyla 고객 요청이 전부 401로 막힐 위험이 있어 SAVE를 누르지 않고 중단.**
+
+**다음 세션(GlowHalo 2)이 할 일**:
+1. Zyla 공식 문서(`hello@zylalabs.com` 문의 또는 Knowledge Base)에서 "백엔드 인증 헤더 설정" 방법 확인 — RapidAPI의 Proxy Secret에 대응하는 메커니즘이 있는지.
+2. 있으면: 이 Worker에 `ZYLA_PROXY_SECRET` 같은 별도 시크릿을 추가해 `verifyRapidApiSecret`을 RapidAPI/Zyla 양쪽 헤더를 모두 인정하도록 확장 → 새 시크릿 발급·금고 등록·`wrangler secret put`·Zyla 쪽 헤더 설정.
+3. 없으면(Zyla가 진짜 고객 요청을 그대로 우리 origin에 전달하는 구조라면): `/v1/preview`를 Zyla발 트래픽엔 개방하는 방법을 별도로 설계해야 함(예: 별도 워커/라우트 분리, 혹은 요청 User-Agent·Origin 검증 등 대체 수단) — RapidAPI와 무차별로 같이 열어버리면 과금 우회 경로가 생기므로 신중히.
+4. 위 결정 후 Endpoints 탭에서 실제 "SEND"로 예시 응답을 성공시키고 SAVE — 그 다음 Plans/FAQs/View Preview 단계 진행.
+
+**브라우저 자동화 관련 참고(니치API 세션이 재사용할 것)**: Zyla 사이트는 버튼 상당수가 `<button>`/`<a>` role이 아니라 커스텀 컴포넌트(클릭해도 Playwright의 "visible/stable" 판정이 자주 실패)라 `getByRole`은 잘 안 먹힌다 — `getByText(...).first()` 또는 `page.mouse.click(x, y)` 고정좌표로 우회해야 하는 경우가 많았다. 로그인 폼의 "LOGIN" 버튼도 "Send me the login link" 버튼과 텍스트가 겹쳐서(둘 다 "log" 포함) 느슨한 `has-text` 셀렉터를 쓰면 엉뚱한 버튼(매직링크 모달)이 클릭된다 — `getByRole("button", { name: "LOGIN", exact: true })`로 정확히 잡아야 함.
