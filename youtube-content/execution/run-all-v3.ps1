@@ -10,7 +10,10 @@ $DONESUF = [string]([char]0xC644) + [string]([char]0xC131)   # done suffix
 $inj = Join-Path $base 'inject-pause-v3.ps1'
 if (-not (Test-Path -LiteralPath $inj)) { Write-Host '[!] inject-pause-v3.ps1 missing' -ForegroundColor Red; return }
 $injTime = (Get-Item -LiteralPath $inj).LastWriteTime
-$masters = @(Get-ChildItem -LiteralPath $base -Filter ('*_' + $SUF + '.txt') -File | Sort-Object Name)
+# natural order: 1.a, 2.b, ... 9.i, 10.j  (plain name sort would put 10 right after 1)
+$rxNum = New-Object System.Text.RegularExpressions.Regex('^([0-9]+)')
+$masters = @(Get-ChildItem -LiteralPath $base -Filter ('*_' + $SUF + '.txt') -File)
+$masters = @($masters | Sort-Object @{Expression={ $mm = $rxNum.Match($_.Name); if ($mm.Success) { [int]$mm.Groups[1].Value } else { 99999 } }}, @{Expression={ $_.Name }})
 if ($masters.Count -eq 0) { Write-Host '[!] no script txt found' -ForegroundColor Yellow; return }
 $done=0; $skip=0; $fail=0; $none=0
 $failed = New-Object System.Collections.ArrayList
