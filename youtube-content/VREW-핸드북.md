@@ -172,11 +172,12 @@
 `.vrew`의 `project.json`을 전수 검색해도 **프롬프트 문자열이 없다**(8개 회차 전부 확인). Vrew **앱 설정에만** 살아있다.
 → **앱을 재설치하거나 설정이 초기화되면 시리즈 이미지 톤을 재현할 수 없다.** 반드시 저장소에 원문을 남겨둘 것.
 
-**우리 시리즈 표준 프롬프트** (2026-08-22 화면에서 확인, 마법사 3단계):
+**우리 시리즈 표준 프롬프트 — 정본** (2026-08-22 회장이 전문 확인·제공):
 ```
-cute cartoon monster truck character with big round wheels and a friendly smiling face, Pixar-style 3D render, bright saturated
+cute cartoon monster truck character with big round wheels and a friendly smiling face, Pixar-style 3D render, bright saturated colors, soft even lighting, pastel background, wholesome and friendly, no scary elements, for toddlers
 ```
-⚠️ 캡쳐 당시 입력창에 스크롤바가 있어 **뒤에 텍스트가 더 있을 가능성**이 있다. 회장이 전체 복사해 확인해주면 이 문단을 정본으로 갱신할 것.
+구성 의도: `캐릭터 형태(둥근 큰 바퀴·웃는 얼굴)` + `렌더 스타일(픽사풍 3D)` + `색·조명(선명한 채도, 부드러운 균일 조명, 파스텔 배경)` + `정서 안전장치(따뜻함, 무서운 요소 금지, 유아 대상)`.
+**전 회차 이 문자열을 그대로 쓴다.** 한 회차만 달라지면 시리즈 톤이 튄다.
 
 ### [삽입 > AI 이미지] 대화상자 (병합 후 이미지를 넣을 때)
 마법사와 **별도 설정**이라 값이 기본값으로 뜰 수 있다. 매번 아래를 맞출 것:
