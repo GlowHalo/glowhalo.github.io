@@ -27,6 +27,7 @@ paths:
 - 세션이 회장에게 파일을 줄 때(내보내기 등): `CLOUDFLARE_API_TOKEN=<금고 cloudflare_api_token> CLOUDFLARE_ACCOUNT_ID=2e5f3e2cfa49f7107f084c080e8eeed0 npx wrangler r2 object put glowhalo-file-drop/<키> --file=<로컬경로> --remote` 후(**`--remote` 필수 — 안 붙이면 로컬 시뮬레이터에만 올라가고 실제 공개 URL에서는 404가 뜬다**, 2026-08-22 실측 확인) 위 공개 URL 패턴으로 안내.
 - ⚠️ **공개 버킷이라 비밀값·개인정보·민감 문서는 절대 올리지 않는다** — `.gitignore` 대상 데이터와 동일한 기준. 완전한 랜덤/무의미한 키 이름을 쓰면(예: `_test/hello.txt`가 아니라 uuid 등) 링크를 모르는 사람이 우연히 접근할 가능성은 낮아지지만, 그래도 민감 자료는 이 경로를 쓰지 않는다 — 순수 임시 파일 전달용.
 - 정리 안 하면 계속 쌓이므로, 전달 끝난 임시 오브젝트는 `wrangler r2 object delete glowhalo-file-drop/<키> --remote`로 지운다.
+- **2026-08-23 회장 지시로 자동 만료 규칙 추가** — 공개 버킷이라 링크가 계속 살아있는 게 찜찜하다는 지적에 따라, 수동 삭제에 의존하지 않고 **업로드 후 14일 지나면 자동으로 지워지는 R2 라이프사이클 규칙(`auto-expire-14d`)을 걸어뒀다**(`wrangler r2 bucket lifecycle add glowhalo-file-drop auto-expire-14d --expire-days 14`). 급하게 오래 보관해야 하는 파일이면 14일 안에 다른 곳(예: 저장소 커밋, Notion)으로 옮겨둘 것 — 이 버킷은 "잠깐 주고받는" 용도로만 쓴다.
 
 ## Cloudflare 대시보드 링크 — 반드시 계정 ID를 박아서 줄 것 (2026-08-19)
 
