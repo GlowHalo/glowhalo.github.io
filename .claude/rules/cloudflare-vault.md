@@ -71,6 +71,8 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 |---|---|
 | `kakao_worker_shared_secret` | `kakao-emoticon/worker`(kakao-session-keepalive, `https://kakao-session-keepalive.tossneon.workers.dev`) 호출 인증용. 이 Worker는 카카오 로그인 세션(Cloudflare Browser Run)이 유휴 타임아웃(10분)으로 죽지 않게 8분마다 핑을 보내는 역할 — 세션ID를 한 번 등록해두면 그 세션이 살아있는 동안은 재로그인 승인 없이 재사용 가능(2026-08-18 실측 확인). 사용법: `kakao-emoticon/execution/products/kakao-login-helper.mjs` 참고 |
 | `standard_login_password` | **표준 계정 공용 비밀번호 최신값(2026-08-17 회장이 채팅으로 갱신 — `tossneon0@gmail.com`과 짝지어 "표준계정"이라고 명명함)** — 새 자동화 계정 만들 때 이 값을 최우선으로 시도한다. 기존 계정(notion/kakao/google/sendowl/itchio/paypal_business/webshare/rapidapi/lemonsqueezy 등)은 실제 사이트 비밀번호를 아직 이 값으로 안 바꿨으므로 각자의 `*_login_password`(신버전 `notion_login_password` 또는 구버전) 그대로 유효 — 로그인 실패 시 순서: `standard_login_password` → 그 계정의 `*_login_password`(신버전) → 구버전. 특정 계정을 실제로 이 새 값으로 바꾸면 그 계정의 `*_login_password`도 갱신하고 이 줄 아래 "○○ 이전 완료" 기록 추가 |
+| `standard_phone_number` | **표준 전화번호(2026-08-23 회장이 채팅으로 확정)** — SMS 인증·본인확인이 필요한 가입 폼에 우선 사용. 아래 "계정 완료 체크리스트" 참고 |
+| `standard_nickname` | **표준 닉네임/디스플레이명 = `GlowHalo`(2026-08-23 회장이 채팅으로 확정)** — 새 자동화 계정은 이 닉네임으로 만든다. 기존 계정에 남아있는 옛 이름(`nadacompany` 등)을 이 값으로 일괄 정정하는 작업은 **회장이 모든 사이트를 직접 체크한 뒤 점검 차원에서 진행** — 지금 바로 사이트별로 임의 변경하지 않는다 |
 | `notion_token` | pixel-ai-office/worker (Notion 저장) |
 | `gmail_app_password` | 버크만 디브리핑 발송 스크립트 등 |
 | `gumroad_access_token` | Gumroad 상품 등록/조회 |
@@ -168,6 +170,27 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 브라우저 자동화가 훨씬 불안정하다(SendOwl 로그인 자동화 때 실제로 두 번 실패한 사례). 이미
 소셜 로그인으로만 가입된 계정은 계정 설정에서 "비밀번호 설정/변경" 옵션이 있는지 먼저 확인 —
 있으면 표준 비밀번호로 맞춰서 이메일+비밀번호 로그인도 같이 가능하게 만든다.
+## "○○ 계정 완료" 체크리스트 (2026-08-23 회장 확정)
+
+회장이 채팅에서 **"○○ 계정 완료했다"**고만 말하면, 아래 4가지가 전부 적용됐다는 뜻이다 — 세션은
+이 말을 들으면 항목별로 다시 캐묻지 말고 곧바로 금고·계정원장을 정비한다:
+
+1. **표준계정** — 아이디가 `tossneon0@gmail.com`/`tossneon0`
+2. **표준정보** — 전화번호는 `standard_phone_number`(금고 등록됨), 닉네임은 `standard_nickname`(`GlowHalo`)
+   - ⚠ **주소는 제외** — 표준 주소값을 따로 정하지 않는다, 회장이 매번 직접 입력한다. 이 항목만 체크리스트에서 빠진다.
+3. **2FA** — 2단계 인증이 없거나, 있어도 이메일 인증 방식(앱/전화 인증 아님)
+4. **표준닉네임** — 디스플레이명이 `GlowHalo`로 반영됨(위 2번과 동일 기준, 강조 차원에서 별도 항목화됨)
+
+**세션이 할 일**: 회장이 이렇게 보고하면 (a) 금고의 해당 계정 `*_login_email`/`*_login_password`가
+표준값과 일치하는지 확인·갱신, (b) 계정원장(`account-ledger.html`) 해당 행의 `confirmed:true` +
+`twofa` 필드를 갱신, (c) 그 사이트에 API 발급이 필요한데 아직 안 돼 있으면 회장에게 안내.
+**닉네임을 옛 이름(`nadacompany` 등)에서 `GlowHalo`로 실제로 바꾸는 사이트별 작업 자체는, 회장이
+전체 사이트를 다 체크한 뒤 "이제 점검 시작해"라고 할 때 일괄 진행한다 — 개별 완료 보고마다 바로
+바꾸지 않는다.**
+
+**전체 사이트 점검이 끝나면**(회장이 신호를 줄 것): 금고에서 더 이상 필요 없는 계정이나 잘못
+만들어진(비표준) 계정을 정리해서 지운다 — 그 전까지는 삭제하지 않는다.
+
 **계정 카탈로그**: Notion "🔐 자동화 계정 목록 (비공개)" (HQ → 나다컴퍼니 하위, 완전 비공개
 워크스페이스 — "나다컴퍼니(외부공개)" 쪽 공개 페이지 하위엔 절대 두지 말 것, 웹공유 토글도
 영구 금지).
