@@ -1,32 +1,49 @@
-﻿$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
 $base = $PSScriptRoot
 Write-Host ''
-Write-Host '=== Vrew 클립 병합 (이미지 생성 전) ===' -ForegroundColor Cyan
-Write-Host ("폴더: {0}" -f $base)
+Write-Host '=== Vrew clip merge (before image generation) ===' -ForegroundColor Cyan
+Write-Host ("folder: {0}" -f $base)
 Write-Host ''
 $raws = @(Get-ChildItem -LiteralPath $base -Filter '*_raw.vrew' -File | Sort-Object Name)
 if ($raws.Count -eq 0) {
-  Write-Host '[!] *_raw.vrew 파일이 없습니다.' -ForegroundColor Yellow
-  Write-Host '    Vrew 3단계에서 [AI 이미지] 토글을 끄고 만든 초안을' -ForegroundColor Yellow
-  Write-Host '    <회차이름>_raw.vrew 로 저장한 뒤 다시 실행하세요.' -ForegroundColor Yellow
+  Write-Host '[!] no *_raw.vrew found.' -ForegroundColor Yellow
+  Write-Host '    Turn OFF [AI image] on Vrew step 3, then save the draft as <name>_raw.vrew' -ForegroundColor Yellow
   return
 }
+$SUF    = [string]([char]0xB300) + [string]([char]0xBCF8)   # script suffix
+$OUTSUF = [string]([char]0xBCD1) + [string]([char]0xD569)   # merged suffix
 $done=0; $skip=0; $fail=0
 foreach ($r in $raws) {
-  $name = $r.BaseName -replace '_raw$',''
-  $SUF = [string]([char]0xB300) + [string]([char]0xBCF8)
+  $name   = $r.BaseName -replace '_raw$',''
   $script = Join-Path $base ($name + '_' + $SUF + '.txt')
-  $out    = Join-Path $base ($name + '_' + [string]([char]0xBCD1) + [string]([char]0xD569) + '.vrew')  # _병합
+  $out    = Join-Path $base ($name + '_' + $OUTSUF + '.vrew')
   Write-Host ("--- [{0}] ---" -f $name) -ForegroundColor Cyan
-  if (-not (Test-Path -LiteralPath $script)) { Write-Host ("[!] {0}: script txt not found - skip" -f $name) -ForegroundColor Yellow; $skip++; Write-Host ''; continue }
+  if (-not (Test-Path -LiteralPath $script)) {
+    Write-Host ("[!] {0}: script txt not found - skip" -f $name) -ForegroundColor Yellow
+    $skip++; Write-Host ''; continue
+  }
   if (Test-Path -LiteralPath $out) {
+    # HARD GUARD: never overwrite a merged file that already holds generated images
+    $hasImg = $false
+    try {
+      $za = [System.IO.Compression.ZipFile]::OpenRead($out)
+      foreach ($en in $za.Entries) { if ($en.FullName -match '\.(png|jpg|jpeg|webp)$') { $hasImg = $true; break } }
+      $za.Dispose()
+    } catch { }
+    if ($hasImg) {
+      Write-Host '[!] merged file already has generated images - SKIP (protecting credits)' -ForegroundColor Yellow
+      $skip++; Write-Host ''; continue
+    }
     $ot = (Get-Item -LiteralPath $out).LastWriteTime
     if ($ot -gt $r.LastWriteTime -and $ot -gt (Get-Item -LiteralPath $script).LastWriteTime) {
-      Write-Host '[=] 이미 최신 - 건너뜀' -ForegroundColor DarkGray; $skip++; Write-Host ''; continue
+      Write-Host '[=] up to date - skip' -ForegroundColor DarkGray
+      $skip++; Write-Host ''; continue
     }
   }
   try { & (Join-Path $base 'merge-clips.ps1') -Vrew $r.FullName -Script $script -Out $out; $done++ }
-  catch { Write-Host ("[X] 실패: {0}" -f $_.Exception.Message) -ForegroundColor Red; $fail++ }
+  catch { Write-Host ("[X] failed: {0}" -f $_.Exception.Message) -ForegroundColor Red; $fail++ }
   Write-Host ''
 }
-Write-Host ("완료 {0}건, 건너뜀 {1}건, 실패 {2}건" -f $done, $skip, $fail) -ForegroundColor Green
+Write-Host ("done {0}, skipped {1}, failed {2}" -f $done, $skip, $fail) -ForegroundColor Green
