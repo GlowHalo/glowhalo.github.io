@@ -112,7 +112,8 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `rapidapi_login_email` / `rapidapi_login_password` | RapidAPI Hub 계정(`tossneon0`, 표준 규칙) — GlowHalo 2 B1(Link Preview API) 리스팅용 |
 | `lemonsqueezy_login_email` / `lemonsqueezy_login_password` | Lemon Squeezy 대시보드 로그인 계정 — `lemonsqueezy_api_key`와 별도(API 키는 발급 완료, 대시보드 로그인은 브라우저 자동화용) |
 | `cloudflare_api_token` | Cloudflare API 토큰 — Workers 배포 권한 + **Browser Rendering:Edit** 포함(2026-08-10 신규 발급). 헤드리스 브라우저 자동화 메인 경로로 씀, 세션 환경변수 `CLOUDFLARE_API_TOKEN`과 별개로 여기도 등록해서 다른 세션(하윤 등)도 조회 가능하게 함. 사용법·검증된 코드 스니펫: [`niche-templates/execution/헤드리스브라우저-프록시-이슈.md`](../../niche-templates/execution/헤드리스브라우저-프록시-이슈.md) |
-| `webshare_login_email` / `webshare_login_password` | 프록시 서비스(Webshare) 계정 — **2026-08-10 정정 완료**: 비표준 계정(`tossneon+webshare@gmail.com`)을 회장이 직접 탈퇴 처리하고 `tossneon0@gmail.com`(표준 규칙)으로 신규 가입, 비밀번호도 **신버전**(`notion_login_password`와 동일 세대) 적용 |
+| `webshare_login_email` / `webshare_login_password` | 프록시 서비스(Webshare) 계정 — **2026-08-10 정정 완료**: 비표준 계정(`tossneon+webshare@gmail.com`)을 회장이 직접 탈퇴 처리하고 `tossneon0@gmail.com`(표준 규칙)으로 신규 가입, 비밀번호도 **신버전**(`notion_login_password`와 동일 세대) 적용. **✅ 2026-08-23 회장이 "계정 완료" 확인** |
+| `webshare_api_key` | Webshare API 키(2026-08-23 회장이 채팅으로 전달, 대시보드에서 직접 발급) — 프록시 목록 조회 등 API 연동에 사용 |
 | `etsy_login_email` / `etsy_login_password` | Etsy 셀러 계정(`tossneon0`, 2026-08-12 회장이 직접 가입) — **최초 상점 등록비 $19 발생**, 지금은 활용 안 함(제품군 매출이 확인되면 그때 확장 채널로 검토) |
 | `birkman_login_id` / `birkman_login_password` | 버크만코리아(birkmankorea.co.kr) 로그인 — **회장 개인 계정, 위 "자동화 전용 계정 표준"의 예외.** 2026-08-10 회장이 GlowHalo 4(채원)에게만 직접 로그인 사용을 허가한 예외 자격증명. 다른 계열사·범용 자동화 목적으로 재사용 금지, `birkman-automation/` 용도로만 사용. 로그인 1회 + 마이페이지(`/mypage/assessment`) 진입 시 비밀번호 재확인 1회, 총 2회 필요(같은 비밀번호로 추정, 미검증) |
 | `resend_login_email` / `resend_login_password` | Resend(resend.com) 대시보드 로그인 — 표준 계정(`tossneon0@gmail.com`, 2026-08-12 회장이 직접 가입·계정 확인 완료) |
