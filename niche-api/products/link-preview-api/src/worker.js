@@ -177,15 +177,15 @@ async function handlePreview(targetUrl, env) {
   return json(result);
 }
 
-// 2026-08-23 회장 지시로 게이트 해제 — Zyla API Hub 등 RapidAPI 외 마켓플레이스는
-// 이 헤더를 실어 보내지 않는 구조라(백엔드 인증 헤더 주입 기능 미확인), 걸어두면
-// RapidAPI 게이트웨이 밖에서 오는 모든 트래픽(=다른 마켓 정상 고객 포함)이 막힌다.
-// 지금은 매출이 없어 "RapidAPI 결제 우회" 리스크가 낮다는 판단으로 완전 개방.
-// RapidAPI에 실제 유료 구독자가 생기면 재검토할 것 — 이 저장소는 공개라 워커 URL이
-// 이미 openapi.json에 그대로 노출돼 있으므로, 이 함수를 다시 잠가도 "URL을 아는
-// 사람은 막는다"가 아니라 "헤더 없는 직접 호출을 막는다"는 의미로만 유효함.
+// 2026-08-23 오전 잠깐 해제했다가(Zyla 트래픽 통과 목적) 같은 날 저녁 회장 판단으로
+// 재잠금 — "초기 세팅(Zyla 엔드포인트 등록)까지는 열어두고, 끝나면 다시 잠근다"는
+// 원칙. Zyla가 이 헤더를 실어 보내는지 여전히 미확인이라 Zyla발 실제 고객 트래픽은
+// 막힐 수 있음(현재 Zyla 구독자 0명이라 당장 피해는 없음) — Zyla 트래픽까지 받으려면
+// 별도 시크릿(예: ZYLA_PROXY_SECRET)을 추가해 두 헤더 중 하나만 맞으면 통과시키는
+// 방식으로 재작업 필요, 착수 전 회장 확인.
 function verifyRapidApiSecret(request, env) {
-  return true;
+  if (!env.RAPIDAPI_PROXY_SECRET) return true; // 시크릿 미설정 시 검증 생략(로컬/직접 테스트용)
+  return request.headers.get("X-RapidAPI-Proxy-Secret") === env.RAPIDAPI_PROXY_SECRET;
 }
 
 export default {
