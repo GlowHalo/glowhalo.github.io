@@ -71,6 +71,8 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 |---|---|
 | `kakao_worker_shared_secret` | `kakao-emoticon/worker`(kakao-session-keepalive, `https://kakao-session-keepalive.tossneon.workers.dev`) 호출 인증용. 이 Worker는 카카오 로그인 세션(Cloudflare Browser Run)이 유휴 타임아웃(10분)으로 죽지 않게 8분마다 핑을 보내는 역할 — 세션ID를 한 번 등록해두면 그 세션이 살아있는 동안은 재로그인 승인 없이 재사용 가능(2026-08-18 실측 확인). 사용법: `kakao-emoticon/execution/products/kakao-login-helper.mjs` 참고 |
 | `standard_login_password` | **표준 계정 공용 비밀번호 최신값(2026-08-17 회장이 채팅으로 갱신 — `tossneon0@gmail.com`과 짝지어 "표준계정"이라고 명명함)** — 새 자동화 계정 만들 때 이 값을 최우선으로 시도한다. 기존 계정(notion/kakao/google/sendowl/itchio/paypal_business/webshare/rapidapi/lemonsqueezy 등)은 실제 사이트 비밀번호를 아직 이 값으로 안 바꿨으므로 각자의 `*_login_password`(신버전 `notion_login_password` 또는 구버전) 그대로 유효 — 로그인 실패 시 순서: `standard_login_password` → 그 계정의 `*_login_password`(신버전) → 구버전. 특정 계정을 실제로 이 새 값으로 바꾸면 그 계정의 `*_login_password`도 갱신하고 이 줄 아래 "○○ 이전 완료" 기록 추가 |
+| `standard_phone_number` | **표준 전화번호(2026-08-23 회장이 채팅으로 확정)** — SMS 인증·본인확인이 필요한 가입 폼에 우선 사용. 아래 "계정 완료 체크리스트" 참고 |
+| `standard_nickname` | **표준 닉네임/디스플레이명 = `GlowHalo`(2026-08-23 회장이 채팅으로 확정)** — 새 자동화 계정은 이 닉네임으로 만든다. 기존 계정에 남아있는 옛 이름(`nadacompany` 등)을 이 값으로 일괄 정정하는 작업은 **회장이 모든 사이트를 직접 체크한 뒤 점검 차원에서 진행** — 지금 바로 사이트별로 임의 변경하지 않는다 |
 | `notion_token` | pixel-ai-office/worker (Notion 저장) |
 | `gmail_app_password` | 버크만 디브리핑 발송 스크립트 등 |
 | `gumroad_access_token` | Gumroad 상품 등록/조회 |
@@ -84,8 +86,8 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `gumroad_login_password` | 위와 동일 용도 |
 | `kakao_login_email` | 카카오 자동화 전용 계정(회장 개인계정 아님) — 카카오 이모티콘 스튜디오 등 로그인 필요 작업 |
 | `kakao_login_password` | 위와 동일 용도 |
-| `google_login_email` | 구글 자동화 전용 계정(회장 개인계정 아님) — 구글 플레이 콘솔, 구글 계정 연동 로그인 등. Cloudflare 로그인도 이 계정 연동(회장이 직접 확인, 2026-08-17) |
-| `google_login_password` | 위와 동일 용도. **2026-08-17 회장이 최신 비밀번호로 갱신 전달** — Cloudflare Email Routing 목적지 주소 인증 등에 사용. **⚠️ 2026-08-17 확인 — 이 계정으로 구글 로그인 화면(accounts.google.com) 자체를 자동화 브라우저(Cloudflare Browser Rendering/CDP)로 통과하는 건 안 됨.** 이메일 입력은 통과하지만 비밀번호 입력 단계에서 구글이 "이 브라우저 또는 앱이 안전하지 않을 수 있습니다"로 즉시 차단(비밀번호가 맞아도 동일) — 의도된 보안정책이라 우회 시도 안 함. 구글 자체 로그인이 필요한 작업(받은편지함 확인, 구글 서비스 대시보드 등)은 계속 회장이 직접 해야 하고, 이 값은 제3자 사이트가 "Continue with Google" 대신 이메일+비밀번호로 가입받아줄 때만 쓸 수 있다. 실패한 자동 로그인 시도 이력 때문에 다음 실제(회장) 로그인 때 구글이 추가 본인확인을 요구할 수 있음 |
+| `google_login_email` | **GlowHalo 메인 구글 계정(2026-08-23 회장 확정 — "우리의 메인 계정임")** — 애초엔 자동화 전용으로 만든 계정이지만, 지금은 Cloudflare 로그인·Notion 워크스페이스 구글연동 등 핵심 서비스가 이 계정에 걸려있어 사실상 그룹 전체의 중심 계정이다. 구글 플레이 콘솔 등에도 사용 |
+| `google_login_password` | 위와 동일 용도. **⚠️ 2026-08-23 확인 — 비밀번호가 아직 `standard_login_password`(공용 표준값)로 통일되지 않았다.** 회장이 이 계정만 따로 개인적으로 관리하는 비밀번호를 쓰는 중 — 다른 계정처럼 표준값으로 임의 교체하지 말 것(회장 직접 변경 시에만 갱신). **2단계 인증은 문자(SMS) 또는 패스키**(이메일 인증 아님) — 아래 자동화 브라우저 차단 사유와 별개로, 설령 비밀번호를 통과해도 이 2FA 단계에서 회장 본인 개입이 필요해 완전 자동 로그인은 구조적으로 불가하다. **또한 이 계정으로 구글 로그인 화면(accounts.google.com) 자체를 자동화 브라우저(Cloudflare Browser Rendering/CDP)로 통과하는 건 안 됨.** 이메일 입력은 통과하지만 비밀번호 입력 단계에서 구글이 "이 브라우저 또는 앱이 안전하지 않을 수 있습니다"로 즉시 차단(비밀번호가 맞아도 동일) — 의도된 보안정책이라 우회 시도 안 함. 구글 자체 로그인이 필요한 작업(받은편지함 확인, 구글 서비스 대시보드 등)은 계속 회장이 직접 해야 하고, 이 값은 제3자 사이트가 "Continue with Google" 대신 이메일+비밀번호로 가입받아줄 때만 쓸 수 있다. 실패한 자동 로그인 시도 이력 때문에 다음 실제(회장) 로그인 때 구글이 추가 본인확인을 요구할 수 있음 |
 | `nadagroup_org_company_email` | `help@nadagroup.org` — Cloudflare Email Routing으로 `google_login_email`(tossneon0)에 포워딩 활성화됨(2026-08-17, 회장이 대시보드에서 직접 설정+인증). "회사 이메일" 요구하는 가입 폼(예: Cerberus FTP)에 쓸 것 — 개인 Gmail 주소로 막히는 가입에 대응 |
 | `browserbase_api_key` | Browserbase(클라우드 원격 브라우저) — 이 세션 프록시를 안 거치는 헤드리스 브라우저 자동화용 (무료 플랜) |
 | `whop_api_key` | Whop API — 템플릿류(A1)·앱류(A2) 공용 채널, 회장이 가입 완료(2026-08-09) |
@@ -105,12 +107,13 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `upbit_access_key` / `upbit_secret_key` | 업비트 Open API (GlowHalo 3 자산운용, **회장 실명 KYC 계좌** — 자동화 전용 계정 아님). 권한: 자산조회+주문조회+주문하기만, **출금 권한 없음**(보안 원칙). 등록 IP: 세션 출구 160.79.106.128~137. 키 유효 1년(2027-08 만료), 발급 2026-08-10. 인증 테스트 성공 확인. **`niche-templates/README.md`의 "GlowHalo 3 — 실거래 확인 게이트" 적용 대상** — 키가 있어도 바로 실거래 시작 금지 |
 | `lemonsqueezy_api_key` | Lemon Squeezy API 키(2026-08-09 대시보드에서 직접 발급) — 스토어가 아직 미활성화(신원인증 대기) 상태라 **테스트 모드 데이터에만 동작**, Activate Store 완료 후 라이브 키로 재발급 필요할 수 있음. **2026-08-17 재확인 — 여전히 `test_mode:true`, 신원인증 "Action Required" 그대로 남아있음**(대시보드 로그인으로 직접 확인, `/settings/general`). 신원인증은 정부 발급 신분증 업로드가 필요해 회장 본인 액션 필요. **추가로 이번에 확정된 사실 — Lemon Squeezy REST API는 애초에 상품 생성/메타데이터 수정을 지원하지 않는다**(`POST /v1/products` → `405`, 공식 문서에도 명시) — 신원인증이 끝나도 상품 등록은 대시보드(또는 브라우저 자동화) 몫. 상세: [`niche-templates/execution/A1-gumroad-대량생산-자동화.md`](../../niche-templates/execution/A1-gumroad-대량생산-자동화.md)의 2026-08-17 로그 |
 | `notion_login_email` / `notion_login_password` | 나다컴퍼니 전용 Notion 계정(`tossneon0`) — 나다컴퍼니 산출물 원본을 여기로 이관 중(2026-08-09). **비밀번호는 신버전**(아래 "표준 비밀번호 세대" 참고) |
-| `discord_login_email` / `discord_login_password` | GlowHalo 2(하윤) Discord 자동화 전용 계정(`tossneon0`, 표준 규칙) — C1(쿠팡파트너스 특가 알림) 채널 후보 중 디스코드 쪽 자체 처리용. **비밀번호는 최신값**(`standard_login_password`와 동일 세대, 2026-08-12 가입 시점부터 바로 적용됨 — "○○ 이전 완료" 아니라 처음부터 최신값으로 생성) |
+| `discord_login_email` / `discord_login_password` | GlowHalo 2(하윤) Discord 자동화 전용 계정(`tossneon0`, 표준 규칙) — C1(쿠팡파트너스 특가 알림) 채널 후보 중 디스코드 쪽 자체 처리용. **비밀번호는 최신값**(`standard_login_password`와 동일 세대, 2026-08-12 가입 시점부터 바로 적용됨 — "○○ 이전 완료" 아니라 처음부터 최신값으로 생성). **⚠️ 2026-08-23 — 회장이 기존 계정을 탈퇴하고 재가입 진행중.** 재가입 완료되면 새 비밀번호로 이 값 갱신 필요(현재 값은 옛 계정 것이라 무효) |
 | `coupang_partners_login_email` / `coupang_partners_login_password` | 쿠팡파트너스 계정 — **회장 본인 명의 휴대폰 인증이 가입 필수**라 표준 자동화 계정으로 우회 불가(예외, `birkman_login_*`과 같은 성격). 가입 자체는 아직 회장 액션 대기 중([상세](../../coupang-partners/products/coupang-dealbot/README.md)) — 이 값은 그 전까지의 임시/개별 등록분이므로 실제 승인 완료 시 재확인 필요 |
 | `rapidapi_login_email` / `rapidapi_login_password` | RapidAPI Hub 계정(`tossneon0`, 표준 규칙) — GlowHalo 2 B1(Link Preview API) 리스팅용 |
 | `lemonsqueezy_login_email` / `lemonsqueezy_login_password` | Lemon Squeezy 대시보드 로그인 계정 — `lemonsqueezy_api_key`와 별도(API 키는 발급 완료, 대시보드 로그인은 브라우저 자동화용) |
 | `cloudflare_api_token` | Cloudflare API 토큰 — Workers 배포 권한 + **Browser Rendering:Edit** 포함(2026-08-10 신규 발급). 헤드리스 브라우저 자동화 메인 경로로 씀, 세션 환경변수 `CLOUDFLARE_API_TOKEN`과 별개로 여기도 등록해서 다른 세션(하윤 등)도 조회 가능하게 함. 사용법·검증된 코드 스니펫: [`niche-templates/execution/헤드리스브라우저-프록시-이슈.md`](../../niche-templates/execution/헤드리스브라우저-프록시-이슈.md) |
-| `webshare_login_email` / `webshare_login_password` | 프록시 서비스(Webshare) 계정 — **2026-08-10 정정 완료**: 비표준 계정(`tossneon+webshare@gmail.com`)을 회장이 직접 탈퇴 처리하고 `tossneon0@gmail.com`(표준 규칙)으로 신규 가입, 비밀번호도 **신버전**(`notion_login_password`와 동일 세대) 적용 |
+| `webshare_login_email` / `webshare_login_password` | 프록시 서비스(Webshare) 계정 — **2026-08-10 정정 완료**: 비표준 계정(`tossneon+webshare@gmail.com`)을 회장이 직접 탈퇴 처리하고 `tossneon0@gmail.com`(표준 규칙)으로 신규 가입, 비밀번호도 **신버전**(`notion_login_password`와 동일 세대) 적용. **✅ 2026-08-23 회장이 "계정 완료" 확인** |
+| `webshare_api_key` | Webshare API 키(2026-08-23 회장이 채팅으로 전달, 대시보드에서 직접 발급) — 프록시 목록 조회 등 API 연동에 사용 |
 | `etsy_login_email` / `etsy_login_password` | Etsy 셀러 계정(`tossneon0`, 2026-08-12 회장이 직접 가입) — **최초 상점 등록비 $19 발생**, 지금은 활용 안 함(제품군 매출이 확인되면 그때 확장 채널로 검토) |
 | `birkman_login_id` / `birkman_login_password` | 버크만코리아(birkmankorea.co.kr) 로그인 — **회장 개인 계정, 위 "자동화 전용 계정 표준"의 예외.** 2026-08-10 회장이 GlowHalo 4(채원)에게만 직접 로그인 사용을 허가한 예외 자격증명. 다른 계열사·범용 자동화 목적으로 재사용 금지, `birkman-automation/` 용도로만 사용. 로그인 1회 + 마이페이지(`/mypage/assessment`) 진입 시 비밀번호 재확인 1회, 총 2회 필요(같은 비밀번호로 추정, 미검증) |
 | `resend_login_email` / `resend_login_password` | Resend(resend.com) 대시보드 로그인 — 표준 계정(`tossneon0@gmail.com`, 2026-08-12 회장이 직접 가입·계정 확인 완료) |
@@ -136,6 +139,20 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 **자동화 전용 계정 vs 개인 계정 (2026-08-09)**: `kakao_login_*`/`google_login_*`은 회장이 자동화 목적으로
 **새로 만든** 계정이다 — 회장 개인 카카오톡·구글 계정이 아니다. 회장 개인 계정은 앞으로도 회장이 직접
 통제하길 원하며, 자동화가 필요한 시점이 오면 그때 회장이 따로 판단해서 넘길지 결정한다.
+**⚠️ 2026-08-23 갱신 — `google_login_*`은 더 이상 "여러 자동화 계정 중 하나"가 아니라 회장이 직접
+"우리의 메인 계정"이라고 확정한 계정이다.** 여전히 회장의 원래 개인 구글 계정과는 별개지만, Cloudflare
+로그인·Notion 구글연동 등 핵심 서비스가 이 계정에 묶여있어 실질적으로 GlowHalo Group 전체의 중심
+구글 계정 역할을 한다 — 다른 `*_login_*`류와 같은 층위로 취급하지 말 것.
+
+**Google Drive — 계정 두 개를 용도별로 나눠 쓴다 (2026-08-23 회장 확정)**: 회장은 위 메인 계정의
+드라이브와 회장 개인 드라이브(별도 개인 구글 계정)를 병행 활용한다.
+- **회장이 직접 관여하는 작업**(예: 유튜브 영상 원본·편집 소스 등)은 **개인 드라이브**를 쓴다 — 이건
+  세션이 접근·관리할 대상이 아니다.
+- **세션이 알아서 처리해야 하는 자동화 작업**(파일 생성·조회·정리 등)은 **메인 계정(`google_login_email`)의
+  드라이브**를 쓴다.
+- 세션에 연결된 Google Drive MCP 커넥터가 실제로 어느 계정에 붙어있는지는 아직 확인된 적 없다 —
+  자동화로 Drive를 실제로 쓰게 되는 세션은 착수 전에 반드시 어느 계정인지 먼저 확인하고, 개인
+  드라이브로 잘못 붙어있다면 회장에게 알려서 메인 계정으로 재연결해야 한다.
 
 **자동화 계정 표준 규칙 (2026-08-09)**: 앞으로 새로 만드는 자동화 전용 계정은 아이디
 `tossneon0@gmail.com`(이메일 형식) 또는 `tossneon0`(ID 형식), 비밀번호는 전 계정 공통값으로
@@ -168,6 +185,27 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 브라우저 자동화가 훨씬 불안정하다(SendOwl 로그인 자동화 때 실제로 두 번 실패한 사례). 이미
 소셜 로그인으로만 가입된 계정은 계정 설정에서 "비밀번호 설정/변경" 옵션이 있는지 먼저 확인 —
 있으면 표준 비밀번호로 맞춰서 이메일+비밀번호 로그인도 같이 가능하게 만든다.
+## "○○ 계정 완료" 체크리스트 (2026-08-23 회장 확정)
+
+회장이 채팅에서 **"○○ 계정 완료했다"**고만 말하면, 아래 4가지가 전부 적용됐다는 뜻이다 — 세션은
+이 말을 들으면 항목별로 다시 캐묻지 말고 곧바로 금고·계정원장을 정비한다:
+
+1. **표준계정** — 아이디가 `tossneon0@gmail.com`/`tossneon0`
+2. **표준정보** — 전화번호는 `standard_phone_number`(금고 등록됨), 닉네임은 `standard_nickname`(`GlowHalo`)
+   - ⚠ **주소는 제외** — 표준 주소값을 따로 정하지 않는다, 회장이 매번 직접 입력한다. 이 항목만 체크리스트에서 빠진다.
+3. **2FA** — 2단계 인증이 없거나, 있어도 이메일 인증 방식(앱/전화 인증 아님)
+4. **표준닉네임** — 디스플레이명이 `GlowHalo`로 반영됨(위 2번과 동일 기준, 강조 차원에서 별도 항목화됨)
+
+**세션이 할 일**: 회장이 이렇게 보고하면 (a) 금고의 해당 계정 `*_login_email`/`*_login_password`가
+표준값과 일치하는지 확인·갱신, (b) 계정원장(`account-ledger.html`) 해당 행의 `confirmed:true` +
+`twofa` 필드를 갱신, (c) 그 사이트에 API 발급이 필요한데 아직 안 돼 있으면 회장에게 안내.
+**닉네임을 옛 이름(`nadacompany` 등)에서 `GlowHalo`로 실제로 바꾸는 사이트별 작업 자체는, 회장이
+전체 사이트를 다 체크한 뒤 "이제 점검 시작해"라고 할 때 일괄 진행한다 — 개별 완료 보고마다 바로
+바꾸지 않는다.**
+
+**전체 사이트 점검이 끝나면**(회장이 신호를 줄 것): 금고에서 더 이상 필요 없는 계정이나 잘못
+만들어진(비표준) 계정을 정리해서 지운다 — 그 전까지는 삭제하지 않는다.
+
 **계정 카탈로그**: Notion "🔐 자동화 계정 목록 (비공개)" (HQ → 나다컴퍼니 하위, 완전 비공개
 워크스페이스 — "나다컴퍼니(외부공개)" 쪽 공개 페이지 하위엔 절대 두지 말 것, 웹공유 토글도
 영구 금지).
