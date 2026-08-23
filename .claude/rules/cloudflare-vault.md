@@ -27,6 +27,7 @@ paths:
 - 세션이 회장에게 파일을 줄 때(내보내기 등): `CLOUDFLARE_API_TOKEN=<금고 cloudflare_api_token> CLOUDFLARE_ACCOUNT_ID=2e5f3e2cfa49f7107f084c080e8eeed0 npx wrangler r2 object put glowhalo-file-drop/<키> --file=<로컬경로> --remote` 후(**`--remote` 필수 — 안 붙이면 로컬 시뮬레이터에만 올라가고 실제 공개 URL에서는 404가 뜬다**, 2026-08-22 실측 확인) 위 공개 URL 패턴으로 안내.
 - ⚠️ **공개 버킷이라 비밀값·개인정보·민감 문서는 절대 올리지 않는다** — `.gitignore` 대상 데이터와 동일한 기준. 완전한 랜덤/무의미한 키 이름을 쓰면(예: `_test/hello.txt`가 아니라 uuid 등) 링크를 모르는 사람이 우연히 접근할 가능성은 낮아지지만, 그래도 민감 자료는 이 경로를 쓰지 않는다 — 순수 임시 파일 전달용.
 - 정리 안 하면 계속 쌓이므로, 전달 끝난 임시 오브젝트는 `wrangler r2 object delete glowhalo-file-drop/<키> --remote`로 지운다.
+- **2026-08-23 회장 지시로 자동 만료 규칙 추가** — 공개 버킷이라 링크가 계속 살아있는 게 찜찜하다는 지적에 따라, 수동 삭제에 의존하지 않고 **업로드 후 14일 지나면 자동으로 지워지는 R2 라이프사이클 규칙(`auto-expire-14d`)을 걸어뒀다**(`wrangler r2 bucket lifecycle add glowhalo-file-drop auto-expire-14d --expire-days 14`). 급하게 오래 보관해야 하는 파일이면 14일 안에 다른 곳(예: 저장소 커밋, Notion)으로 옮겨둘 것 — 이 버킷은 "잠깐 주고받는" 용도로만 쓴다.
 
 ## Cloudflare 대시보드 링크 — 반드시 계정 ID를 박아서 줄 것 (2026-08-19)
 
@@ -109,7 +110,9 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `notion_login_email` / `notion_login_password` | 나다컴퍼니 전용 Notion 계정(`tossneon0`) — 나다컴퍼니 산출물 원본을 여기로 이관 중(2026-08-09). **비밀번호는 신버전**(아래 "표준 비밀번호 세대" 참고) |
 | `discord_login_email` / `discord_login_password` | GlowHalo 2(하윤) Discord 자동화 전용 계정(`tossneon0`, 표준 규칙) — C1(쿠팡파트너스 특가 알림) 채널 후보 중 디스코드 쪽 자체 처리용. **비밀번호는 최신값**(`standard_login_password`와 동일 세대, 2026-08-12 가입 시점부터 바로 적용됨 — "○○ 이전 완료" 아니라 처음부터 최신값으로 생성). **⚠️ 2026-08-23 — 회장이 기존 계정을 탈퇴하고 재가입 진행중.** 재가입 완료되면 새 비밀번호로 이 값 갱신 필요(현재 값은 옛 계정 것이라 무효) |
 | `coupang_partners_login_email` / `coupang_partners_login_password` | 쿠팡파트너스 계정 — **회장 본인 명의 휴대폰 인증이 가입 필수**라 표준 자동화 계정으로 우회 불가(예외, `birkman_login_*`과 같은 성격). 가입 자체는 아직 회장 액션 대기 중([상세](../../coupang-partners/products/coupang-dealbot/README.md)) — 이 값은 그 전까지의 임시/개별 등록분이므로 실제 승인 완료 시 재확인 필요 |
-| `rapidapi_login_email` / `rapidapi_login_password` | RapidAPI Hub 계정(`tossneon0`, 표준 규칙) — GlowHalo 2 B1(Link Preview API) 리스팅용 |
+| `rapidapi_login_email` / `rapidapi_login_password` | RapidAPI Hub 계정(`tossneon0`, 표준 규칙) — GlowHalo 2 B1(Link Preview API) 리스팅용. **2026-08-23 회장 확인 — 로그인 정상 작동, 2FA 없음.** Nokia 인수 여파로 겪던 500 로그인 에러는 해소된 것으로 보임 |
+| `RAPIDAPI_PROXY_SECRET` | Link Preview API Worker(`nada-company2-link-preview`)가 `X-RapidAPI-Proxy-Secret` 헤더를 검증하는 값(2026-08-20 임시 랜덤값으로 잠금, `wrangler secret put`으로 등록됨). **⚠️ 2026-08-23 확인 — 아직 RapidAPI Hub 쪽(제공자 Security 설정)에 이 값이 입력 안 돼 있어서, RapidAPI 게이트웨이를 통한 `/v1/preview` 호출이 401로 막힘** (`/health`는 이 검증 대상이 아니라 정상). RapidAPI Hub → API 관리 화면 → Security 탭에서 "Proxy Secret"에 이 값을 붙여넣어야 실사용 가능 |
+| `rapidapi_default_app_key` | RapidAPI가 "GlowHalo Link Preview API" 리스팅에 자동 생성해준 기본 애플리케이션(`default-application_12231452`)의 `X-RapidAPI-Key` 값 — 게이트웨이 경유 테스트용(고객이 구독할 때 받는 키와 같은 성격). 판매용 API 자체 인증키가 아니라 우리 쪽 자체 테스트/검증용으로 보관 |
 | `lemonsqueezy_login_email` / `lemonsqueezy_login_password` | Lemon Squeezy 대시보드 로그인 계정 — `lemonsqueezy_api_key`와 별도(API 키는 발급 완료, 대시보드 로그인은 브라우저 자동화용) |
 | `cloudflare_api_token` | Cloudflare API 토큰 — Workers 배포 권한 + **Browser Rendering:Edit** 포함(2026-08-10 신규 발급). 헤드리스 브라우저 자동화 메인 경로로 씀, 세션 환경변수 `CLOUDFLARE_API_TOKEN`과 별개로 여기도 등록해서 다른 세션(하윤 등)도 조회 가능하게 함. 사용법·검증된 코드 스니펫: [`niche-templates/execution/헤드리스브라우저-프록시-이슈.md`](../../niche-templates/execution/헤드리스브라우저-프록시-이슈.md) |
 | `webshare_login_email` / `webshare_login_password` | 프록시 서비스(Webshare) 계정 — **2026-08-10 정정 완료**: 비표준 계정(`tossneon+webshare@gmail.com`)을 회장이 직접 탈퇴 처리하고 `tossneon0@gmail.com`(표준 규칙)으로 신규 가입, 비밀번호도 **신버전**(`notion_login_password`와 동일 세대) 적용. **✅ 2026-08-23 회장이 "계정 완료" 확인** |
@@ -180,6 +183,7 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
   - **Webshare 이전 완료(2026-08-10)** — 비표준 계정 탈퇴 후 `tossneon0@gmail.com` + 신버전으로 재가입.
   - **Kakao 이전 완료(2026-08-15, 예슬)** — 로그인 실패로 시도해본 결과 계정 비밀번호가 이미 `standard_login_password`(최신값)로 바뀌어 있었음을 확인, `kakao_login_password` 값을 그 값으로 갱신함. 상세: `kakao-emoticon/execution/A3-kakao-emoticon.md`의 "완전자동 로그인 실제 성공" 섹션.
   - **Discord는 처음부터 최신값 적용(2026-08-12)** — GlowHalo 2(하윤)가 이 값 갱신 시점 이후 신규 가입해서 이전 작업 없이 바로 최신 세대. 확인 완료.
+  - **itch.io 이전 완료(2026-08-23)** — 회장이 비밀번호를 `standard_login_password` 값으로 직접 변경, `itchio_login_password` 갱신함. 사용자명도 이 시점에 `nadacompany`→`GlowHalo`로 변경(glowhalo.itch.io). 비번 변경 후 `itchio_api_key`가 여전히 정상 작동하는지 API로 재검증 완료(`/api/1/:key/me` 200 응답, username GlowHalo 확인).
 **가입 방식은 "Continue with Google" 같은 소셜 로그인 대신 이메일+비밀번호 직접 가입을 우선한다
 (2026-08-09)** — 소셜 로그인은 리다이렉트가 여러 단계로 나뉘고 숨겨진 함정 필드도 있어 헤드리스
 브라우저 자동화가 훨씬 불안정하다(SendOwl 로그인 자동화 때 실제로 두 번 실패한 사례). 이미
