@@ -6,7 +6,10 @@ Write-Host ''
 Write-Host '=== Vrew clip merge (before image generation) ===' -ForegroundColor Cyan
 Write-Host ("folder: {0}" -f $base)
 Write-Host ''
-$raws = @(Get-ChildItem -LiteralPath $base -Filter '*_raw.vrew' -File | Sort-Object Name)
+# natural order: 1.a, 2.b, ... 9.i, 10.j  (plain name sort would put 10 right after 1)
+$rxNum = New-Object System.Text.RegularExpressions.Regex('^([0-9]+)')
+$raws = @(Get-ChildItem -LiteralPath $base -Filter '*_raw.vrew' -File)
+$raws = @($raws | Sort-Object @{Expression={ $mm = $rxNum.Match($_.Name); if ($mm.Success) { [int]$mm.Groups[1].Value } else { 99999 } }}, @{Expression={ $_.Name }})
 if ($raws.Count -eq 0) {
   Write-Host '[!] no *_raw.vrew found.' -ForegroundColor Yellow
   Write-Host '    Turn OFF [AI image] on Vrew step 3, then save the draft as <name>_raw.vrew' -ForegroundColor Yellow
@@ -16,7 +19,7 @@ $SUF    = [string]([char]0xB300) + [string]([char]0xBCF8)   # script suffix
 $OUTSUF = [string]([char]0xBCD1) + [string]([char]0xD569)   # merged suffix
 $done=0; $skip=0; $fail=0
 foreach ($r in $raws) {
-  $name   = $r.BaseName -replace '_raw$',''
+  $name = $r.BaseName -replace '_raw$',''
   $script = Join-Path $base ($name + '_' + $SUF + '.txt')
   $out    = Join-Path $base ($name + '_' + $OUTSUF + '.vrew')
   Write-Host ("--- [{0}] ---" -f $name) -ForegroundColor Cyan
