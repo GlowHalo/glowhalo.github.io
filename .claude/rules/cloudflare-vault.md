@@ -78,7 +78,7 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `gmail_app_password` | 버크만 디브리핑 발송 스크립트 등 |
 | `gumroad_access_token` | Gumroad 상품 등록/조회 |
 | `leonardo_api_key` | 이미지 생성 |
-| `gemini_api_key` | KPC 코칭챗봇 등 |
+| `gemini_api_key` | 무료 티어 공용 키(모델당 하루 20회 제한) — `kpc-coach-chat`·`mindmap`·`coach-practice` Worker 3곳이 같이 씀. **2026-08-24 회장이 `tossneon0@gmail.com` 계정으로 재발급한 값으로 교체, 3개 Worker 전부 `wrangler secret put GEMINI_API_KEY`로 재배포 완료**(구 tossneon 계정 추정 값은 폐기) |
 | `kakao_maps_js_key` | 아기랑 갈곳 |
 | `adsense_circleheroes_banner_slot` | circle-heroes 광고 |
 | `firebase_circleheroes_web_config` | circle-heroes |
