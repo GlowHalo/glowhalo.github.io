@@ -35,3 +35,10 @@
 {"mode": "LIVE", "action": "sell", "market": "KRW-ETH", "reason": "morning_exit", "volume": 0.00686767, "price": 3302000.0, "pnl_krw": 48, "uuid": "b61a1bef-6abc-486b-8522-3fd3fff4833e", "ts": "2026-08-22T15:16:26.652149Z"}
 {"mode": "LIVE", "action": "sell", "market": "KRW-DOGE", "reason": "morning_exit", "volume": 96.64957264, "price": 123.0, "pnl_krw": 580, "uuid": "f7031683-f476-4f1a-9f8c-f13541d0c856", "ts": "2026-08-22T15:16:30.280804Z"}
 {"mode": "LIVE", "action": "buy", "market": "KRW-BTC", "krw": 150000, "price": 108180000.0, "uuid": "3ee292aa-6d06-4ef7-af6e-16f1a613341b", "ts": "2026-08-24T12:32:34.299253Z"}
+{"mode": "LIVE", "action": "buy", "market": "KRW-ETH", "krw": 85684, "price": 3465000.0, "uuid": "079588db-9698-414c-9eab-e2478df8ba5c", "ts": "2026-08-24T14:31:18.152620Z"}
+{"mode": "LIVE", "action": "sell", "market": "KRW-BTC", "reason": "morning_exit", "volume": 0.00138653, "price": 108781000.0, "pnl_krw": 828, "uuid": "84bb86ad-e50e-4213-88a3-2cfdb0f04ec9", "ts": "2026-08-24T15:44:28.430101Z"}
+{"mode": "LIVE", "action": "sell", "market": "KRW-ETH", "reason": "morning_exit", "volume": 0.02472842, "price": 3428000.0, "pnl_krw": -915, "uuid": "5b2ae9d6-1c72-43ca-88c1-54808da18a64", "ts": "2026-08-24T15:44:30.962631Z"}
+{"mode": "LIVE", "action": "buy", "market": "KRW-BTC", "krw": 150000, "price": 108846000.0, "uuid": "c867cc06-f4b1-4485-9133-00a68bdc4db2", "ts": "2026-08-24T15:44:34.114827Z"}
+{"mode": "LIVE", "action": "buy", "market": "KRW-SOL", "krw": 85509, "price": 135300.0, "uuid": "62a096ed-9c57-4f8b-937e-c56f07b5eabd", "ts": "2026-08-24T22:40:06.104428Z"}
+{"mode": "LIVE", "action": "buy", "market": "KRW-XRP", "krw": 42733, "price": 2104.0, "uuid": "e2994a83-3d87-4784-b2ab-cbab9c104714", "ts": "2026-08-25T02:21:15.756267Z"}
+{"mode": "LIVE", "action": "buy", "market": "KRW-DOGE", "krw": 21356, "price": 128.0, "uuid": "21264a53-cc12-4f80-9b71-46afdb965179", "ts": "2026-08-25T02:27:55.508401Z"}
