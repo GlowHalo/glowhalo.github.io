@@ -77,7 +77,7 @@ async function fetchWithLimit(url) {
   try {
     return await fetch(url, {
       signal: controller.signal,
-      headers: { "User-Agent": "NadaCompany2-LinkPreview/1.0 (+https://glowhalo.github.io/nada-group/)" },
+      headers: { "User-Agent": "GlowHalo2-LinkPreview/1.0 (+https://glowhalo.github.io/glowhalo-hq/)" },
       redirect: "follow",
     });
   } finally {

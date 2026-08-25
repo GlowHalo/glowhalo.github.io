@@ -82,7 +82,7 @@ curl -s -X PUT "$VAULT_URL/secrets/새이름" -H "Authorization: Bearer $VAULT_T
 | `kakao_maps_js_key` | 아기랑 갈곳 |
 | `adsense_circleheroes_banner_slot` | circle-heroes 광고 |
 | `firebase_circleheroes_web_config` | circle-heroes |
-| `nada_group_dashboard_write_token` | nada-group/worker — 승인/지시/실행로그 상태 쓰기(PUT /state) 인증 |
+| `glowhalo_hq_dashboard_write_token` | glowhalo-hq/worker(舊 nada-group/worker, 2026-08-25 개명) — 승인/지시/실행로그 상태 쓰기(PUT /state) 인증 |
 | `gumroad_login_email` | Gumroad 대시보드 브라우저 자동 로그인 (API로 안 되는 계정 설정, 예: 환불정책 활성화 스위치) |
 | `gumroad_login_password` | 위와 동일 용도 |
 | `kakao_login_email` | 카카오 자동화 전용 계정(회장 개인계정 아님) — 카카오 이모티콘 스튜디오 등 로그인 필요 작업 |
