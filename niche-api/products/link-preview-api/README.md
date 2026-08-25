@@ -115,3 +115,11 @@ HQ(소율) 세션이 회장 스크린샷 확인 요청을 계기로 Cloudflare B
 이후 Cloudflare Browser Rendering으로 재접속해 Zyla Endpoints 폼을 다시 채우고 실제 `SEND`(GitHub URL로 테스트)까지 성공 — 응답 JSON(title/description/image 등 정상)까지 확인 후 **"Get Link Preview" 엔드포인트를 SAVE, 상태 `Live`로 전환 완료**(`/v3/api/endpoint/edit/30202`). 실제 화면에서 "SAVE" 텍스트를 가진 버튼이 3개 있었는데(언어선택 저장용 숨겨진 버튼 3개가 동일 텍스트로 존재) 그중 눈에 보이는 진짜 버튼(`button.custom-steps-buttons`)만 골라 클릭해야 했음 — 다음에 이 폼을 또 열게 되면 이 클래스명으로 바로 찾을 것.
 
 **남은 단계**: 3. Plans(가격 설정) → 4. FAQs → 5. View Preview → 최종 제출. 가격 정책은 사업 판단이 필요해 이번엔 진행하지 않음 — 다음에 이어서 진행.
+
+### 후속 — 리스팅 반려·이름 정정·재검토 요청 (2026-08-25)
+
+Zyla 심사팀(`hello@zylalabs.com`)이 메일로 리스팅을 반려했다: "the name must reflect the API's functionality"(이름이 기능을 반영해야 함) — 회장이 처음엔 "API 키 문제"로 오인했으나 실제로는 **리스팅 이름** 이슈였다. 소율(비서실) 세션이 메일함에서 원인 확인 후 Cloudflare Browser Rendering으로 직접 로그인해서 처리:
+
+- 로그인 후 `My APIs` → `Edit API` 클릭 시 URL이 `/v3/api/payment?api_id=13530&currentStep=5`(결제 스텝)로 바로 튐 — **`currentStep=1`을 URL에 직접 넣어도 "제출 완료" 안내 화면만 뜨고 실제 폼이 안 열림**(SPA가 URL 파라미터를 무시하고 내부 상태로 라우팅하는 것으로 추정). 우회법: 아무 다른 스텝(예: `4. FAQs`, `/v3/api/faqs/list?api=13530&currentStep=4`)으로 먼저 들어간 뒤, 화면 안의 `1. API` 탭을 실제로 클릭해야 `/v3/api/edit/13530?currentStep=1`로 정상 진입해 폼이 열린다.
+- API Name 필드를 `input[value="GlowHalo API"]` 셀렉터로 정확히 잡아(느슨한 `input[type="text"]`는 상단 검색창을 잘못 집음) `GlowHalo Link Preview API`로 교체, `SAVE & NEXT` 클릭으로 저장 확인(`My APIs` 목록에 새 이름 반영 확인).
+- Zyla에 재검토 요청 회신 발송 완료. 상태는 여전히 `PENDING APPROVAL` — 재승인 결과 대기 중.
