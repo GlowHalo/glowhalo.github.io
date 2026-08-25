@@ -2,7 +2,7 @@
 
 후보 B1(니치 API 프로덕트)의 첫 MVP. URL을 주면 title/description/og:image/favicon 등 링크 미리보기 메타데이터를 JSON으로 반환하는 API — RapidAPI Hub에 리스팅해 개발자(B2B)에게 파는 걸 목표로 한다.
 
-**라이브**: `https://nada-company2-link-preview.tossneon.workers.dev`
+**라이브**: `https://glowhalo2-link-preview.tossneon.workers.dev`
 
 ## 엔드포인트
 
@@ -123,3 +123,11 @@ Zyla 심사팀(`hello@zylalabs.com`)이 메일로 리스팅을 반려했다: "th
 - 로그인 후 `My APIs` → `Edit API` 클릭 시 URL이 `/v3/api/payment?api_id=13530&currentStep=5`(결제 스텝)로 바로 튐 — **`currentStep=1`을 URL에 직접 넣어도 "제출 완료" 안내 화면만 뜨고 실제 폼이 안 열림**(SPA가 URL 파라미터를 무시하고 내부 상태로 라우팅하는 것으로 추정). 우회법: 아무 다른 스텝(예: `4. FAQs`, `/v3/api/faqs/list?api=13530&currentStep=4`)으로 먼저 들어간 뒤, 화면 안의 `1. API` 탭을 실제로 클릭해야 `/v3/api/edit/13530?currentStep=1`로 정상 진입해 폼이 열린다.
 - API Name 필드를 `input[value="GlowHalo API"]` 셀렉터로 정확히 잡아(느슨한 `input[type="text"]`는 상단 검색창을 잘못 집음) `GlowHalo Link Preview API`로 교체, `SAVE & NEXT` 클릭으로 저장 확인(`My APIs` 목록에 새 이름 반영 확인).
 - Zyla에 재검토 요청 회신 발송 완료. 상태는 여전히 `PENDING APPROVAL` — 재승인 결과 대기 중.
+
+### 후속 — Worker 개명 + Zyla 백엔드 URL 동기화 (2026-08-25, 같은 날)
+
+회장이 "고객 아직 없으니 라이브 서비스 링크도 전부 정상화하라"고 지시 — HQ(소율) 세션이 처리:
+
+- Cloudflare Worker `nada-company2-link-preview` → **`glowhalo2-link-preview`**로 재배포(`wrangler.toml` name·`openapi.json` server url·`niche-api/candidates.md` 갱신). `PREVIEW_KV`는 네임스페이스 ID 그대로라 캐시 유실 없음, `RAPIDAPI_PROXY_SECRET`도 새 Worker에 재등록.
+- Zyla Endpoints 탭의 등록된 백엔드 URL(`/v3/api/endpoint/edit/30202`)도 새 URL로 갱신·SAVE 완료 — Params 탭의 URL 입력 필드를 `input[value*="tossneon.workers.dev"]`로 잡아 교체, `SEND`로 테스트 호출 성공(백엔드가 정상 응답함을 확인) 후 `button.custom-steps-buttons`로 SAVE, "Replace existing name?" 확인 모달이 뜨면 "Yes, replace it" 클릭. **주의 — 저장 직후 화면이 순간적으로 다른 이름("Fetch URL Snapshot" 등 AI 추천으로 보이는 텍스트)을 보여줄 때가 있었는데, 실제로는 반영 안 된 일시적 렌더링이었다** — 로그인부터 다시 새로 접속해 새로고침 상태로 재확인하니 엔드포인트 이름(`Get Link Preview`)은 그대로, URL 필드만 정확히 바뀌어 있었다. 다음에 이 폼을 또 만지면 저장 후 반드시 **완전히 새로 접속해서**(같은 세션 재사용 말고) 재확인할 것 — 그 자리에서 보이는 화면을 바로 신뢰하지 말 것.
+- **⚠️ 별개로 발견한 문서·코드 불일치**: 이 README와 `.claude/rules/cloudflare-vault.md`의 `RAPIDAPI_PROXY_SECRET` 항목은 "2026-08-23 저녁 회장 지시로 `verifyRapidApiSecret`이 항상 `true`를 반환하도록 바꿔서 지금은 인증 없이 완전히 열려있다"고 적혀 있는데, **실제 배포된 `src/worker.js`(186~189행)는 그렇지 않다** — `RAPIDAPI_PROXY_SECRET`이 설정돼 있으면 헤더 검증을 여전히 수행하고, 안 맞으면 401을 돌려준다(오늘 curl·Zyla SEND 테스트 양쪽에서 401 실측 확인, 리네임 전 옛 Worker에서도 동일했음 — 오늘 작업이 만든 변화 아님). 즉 코드가 "잠금 해제" 결정 이전 상태로 되돌아가 있거나, 애초에 그 재배포가 실제로 반영이 안 됐던 것으로 보임 — **회장이 그때 내린 "잠금 해제" 결정을 실제로 다시 적용할지, 아니면 지금처럼 잠근 채로 둘지 판단이 필요**해서 코드는 손대지 않고 이 사실만 기록해둔다.

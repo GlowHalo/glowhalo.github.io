@@ -8,7 +8,7 @@ GlowHalo Group 산하 열한 번째 관계사. **대표: 이든** — 20인 전�
 
 Round 1 승리 아이디어를 그대로 이 회사의 1호 사업으로 확정한다.
 
-**✅ MVP 배포 완료(2026-08-12)**: `https://nada-company11-brief-ai.tossneon.workers.dev` — 회의 텍스트 → 요약/결정사항/액션아이템 자동 추출 API + 랜딩페이지 + 출시 알림 대기자 등록까지 살아있다. Cloudflare Workers AI(`env.AI` 바인딩)로 별도 API 키·계정 가입 없이 무자본으로 시작했다. 상세 설계·테스트 로그는 [`product/brief-ai/README.md`](product/brief-ai/README.md).
+**✅ MVP 배포 완료(2026-08-12)**: `https://brief-ai.glowhalo.org`(2026-08-25 Worker `nada-company11-brief-ai` → `glowhalo11-brief-ai` 개명, KV·시크릿 그대로 이관돼 유실 없음) — 회의 텍스트 → 요약/결정사항/액션아이템 자동 추출 API + 랜딩페이지 + 출시 알림 대기자 등록까지 살아있다. Cloudflare Workers AI(`env.AI` 바인딩)로 별도 API 키·계정 가입 없이 무자본으로 시작했다. 상세 설계·테스트 로그는 [`product/brief-ai/README.md`](product/brief-ai/README.md).
 
 - **아이디어**: Zoom/Google Meet 녹음 파일이나 회의 텍스트를 업로드하면 AI가 요약·결정사항·액션아이템(담당자/기한 포함)을 자동 추출해 Notion/Slack으로 전송하는 구독형 웹 서비스. 개인 프리랜서·소규모 팀 대상으로 월 구독제(예: $9~19/월)로 판매.
 - **왜 유망한가**: 회의록 정리는 지식노동자의 반복 고통점이며, Otter.ai·Fireflies 등 기존 플레이어가 이미 시장을 검증(수백만 사용자)했다. 다만 가격이 높거나(월 $20~30+) UX가 무겁고 "한국어 회의 + Notion 연동 최적화" 같은 니치는 비어 있어 로컬라이즈+특정 워크플로우 특화로 틈새 공략이 가능.
