@@ -63,7 +63,7 @@ users to expect free. Put your energy into the Slack App Directory listing, not 
 **Prompt of the week**
 
 "Steelman the Case Against Shipping This" — full prompt is one of the 15 in the
-[AI Board of Directors](https://nadacompany.gumroad.com/l/ai-board-of-directors) pack, for readers
+[AI Board of Directors](https://glowhalo.gumroad.com/l/ai-board-of-directors) pack, for readers
 who want the full set now.
 
 ---

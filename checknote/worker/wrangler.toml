@@ -5,7 +5,7 @@ compatibility_date = "2026-01-01"
 # 무료 티어(workers.dev 서브도메인)로 배포됨. 커스텀 도메인 불필요.
 #
 # KV 네임스페이스 ID는 비밀 아님 — 계정 API 토큰 없이는 무용지물이라 커밋해도 안전
-# (nada-group/worker/wrangler.toml, rhythmnote/worker/wrangler.toml과 같은 이유).
+# (glowhalo-hq/worker/wrangler.toml, rhythmnote/worker/wrangler.toml과 같은 이유).
 kv_namespaces = [
   { binding = "ROOMS_KV", id = "bae911a186984b3384cf17ab6dcc70cb" }
 ]
