@@ -7,7 +7,7 @@
     "x-category": "Data"
   },
   "servers": [
-    { "url": "https://nada-company2-link-preview.tossneon.workers.dev" }
+    { "url": "https://glowhalo2-link-preview.tossneon.workers.dev" }
   ],
   "paths": {
     "/v1/preview": {

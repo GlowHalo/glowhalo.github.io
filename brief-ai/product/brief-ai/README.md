@@ -2,7 +2,7 @@
 
 Round 1 승리 아이디어("AI 회의록 자동정리·액션아이템 트래커 SaaS")의 첫 구현체. 회의 텍스트를 붙여넣으면 AI가 요약·결정사항·액션아이템(담당자/기한 포함)을 JSON으로 반환한다.
 
-**라이브**: `https://nada-company11-brief-ai.tossneon.workers.dev`
+**라이브**: `https://brief-ai.glowhalo.org`(직접 workers.dev 주소: `https://glowhalo11-brief-ai.tossneon.workers.dev`, 2026-08-25 `nada-company11-brief-ai`에서 개명)
 
 ## 엔드포인트
 
