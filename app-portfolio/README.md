@@ -23,7 +23,7 @@ GlowHalo Group 산하 여섯 번째 관계사. 대표: **시우** (2026-08-12 �
 | 초간단 배당현황 | `dividend-passbook/` | 국내·해외 배당주를 계좌유형별로 세전 기준 정리하는 배당 관리 앱 | 프로토타입 (유지) | 실제 계좌번호가 주석에 커밋돼 있던 걸 발견해 2026-08-12 삭제 완료 |
 | KPC 코칭챗봇 | `kpc-coach-chat/` | ICF/KCA 역량 기반 셀프코칭 대화 상대 | 프로토타입 (유지) | Gemini API 연동 자체가 아직 없음 — 5턴 고정 스크립트 데모 |
 | Circle Heroes | `circle-heroes/` | SD 히어로 수집형 자동전투 방치형 모바일 게임(APK) | **발전중** (↑, README보다 완성도 높음) | GitHub Actions 빌드·릴리스 실동작 확인, 웹 라이브 정상. 배포용 서명 키스토어만 없음 |
-| 나의 AI 회사 (Pixel AI Office) | `pixel-ai-office/` | 픽셀 아트 AI 직원 사무실 시뮬레이터(Vite+React, Cloudflare Workers) | **레퍼런스** (2026-08-13 회장 확정 — GlowHalo Group HQ 대시보드(`nada-group/`) 만들 때 참고했던 프로젝트, 별도 상품화 계획 없음) | Worker는 실제 배포·정상 응답 상태로 남겨둠, 추가 개발은 하지 않음 |
+| 나의 AI 회사 (Pixel AI Office) | `pixel-ai-office/` | 픽셀 아트 AI 직원 사무실 시뮬레이터(Vite+React, Cloudflare Workers) | **레퍼런스** (2026-08-13 회장 확정 — GlowHalo Group HQ 대시보드(`glowhalo-hq/`) 만들 때 참고했던 프로젝트, 별도 상품화 계획 없음) | Worker는 실제 배포·정상 응답 상태로 남겨둠, 추가 개발은 하지 않음 |
 | Code Review Board | `code-review-board-action/` | PR을 3명의 독립 AI 리뷰어가 각자 검토하는 GitHub Action (개발자 도구) | **코드 완성 / 미배포** (↓, "배포됨"은 오기재였음) | 마켓플레이스 미등록(모노레포 구조상 현재 등록 불가), 실제 API 키로 end-to-end 검증 안 됨 |
 | 산출물 다운로드 허브 | `output-links-hub/` | 만든 앱들을 한곳에서 받을 수 있게 모아주는 배포 허브 — GlowHalo 6의 **공용 배포 채널** | 운영 중 (범위 제한) | 현재 9개 중 2개(claude-auto-allow, circle-heroes)만 등록 — 나머지 7개는 미등록 |
 | Claude 자동허용 매크로 | `claude-auto-allow/` | Claude Desktop 권한 팝업 자동 클릭 매크로(Windows) | 배포됨 (소규모 유틸) | 정상 동작, 위험 고지(무분별 자동승인 리스크)도 README에 명시됨 |
