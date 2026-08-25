@@ -14,13 +14,18 @@
       "entry_price": 2104.0,
       "entry_date": "2026-08-25",
       "krw": 42733
+    },
+    "KRW-DOGE": {
+      "entry_price": 128.0,
+      "entry_date": "2026-08-25",
+      "krw": 21356
     }
   },
   "traded_dates": {
     "KRW-SOL": "2026-08-25",
     "KRW-ETH": "2026-08-24",
     "KRW-BTC": "2026-08-25",
-    "KRW-DOGE": "2026-08-22",
+    "KRW-DOGE": "2026-08-25",
     "KRW-XRP": "2026-08-25"
   },
   "realized": {
@@ -33,5 +38,5 @@
     "2026-W35": -87.0
   },
   "halt": null,
-  "last_live_run": "2026-08-25T02:21:04.510204Z"
+  "last_live_run": "2026-08-25T03:16:49.183821Z"
 }
