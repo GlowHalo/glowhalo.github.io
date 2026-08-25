@@ -9,6 +9,8 @@
  * (시크릿)에만 있고 브라우저로는 절대 전달되지 않는다.
  */
 
+import { fetchJsonWithRetry } from "../../shared/worker-utils/gemini-fetch";
+
 export interface Env {
   GEMINI_API_KEY: string;
 }
@@ -134,27 +136,20 @@ function buildContents(history: ChatMessage[]) {
 }
 
 async function callGemini(history: ChatMessage[], apiKey: string) {
-  const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
-      contents: buildContents(history),
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: RESPONSE_SCHEMA,
-        thinkingConfig: { thinkingBudget: 0 },
-        temperature: 0.9,
-      },
-    }),
-  });
+  // 타임아웃·재시도는 그룹 공용 유틸에 있다 — 같은 무료 키를 mindmap·coach-practice와
+  // 공유하므로 업스트림이 느려지면 이 앱만의 문제가 아니다
+  // (shared/worker-utils/gemini-fetch.ts 상단 주석 참고).
+  const data = (await fetchJsonWithRetry(`${GEMINI_URL}?key=${apiKey}`, {
+    systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+    contents: buildContents(history),
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: RESPONSE_SCHEMA,
+      thinkingConfig: { thinkingBudget: 0 },
+      temperature: 0.9,
+    },
+  })) as any;
 
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Gemini API error ${res.status}: ${errText.slice(0, 300)}`);
-  }
-
-  const data = (await res.json()) as any;
   const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!raw) {
     const blockReason = data?.promptFeedback?.blockReason;
@@ -187,7 +182,7 @@ const worker = {
         const result = await callGemini(history, env.GEMINI_API_KEY);
         return Response.json(result, { headers: cors });
       } catch (error) {
-        return Response.json({ error: String(error) }, { status: 502, headers: cors });
+        return Response.json({ error: error instanceof Error ? error.message : String(error) }, { status: 502, headers: cors });
       }
     }
 

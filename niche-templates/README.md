@@ -105,13 +105,13 @@ graph TD
 
 ## 가상 사무실 — GlowHalo Group HQ
 
-**(2026-08-08 개편)** 회장이 틈틈이 들여다볼 수 있는 시각화 화면은 **GlowHalo Group HQ** — `../nada-group/` (배포 후 `https://glowhalo.github.io/nada-group/play/`). 좌측 nav에서 관계사를 전환하는 **지주사 콘솔** 형태고, 오퍼레이션 콘솔 비주얼(다크 테마, 팀장 이하 사원증 착용 등)은 회장이 3라운드 디자인 검토 끝에 확정한 것 — 구조를 바꿀 땐 이 확정 사항을 존중할 것.
+**(2026-08-08 개편)** 회장이 틈틈이 들여다볼 수 있는 시각화 화면은 **GlowHalo Group HQ** — `../glowhalo-hq/` (배포 후 `https://glowhalo.github.io/glowhalo-hq/play/`). 좌측 nav에서 관계사를 전환하는 **지주사 콘솔** 형태고, 오퍼레이션 콘솔 비주얼(다크 테마, 팀장 이하 사원증 착용 등)은 회장이 3라운드 디자인 검토 끝에 확정한 것 — 구조를 바꿀 땐 이 확정 사항을 존중할 것.
 
-- **GlowHalo Group**: HQ 진입점(`nada-group/`). 좌측 nav에 관계사 목록이 뜬다.
-- **GlowHalo 1(신사업)**: 이 문서(`niche-templates/`)가 다루는 회사. HQ 콘솔 안에서 **직접 운영 화면(mode: "op")**으로 보여준다 — 대표실(정연)·전략팀(CSO)·기술팀(CTO)·그로스팀(CMO)·회의실 방, `niche-templates/candidates.md`의 A1~A5 사업 라인, 승인 대기·지시 접수함까지. 데이터 소스는 `nada-group/src/data/holdco.config.ts` — `registry.js`와 같은 **스냅샷 패턴**(실시간 연동 아님, 이 문서·`candidates.md`에 의미 있는 변화가 있을 때마다 갱신). **주의**: 이 콘솔은 임원진 실명(혜안·재현·윤슬)을 의도적으로 숨기고 역할명만 노출한다 — 이 문서의 실명 표기를 고친 게 아니라 화면 표시 정책만 그런 것.
+- **GlowHalo Group**: HQ 진입점(`glowhalo-hq/`). 좌측 nav에 관계사 목록이 뜬다.
+- **GlowHalo 1(신사업)**: 이 문서(`niche-templates/`)가 다루는 회사. HQ 콘솔 안에서 **직접 운영 화면(mode: "op")**으로 보여준다 — 대표실(정연)·전략팀(CSO)·기술팀(CTO)·그로스팀(CMO)·회의실 방, `niche-templates/candidates.md`의 A1~A5 사업 라인, 승인 대기·지시 접수함까지. 데이터 소스는 `glowhalo-hq/src/data/holdco.config.ts` — `registry.js`와 같은 **스냅샷 패턴**(실시간 연동 아님, 이 문서·`candidates.md`에 의미 있는 변화가 있을 때마다 갱신). **주의**: 이 콘솔은 임원진 실명(혜안·재현·윤슬)을 의도적으로 숨기고 역할명만 노출한다 — 이 문서의 실명 표기를 고친 게 아니라 화면 표시 정책만 그런 것.
 - **`pixel-ai-office`**: 계열사가 아니라, 이 HQ 콘솔을 만들기 전에 먼저 시도했던 오피스 시뮬레이션 프로토타입. HQ nav엔 "pixel-ai-office (프로토타입)"으로 참고용 링크만 걸려 있고, 사업체로 취급하지 않는다.
 
-계열사가 늘어나면 `nada-group/src/data/holdco.config.ts`의 `COMPANIES`(및 `ROOMS`/`STAFF`/`BUSINESS_LINES`)에 항목을 추가하는 식으로 확장한다. 다음 단계(Phase 2 — 승인/지시 상태 영속화, Cloudflare Worker 연동)는 `nada-group/HANDOFF.md` 참고 — Cloudflare API 토큰 발급 대기 중.
+계열사가 늘어나면 `glowhalo-hq/src/data/holdco.config.ts`의 `COMPANIES`(및 `ROOMS`/`STAFF`/`BUSINESS_LINES`)에 항목을 추가하는 식으로 확장한다. 다음 단계(Phase 2 — 승인/지시 상태 영속화, Cloudflare Worker 연동)는 `glowhalo-hq/HANDOFF.md` 참고 — Cloudflare API 토큰 발급 대기 중.
 
 ## 사업 후보 현황
 

@@ -9,6 +9,8 @@
  * 절대 전달되지 않는다.
  */
 
+import { fetchJsonWithRetry } from "../../shared/worker-utils/gemini-fetch";
+
 export interface Env {
   GEMINI_API_KEY: string;
 }
@@ -80,25 +82,17 @@ function isValidTreeShape(node: unknown, depth: number): boolean {
 }
 
 async function callGemini(text: string, apiKey: string) {
-  const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
-      contents: [{ role: "user", parts: [{ text }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        temperature: 0.4,
-      },
-    }),
-  });
+  // 타임아웃·재시도는 그룹 공용 유틸에 있다 — 같은 무료 키를 여러 Worker가 공유하므로
+  // 업스트림이 느려지면 이 앱만의 문제가 아니다(shared/worker-utils/gemini-fetch.ts 주석 참고).
+  const data = (await fetchJsonWithRetry(`${GEMINI_URL}?key=${apiKey}`, {
+    systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+    contents: [{ role: "user", parts: [{ text }] }],
+    generationConfig: {
+      responseMimeType: "application/json",
+      temperature: 0.4,
+    },
+  })) as any;
 
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Gemini API error ${res.status}: ${errText.slice(0, 300)}`);
-  }
-
-  const data = (await res.json()) as any;
   const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!raw) {
     const blockReason = data?.promptFeedback?.blockReason;
@@ -138,13 +132,10 @@ const worker = {
           return Response.json({ error: "text is required" }, { status: 400, headers: cors });
         }
         const text = body.text.trim().slice(0, MAX_INPUT_LENGTH);
-        // 한 번 실패하면 한 번만 더 시도한다 (모델이 가끔 깨진 JSON을 낼 수 있음).
-        let result;
-        try {
-          result = await callGemini(text, env.GEMINI_API_KEY);
-        } catch (firstErr) {
-          result = await callGemini(text, env.GEMINI_API_KEY);
-        }
+        // 재시도는 공용 유틸(fetchJsonWithRetry) 한 곳에서만 한다 — 예전엔 여기서도 한 번 더
+        // 통째로 재호출해서, 업스트림이 응답을 안 줄 때 타임아웃이 곱해져(2×3×20초) 사용자가
+        // 2분 넘게 매달리는 문제가 있었다(2026-08-25 실측 후 제거).
+        const result = await callGemini(text, env.GEMINI_API_KEY);
         return Response.json({ data: result }, { headers: cors });
       } catch (error) {
         return Response.json({ error: String(error instanceof Error ? error.message : error) }, { status: 502, headers: cors });
