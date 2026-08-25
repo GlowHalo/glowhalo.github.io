@@ -124,6 +124,14 @@ Zyla 심사팀(`hello@zylalabs.com`)이 메일로 리스팅을 반려했다: "th
 - API Name 필드를 `input[value="GlowHalo API"]` 셀렉터로 정확히 잡아(느슨한 `input[type="text"]`는 상단 검색창을 잘못 집음) `GlowHalo Link Preview API`로 교체, `SAVE & NEXT` 클릭으로 저장 확인(`My APIs` 목록에 새 이름 반영 확인).
 - Zyla에 재검토 요청 회신 발송 완료. 상태는 여전히 `PENDING APPROVAL` — 재승인 결과 대기 중.
 
+### 후속 — 두 번째 반려("이름에 브랜드명도 안 됨"), 최종 이름 확정 (2026-08-25, 몇 시간 뒤)
+
+Zyla가 다시 반려 메일을 보냈다: "the name should refer solely to its functionality; it cannot include references to sources or third parties. For example: Link Preview API" — 즉 기능명만 써야 하고 **"GlowHalo" 같은 브랜드명 자체가 안 된다**(1차 반려 때는 "기능을 안 담았다"는 지적이었는데, 실제 요구는 "브랜드명을 아예 빼라"였음, 예시로 든 이름이 정확히 "Link Preview API"). 소율(비서실) 세션이 메일 확인 후 즉시 처리:
+
+- `input[value="GlowHalo Link Preview API"]`로 API Name 필드를 찾아 예시 그대로 `Link Preview API`로 교체·저장 시도 → **"The name has already been taken."** 에러(다른 제공자가 이미 그 이름을 쓰고 있음). 브랜드명 없이 겹치지 않는 이름으로 `URL Link Preview API`로 재시도해 저장 성공 확인(새로고침 후 재확인까지 완료 — 저장 직후 화면을 바로 믿지 말라는 8/25 앞선 교훈 그대로 적용).
+- Zyla에 회신 발송 완료(변경 사실 안내). 재승인 결과 대기 중 — 상태는 여전히 `PENDING APPROVAL`.
+- **참고**: `API 표시 이름`(Zyla listing name)과 `Cloudflare Worker 배포 이름`(`glowhalo2-link-preview`)은 서로 다른 것 — Worker 이름은 이번 반려와 무관하게 그대로 둔다.
+
 ### 후속 — Worker 개명 + Zyla 백엔드 URL 동기화 (2026-08-25, 같은 날)
 
 회장이 "고객 아직 없으니 라이브 서비스 링크도 전부 정상화하라"고 지시 — HQ(소율) 세션이 처리:
