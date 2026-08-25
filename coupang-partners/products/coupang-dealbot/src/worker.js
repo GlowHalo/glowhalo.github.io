@@ -59,7 +59,7 @@ function formatDealMessage(deal, deepLink) {
 /** 텔레그램 채널에 게시 (Bot API — 토큰만 있으면 바로 동작) */
 async function publishToTelegram(text, imageUrl, env) {
   const token = env.TELEGRAM_BOT_TOKEN;
-  const chatId = env.TELEGRAM_CHANNEL_ID; // 예: "@나다특가" 또는 -100으로 시작하는 채널 ID
+  const chatId = env.TELEGRAM_CHANNEL_ID; // 예: "@채널아이디" 또는 -100으로 시작하는 채널 ID
   const endpoint = imageUrl
     ? `https://api.telegram.org/bot${token}/sendPhoto`
     : `https://api.telegram.org/bot${token}/sendMessage`;
@@ -127,7 +127,7 @@ class OgCollector {
 
 function seedFormHtml(key, message) {
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>나다특가 — 링크 등록</title>
+<title>GlowHalo7 특가 — 링크 등록</title>
 <style>
   body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:480px;margin:40px auto;padding:0 16px;color:#222}
   h1{font-size:20px}
@@ -138,7 +138,7 @@ function seedFormHtml(key, message) {
   .err{background:#fdecea;color:#c62828}
   label{font-size:13px;color:#666;margin-top:12px;display:block}
 </style></head><body>
-<h1>🔥 나다특가 링크 등록</h1>
+<h1>🔥 GlowHalo7 특가 링크 등록</h1>
 <p>쿠팡파트너스 딥링크 + 상품명을 붙여넣으면 바로 채널에 게시합니다(상품 페이지에서 링크·제목을 같이 복사해오면 됩니다).</p>
 ${message ? `<div class="msg ${message.ok ? "ok" : "err"}">${message.text}</div>` : ""}
 <form method="POST" action="/seed?key=${encodeURIComponent(key)}">
