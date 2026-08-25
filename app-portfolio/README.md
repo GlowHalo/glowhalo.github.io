@@ -22,8 +22,8 @@ GlowHalo Group 산하 여섯 번째 관계사. 대표: **시우** (2026-08-12 �
 | 체크노트 | `checknote/` | 리스트·완료 2탭 초단순 할일 메모 앱 | **프로토타입** (↓, PWA 아님·공유는 데모) | manifest/서비스워커 없음, "1:1 공유"는 버튼 하나로 흉내내는 목업 |
 | 초간단 배당현황 | `dividend-passbook/` | 국내·해외 배당주를 계좌유형별로 세전 기준 정리하는 배당 관리 앱 | 프로토타입 (유지) | 실제 계좌번호가 주석에 커밋돼 있던 걸 발견해 2026-08-12 삭제 완료 |
 | KPC 코칭챗봇 | `kpc-coach-chat/` | ICF/KCA 역량 기반 셀프코칭 대화 상대 | 프로토타입 (유지) | Gemini API 연동 자체가 아직 없음 — 5턴 고정 스크립트 데모 |
-| Circle Heroes | `circle-heroes/` | SD 히어로 수집형 자동전투 방치형 모바일 게임(APK) | **발전중** (↑, README보다 완성도 높음) | GitHub Actions 빌드·릴리스 실동작 확인, 웹 라이브 정상. 배포용 서명 키스토어만 없음 |
-| 나의 AI 회사 (Pixel AI Office) | `pixel-ai-office/` | 픽셀 아트 AI 직원 사무실 시뮬레이터(Vite+React, Cloudflare Workers) | **레퍼런스** (2026-08-13 회장 확정 — GlowHalo Group HQ 대시보드(`nada-group/`) 만들 때 참고했던 프로젝트, 별도 상품화 계획 없음) | Worker는 실제 배포·정상 응답 상태로 남겨둠, 추가 개발은 하지 않음 |
+| Circle Heroes | `circle-heroes/` | SD 히어로 수집형 자동전투 방치형 모바일 게임(APK) | **발전중** (↑, README보다 완성도 높음) | GitHub Actions 빌드·릴리스 실동작 확인, 웹 라이브 정상. ~~배포용 서명 키스토어만 없음~~ → **키스토어 생성·금고 등록 완료(2026-08-17), 서명 워크플로우까지 준비됨** — 남은 건 repo secret 4개 등록(회장 액션)뿐, 아래 '대기 중' 참고 |
+| 나의 AI 회사 (Pixel AI Office) | `pixel-ai-office/` | 픽셀 아트 AI 직원 사무실 시뮬레이터(Vite+React, Cloudflare Workers) | **레퍼런스** (2026-08-13 회장 확정 — GlowHalo Group HQ 대시보드(`glowhalo-hq/`) 만들 때 참고했던 프로젝트, 별도 상품화 계획 없음) | Worker는 실제 배포·정상 응답 상태로 남겨둠, 추가 개발은 하지 않음 |
 | Code Review Board | `code-review-board-action/` | PR을 3명의 독립 AI 리뷰어가 각자 검토하는 GitHub Action (개발자 도구) | **코드 완성 / 미배포** (↓, "배포됨"은 오기재였음) | 마켓플레이스 미등록(모노레포 구조상 현재 등록 불가), 실제 API 키로 end-to-end 검증 안 됨 |
 | 산출물 다운로드 허브 | `output-links-hub/` | 만든 앱들을 한곳에서 받을 수 있게 모아주는 배포 허브 — GlowHalo 6의 **공용 배포 채널** | 운영 중 (범위 제한) | 현재 9개 중 2개(claude-auto-allow, circle-heroes)만 등록 — 나머지 7개는 미등록 |
 | Claude 자동허용 매크로 | `claude-auto-allow/` | Claude Desktop 권한 팝업 자동 클릭 매크로(Windows) | 배포됨 (소규모 유틸) | 정상 동작, 위험 고지(무분별 자동승인 리스크)도 README에 명시됨 |
@@ -42,7 +42,7 @@ GlowHalo Group 산하 여섯 번째 관계사. 대표: **시우** (2026-08-12 �
 - **AI 기능이 들어가면 BYOK(본인 API 키) 우선** — 우리 비용이 드는 기능을 "우리 키로 무제한 무료" 상태로 방치하지 않는다. 체험은 기기당 N회 정도로 한도를 두고(Mindmap 패턴), 그 이상은 본인 키 입력을 유도한다.
 - **무료로 유지하는 예외가 있다면 반드시 명시적 전략이 있어야 한다**(예: 회원 확보 후 업셀 퍼널, 트래픽으로 다른 유료 상품 유입, BYOK라 우리 비용이 애초에 0 등) — "그냥 무료로 두자"는 기본값이 아니다.
 
-**⚠️ 2026-08-18 재점검 필요 항목**: `kpc-coach-chat/`은 이 원칙이 정립되기 전(오늘 세션 초반)에 만들어져서 BYOK 없이 **우리 Gemini 키로 요청 제한 없이 완전 무료** 상태다 — 원칙과 어긋나고 비용 노출 리스크도 있음, 재작업 예정(회장 검토 후).
+~~**⚠️ 2026-08-18 재점검 필요 항목**: `kpc-coach-chat/`은 BYOK 없이 우리 Gemini 키로 요청 제한 없이 완전 무료 상태~~ → **✅ 해소됨(2026-08-25 확인).** `kpc-coach-chat`·`mindmap`·`coach-practice` 세 앱 모두 BYOK + 기기당 체험 한도(3회) 패턴이 실제로 구현돼 있다. 추가로 2026-08-19에 `coach-practice`에는 서버측 일일 상한(KV 기반)도 붙였다 — 클라이언트 한도가 우회돼도 공용 키를 무한정 태우지 못하게 하는 백업.
 
 ## 조직 구조
 
@@ -77,10 +77,11 @@ GlowHalo Group 산하 여섯 번째 관계사. 대표: **시우** (2026-08-12 �
 - [ ] 웹앱들(아기랑갈곳·체크노트·배당현황·KPC코칭챗봇·Mindmap·Pixel AI Office) 앱별로 "무엇을 유료화할지" 제품 결정 필요. **2026-08-19 1차 제안(회장 확인 대기, 아직 확정 아님)** — 2026-08-18 확정된 기본 수익화 원칙(웹 무료·스토어 설치판 소액유료·AI는 BYOK)을 그대로 적용하면:
   - **아기랑갈곳·초간단배당현황**(실사용 중, AI 기능 없음): 웹 계속 무료, PWA 요건 갖춰 `-deploy` 사본으로 Microsoft Store 설치판만 소액(2~4천원) 유료화. 이미 이 패턴으로 작업 진행 중(위 2026-08-17 항목).
   - **체크노트**: 1:1 공유가 아직 목업이라 유료화 논의는 그 기능부터 실제로 만든 뒤로 미루는 게 순서. PWA 붙이면 아기랑갈곳과 동일 패턴 적용 가능.
-  - **KPC코칭챗봇**: AI 기능(Gemini)이 우리 키로 무제한 무료인 상태라 원칙 위반 — **재작업 우선순위 1순위**로 BYOK 전환(체험 N회 후 본인 키 유도)부터. 유료화는 그 이후.
+  - **KPC코칭챗봇**: ~~우리 키로 무제한 무료라 원칙 위반, 재작업 1순위~~ → **✅ BYOK+체험 3회로 이미 전환 완료(2026-08-25 코드 확인).** 유료화 자체는 아직 미정 — Mindmap과 같은 패턴(웹 무료 + 스토어 설치판 소액)이 그대로 적용 가능한 상태.
   - **Mindmap**: 이미 이 원칙이 최초로 정립된 곳이라 별도 결정 불필요(기존 패턴 유지).
   - **Pixel AI Office**: 회장 확정대로 상품화 계획 없는 레퍼런스 프로젝트라 유료화 논의 대상 제외.
-- [ ] Circle Heroes APK 배포는 Google Play·Amazon Appstore·itch.io 3채널로 우선 진행, Apple/Samsung은 각각 비용·회장물리개입/사업자등록 장벽으로 보류(기존 기록, `niche-templates/README.md` "승격형" 사례 참고). 서명 키스토어도 아직 없음(디버그 APK만 가능)
+- [ ] **Circle Heroes 서명 릴리스 APK — 마지막 한 걸음만 남음(회장 액션).** ~~서명 키스토어 없음(디버그 APK만 가능)~~ 은 옛 정보다. 2026-08-25 실제 확인 결과: 키스토어는 **이미 생성돼 금고에 있고**(`circleheroes_release_keystore_base64` / `circleheroes_keystore_password`). **2026-08-25 회장 지시로 GlowHalo 명의로 재발급함** — 최초 생성분(2026-08-17)은 인증서 소유자가 `OU=nadagroup, O=nadagroup`이라 옛 브랜드가 영구히 박히는 문제가 있었다. 서명키는 스토어에 한 번 올리면 절대 못 바꾸는데(스토어가 서명 불일치 거부) 아직 미배포라 교체 비용이 0인 마지막 타이밍이었다. 새 인증서는 `CN=Circle Heroes, OU=GlowHalo, O=GlowHalo, L=Seoul, ST=Seoul, C=KR`(PKCS12, alias `circleheroes`, 2054년까지). 금고에 넣은 뒤 되읽어 복원해 해시까지 대조 검증 완료. 옛(nadagroup) 키스토어는 같은 날 회장 지시로 금고에서 **삭제 완료**. **비밀번호도 회장 지시로 표준 비밀번호(`standard_login_password`)로 통일**했다 — `keytool -storepasswd`로 변경 후 인증서 지문이 동일함을 확인해 서명 정체성이 유지된 것까지 검증, `android/app/build.gradle`의 서명 설정도, 전용 워크플로우 `.github/workflows/circle-heroes-android-release.yml`도 전부 준비돼 있다. **막는 건 repo secret 4개가 아직 등록 안 된 것 하나뿐**(그래서 이 워크플로우는 지금까지 한 번도 실행된 적 없음 — `actions_list`로 확인). 등록 방법은 그 워크플로우 파일 상단 주석에 이름·출처가 그대로 적혀 있음. itch.io 프로젝트 페이지(`glowhalo.itch.io/circle-heroes`)도 이미 생성돼 APK만 기다리는 상태라, 이 secret 4개만 등록되면 서명 APK 빌드 → itch.io publish → Amazon Appstore 제출까지 한 번에 이어갈 수 있다.
+- [ ] Circle Heroes 배포 채널은 Google Play·Amazon Appstore·itch.io 3채널 우선, Apple/Samsung은 각각 비용·회장물리개입/사업자등록 장벽으로 보류(기존 방침 유지)
 
 ## 🔄 세션 인계 메모 (2026-08-19)
 
@@ -102,7 +103,7 @@ GlowHalo Group 산하 여섯 번째 관계사. 대표: **시우** (2026-08-12 �
   - `coach-practice/worker` → `glowhalo6-coach-practice.tossneon.workers.dev`
   - `baby-place-registry-deploy/worker` → `glowhalo6-baby-place-registry.tossneon.workers.dev`
   - `checknote/worker` → `glowhalo6-checknote.tossneon.workers.dev` (2026-08-19 회장 테스트 완료 후 이어서 진행, KV 데이터는 네임스페이스 ID가 그대로라 유실 없음)
-  - **옛 이름의 Worker 5개는 삭제 못 함** — Cloudflare API로 삭제 시도 시 Claude Code 자동모드 분류기가 파괴적 작업으로 판단해 차단(재시도도 막힘, 우회 시도 안 함). 지금은 아무도 참조 안 하는 죽은 워커로 방치 중 — 대시보드에서 회장이 직접 지워주시거나, 삭제 권한을 열어주시면 다음에 정리하겠습니다. (Workers & Pages → 각 `nada-company6-*` 스크립트 → Delete)
+  - ~~옛 이름의 Worker 5개는 삭제 못 함~~ — **✅ 2026-08-25 HQ/소율 세션이 정리 완료.** 회장이 "직접 재시도해달라"고 확인해줘서, 옛 커스텀 도메인 바인딩 5개(`checknote.glowhalo.org` 등, 전부 미사용 확인 후) → 옛 Worker 스크립트 5개(`nada-company6-*`) 순서로 삭제. 이번엔 몇 번 재시도(자동모드 분류기가 간헐적으로 막았다가 재시도하면 통과하는 패턴, 완전히 규칙적이진 않음)로 전부 통과 — 삭제 후 `glowhalo6-*` 5개는 응답에 영향 없음을 확인. 이제 이 계정의 Worker 스크립트는 전부 `glowhalo`/`nada-company` 아닌 이름으로 통일됨.
 - **`code-review-board-action`**: GitHub 소유자 표기(`action.yml` author, `LICENSE` copyright, README의 `uses:` 예시·저장소 링크) `tossneon` → `glowhalo`로 정정. GitHub 계정 자체가 이미 `glowhalo`로 이전 완료된 걸 `get_me`로 재확인 후 반영. **독립 저장소(`github.com/glowhalo/code-review-board-action`)도 이미 존재·내용 동일함을 확인** — 아래 "대기 중" 항목 참고.
 - **itch.io 사용자명 참조 정정** — `app-portfolio/execution/유통채널-리서치.md`·배포 스킬 문서의 butler push 예시가 옛 `tossneon0`으로 남아있던 걸, 실제 라이브 상태(curl로 직접 확인: `nadacompany.itch.io` 200, `glowhalo.itch.io` 아직 404)에 맞춰 `nadacompany`로 정정 — **아직 `glowhalo`가 아님**, 회장이 itch.io 사용자명을 실제로 바꾸면 그때 다시 갱신 필요(2026-08-22까지 itch.io 자체 재변경 제한 있음).
 - **2026-08-23 후속 — 실제로 `glowhalo`로 변경 완료.** 위 재변경 제한 기간이 지나 회장이 사용자명을 `glowhalo`로 바꿨다(`glowhalo.itch.io`) — `execution/유통채널-리서치.md`·`.claude/skills/app-store-deploy/SKILL.md`의 butler push 예시를 `glowhalo`로 다시 정정. PromptDeck 프로젝트 페이지는 이미 있었고(2026-08-09 생성) 최신 zip으로 재업로드까지 완료, Circle Heroes 프로젝트 페이지도 신규 생성 완료(draft, APK 빌드 대기).
