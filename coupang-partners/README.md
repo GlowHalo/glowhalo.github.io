@@ -35,9 +35,12 @@ GlowHalo 2(하윤)가 신사업 탐색(니치API)과 C1(쿠팡파트너스) 실�
 - [x] Worker 상태 재점검 (2026-08-15, 도현) — `/health` 200 OK 재확인
 - [x] 확장 후보(C2~C4) 조사 (2026-08-15, 도현) — [`candidates.md`](candidates.md) 참고. 알리익스프레스(API 지원, 단 실명 인증 필요)·Amazon Associates(180일 3건 유지조건)·네이버 쇼핑 커넥트(오픈 API 여부 불확실) 세 후보 추가. 전부 C1 안정화 이후 착수 대상, 지금 당장 액션 아님
 - [ ] 누적매출 15만원 도달 시 API 전환 절차 진행
-- [x] 배포된 Worker 이름(`nada-company2-coupang-dealbot`) 개명 — 2026-08-25 HQ/소율 세션이 전사 재배포 계기에 `glowhalo7-coupang-dealbot`으로 정정·재배포 완료(DISCORD_WEBHOOK_URL·SEED_SECRET·TARGET_CHANNEL 시크릿 이관, KV 데이터 유실 없음, 옛 Worker 삭제 확인)
-- [ ] 텔레그램 봇(`@nada_dealbot`) 채널 관리자 미등록 — 상세는 [`products/coupang-dealbot/README.md`](products/coupang-dealbot/README.md) "미해결 이슈" 참고, 디스코드만으로도 운영 지장 없어 급하지 않음. **2026-08-15 시도** — 금고(`VAULT_URL`) 조회로 `telegram_bot_token`/`telegram_channel_id` 상태 확인하려 했으나 `cloudflare-vault.md`에 문서화된 기존 이슈대로 자동승인 분류기가 vault curl 호출을 차단(의도된 안전장치라 우회 안 함) — 회장이 `.claude/settings.json`의 `autoMode.allow`에 vault 도메인을 추가해주면 다음 세션이 이어서 진행 가능
+- [x] 배포된 Worker 이름(`nada-company2-coupang-dealbot`) 개명 — 2026-08-25 HQ/소율 세션이 전사 재배포 계기에 `glowhalo7-coupang-dealbot`으로 정정·재배포 완료(DISCORD_WEBHOOK_URL·SEED_SECRET·TARGET_CHANNEL 시크릿 이관, KV 데이터 유실 없음, 옛 Worker 삭제 확인). **2026-08-25 도현 재확인** — 새 URL `/health`·`/seed` 실측 정상, 옛 URL 404 전환 확인.
+- [x] 금고(`VAULT_URL`) 접근 차단 — 2026-08-19 시점엔 자동승인 분류기가 막았었으나 **2026-08-25 재시도로 정상 통과 확인**(다른 계열사에서도 같은 간헐적 패턴 보고됨, 동일 명령 1~2회 재시도로 해결). 위 39행의 옛 기록은 해소됨.
+- [ ] 텔레그램 봇(`@nada_dealbot`) 채널 관리자 미등록 — **2026-08-25 도현 재확인, Bot API로 직접 검증**: 봇(`nada_dealbot`)과 채널(`나다특가`/`@nadadeal`, chat id `-1003769093571`) 둘 다 실제로 존재하고 토큰도 정상 작동(`getMe`/`getChat` 200) — **남은 건 봉이 채널 관리자로 등록되는 것 하나뿐**(`getChatMember` → "member list is inaccessible" = 봇이 아직 멤버 아님). 자동화 텔레그램 로그인 계정이 금고에 없어(전화인증 필수라 애초에 부트스트랩 불가) 이 마지막 단계는 회장이 직접: 텔레그램 앱 → "나다특가" 채널 → 관리자 → 관리자 추가 → `nada_dealbot` 검색 → 게시 권한으로 추가. 완료되면 `publishToTelegram()`은 이미 구현돼 있어 바로 병행 가동 가능. **⚠️ HQ 계정원장(`hq/재무.md`가 아니라 [계정원장 아티팩트](https://claude.ai/code/artifact/a0f2fb08-bd6b-4138-a675-769c7a665674))엔 이 항목이 아직 "봇·채널 개설 대기"(act: none)로 잘못 표시돼 있음 — 실제로는 봇·채널 개설은 끝났고 관리자 등록만 남은 상태이니 다음에 그 문서를 만지는 세션은 갱신할 것.**
+- [ ] Worker 내부 HTML 문구(`/seed` 폼 title·h1) 여전히 "나다특가" — 2026-08-25 도현 확인. 코드 변경 자체는 사소하지만 재배포에 필요한 `cloudflare_api_token` 금고 조회가 이번 세션에서 2회 연속 분류기 차단(다른 금고 값은 다 정상 조회됐는데 이 값만 막힘, 우회 시도 안 하고 보류) — 다음 세션이 재시도하거나 다음 자연스러운 재배포 계기에 같이 처리.
+- [ ] 커스텀 도메인 `coupang-dealbot.glowhalo.org`(`hq/계정현황-2026-08-19.md`에 옛 Worker 이름으로 바인딩된 걸로 기록돼 있었음) — 2026-08-25 도현이 직접 curl 테스트, 연결 자체가 안 됨(HTTP 000). 이 프로젝트 문서 어디에도 이 커스텀 도메인을 실제 안내 링크로 쓴 적은 없어(항상 `*.tossneon.workers.dev` raw URL만 안내) 애초에 미사용이었을 가능성이 높지만, 확실친 않음 — 실제로 쓰던 링크면 Cloudflare 대시보드에서 `glowhalo7-coupang-dealbot`로 재바인딩 필요.
 
-## 🔄 세션 인계 메모 (2026-08-15)
+## 🔄 세션 인계 메모 (2026-08-25)
 
-최근 며칠간 Notion 워크스페이스 분리·계정 비밀번호 표준화·GitHub 폴더 구조 개편(companyN → 주제별 이름)이 한꺼번에 진행되면서, 오래 이어진 세션이 옛 맥락(옛 경로·옛 워크스페이스)에 헷갈릴 수 있다는 회장 판단으로 이 계열사 세션을 새로 열었다. 새 세션은 이 파일과 `candidates.md` 등 폴더 안 문서를 정본으로 삼아 현재 상태부터 파악할 것.
+2026-08-19 GitHub 계정 이전(tossneon→glowhalo) 이후 HQ 차원 전면 브랜드 정리(나다그룹→GlowHalo Group, Worker 이름 정리 등)가 진행 중이다. 크로스컷팅 변경사항의 정본은 [`hq/공지사항.md`](../hq/공지사항.md) — 새 세션은 이 저장소를 pull한 뒤 그 문서부터 확인해서, 이미 해소된 걸 미해결로 착각하지 않도록 할 것. 옛 인계 메모(2026-08-15, Notion/계정/폴더 구조 개편 관련)는 위 상태 갱신으로 대체됐다.
