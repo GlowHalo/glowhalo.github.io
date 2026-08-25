@@ -45,9 +45,12 @@ foreach ($m in $masters) {
   try {
     $outText = & $inj -Vrew $vrew -Script $m.FullName -Out $out 6>&1 | Out-String
     Write-Host $outText.TrimEnd()
-    $vline = ''
-    foreach ($ln in ($outText -split "`n")) { if ($ln -match 'verify:') { $vline = $ln.Trim() } }
-    [void]$log.Add(('{0} : OK   {1}' -f $name, $vline))
+    $vline = ''; $iline = ''
+    foreach ($ln in ($outText -split "`n")) {
+      if ($ln -match 'verify:') { $vline = $ln.Trim() }
+      if ($ln -match 'images used') { $iline = $ln.Trim() }
+    }
+    [void]$log.Add(('{0} : OK   {1}   {2}' -f $name, $vline, $iline))
     $done++
   }
   catch {
