@@ -158,8 +158,120 @@ async function sendToSlack(webhookUrl, meetingTitle, summary) {
   if (!res.ok) throw new Error("slack_" + res.status);
 }
 
-// plan==="pro"인 사용자에게만 발동 — 지금은 결제 웹훅이 없어 pro 승격 경로가 없으므로
-// 실사용자에게는 아직 아무 영향 없는, 결제 연동 완료 시 바로 켜질 준비된 코드.
+// ── 결제(PayPal Subscriptions) — 2026-08-25 추가 ──────────────────────────
+// Paddle/Creem.io/Polar.sh는 회장이 직접 가입 승인을 기다리는 중(6일째 대기,
+// hq/가입대기.md). 그룹 공용 PayPal Business 계정은 이미 살아있어(claude.ai
+// 커넥터 연결·Live API 자격증명 둘 다 2026-08-23 확인됨) 이 채널부터 먼저 열어
+// 진도를 낸다 — 결제수단은 여러 개일수록 좋다는 게 회장 판단(2026-08-25),
+// Paddle 등이 나중에 뚫려도 PayPal은 그대로 유지하고 고객이 고르게 한다.
+// ⚠️ PayPal이 이 수취 계정으로는 KRW 구독을 받지 못한다(CURRENCY_NOT_SUPPORTED_
+// FOR_RECEIVER, 샌드박스로 실측 확인) — 이 채널만 USD로 청구: $4.99/월, $49.99/년.
+// 원화 가격(6,900원/69,000원)과 같은 "약 2개월 무료" 비율을 맞춘 값이다
+// (4.99*12=59.88, 49.99는 그보다 9.89 저렴 — 4.99*2에 근접).
+const PAYPAL_API_BASE = "https://api-m.paypal.com";
+
+async function getPayPalAccessToken(env) {
+  const res = await fetch(`${PAYPAL_API_BASE}/v1/oauth2/token`, {
+    method: "POST",
+    headers: {
+      Authorization: "Basic " + btoa(`${env.PAYPAL_CLIENT_ID}:${env.PAYPAL_SECRET}`),
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "grant_type=client_credentials",
+  });
+  if (!res.ok) throw new Error("paypal_oauth_" + res.status);
+  const data = await res.json();
+  return data.access_token;
+}
+
+async function updateUserPlan(env, email, plan, extra) {
+  const key = `user:${email}`;
+  const raw = await env.USERS_KV.get(key);
+  const current = raw ? JSON.parse(raw) : { email, plan: "free", createdAt: Date.now() };
+  const next = Object.assign({}, current, { plan }, extra || {});
+  await env.USERS_KV.put(key, JSON.stringify(next));
+  return next;
+}
+
+function paypalPlanId(env, planKey) {
+  return planKey === "yearly" ? env.PAYPAL_PLAN_YEARLY : env.PAYPAL_PLAN_MONTHLY;
+}
+
+async function createPaypalSubscription(env, accessToken, planKey, email, origin) {
+  const planId = paypalPlanId(env, planKey);
+  if (!planId) throw new Error("paypal_plan_not_configured");
+  const res = await fetch(`${PAYPAL_API_BASE}/v1/billing/subscriptions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      "PayPal-Request-Id": "brief-ai-sub-" + crypto.randomUUID(),
+    },
+    body: JSON.stringify({
+      plan_id: planId,
+      custom_id: email,
+      subscriber: { email_address: email },
+      application_context: {
+        brand_name: "브리프AI",
+        locale: "ko-KR",
+        shipping_preference: "NO_SHIPPING",
+        user_action: "SUBSCRIBE_NOW",
+        return_url: `${origin}/v1/billing/paypal/return`,
+        cancel_url: `${origin}/settings`,
+      },
+    }),
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error("paypal_sub_create_" + res.status + (detail ? ":" + detail.slice(0, 300) : ""));
+  }
+  return res.json();
+}
+
+async function getPaypalSubscription(env, accessToken, subscriptionId) {
+  const res = await fetch(`${PAYPAL_API_BASE}/v1/billing/subscriptions/${subscriptionId}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) throw new Error("paypal_sub_get_" + res.status);
+  return res.json();
+}
+
+// PayPal이 보낸 웹훅이 진짜인지 PayPal 공식 검증 API로 확인한다(사칭 방지 — 서명을
+// 우리가 직접 재계산하지 않고 PayPal에 되물어 확인하는 권장 방식).
+async function verifyPaypalWebhook(env, accessToken, headers, body) {
+  const res = await fetch(`${PAYPAL_API_BASE}/v1/notifications/verify-webhook-signature`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      auth_algo: headers.get("paypal-auth-algo"),
+      cert_url: headers.get("paypal-cert-url"),
+      transmission_id: headers.get("paypal-transmission-id"),
+      transmission_sig: headers.get("paypal-transmission-sig"),
+      transmission_time: headers.get("paypal-transmission-time"),
+      webhook_id: env.PAYPAL_WEBHOOK_ID,
+      webhook_event: body,
+    }),
+  });
+  if (!res.ok) return false;
+  const data = await res.json();
+  return data.verification_status === "SUCCESS";
+}
+
+function paypalReturnHtml(ok, message) {
+  const heading = ok ? "✅ 구독이 시작됐습니다" : "⚠️ 구독 확인 중 문제가 발생했습니다";
+  const sub = ok
+    ? "설정 화면으로 이동합니다. Notion·Slack 연동을 저장해두셨다면 지금부터 자동 전송이 켜집니다."
+    : (message || "설정 화면에서 상태를 다시 확인해주세요.");
+  return `<!doctype html>
+<html lang="ko"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>브리프AI — 구독 처리</title>
+<style>body{font-family:-apple-system,"Pretendard",sans-serif;max-width:32rem;margin:4rem auto;padding:0 1.5rem;text-align:center;color:#1B2A4A;}</style></head>
+<body><h1>${heading}</h1><p>${sub}</p>
+<script>setTimeout(function(){ location.replace("/settings"); }, 1500);</script>
+</body></html>`;
+}
+
+// plan==="pro"인 사용자에게만 발동 — PayPal 구독 웹훅이 활성화되면 실제로 켜진다.
 async function deliverToIntegrations(env, user, meetingTitle, summary) {
   const raw = await env.USERS_KV.get(`integration:${user.email}`);
   if (!raw) return null;
@@ -689,6 +801,14 @@ const SETTINGS_HTML = `<!doctype html>
     <p class="sub" id="account-line"></p>
     <div class="plan-note" id="plan-note"></div>
 
+    <div class="card" id="billing-card">
+      <h2>구독 <span class="badge off" id="billing-badge">무료 플랜</span></h2>
+      <p class="hint" id="billing-hint">PayPal로 결제합니다(원화 계좌 미지원이라 이 채널만 USD 청구 — Paddle 등 원화 결제수단은 준비 중입니다).</p>
+      <button id="pay-monthly">월 $4.99 구독</button>
+      <button class="secondary" id="pay-yearly">연 $49.99 구독(2개월 무료)</button>
+      <div class="msg" id="billing-msg"></div>
+    </div>
+
     <div class="card">
       <h2>Notion <span class="badge off" id="notion-badge">연결 안 됨</span></h2>
       <label for="notion-token">Internal Integration 토큰</label>
@@ -750,10 +870,18 @@ $("request-link").addEventListener("click", function () {
 
 function renderIntegrations(data) {
   $("account-line").textContent = data.email + " 로 로그인됨";
-  var planText = data.plan === "pro"
+  var isPro = data.plan === "pro";
+  var planText = isPro
     ? "구독 중 — 요약 결과가 자동으로 전송됩니다."
-    : "무료 플랜 — 연동은 지금 저장해두시면, 정식 구독 연동이 완료되는 즉시 자동으로 켜집니다.";
+    : "무료 플랜 — 연동은 지금 저장해두시면, 구독 즉시 자동으로 켜집니다.";
   $("plan-note").textContent = planText;
+
+  var billingBadge = $("billing-badge");
+  billingBadge.textContent = isPro ? "구독 중" : "무료 플랜";
+  billingBadge.className = "badge " + (isPro ? "on" : "off");
+  $("pay-monthly").style.display = isPro ? "none" : "inline-block";
+  $("pay-yearly").style.display = isPro ? "none" : "inline-block";
+  $("billing-hint").style.display = isPro ? "none" : "block";
 
   var notionBadge = $("notion-badge");
   notionBadge.textContent = data.notion.connected ? "연결됨" : "연결 안 됨";
@@ -797,6 +925,31 @@ function saveIntegration(key, payload, msgEl) {
     });
   }).catch(function (e) { showMsg(msgEl, "❌ " + e.message, false); });
 }
+
+function startPaypalSubscription(planKey, btn, msgEl) {
+  btn.disabled = true;
+  fetch("/v1/billing/paypal/subscribe", {
+    method: "POST",
+    headers: Object.assign({ "Content-Type": "application/json" }, authHeaders()),
+    body: JSON.stringify({ plan: planKey }),
+  })
+    .then(function (res) {
+      return res.json().then(function (data) {
+        if (!res.ok) throw new Error(data.error || "구독 시작 실패");
+        location.href = data.approveUrl;
+      });
+    })
+    .catch(function (e) {
+      showMsg(msgEl, "❌ " + e.message, false);
+      btn.disabled = false;
+    });
+}
+$("pay-monthly").addEventListener("click", function () {
+  startPaypalSubscription("monthly", $("pay-monthly"), $("billing-msg"));
+});
+$("pay-yearly").addEventListener("click", function () {
+  startPaypalSubscription("yearly", $("pay-yearly"), $("billing-msg"));
+});
 
 $("notion-save").addEventListener("click", function () {
   saveIntegration("notion", { token: $("notion-token").value.trim(), databaseId: $("notion-db").value.trim() }, $("notion-msg"));
@@ -955,6 +1108,82 @@ export default {
 
     if (url.pathname === "/settings" && request.method === "GET") {
       return new Response(SETTINGS_HTML, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+    }
+
+    if (url.pathname === "/v1/billing/paypal/subscribe" && request.method === "POST") {
+      const user = await getSessionUser(request, env);
+      if (!user) return json({ error: "unauthorized" }, 401);
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        return json({ error: "invalid_json" }, 400);
+      }
+      const planKey = body.plan === "yearly" ? "yearly" : "monthly";
+      try {
+        const accessToken = await getPayPalAccessToken(env);
+        const sub = await createPaypalSubscription(env, accessToken, planKey, user.email, url.origin);
+        const approveLink = (sub.links || []).find((l) => l.rel === "approve");
+        if (!approveLink) return json({ error: "paypal_no_approve_link" }, 500);
+        return json({ approveUrl: approveLink.href, subscriptionId: sub.id });
+      } catch (err) {
+        return json({ error: "paypal_subscribe_failed", message: String(err) }, 500);
+      }
+    }
+
+    if (url.pathname === "/v1/billing/paypal/return" && request.method === "GET") {
+      const subscriptionId = url.searchParams.get("subscription_id");
+      if (!subscriptionId) {
+        return new Response(paypalReturnHtml(false, "구독 정보를 찾을 수 없습니다."), {
+          status: 400,
+          headers: { "Content-Type": "text/html; charset=utf-8" },
+        });
+      }
+      try {
+        const accessToken = await getPayPalAccessToken(env);
+        const sub = await getPaypalSubscription(env, accessToken, subscriptionId);
+        const email = sub.custom_id || (sub.subscriber && sub.subscriber.email_address);
+        // ACTIVE/APPROVED 둘 다 즉시 승격 — 이후 상태변화(해지 등)는 웹훅이 반영한다.
+        if (email && (sub.status === "ACTIVE" || sub.status === "APPROVED")) {
+          await updateUserPlan(env, email, "pro", { paypalSubscriptionId: subscriptionId, paypalPlanStatus: sub.status });
+        }
+        return new Response(paypalReturnHtml(true), { headers: { "Content-Type": "text/html; charset=utf-8" } });
+      } catch (err) {
+        return new Response(paypalReturnHtml(false, String(err)), {
+          status: 500,
+          headers: { "Content-Type": "text/html; charset=utf-8" },
+        });
+      }
+    }
+
+    if (url.pathname === "/v1/billing/paypal/webhook" && request.method === "POST") {
+      let payload;
+      const rawText = await request.text();
+      try {
+        payload = JSON.parse(rawText);
+      } catch {
+        return json({ error: "invalid_json" }, 400);
+      }
+      try {
+        const accessToken = await getPayPalAccessToken(env);
+        const verified = await verifyPaypalWebhook(env, accessToken, request.headers, payload);
+        if (!verified) return json({ error: "signature_invalid" }, 400);
+
+        const eventType = payload.event_type;
+        const resource = payload.resource || {};
+        const email = resource.custom_id || (resource.subscriber && resource.subscriber.email_address);
+        if (eventType === "BILLING.SUBSCRIPTION.ACTIVATED" && email) {
+          await updateUserPlan(env, email, "pro", { paypalSubscriptionId: resource.id, paypalPlanStatus: "ACTIVE" });
+        } else if (
+          ["BILLING.SUBSCRIPTION.CANCELLED", "BILLING.SUBSCRIPTION.EXPIRED", "BILLING.SUBSCRIPTION.SUSPENDED"].includes(eventType) &&
+          email
+        ) {
+          await updateUserPlan(env, email, "free", { paypalPlanStatus: eventType.split(".").pop() });
+        }
+      } catch (err) {
+        return json({ error: "webhook_failed", message: String(err) }, 500);
+      }
+      return json({ ok: true });
     }
 
     if (url.pathname === "/v1/waitlist" && request.method === "POST") {

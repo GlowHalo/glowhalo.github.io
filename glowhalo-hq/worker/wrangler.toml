@@ -1,4 +1,4 @@
-name = "nada-group-api"
+name = "glowhalo-hq-api"
 main = "src/worker.js"
 compatibility_date = "2026-01-01"
 
@@ -11,5 +11,5 @@ kv_namespaces = [
 ]
 
 # WRITE_TOKEN은 여기 두지 않는다 — 값은 계정 공용 금고(tossneon-api-vault)의
-# "nada_group_dashboard_write_token"에 등록돼 있다. 배포 시:
+# "glowhalo_hq_dashboard_write_token"에 등록돼 있다. 배포 시:
 #   npx wrangler secret put WRITE_TOKEN   (금고에서 조회한 값 붙여넣기)

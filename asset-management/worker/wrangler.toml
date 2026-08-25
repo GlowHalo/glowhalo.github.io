@@ -1,4 +1,4 @@
-name = "nada-company3-watchdog"
+name = "glowhalo3-watchdog"
 main = "src/worker.js"
 compatibility_date = "2026-01-01"
 
@@ -8,7 +8,7 @@ compatibility_date = "2026-01-01"
 # `npx wrangler secret put ...`으로 주입한다 (금고 tossneon-api-vault 경유).
 
 # KV 네임스페이스 ID는 비밀 아님 — 계정 API 토큰 없이는 무용지물이라 커밋해도 안전
-# (nada-group/worker/wrangler.toml과 같은 이유).
+# (glowhalo-hq/worker/wrangler.toml과 같은 이유).
 kv_namespaces = [
   { binding = "WATCH_KV", id = "0116675324b5453a88474a1d506d575d" }
 ]
