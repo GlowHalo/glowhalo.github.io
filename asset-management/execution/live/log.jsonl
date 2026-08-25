@@ -40,3 +40,4 @@
 {"mode": "LIVE", "action": "sell", "market": "KRW-ETH", "reason": "morning_exit", "volume": 0.02472842, "price": 3428000.0, "pnl_krw": -915, "uuid": "5b2ae9d6-1c72-43ca-88c1-54808da18a64", "ts": "2026-08-24T15:44:30.962631Z"}
 {"mode": "LIVE", "action": "buy", "market": "KRW-BTC", "krw": 150000, "price": 108846000.0, "uuid": "c867cc06-f4b1-4485-9133-00a68bdc4db2", "ts": "2026-08-24T15:44:34.114827Z"}
 {"mode": "LIVE", "action": "buy", "market": "KRW-SOL", "krw": 85509, "price": 135300.0, "uuid": "62a096ed-9c57-4f8b-937e-c56f07b5eabd", "ts": "2026-08-24T22:40:06.104428Z"}
+{"mode": "LIVE", "action": "buy", "market": "KRW-XRP", "krw": 42733, "price": 2104.0, "uuid": "e2994a83-3d87-4784-b2ab-cbab9c104714", "ts": "2026-08-25T02:21:15.756267Z"}
