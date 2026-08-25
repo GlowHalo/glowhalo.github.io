@@ -1,4 +1,4 @@
-// nada-group-api Worker(nada-group/worker/)와 대시보드 상태를 동기화한다.
+// glowhalo-hq-api Worker(glowhalo-hq/worker/)와 대시보드 상태를 동기화한다.
 //
 // GET /state는 공개라 인증 없이 항상 시도한다 — 실패하거나 아직 시딩 전이면 화면은
 // 로컬 기본값(INITIAL_*)을 그대로 쓴다. pixel-ai-office/src/game/report.ts와 같은 원칙:
@@ -11,8 +11,8 @@
 
 import type { ApprovalItem, ExecutionLogItem, InstructionItem } from "./data/holdco.config";
 
-const WORKER_URL = "https://nada-group-api.tossneon.workers.dev";
-const TOKEN_KEY = "nada-group-write-token";
+const WORKER_URL = "https://glowhalo-hq-api.tossneon.workers.dev";
+const TOKEN_KEY = "glowhalo-hq-write-token";
 
 export type SyncState = {
   approvals: ApprovalItem[];
