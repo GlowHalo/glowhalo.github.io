@@ -35,9 +35,12 @@ GlowHalo 2(하윤)가 신사업 탐색(니치API)과 C1(쿠팡파트너스) 실�
 - [x] Worker 상태 재점검 (2026-08-15, 도현) — `/health` 200 OK 재확인
 - [x] 확장 후보(C2~C4) 조사 (2026-08-15, 도현) — [`candidates.md`](candidates.md) 참고. 알리익스프레스(API 지원, 단 실명 인증 필요)·Amazon Associates(180일 3건 유지조건)·네이버 쇼핑 커넥트(오픈 API 여부 불확실) 세 후보 추가. 전부 C1 안정화 이후 착수 대상, 지금 당장 액션 아님
 - [ ] 누적매출 15만원 도달 시 API 전환 절차 진행
-- [x] 배포된 Worker 이름(`nada-company2-coupang-dealbot`) 개명 — 2026-08-25 HQ/소율 세션이 전사 재배포 계기에 `glowhalo7-coupang-dealbot`으로 정정·재배포 완료(DISCORD_WEBHOOK_URL·SEED_SECRET·TARGET_CHANNEL 시크릿 이관, KV 데이터 유실 없음, 옛 Worker 삭제 확인)
-- [ ] 텔레그램 봇(`@nada_dealbot`) 채널 관리자 미등록 — 상세는 [`products/coupang-dealbot/README.md`](products/coupang-dealbot/README.md) "미해결 이슈" 참고, 디스코드만으로도 운영 지장 없어 급하지 않음. **2026-08-15 시도** — 금고(`VAULT_URL`) 조회로 `telegram_bot_token`/`telegram_channel_id` 상태 확인하려 했으나 `cloudflare-vault.md`에 문서화된 기존 이슈대로 자동승인 분류기가 vault curl 호출을 차단(의도된 안전장치라 우회 안 함) — 회장이 `.claude/settings.json`의 `autoMode.allow`에 vault 도메인을 추가해주면 다음 세션이 이어서 진행 가능
+- [x] 배포된 Worker 이름(`nada-company2-coupang-dealbot`) 개명 — 2026-08-25 HQ/소율 세션이 전사 재배포 계기에 `glowhalo7-coupang-dealbot`으로 정정·재배포 완료(DISCORD_WEBHOOK_URL·SEED_SECRET·TARGET_CHANNEL 시크릿 이관, KV 데이터 유실 없음, 옛 Worker 삭제 확인). **2026-08-25 도현 재확인** — 새 URL `/health`·`/seed` 실측 정상, 옛 URL 404 전환 확인.
+- [x] 금고(`VAULT_URL`) 접근 차단 — 2026-08-19 시점엔 자동승인 분류기가 막았었으나 **2026-08-25 재시도로 정상 통과 확인**(다른 계열사에서도 같은 간헐적 패턴 보고됨, 동일 명령 1~2회 재시도로 해결). 위 39행의 옛 기록은 해소됨.
+- [~] 텔레그램 봇/채널 재설정 중 — **2026-08-25 회장이 텔레그램 계정을 재가입 중, 옛 봇(`@nada_dealbot`/채널 `나다특가`·`@nadadeal`)은 새 계정과 매칭이 안 돼 새로 세팅 필요.** (옛 봇은 그 전날까지 Bot API로 정상 작동까지 확인했었으나 이제 폐기 대상 — 아래 "다음 액션" 참고) 새 봇 토큰·채널 아이디를 알려주시면 도현이 이어서: 금고(`telegram_bot_token`/`telegram_channel_id`) 갱신 → Worker 시크릿 재등록 → Bot API로 연결 확인 → 채널 관리자 등록 여부 확인까지 처리.
+- [x] Worker 내부 HTML 문구(`/seed` 폼 title·h1) "나다특가" → **2026-08-25 도현이 "GlowHalo7 특가"로 수정·재배포 완료**(`glowhalo7-coupang-dealbot`, `/health`·`/seed` 실측 정상, KV/시크릿 영향 없음 확인). 텔레그램 재설정과 별개로 코드상 이름은 정리됨.
+- [x] 커스텀 도메인 `coupang-dealbot.glowhalo.org` — **2026-08-25 회장 요청으로 Cloudflare API 직접 조회, 애초에 존재하지 않음 확인**(Worker 커스텀 도메인 목록·DNS 레코드 둘 다 없음 — `hq/계정현황-2026-08-19.md`의 옛 기록은 실제 반영 안 된 오기록으로 판단). 지울 대상 자체가 없어 종료. 계속 `*.tossneon.workers.dev` 원본 주소만 사용.
 
-## 🔄 세션 인계 메모 (2026-08-15)
+## 🔄 세션 인계 메모 (2026-08-25)
 
-최근 며칠간 Notion 워크스페이스 분리·계정 비밀번호 표준화·GitHub 폴더 구조 개편(companyN → 주제별 이름)이 한꺼번에 진행되면서, 오래 이어진 세션이 옛 맥락(옛 경로·옛 워크스페이스)에 헷갈릴 수 있다는 회장 판단으로 이 계열사 세션을 새로 열었다. 새 세션은 이 파일과 `candidates.md` 등 폴더 안 문서를 정본으로 삼아 현재 상태부터 파악할 것.
+2026-08-19 GitHub 계정 이전(tossneon→glowhalo) 이후 HQ 차원 전면 브랜드 정리(나다그룹→GlowHalo Group, Worker 이름 정리 등)가 진행 중이다. 크로스컷팅 변경사항의 정본은 [`hq/공지사항.md`](../hq/공지사항.md) — 새 세션은 이 저장소를 pull한 뒤 그 문서부터 확인해서, 이미 해소된 걸 미해결로 착각하지 않도록 할 것. 옛 인계 메모(2026-08-15, Notion/계정/폴더 구조 개편 관련)는 위 상태 갱신으로 대체됐다.

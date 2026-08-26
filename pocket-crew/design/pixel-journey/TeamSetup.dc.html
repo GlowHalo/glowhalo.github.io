@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: {{accent}}; text-decoration: none; }
+    a:hover { opacity: 0.8; }
+  </style>
+</helmet>
+<div style="width:1440px; height:900px; background:#f3e9d8; font-family:'Nunito', sans-serif; color:#4a3826; display:flex; flex-direction:column; overflow:hidden; position:relative;">
+
+  <div style="height:60px; flex-shrink:0; background:#fffaf0; border-bottom:3px solid #e8d4b0; display:flex; align-items:center; justify-content:space-between; padding:0 24px; z-index:5;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div style="width:30px; height:30px; border-radius:8px; background:{{accent}}; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 0 rgba(0,0,0,0.15);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" fill="#fff"/><rect x="14" y="3" width="7" height="7" rx="1.5" fill="#fff" opacity="0.7"/><rect x="3" y="14" width="7" height="7" rx="1.5" fill="#fff" opacity="0.7"/><rect x="14" y="14" width="7" height="7" rx="1.5" fill="#fff"/></svg>
+      </div>
+      <div style="font-family:'Fredoka', sans-serif; font-weight:700; font-size:19px; letter-spacing:-0.01em;">Deskmates</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:#8a7150; font-weight:600;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7fae6f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+      hayoon-dev 계정으로 연결됨
+    </div>
+  </div>
+
+  <div style="flex:1; position:relative; background-image: radial-gradient(circle, rgba(74,56,38,0.06) 1.5px, transparent 1.5px); background-size:22px 22px; background-color:#efe0c4; padding:44px 80px;">
+
+    <!-- step indicator -->
+    <div style="display:flex; align-items:center; gap:6px; max-width:900px; margin:0 auto 36px;">
+      <sc-for list="{{steps}}" as="s" hint-placeholder-count="3">
+        <div style="display:flex; align-items:center; gap:6px; flex:1;">
+          <div style="width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Fredoka', sans-serif; font-weight:600; font-size:12px; flex-shrink:0; background:{{s.bg}}; color:{{s.fg}};">{{s.num}}</div>
+          <div style="font-size:11px; font-weight:600; color:{{s.labelColor}}; white-space:nowrap;">{{s.label}}</div>
+          <sc-if value="{{s.showLine}}" hint-placeholder-val="{{true}}">
+            <div style="flex:1; height:2px; background:#e8d4b0; border-radius:1px;"></div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display:flex; gap:40px; max-width:1120px; margin:0 auto;">
+
+      <!-- left: team name -->
+      <div style="width:340px; flex-shrink:0;">
+        <h2 style="font-family:'Fredoka', sans-serif; font-weight:600; font-size:19px; margin:0 0 6px;">팀 이름을 지어주세요</h2>
+        <p style="font-size:13px; color:#8a7150; margin:0 0 18px; line-height:1.6;">이 이름으로 여러분의 GitHub에 사무실 저장소가 만들어져요.</p>
+
+        <div style="background:#fffaf0; border-radius:16px; box-shadow:0 6px 0 #d9c39c; padding:24px; margin-bottom:20px;">
+          <label style="font-size:11px; font-weight:700; color:#a68a5f; text-transform:uppercase; letter-spacing:0.04em;">팀 이름</label>
+          <div style="margin-top:8px; padding:14px 16px; background:#f3e9d8; border:2px solid {{accent}}; border-radius:10px; font-family:'Fredoka', sans-serif; font-weight:600; font-size:16px;">하윤의 사무실</div>
+          <div style="margin-top:10px; font-size:11.5px; color:#a68a5f;">→ github.com/hayoon-dev/<b>하윤의-사무실</b></div>
+        </div>
+
+        <!-- character preview -->
+        <div style="display:flex; align-items:center; gap:14px; background:#fffaf0; border-radius:16px; padding:16px; box-shadow:0 4px 0 #e8d4b0;">
+          <div style="width:44px; height:44px; border-radius:50%; background:#ffd7b0; position:relative; flex-shrink:0;">
+            <div style="position:absolute; top:-13px; left:-3px; width:50px; height:24px; background:#5c3a26; border-radius:22px 22px 6px 6px;"></div>
+          </div>
+          <div style="font-size:12.5px; color:#8a7150; line-height:1.5;">직원들이 이 사무실로<br/>모이게 될 거예요</div>
+        </div>
+      </div>
+
+      <!-- right: roles -->
+      <div style="flex:1;">
+        <h2 style="font-family:'Fredoka', sans-serif; font-weight:600; font-size:19px; margin:0 0 6px;">어떤 직원을 고용할까요?</h2>
+        <p style="font-size:13px; color:#8a7150; margin:0 0 18px; line-height:1.6;">필요한 역할을 골라주세요 — 나중에 언제든 늘릴 수 있어요.</p>
+
+        <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px;">
+          <sc-for list="{{roles}}" as="r" hint-placeholder-count="4">
+            <div style="background:#fffaf0; border-radius:16px; box-shadow:0 5px 0 #e8d4b0; padding:18px; display:flex; gap:14px; align-items:flex-start; border:2px solid {{r.cardBorder}};">
+              <div style="width:44px; height:44px; border-radius:50%; background:{{r.skin}}; flex-shrink:0; position:relative;">
+                <div style="position:absolute; top:-12px; left:-3px; width:50px; height:22px; background:{{r.hair}}; border-radius:20px 20px 5px 5px;"></div>
+              </div>
+              <div style="flex:1;">
+                <div style="font-family:'Fredoka', sans-serif; font-weight:600; font-size:14.5px;">{{r.title}}</div>
+                <div style="font-size:12px; color:#8a7150; margin-top:3px; line-height:1.5;">{{r.desc}}</div>
+              </div>
+              <div style="width:22px; height:22px; border-radius:6px; flex-shrink:0; display:flex; align-items:center; justify-content:center; background:{{r.checkBg}}; border:2px solid {{r.checkBorder}};">
+                <sc-if value="{{r.selected}}" hint-placeholder-val="{{true}}">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                </sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:28px;">
+          <span style="font-size:13px; color:#a68a5f; font-weight:600;">기본 팀으로 시작</span>
+          <button style="padding:14px 32px; background:#2b2118; color:#fffaf0; border:none; border-radius:12px; font-family:'Fredoka', sans-serif; font-weight:600; font-size:15px; box-shadow:0 4px 0 #16110b; cursor:pointer;">다음 →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#e8965a","options":["#e8965a","#7fae6f","#e07a6e","#6f8fc9"]}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#e8965a';
+    const steps = [
+      { num: '✓', bg: '#7fae6f', fg: '#fffaf0', label: 'GitHub 연결', labelColor: '#7fae6f', showLine: true },
+      { num: '2', bg: '#2b2118', fg: '#fffaf0', label: '팀 이름 · 직원', labelColor: '#2b2118', showLine: true },
+      { num: '3', bg: '#e8d4b0', fg: '#8a7150', label: '시작', labelColor: '#a68a5f', showLine: false },
+    ];
+    const roleDefs = [
+      { title: '전략가', desc: '방향을 정하고 우선순위를 판단해요', skin: '#ffd7b0', hair: '#5c3a26', selected: true },
+      { title: '콘텐츠 담당', desc: '글과 자료를 만들고 다듬어요', skin: '#f4c6a0', hair: '#2a2a2a', selected: true },
+      { title: '리서처', desc: '자료를 찾고 근거를 확인해요', skin: '#e3b48a', hair: '#8a5a3a', selected: false },
+      { title: '디자이너', desc: '보기 좋게 다듬고 그려요', skin: '#ffd7b0', hair: '#c9a25a', selected: false },
+    ];
+    const roles = roleDefs.map((r) => ({
+      ...r,
+      cardBorder: r.selected ? accent : 'transparent',
+      checkBg: r.selected ? accent : '#f3e9d8',
+      checkBorder: r.selected ? accent : '#e8d4b0',
+    }));
+    return { accent, steps, roles };
+  }
+}
+</script>
+</body>
+</html>

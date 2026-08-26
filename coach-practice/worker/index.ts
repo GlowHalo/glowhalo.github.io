@@ -12,6 +12,8 @@
  * 사용자는 기기당 3회(세션 단위)까지 이 Worker를 통해 "우리 키"로 체험할 수 있다.
  */
 
+import { fetchJsonWithRetry } from "../../shared/worker-utils/gemini-fetch";
+
 export interface Env {
   GEMINI_API_KEY: string;
   RATE_LIMIT_KV: KVNamespace;
@@ -65,7 +67,12 @@ const MAX_MESSAGE_LENGTH = 2000;
 // 상한을 서버측에도 추가한다(클라이언트 한도를 대체하는 게 아니라, 그게 우회됐을 때의 백업).
 // KV의 get→put은 원자적 증가가 아니라 아주 드물게 동시 요청 시 카운트가 살짝 덜 늘 수 있지만
 // (레이스), 이건 정확한 과금 통제가 아니라 남용 방지 백업이라 이 정도 오차는 감수한다.
-const RATE_LIMIT_DAILY = { chat: 150, feedback: 30 } as const;
+// ⚠️ 2026-08-25 하향 조정 — 처음엔 chat 150/feedback 30으로 잡았는데, 실제로 이 Worker가 쓰는
+// `gemini_api_key`는 **그룹 공용 무료 티어 키 하나**이고 mindmap·kpc-coach-chat이 같이 쓴다.
+// 즉 한 사람이 150번을 쓰면 그날 세 앱의 공용 할당량을 혼자 태워버린다(실제로 이날 429
+// "quota exceeded"로 세 앱이 동시에 막히는 걸 확인했다). 체험은 어차피 클라이언트에서 3회
+// (세션 단위)로 제한되므로, 서버측 백업 상한도 그 현실에 맞춰 낮게 잡는 게 맞다.
+const RATE_LIMIT_DAILY = { chat: 40, feedback: 8 } as const;
 const RATE_LIMIT_TTL_SECONDS = 60 * 60 * 26; // 하루+여유(자정 경계에 걸친 요청도 안전하게)
 
 async function checkAndBumpRateLimit(
@@ -409,15 +416,10 @@ function buildTranscriptForFeedback(history: ChatMessage[]): string {
     .join("\n");
 }
 
-// 2026-08-19 리뷰 지적 반영 — (1) 위치 인자 5개짜리라 호출부에서 순서를 실수로 바꿔도
-// 타입체크가 못 잡는 문제 → 이름 붙은 옵션 객체로 교체. (2) 타임아웃·재시도가 전혀 없어
-// Gemini 쪽 일시적 오류/응답 지연 한 번에 세션이 그냥 끊기던 문제 → AbortController 타임아웃 +
-// 5xx/429/네트워크 오류에 한해 짧은 backoff로 최대 2회 재시도(멱등한 GET이 아니라 POST지만,
-// 매 요청이 "이번 발화에 대한 응답 생성"이라는 순수 조회성 호출이라 재시도로 인한 부작용은 없음).
-const GEMINI_TIMEOUT_MS = 20_000;
-const GEMINI_MAX_RETRIES = 2;
-const GEMINI_RETRY_BASE_MS = 400;
-
+// 2026-08-19 리뷰 지적 반영 — 위치 인자 5개짜리라 호출부에서 순서를 실수로 바꿔도 타입체크가
+// 못 잡던 문제를 이름 붙은 옵션 객체로 해결. 타임아웃·재시도 자체는 2026-08-25에 그룹 공용
+// 유틸(`shared/worker-utils/gemini-fetch.ts`)로 옮겼다 — 같은 무료 키를 mindmap·kpc-coach-chat과
+// 공유하는 구조라 세 앱이 같은 실패를 동시에 겪기 때문(그 파일 상단 주석 참고).
 interface CallGeminiOptions {
   systemInstruction: string;
   contents: any[];
@@ -426,63 +428,24 @@ interface CallGeminiOptions {
   apiKey: string;
 }
 
-function isRetryableGeminiStatus(status: number): boolean {
-  return status === 429 || status >= 500;
-}
+async function callGeminiWithKey({ systemInstruction, contents, schema, temperature, apiKey }: CallGeminiOptions) {
+  const data = (await fetchJsonWithRetry(`${GEMINI_URL}?key=${apiKey}`, {
+    systemInstruction: { parts: [{ text: systemInstruction }] },
+    contents,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: schema,
+      thinkingConfig: { thinkingBudget: 0 },
+      temperature,
+    },
+  })) as any;
 
-async function callGeminiOnce({ systemInstruction, contents, schema, temperature, apiKey }: CallGeminiOptions) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
-  try {
-    const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      signal: controller.signal,
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: systemInstruction }] },
-        contents,
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: schema,
-          thinkingConfig: { thinkingBudget: 0 },
-          temperature,
-        },
-      }),
-    });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      const err = new Error(`Gemini API error ${res.status}: ${errText.slice(0, 300)}`);
-      (err as any).retryable = isRetryableGeminiStatus(res.status);
-      throw err;
-    }
-
-    const data = (await res.json()) as any;
-    const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!raw) {
-      const blockReason = data?.promptFeedback?.blockReason;
-      throw new Error(blockReason ? `Gemini가 응답을 차단했습니다: ${blockReason}` : "Gemini 응답에 텍스트가 없습니다.");
-    }
-    return JSON.parse(raw);
-  } finally {
-    clearTimeout(timeout);
+  const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!raw) {
+    const blockReason = data?.promptFeedback?.blockReason;
+    throw new Error(blockReason ? `Gemini가 응답을 차단했습니다: ${blockReason}` : "Gemini 응답에 텍스트가 없습니다.");
   }
-}
-
-async function callGeminiWithKey(options: CallGeminiOptions) {
-  let lastError: unknown;
-  for (let attempt = 0; attempt <= GEMINI_MAX_RETRIES; attempt++) {
-    try {
-      return await callGeminiOnce(options);
-    } catch (error) {
-      lastError = error;
-      const isAbort = error instanceof Error && error.name === "AbortError";
-      const retryable = isAbort || (error as any)?.retryable === true;
-      if (!retryable || attempt === GEMINI_MAX_RETRIES) break;
-      await new Promise((resolve) => setTimeout(resolve, GEMINI_RETRY_BASE_MS * (attempt + 1)));
-    }
-  }
-  throw lastError;
+  return JSON.parse(raw);
 }
 
 const worker = {

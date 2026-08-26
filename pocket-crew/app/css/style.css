@@ -1,0 +1,201 @@
+/* PocketCrew — 코지 픽셀아트 톤 (design/pixel-journey 목업 기준) */
+
+:root {
+  --bg: #efe0c4;
+  --bg-dots: rgba(74, 56, 38, 0.06);
+  --panel: #fffaf0;
+  --panel2: #f3e9d8;
+  --ink: #4a3826;
+  --muted: #8a7150;
+  --muted2: #a68a5f;
+  --line: #e8d4b0;
+  --shadow: #d9c39c;
+  --dark: #2b2118;
+  --dark-shadow: #16110b;
+  --accent: #e8965a;
+  --good: #7fae6f;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: 'Nunito', sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.heading { font-family: 'Fredoka', sans-serif; font-weight: 700; letter-spacing: -0.01em; }
+.label { font-family: 'Fredoka', sans-serif; font-weight: 600; }
+
+.topbar {
+  height: 60px;
+  flex-shrink: 0;
+  background: var(--panel);
+  border-bottom: 3px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 5;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.15);
+}
+.brand-name { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 19px; }
+.topbar-right { display: flex; align-items: center; gap: 18px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+
+.scene {
+  flex: 1;
+  position: relative;
+  background-color: #efe0c4;
+  background-image: radial-gradient(circle, var(--bg-dots) 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
+}
+.glow {
+  position: absolute; border-radius: 50%; pointer-events: none;
+}
+
+.card {
+  background: var(--panel);
+  border-radius: 16px;
+  box-shadow: 0 6px 0 var(--shadow);
+}
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  border: none; border-radius: 14px; cursor: pointer;
+  font-family: 'Fredoka', sans-serif; font-weight: 600;
+  transition: transform .05s ease;
+}
+.btn:active { transform: translateY(2px); }
+.btn-primary {
+  background: var(--dark); color: var(--panel);
+  box-shadow: 0 5px 0 var(--dark-shadow);
+  padding: 16px 32px; font-size: 15.5px;
+}
+.btn-primary:active { box-shadow: 0 3px 0 var(--dark-shadow); }
+.btn-ghost {
+  background: transparent; color: var(--muted); font-weight: 700; font-size: 13px;
+  padding: 8px 4px;
+}
+.btn-accent {
+  background: var(--accent); color: #fff;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+  padding: 10px 18px; font-size: 13.5px;
+}
+
+.centerpane {
+  min-height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px 20px;
+}
+
+.steps { display: flex; align-items: center; gap: 6px; }
+.step { display: flex; align-items: center; gap: 6px; }
+.step-num {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 12px; flex-shrink: 0;
+}
+.step-line { width: 40px; height: 2px; background: var(--line); border-radius: 1px; }
+
+.role-card {
+  background: var(--panel); border-radius: 16px; padding: 16px;
+  box-shadow: 0 5px 0 var(--line);
+  display: flex; gap: 14px; align-items: flex-start;
+  border: 2px solid transparent; cursor: pointer;
+}
+.role-card.selected { border-color: var(--accent); }
+.avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  position: relative; flex-shrink: 0;
+}
+.avatar .hair {
+  position: absolute; top: -12px; left: -3px; width: 50px; height: 22px;
+  border-radius: 20px 20px 5px 5px;
+}
+.check-box {
+  width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--line); background: var(--panel2);
+}
+.check-box.on { background: var(--accent); border-color: var(--accent); }
+
+input[type="text"], input[type="password"] {
+  font-family: 'Nunito', sans-serif; font-size: 14.5px; color: var(--ink);
+  border: 2px solid var(--accent); border-radius: 10px; background: var(--panel2);
+  padding: 12px 14px; outline: none; width: 100%;
+}
+
+.room-title {
+  font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 13px;
+  color: var(--muted2); letter-spacing: 0.06em; text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.desk-grid { display: flex; flex-wrap: wrap; gap: 22px; }
+.desk-card {
+  width: 150px; background: rgba(255,250,240,0.55); border-radius: 16px; padding: 16px 12px 12px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.desk-surface {
+  width: 90px; height: 40px; border-radius: 8px; margin-bottom: -14px;
+  box-shadow: 0 5px 0 rgba(0,0,0,0.12);
+}
+.desk-monitor {
+  width: 34px; height: 24px; border-radius: 4px; background: #3a3a3a; box-shadow: 0 0 0 3px #2a2a2a;
+  margin: -34px auto 20px; position: relative; z-index: 1;
+}
+.desk-monitor .screen { position: absolute; inset: 3px; border-radius: 2px; opacity: 0.85; }
+.figure { width: 46px; height: 46px; border-radius: 50% 50% 48% 48%; position: relative; box-shadow: 0 4px 0 rgba(0,0,0,0.08); }
+.figure .hair { position: absolute; top: -16px; left: -3px; width: 52px; height: 30px; border-radius: 24px 24px 8px 8px; }
+.body-block { width: 38px; height: 38px; margin-top: -4px; border-radius: 12px 12px 5px 5px; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
+.desk-name { font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 12.5px; margin-top: 10px; }
+.desk-status {
+  font-size: 11px; margin-top: 4px; padding: 3px 10px; border-radius: 8px;
+  background: var(--panel); box-shadow: 0 2px 0 rgba(0,0,0,0.08);
+}
+.desk-status.working { color: var(--ink); }
+.desk-status.idle { color: var(--muted); }
+
+.instruction-dock {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 112px;
+  background: #e4cea3; border-top: 3px solid var(--shadow);
+  display: flex; align-items: center; gap: 16px; padding: 0 32px;
+}
+.dock-field {
+  flex: 1; max-width: 780px; display: flex; align-items: center; gap: 12px;
+  background: var(--panel); border-radius: 16px; padding: 8px 8px 8px 20px;
+  box-shadow: 0 4px 0 var(--shadow);
+}
+.dock-field input { border: none; background: transparent; box-shadow: none; padding: 6px 0; }
+
+.resume-banner {
+  position: absolute; left: 50%; top: 16px; transform: translateX(-50%); z-index: 6;
+  display: flex; align-items: center; gap: 14px;
+  background: var(--panel); border: 2px solid var(--accent); border-radius: 14px;
+  padding: 10px 12px 10px 18px; box-shadow: 0 5px 0 var(--shadow);
+}
+
+.chip {
+  display: flex; align-items: center; gap: 8px; background: var(--panel2);
+  border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 16px;
+  font-size: 13px; font-weight: 600;
+}
+
+.muted { color: var(--muted); }
+.muted2 { color: var(--muted2); }
+
+.log-list { display: flex; flex-direction: column; gap: 10px; max-height: 260px; overflow-y: auto; }
+.log-item { background: var(--panel); border-radius: 12px; padding: 10px 14px; box-shadow: 0 3px 0 var(--line); font-size: 13px; }

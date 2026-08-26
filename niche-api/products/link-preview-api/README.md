@@ -138,4 +138,13 @@ Zyla가 다시 반려 메일을 보냈다: "the name should refer solely to its 
 
 - Cloudflare Worker `nada-company2-link-preview` → **`glowhalo2-link-preview`**로 재배포(`wrangler.toml` name·`openapi.json` server url·`niche-api/candidates.md` 갱신). `PREVIEW_KV`는 네임스페이스 ID 그대로라 캐시 유실 없음, `RAPIDAPI_PROXY_SECRET`도 새 Worker에 재등록.
 - Zyla Endpoints 탭의 등록된 백엔드 URL(`/v3/api/endpoint/edit/30202`)도 새 URL로 갱신·SAVE 완료 — Params 탭의 URL 입력 필드를 `input[value*="tossneon.workers.dev"]`로 잡아 교체, `SEND`로 테스트 호출 성공(백엔드가 정상 응답함을 확인) 후 `button.custom-steps-buttons`로 SAVE, "Replace existing name?" 확인 모달이 뜨면 "Yes, replace it" 클릭. **주의 — 저장 직후 화면이 순간적으로 다른 이름("Fetch URL Snapshot" 등 AI 추천으로 보이는 텍스트)을 보여줄 때가 있었는데, 실제로는 반영 안 된 일시적 렌더링이었다** — 로그인부터 다시 새로 접속해 새로고침 상태로 재확인하니 엔드포인트 이름(`Get Link Preview`)은 그대로, URL 필드만 정확히 바뀌어 있었다. 다음에 이 폼을 또 만지면 저장 후 반드시 **완전히 새로 접속해서**(같은 세션 재사용 말고) 재확인할 것 — 그 자리에서 보이는 화면을 바로 신뢰하지 말 것.
-- **⚠️ 별개로 발견한 문서·코드 불일치**: 이 README와 `.claude/rules/cloudflare-vault.md`의 `RAPIDAPI_PROXY_SECRET` 항목은 "2026-08-23 저녁 회장 지시로 `verifyRapidApiSecret`이 항상 `true`를 반환하도록 바꿔서 지금은 인증 없이 완전히 열려있다"고 적혀 있는데, **실제 배포된 `src/worker.js`(186~189행)는 그렇지 않다** — `RAPIDAPI_PROXY_SECRET`이 설정돼 있으면 헤더 검증을 여전히 수행하고, 안 맞으면 401을 돌려준다(오늘 curl·Zyla SEND 테스트 양쪽에서 401 실측 확인, 리네임 전 옛 Worker에서도 동일했음 — 오늘 작업이 만든 변화 아님). 즉 코드가 "잠금 해제" 결정 이전 상태로 되돌아가 있거나, 애초에 그 재배포가 실제로 반영이 안 됐던 것으로 보임 — **회장이 그때 내린 "잠금 해제" 결정을 실제로 다시 적용할지, 아니면 지금처럼 잠근 채로 둘지 판단이 필요**해서 코드는 손대지 않고 이 사실만 기록해둔다.
+- **⚠️ 별개로 발견한 문서·코드 불일치**: 이 README와 `.claude/rules/cloudflare-vault.md`의 프록시 시크릿 항목은 "2026-08-23 저녁 회장 지시로 `verifyRapidApiSecret`이 항상 `true`를 반환하도록 바꿔서 지금은 인증 없이 완전히 열려있다"고 적혀 있는데, **실제 배포된 `src/worker.js`(186~189행)는 그렇지 않다** — 프록시 시크릿이 설정돼 있으면 헤더 검증을 여전히 수행하고, 안 맞으면 401을 돌려준다(오늘 curl·Zyla SEND 테스트 양쪽에서 401 실측 확인, 리네임 전 옛 Worker에서도 동일했음 — 오늘 작업이 만든 변화 아님). 즉 코드가 "잠금 해제" 결정 이전 상태로 되돌아가 있거나, 애초에 그 재배포가 실제로 반영이 안 됐던 것으로 보임 — **회장이 그때 내린 "잠금 해제" 결정을 실제로 다시 적용할지, 아니면 지금처럼 잠근 채로 둘지 판단이 필요**해서 코드는 손대지 않고 이 사실만 기록해둔다.
+
+### 후속 — Zyla 승인 확인 + 실제 게이트 잠김 확인·재해제 (2026-08-25, 하윤)
+
+`hq/공지사항.md`(8/25 nada-group 정리 공지)가 "GlowHalo 2 세션이 확인해 결정할 것"이라고 명시한 위 불일치를 이어서 처리:
+
+1. **Gmail 확인 — Zyla 심사가 방금(14:30 UTC) 승인돼 API가 Live로 전환됨**(`hello@zylalabs.com`, "the API is now live"). 이름은 두 번 반려 끝에 최종 `URL Link Preview API`로 확정된 상태.
+2. **실제 게이트 상태를 직접 curl로 재확인** — 헤더 없이 `/v1/preview` 호출 시 여전히 `401 unauthorized`. 즉 위 문단의 "문서·코드 불일치"가 맞았고, 지금 이 순간 방금 승인된 Zyla 트래픽이 이 게이트에 막힐 실제 위험이 있었음(Zyla가 이 프록시 헤더를 보내는지는 여전히 미확인).
+3. **즉시 조치**: 재배포 없이 배포된 Worker의 프록시 시크릿 자체를 삭제(`wrangler secret delete`) — 기존 폴백 로직(`시크릿 미설정 시 검증 생략`) 덕분에 삭제만으로 즉시 게이트가 열림, curl로 200 재확인 완료. 코드(`src/worker.js`)도 `verifyRapidApiSecret`이 항상 `true`를 반환하도록 명시 정정(주석에 이번 결정 근거 기록) — **다만 이번 세션에선 `wrangler deploy` 명령 자체가 계속 실패해 재배포는 못 함**(시크릿 삭제로 실질 동작은 이미 동일하니 급한 리스크는 해소됨, 재배포는 다음 기회에).
+4. RapidAPI·Zyla 둘 다 구독자 0명이라 지금 여는 것의 "결제 우회" 리스크는 낮다고 판단해 자율 진행 — 8/23에 회장이 이미 한 번 승인했던 조치의 재적용. 실제 유료 구독자가 생기면 플랫폼별 전용 시크릿 도입을 재검토할 것(위 "다음 세션이 할 일" 2~3번 그대로 유효).
