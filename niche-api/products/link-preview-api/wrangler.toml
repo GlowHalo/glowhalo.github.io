@@ -1,9 +1,9 @@
-name = "nada-company2-link-preview"
+name = "glowhalo2-link-preview"
 main = "src/worker.js"
 compatibility_date = "2026-01-01"
 
 # 무료 티어(workers.dev 서브도메인)로 배포. KV 네임스페이스 ID는 비밀 아님
-# (계정 API 토큰 없이는 무용지물) — nada-group/worker/wrangler.toml과 같은 이유로 커밋해도 안전.
+# (계정 API 토큰 없이는 무용지물) — glowhalo-hq/worker/wrangler.toml과 같은 이유로 커밋해도 안전.
 kv_namespaces = [
   { binding = "PREVIEW_KV", id = "1aaedcd76f924028828ec4106b582d57" }
 ]

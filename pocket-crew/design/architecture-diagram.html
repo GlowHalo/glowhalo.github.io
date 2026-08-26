@@ -1,0 +1,310 @@
+<title>템플릿·뷰어 연결 구조</title>
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --surface: #ffffff;
+    --surface-2: #efeadf;
+    --text: #211f1a;
+    --muted: #6e6a5e;
+    --border: #ddd6c4;
+    --accent-app: #1f6e5c;
+    --accent-claude: #35478f;
+    --accent-bridge: #8a6a1f;
+    --accent-app-soft: #e6f0ec;
+    --accent-claude-soft: #e7e9f5;
+    --accent-bridge-soft: #f3ecda;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17160f;
+      --surface: #201e17;
+      --surface-2: #29271e;
+      --text: #ede8db;
+      --muted: #a49d8a;
+      --border: #3a3627;
+      --accent-app: #6fd3b4;
+      --accent-claude: #a3b0f2;
+      --accent-bridge: #e6c168;
+      --accent-app-soft: #22322c;
+      --accent-claude-soft: #24263b;
+      --accent-bridge-soft: #332c1a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17160f;
+    --surface: #201e17;
+    --surface-2: #29271e;
+    --text: #ede8db;
+    --muted: #a49d8a;
+    --border: #3a3627;
+    --accent-app: #6fd3b4;
+    --accent-claude: #a3b0f2;
+    --accent-bridge: #e6c168;
+    --accent-app-soft: #22322c;
+    --accent-claude-soft: #24263b;
+    --accent-bridge-soft: #332c1a;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans KR', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-claude);
+    margin: 0 0 12px;
+  }
+  h1 {
+    font-size: clamp(28px, 4vw, 38px);
+    margin: 0 0 16px;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .lede {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 62ch;
+    margin: 0 0 40px;
+  }
+  .lede strong { color: var(--text); font-weight: 600; }
+
+  figure {
+    margin: 0 0 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 20px 18px;
+  }
+  figure svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  figcaption {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    padding: 14px 8px 4px;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    justify-content: center;
+    padding: 4px 8px 0;
+    margin-bottom: 48px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+
+  h2 {
+    font-size: 20px;
+    margin: 0 0 20px;
+    letter-spacing: -0.005em;
+  }
+
+  ol.steps {
+    list-style: none;
+    margin: 0 0 40px;
+    padding: 0;
+    counter-reset: step;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  ol.steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 4px 14px;
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14.5px;
+  }
+  ol.steps li:last-child { border-bottom: none; }
+  ol.steps li::before {
+    content: counter(step);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13px;
+    color: var(--accent-bridge);
+    background: var(--accent-bridge-soft);
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  ol.steps li code {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13px;
+    background: var(--surface-2);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--text);
+  }
+  ol.steps li .loop-back {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .callout {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-bridge);
+    background: var(--accent-bridge-soft);
+    border-radius: 8px;
+    padding: 18px 20px;
+    font-size: 14.5px;
+    margin-bottom: 24px;
+  }
+  .callout strong { color: var(--text); }
+
+  .note {
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+  .note a { color: var(--accent-claude); }
+</style>
+
+<div class="page">
+  <p class="eyebrow">AI 오피스 앱 · 작동 구조</p>
+  <h1>우리 앱과 claude.ai는 직접 연결되지 않습니다</h1>
+  <p class="lede">
+    로그인도, 세션 생성도, 실제 작업도 전부 <strong>claude.ai 쪽 새 탭</strong>에서 일어납니다.
+    우리 앱은 그 옆에서 <strong>같은 파일을 읽고 쓸 뿐</strong> — 두 화면은 서로 직접 통신하지 않고,
+    프로젝트 저장소 안 파일 두 개(상태파일 · 지시사항.md)를 주고받는 것으로만 "연결된 것처럼" 보입니다.
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 1160 600" role="img" aria-label="사용자가 앱을 실행하면 claude.ai 새 탭에서 로그인해 템플릿을 실행하고, 클로드는 상태파일을 저장소에 쓴다. 우리 앱은 그 상태파일을 주기적으로 읽어 화면에 그리고, 사용자가 입력한 새 지시는 지시사항.md로 저장소에 쓴다. claude.ai는 다음 접속 때 그 지시사항.md를 읽어 처리한다. 우리 앱과 claude.ai 사이에는 직접 연결이 없다.">
+
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+
+      <!-- user -->
+      <g font-family="'IBM Plex Sans KR', sans-serif">
+        <rect x="470" y="16" width="220" height="46" rx="8" fill="none" stroke="currentColor" stroke-opacity="0.55"/>
+        <text x="580" y="44" text-anchor="middle" font-size="14" fill="currentColor">사용자</text>
+      </g>
+
+      <!-- user -> app -->
+      <line x1="520" y1="62" x2="220" y2="128" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#arrow)"/>
+      <text x="330" y="90" text-anchor="middle" font-size="12" fill="currentColor" fill-opacity="0.75">① 앱 실행 · 지시 입력</text>
+
+      <!-- user -> claude.ai -->
+      <line x1="650" y1="62" x2="960" y2="128" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#arrow)"/>
+      <text x="855" y="90" text-anchor="middle" font-size="12" fill="currentColor" fill-opacity="0.75">② 로그인 (claude.ai 자체 화면)</text>
+
+      <!-- no direct link marker between app and claude.ai -->
+      <line x1="300" y1="150" x2="850" y2="150" stroke="currentColor" stroke-opacity="0.28" stroke-dasharray="3 6"/>
+      <g transform="translate(575,150)" stroke="currentColor" stroke-opacity="0.55" stroke-width="2">
+        <line x1="-7" y1="-7" x2="7" y2="7"/>
+        <line x1="-7" y1="7" x2="7" y2="-7"/>
+      </g>
+      <text x="575" y="132" text-anchor="middle" font-size="11.5" fill="currentColor" fill-opacity="0.6">직접 연결 없음 — API·OAuth 없음</text>
+
+      <!-- column: our app -->
+      <rect x="40" y="170" width="260" height="270" rx="10" fill="var(--accent-app-soft)" stroke="var(--accent-app)" stroke-opacity="0.55"/>
+      <text x="170" y="200" text-anchor="middle" font-size="14" font-weight="600" fill="var(--accent-app)">우리 앱</text>
+      <text x="170" y="219" text-anchor="middle" font-size="11.5" fill="currentColor" fill-opacity="0.65">(컴패니언 뷰어)</text>
+      <text x="170" y="270" text-anchor="middle" font-size="12" fill="currentColor" fill-opacity="0.8">파일을 읽어</text>
+      <text x="170" y="288" text-anchor="middle" font-size="12" fill="currentColor" fill-opacity="0.8">픽셀오피스 화면으로</text>
+      <text x="170" y="306" text-anchor="middle" font-size="12" fill="currentColor" fill-opacity="0.8">그려줄 뿐</text>
+      <text x="170" y="410" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity="0.55">클로드와 직접 통신하지 않음</text>
+
+      <!-- column: repo -->
+      <rect x="430" y="170" width="300" height="270" rx="10" fill="none" stroke="currentColor" stroke-opacity="0.35" stroke-dasharray="4 5"/>
+      <text x="580" y="196" text-anchor="middle" font-size="13" fill="currentColor" fill-opacity="0.7">프로젝트 저장소 (공유 파일)</text>
+
+      <rect x="460" y="212" width="240" height="80" rx="8" fill="var(--accent-claude-soft)" stroke="var(--accent-claude)" stroke-opacity="0.55"/>
+      <text x="580" y="242" text-anchor="middle" font-size="13" font-weight="600" fill="var(--accent-claude)">상태파일</text>
+      <text x="580" y="260" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity="0.65">지금 뭘 하고 있는지</text>
+
+      <rect x="460" y="318" width="240" height="80" rx="8" fill="var(--accent-app-soft)" stroke="var(--accent-app)" stroke-opacity="0.55"/>
+      <text x="580" y="348" text-anchor="middle" font-size="13" font-weight="600" fill="var(--accent-app)">지시사항.md</text>
+      <text x="580" y="366" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity="0.65">다음에 처리할 지시</text>
+
+      <!-- column: claude.ai -->
+      <rect x="860" y="170" width="260" height="270" rx="10" fill="var(--accent-claude-soft)" stroke="var(--accent-claude)" stroke-opacity="0.55"/>
+      <text x="990" y="200" text-anchor="middle" font-size="14" font-weight="600" fill="var(--accent-claude)">claude.ai</text>
+      <text x="990" y="219" text-anchor="middle" font-size="11.5" fill="currentColor" fill-opacity="0.65">(사용자 브라우저, 새 탭)</text>
+      <text x="990" y="270" text-anchor="middle" font-size="12" fill="currentColor" fill-opacity="0.8">템플릿을 로드해</text>
+      <text x="990" y="288" text-anchor="middle" font-size="12" fill="currentColor" fill-opacity="0.8">실제 작업이</text>
+      <text x="990" y="306" text-anchor="middle" font-size="12" fill="currentColor" fill-opacity="0.8">진행되는 곳</text>
+      <text x="990" y="410" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity="0.55">로그인·구독 한도, 앱과 무관</text>
+
+      <!-- claude.ai -> 상태파일 (write) -->
+      <line x1="860" y1="252" x2="705" y2="252" stroke="var(--accent-claude)" marker-end="url(#arrow)"/>
+      <text x="782" y="243" text-anchor="middle" font-size="11" fill="var(--accent-claude)">④ 기록</text>
+
+      <!-- 상태파일 -> app (read) -->
+      <line x1="455" y1="252" x2="305" y2="252" stroke="var(--accent-claude)" marker-end="url(#arrow)"/>
+      <text x="378" y="243" text-anchor="middle" font-size="11" fill="var(--accent-claude)">⑤ 주기적으로 읽음</text>
+
+      <!-- app -> 지시사항.md (write) -->
+      <line x1="305" y1="358" x2="455" y2="358" stroke="var(--accent-app)" marker-end="url(#arrow)"/>
+      <text x="378" y="349" text-anchor="middle" font-size="11" fill="var(--accent-app)">⑥ 새 지시 기록</text>
+
+      <!-- 지시사항.md -> claude.ai (read) -->
+      <line x1="705" y1="358" x2="855" y2="358" stroke="var(--accent-app)" marker-end="url(#arrow)"/>
+      <text x="782" y="349" text-anchor="middle" font-size="11" fill="var(--accent-app)">⑦ 다음 접속 때 읽음</text>
+
+      <!-- loop label -->
+      <text x="580" y="465" text-anchor="middle" font-size="12" fill="currentColor" fill-opacity="0.55">⑧ ④로 돌아가 반복 — 비동기 루프, 실시간 아님</text>
+
+      <!-- bottom braces -->
+      <path d="M 40 480 h 1080" stroke="currentColor" stroke-opacity="0.15"/>
+      <text x="170" y="510" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity="0.6">화면 · 지시함</text>
+      <text x="580" y="510" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity="0.6">유일한 접점</text>
+      <text x="990" y="510" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity="0.6">실제 작업 · 로그인 · 구독</text>
+    </svg>
+    <figcaption>사용자 → 앱 실행 / claude.ai 로그인(①②) → claude.ai가 상태파일에 기록(④) → 앱이 읽어서 그림(⑤) → 사용자가 입력한 지시는 지시사항.md에 기록(⑥) → claude.ai가 다음 접속 때 읽어 처리(⑦), 반복(⑧). 앱과 claude.ai 사이 직접 선은 없다.</figcaption>
+  </figure>
+
+  <div class="legend">
+    <span><span class="dot" style="background:var(--accent-app)"></span>우리 앱이 다루는 것</span>
+    <span><span class="dot" style="background:var(--accent-claude)"></span>claude.ai가 다루는 것</span>
+    <span><span class="dot" style="background:var(--accent-bridge)"></span>둘 다 거쳐 가는 공유 파일</span>
+  </div>
+
+  <h2>단계별로 보면</h2>
+  <ol class="steps">
+    <li><span>사용자가 앱을 실행하고 <code>Claude Code에서 열기</code> 버튼을 누른다.</span></li>
+    <li><span>새 탭에서 claude.ai가 열리고, 본인 계정으로 <strong>거기서 직접</strong> 로그인한다 — 우리 앱은 이 로그인에 관여하지 않는다.</span></li>
+    <li><span>그 세션에 미리 준비한 템플릿(팀장·팀원 역할이 적힌 CLAUDE.md 등)이 로드되어 실제 작업이 진행된다.</span></li>
+    <li><span>작업하면서 클로드가 프로젝트 저장소에 <code>상태파일</code>을 남긴다 — 지금 뭘 하고 있는지.</span></li>
+    <li><span>우리 앱(뷰어)이 그 저장소를 주기적으로 읽어 픽셀오피스 화면으로 그려준다. <span class="loop-back">클로드와 직접 통신하지 않는다.</span></span></li>
+    <li><span>사용자가 뷰어 화면에서 새 지시를 입력하면, 앱은 그 내용을 <code>지시사항.md</code>에 쓴다.</span></li>
+    <li><span>사용자가 다음에 claude.ai에서 그 프로젝트를 다시 열거나 예약된 시간에 깨어나면, 클로드가 <code>지시사항.md</code>를 읽고 처리한다.</span></li>
+    <li><span>4번으로 돌아가 반복된다. <span class="loop-back">— 비동기 루프이지, 실시간 연결이 아니다.</span></span></li>
+  </ol>
+
+  <div class="callout">
+    <strong>왜 이렇게 복잡한가요?</strong> — Anthropic 정책상 제3자 앱이 claude.ai 로그인을 대신 제공하거나
+    사용자 세션을 원격으로 조작할 방법이 없기 때문입니다. 그래서 "연동"을 만드는 대신, 사용자가 직접 로그인한
+    claude.ai 세션과 우리 앱이 <strong>같은 파일을 각자 읽고 쓰는 것</strong>으로 연결된 것처럼 보이게 만드는 겁니다.
+  </div>
+
+  <p class="note">
+    이 저장소의 nada-group 지시접수함과 원리가 같습니다 — 대시보드가 직접 LLM과 대화하지 않고 접수만 하면,
+    클로드 세션이 비동기로 읽어 처리하는 구조를 여기서도 그대로 씁니다.
+  </p>
+</div>

@@ -100,8 +100,19 @@ export const COMPANIES: Company[] = [
     tagline: "지호 대표 · 사업 아이디어 상담 — 회장이 아이디어를 가져올 때 상의하는 상시 대기 창구, 능동 탐색은 안 함",
     mode: "op",
   },
+  {
+    id: "pocket-crew",
+    name: "GlowHalo 14",
+    tagline: "보람 대표 · PocketCrew(나오만) — 내 클로드 계정으로 실제 돌아가는 AI 팀을 픽셀 오피스로 보고 지시하는 앱, 픽셀 MVP 우선 출시",
+    mode: "op",
+  },
 ];
-// (2026-08-19 정리) "newventure"=pixel-ai-office 프로토타입 카드 제거 — 이 nada-group 콘솔이
+// (2026-08-26, pocket-crew/보람 추가하며 발견) GlowHalo 13(OwnEarth)은 독립 저장소
+// (glowhalo/ownearth)로 이관됐는데(CLAUDE.md 참고) 이 콘솔에 카드가 없다 — Company 타입은
+// mode:"external"+externalUrl로 외부 회사도 카드로 보여줄 수 있게 설계돼 있어서, 의도적 제외가
+// 아니라 이관 당시 이 파일 갱신 단계를 빠뜨린 것으로 보임. 여기서 직접 고치지 않고 기록만
+// 남김 — 처리 주체(HQ 또는 ownearth 세션) 확인 후 진행할 것.
+// (2026-08-19 정리) "newventure"=pixel-ai-office 프로토타입 카드 제거 — 이 glowhalo-hq 콘솔이
 // 그 프로토타입을 대체한 지 오래고, "자리잡으면 정리 예정"이라고 미뤄뒀던 항목. GlowHalo 개명
 // 작업을 기회로 삼아 제거. pixel-ai-office/ 폴더 자체는 역사 기록으로 남겨둠(삭제 아님).
 
@@ -145,6 +156,8 @@ export const ROOMS: Room[] = [
   { id: "c11-panel-room", name: "토론실", companyId: "brief-ai", kind: "meeting" },
 
   { id: "c12-ceo-room", name: "상담실", companyId: "biz-consulting", kind: "ceo" },
+
+  { id: "c14-ceo-room", name: "대표실", companyId: "pocket-crew", kind: "ceo" },
 ];
 
 export type StaffRank = "ceo" | "lead" | "member";
@@ -390,6 +403,17 @@ export const STAFF: Staff[] = [
     task: "회장의 사업 아이디어 상담 대기 중",
   },
 
+  // GlowHalo 14 — PocketCrew(나오만, 2026-08-26 신설, venture-lab/다온에서 분리).
+  {
+    id: "c14-ceo",
+    name: "보람",
+    roleLabel: "CEO",
+    rank: "ceo",
+    companyId: "pocket-crew",
+    roomId: "c14-ceo-room",
+    task: "픽셀 MVP 개발 착수 준비 중",
+  },
+
   // GlowHalo Group 신사업 논의방 — 2026-08-18 신설. 사업 계열사 아님(회장 지시로 번호 없음), 정착하지 않는 게 정체성.
   // 아이디어가 정착해서 실제로 분리되면 그때 번호(GlowHalo 13)가 붙는 정식 계열사가 된다.
   {
@@ -469,7 +493,7 @@ export type ApprovalItem = {
 export const INITIAL_APPROVALS: ApprovalItem[] = [
   { id: "ap1", companyId: "niche-templates", title: "A2 · 웹스토어 등록 결제", detail: "재현 · 회장 액션 필요", needsChairman: true },
   // ap2(A1 2호 상품 공개)·ap3(A5 스티비 계정 생성)는 2026-08-21 정기점검에서 제거 —
-  // ap2는 이미 실제 KV 상태(nada-group-api)에서 예전에 처리·제거돼 있었고,
+  // ap2는 이미 실제 KV 상태(glowhalo-hq-api)에서 예전에 처리·제거돼 있었고,
   // ap3(스티비 계정)는 2026-08-17에 실제로 가입 완료됐고 A5 자체도 2026-08-12 GlowHalo10으로
   // 이관됐다(hq/가입대기.md, niche-templates/candidates.md 참고). 이 배열은 KV가 비어있을 때만
   // 쓰이는 폴백 시드라 실제 화면엔 이미 반영 안 됐었지만, 재시드 시 되살아나지 않도록 정리.

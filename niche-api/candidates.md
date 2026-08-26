@@ -12,7 +12,7 @@
 
 | # | 후보 | 결제/유통 구조 | 자동화 근거 | 검증비용 | 상태 |
 |---|---|---|---|---|---|
-| B1 | 니치 API 프로덕트 (소형 유틸 API 개발·판매) — **2026-08-12 회장 확정, GlowHalo 2 메인 사업** | [RapidAPI Hub](https://rapidapi.com) — 공식 Platform REST API로 리스팅 생성/수정 가능([문서](https://docs.rapidapi.com/docs/creating-updating-apis)), 결제·구독·정산은 RapidAPI가 대행(수수료 25%, Stripe 기반 payout). **RapidAPI가 2024-11 Nokia에 인수돼 브랜드 재편 중이라 단일 의존 리스크 있음** — Zyla API Hub·APILayer·LimitPear 등으로 다변화 진행 ([전략 문서](products/니치API-플랫폼-전략.md)) | API 백엔드는 기존에 쓰던 패턴대로 Cloudflare Worker로 무자본 구현, 등록도 플랫폼별 0원 | 0원 | 🟢 **MVP 프로토타입 완성·배포됨(2026-08-09)** — Link Preview API, 라이브: https://nada-company2-link-preview.tossneon.workers.dev ([상세](products/link-preview-api/README.md)). RapidAPI는 계정 500 에러로 등록 대기(지원 티켓 접수), **Zyla API Hub 등 대체/병행 플랫폼 등록이 다음 우선순위** |
+| B1 | 니치 API 프로덕트 (소형 유틸 API 개발·판매) — **2026-08-12 회장 확정, GlowHalo 2 메인 사업** | [RapidAPI Hub](https://rapidapi.com) — 공식 Platform REST API로 리스팅 생성/수정 가능([문서](https://docs.rapidapi.com/docs/creating-updating-apis)), 결제·구독·정산은 RapidAPI가 대행(수수료 25%, Stripe 기반 payout). **RapidAPI가 2024-11 Nokia에 인수돼 브랜드 재편 중이라 단일 의존 리스크 있음** — Zyla API Hub·API.Market·ApyHub으로 다변화 진행 ([전략 문서](products/니치API-플랫폼-전략.md)) | API 백엔드는 기존에 쓰던 패턴대로 Cloudflare Worker로 무자본 구현, 등록도 플랫폼별 0원 | 0원 | 🟢 **2026-08-25 기준 2개 플랫폼 Live** — Link Preview API, 라이브: https://glowhalo2-link-preview.tossneon.workers.dev ([상세](products/link-preview-api/README.md)). ① **RapidAPI**: "GlowHalo Link Preview API" 게이트웨이 경유 호출 성공 확인(2026-08-23). ② **Zyla API Hub**: "URL Link Preview API"로 2026-08-25 심사 승인·Live 전환(세금정보·정산계좌는 매출 발생 시 제출 예정). **다음 우선순위**: API.Market 리스팅 등록(계정만 있고 아직 미등록), ApyHub 워크스페이스명 개명 요청 회신 대기 |
 
 ### 🔍 신규 후보 — 추가 검증 필요 (2건, 아직 Tier A 확정 아님)
 
