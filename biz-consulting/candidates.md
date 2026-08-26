@@ -18,7 +18,7 @@
 
 | Tier | 후보 | 활용 MCP | 요약 | 판단 |
 |---|---|---|---|---|
-| A | **F1. 해외판 결제 다각화** | PayPal (MCP 커넥터 미연결, **단 계정 자체는 이미 있음**) | `.claude/rules/cloudflare-vault.md` 확인 결과 **PayPal Business 계정(tossneon0)이 2026-08-09부터 이미 존재**하고 Live API 자격증명까지 검증 완료(SendOwl 연동에 사용 중) — 신규 가입 불필요, **claude.ai에서 MCP 커넥터 연결(OAuth 로그인)만 하면 즉시 `create_product`/`create_invoice`로 채팅에서 바로 운영 가능**. 한국-한국 거래는 불가·해외고객 전용이라 A1/A2의 해외 고객층과 궁합 좋음 | niche-templates(A1/A2) 라인에 결제수단 추가 제안. **신규가입 승인 절차 불필요 — 커넥터 연결만 회장이 해주면 바로 착수 가능**, 3개 중 가장 빠른 후보로 격상 |
+| A | **F1. 해외판 결제 다각화** | PayPal (✅ 2026-08-23 커넥터 연결 완료) | `.claude/rules/cloudflare-vault.md` 확인 결과 **PayPal Business 계정(tossneon0)이 2026-08-09부터 이미 존재**하고 Live API 자격증명까지 검증 완료(SendOwl 연동에 사용 중) — 신규 가입 불필요. **2026-08-25 갱신: claude.ai 커넥터 연결까지 끝나 이 세션에도 `mcp__PayPal__*` 툴(list_invoices/list_payment_links 등)이 붙어 즉시 운영 가능함을 확인**(계정원장 아티팩트, 표준계정 전환·국내 IBK 계좌 연결까지 완료). 한국-한국 거래는 불가·해외고객 전용이라 A1/A2의 해외 고객층과 궁합 좋음 | niche-templates(A1/A2) 라인에 결제수단 추가 제안. **✅ 블로커 전부 해소 — 이제 A1/A2 세션이 실제로 PayPal 결제 옵션을 붙이기만 하면 되는 단계** |
 | A | **F2. Canva 편집형 템플릿 상품** | Canva (미연결) | Etsy에 "Canva Template" 카테고리가 이미 검증된 니치(인비테이션·SNS 키트·이력서 등). 채팅으로 디자인 생성→내보내기→Gumroad/Etsy 등록까지 가능할 것으로 보이나, 대량 배치자동화(Autofill)는 Enterprise 필요해 A1처럼 "한 개씩 빠르게" 생산 방식이 됨 | 회장 확인 후 착수 가치 있음. niche-templates A1의 신규 라인으로 편입이 자연스러움(같은 생산·유통 패턴, 매체만 다름) |
 | A | **F3. monday.com 보드 템플릿** | monday.com (미연결) | A1의 "생산성 툴 템플릿 판매" 패턴을 다른 오디언스(PM·스타트업 운영팀)로 재사용. 신규 개발비 거의 0 | niche-templates A1 라인 확장 제안(신규 계열사 불필요) |
 | B | **F4. Resend 이메일 인프라 옵션** | Resend (미연결) | 개발자친화적 이메일 발송 API, 무료티어 넉넉. 단 자체 결제/페이월 기능은 없어 스티비를 완전히 대체하진 못함(발송 전용) | 신규 사업 아님 — newsletter-automation(뉴스레터 플랫폼 비교)에 참고 옵션으로 전달 권장 |
@@ -28,7 +28,7 @@
 | C | F8. TikTok Shop 채널 | AfterShip TikTok Shop (미연결) | 한국 셀러 지원 여부 불확실(주로 미/영/동남아) | 지역 확인 전 착수 불가, 보류 |
 | C | F9. Figma/Adobe/Spotify/Deel/Razorpay 등 | 각 미연결 | Figma·Adobe는 제작 보조엔 유용하나 그 자체 수익모델 없음(Figma) 또는 Canva와 동일한 엔터프라이즈 게이팅 우려(Adobe, 미검증). Spotify는 큐레이터 현금화 API 없음. Deel/Razorpay/Paytm/Gusto는 우리 사업 성격과 불일치 | 전부 배제 |
 
-**다음 액션(회장 확인 필요)**: (1) F1(PayPal)·F2(Canva)·F3(monday.com) 중 진행할 것 선택 — **F1은 계정이 이미 있어 커넥터 연결만 하면 되므로 최우선 후보**, (2) F1은 claude.ai 커넥터 연결(기존 tossneon0 계정 OAuth 로그인)만 필요, F2/F3은 계정 자체가 없어 신규가입 승인부터 필요(2026-08-12 정책), (3) Stripe 전제 관련 위 경고를 다연·이든에게 공유할지 판단 — `hq/가입대기.md`의 GlowHalo 11 Stripe 행에 이 캐비어트를 같이 남기는 것도 제안.
+**다음 액션(2026-08-25 갱신)**: (1) **F1(PayPal)은 2026-08-23 커넥터 연결까지 끝나 완료 — 더 이상 회장 확인 대기 아님**, 남은 건 niche-templates(A1/A2) 쪽이 실제로 결제 옵션에 붙이는 실행 작업뿐. (2) F2(Canva)·F3(monday.com)는 여전히 계정 자체가 없어 신규가입 승인부터 필요 — 회장 확인 대기 유지. (3) Stripe 전제 관련 경고는 이미 `hq/가입대기.md` GlowHalo 11 Stripe 행에 반영돼 있음(확인 완료).
 
 ### 2026-08-13 — Round 2: "Capafy 같은 AI 스킬 판매처" (회장 제안)
 
