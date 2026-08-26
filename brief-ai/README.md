@@ -8,7 +8,7 @@ GlowHalo Group 산하 열한 번째 관계사. **대표: 이든** — 20인 전�
 
 Round 1 승리 아이디어를 그대로 이 회사의 1호 사업으로 확정한다.
 
-**✅ MVP 배포 완료(2026-08-12)**: `https://nada-company11-brief-ai.tossneon.workers.dev` — 회의 텍스트 → 요약/결정사항/액션아이템 자동 추출 API + 랜딩페이지 + 출시 알림 대기자 등록까지 살아있다. Cloudflare Workers AI(`env.AI` 바인딩)로 별도 API 키·계정 가입 없이 무자본으로 시작했다. 상세 설계·테스트 로그는 [`product/brief-ai/README.md`](product/brief-ai/README.md).
+**✅ MVP 배포 완료(2026-08-12)**: `https://brief-ai.glowhalo.org`(2026-08-25 Worker `nada-company11-brief-ai` → `glowhalo11-brief-ai` 개명, KV·시크릿 그대로 이관돼 유실 없음) — 회의 텍스트 → 요약/결정사항/액션아이템 자동 추출 API + 랜딩페이지 + 출시 알림 대기자 등록까지 살아있다. Cloudflare Workers AI(`env.AI` 바인딩)로 별도 API 키·계정 가입 없이 무자본으로 시작했다. 상세 설계·테스트 로그는 [`product/brief-ai/README.md`](product/brief-ai/README.md).
 
 - **아이디어**: Zoom/Google Meet 녹음 파일이나 회의 텍스트를 업로드하면 AI가 요약·결정사항·액션아이템(담당자/기한 포함)을 자동 추출해 Notion/Slack으로 전송하는 구독형 웹 서비스. 개인 프리랜서·소규모 팀 대상으로 월 구독제(예: $9~19/월)로 판매.
 - **왜 유망한가**: 회의록 정리는 지식노동자의 반복 고통점이며, Otter.ai·Fireflies 등 기존 플레이어가 이미 시장을 검증(수백만 사용자)했다. 다만 가격이 높거나(월 $20~30+) UX가 무겁고 "한국어 회의 + Notion 연동 최적화" 같은 니치는 비어 있어 로컬라이즈+특정 워크플로우 특화로 틈새 공략이 가능.
@@ -27,7 +27,7 @@ GlowHalo 9(10인 분석가가 시장을 스캔해 종합)와는 근본적으로 
 1. **20인 전문가 각자 아이디어 제안** — 서로 사전에 의견을 맞추지 않고 독립적으로, 각자 분야에서 신사업 아이디어 1개씩 제안(근거 포함: 왜 유망한가, 왜 우리가 할 수 있는가).
 2. **토론(교차 검증)** — 20명이 서로의 제안을 검토하며 지지/반박한다. GlowHalo 1의 "임원 독립 검토" 원칙과 달리, 여기는 의도적으로 **서로의 의견에 노출시켜 논쟁**하게 한다 — 합의가 아니라 "가장 설득력 있는 하나"를 가려내는 게 목적.
 3. **최다 지지 아이디어 선정** — 다른 19명 중 가장 많은 지지(투표/동의)를 받은 아이디어가 이긴다. 동률이면 회장 리소스 제약(겸업 창업자, 사업자등록 불가, 무자본 우선 등 — `niche-templates/README.md` 참고) 적합도로 재판단.
-4. **대표 취임** — 승리한 아이디어를 낸 전문가(분야)가 이 회사의 정식 대표가 된다. GlowHalo Group CEO 호칭 관례에 맞춰 한글 이름을 부여하고, 이 문서·`CLAUDE.md`·`niche-templates/README.md`의 신설 로그·`nada-group/src/data/holdco.config.ts`를 전부 갱신한다(대표를 선정한 세션이 직접 수행).
+4. **대표 취임** — 승리한 아이디어를 낸 전문가(분야)가 이 회사의 정식 대표가 된다. GlowHalo Group CEO 호칭 관례에 맞춰 한글 이름을 부여하고, 이 문서·`CLAUDE.md`·`niche-templates/README.md`의 신설 로그·`glowhalo-hq/src/data/holdco.config.ts`를 전부 갱신한다(대표를 선정한 세션이 직접 수행).
 5. 그 뒤로는 다른 계열사와 동일하게 운영 — 대표가 자율적으로 실행하고, 예산·승인 원칙은 `niche-templates/README.md`를 따른다.
 
 ### 20인 전문가 분야 (Round 1 실제 구성)

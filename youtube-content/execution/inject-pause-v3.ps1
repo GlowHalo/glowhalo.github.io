@@ -20,6 +20,12 @@ param(
 #      separator would silently produce broken json)
 #   4. the result is re-parsed and the pause count is compared with the
 #      expected count - a mismatch throws instead of shipping a bad file
+#
+# v3.1 (2026-08-25): image is now chosen per SCRIPT BLOCK (blank-line separated),
+# not per line. The old rule ("image of the clip the line's first word came
+# from") made the picture flip in the middle of a scene whenever Vrew's own
+# clip split did not line up with the script. Now every line of one block
+# shows the same image - the one most of that block's words came from.
 # ASCII only on purpose: a .ps1 without a BOM is read with the system ANSI
 # codepage by Windows PowerShell 5.1, so non-ascii text here is unsafe.
 
@@ -43,7 +49,16 @@ $j = $raw | ConvertFrom-Json
 
 # ------------------------------------------------- read + parse the script
 $allLines = @([System.IO.File]::ReadAllLines($Script, [System.Text.Encoding]::UTF8))
-$lines = @($allLines | Where-Object { $_.Trim() -ne '' })
+$lines = New-Object System.Collections.ArrayList
+$blockOf = New-Object System.Collections.ArrayList
+[int]$blk = 0
+[bool]$prevBlank = $true
+foreach ($ln in $allLines) {
+  if ($ln.Trim() -eq '') { $prevBlank = $true; continue }
+  if ($prevBlank) { $blk++ ; $prevBlank = $false }
+  [void]$lines.Add($ln)
+  [void]$blockOf.Add($blk)
+}
 
 $rx = New-Object System.Text.RegularExpressions.Regex('^(.*?)<([0-9]+)>$')
 $plan = New-Object System.Collections.ArrayList   # one entry per line
@@ -66,7 +81,7 @@ foreach ($line in $lines) {
   }
   [void]$plan.Add(@{ bares=$bares; wants=$wants })
 }
-Write-Host ("[i] script lines {0}, markers request {1} pauses, vrew clips {2}" -f $lines.Count, $wantTotal, $j.transcript.clips.Count)
+Write-Host ("[i] script lines {0} in {1} blocks, markers request {2} pauses, vrew clips {3}" -f $lines.Count, $blk, $wantTotal, $j.transcript.clips.Count)
 
 # ------------------------------------------------------ flatten the words
 $stream = New-Object System.Collections.ArrayList
@@ -113,7 +128,7 @@ function PauseJson($id, $dur, $odur, $ostart, $assetId) {
 # ------------------------------------------------------------- rebuild
 $sceneId = $j.transcript.clips[0].sceneId
 $newAssets = ''; $newTracks = ''
-$clipJsons = New-Object System.Collections.ArrayList
+$clipData = New-Object System.Collections.ArrayList
 [int]$si = 0
 [int]$warn = 0
 [int]$inserted = 0
@@ -125,7 +140,8 @@ for ($li = 0; $li -lt $plan.Count; $li++) {
   $wants = $plan[$li].wants
   $wordJsons = New-Object System.Collections.ArrayList
   $capParts  = New-Object System.Collections.ArrayList
-  $imgA = $null; $bgmA = $null
+  $imgSeq = New-Object System.Collections.ArrayList
+  $bgmA = $null
   [int]$linePause = 0
 
   for ($ti = 0; $ti -lt $bares.Count; $ti++) {
@@ -145,7 +161,7 @@ for ($li = 0; $li -lt $plan.Count; $li++) {
     $cmpA = $bare -replace "[',.!?]", ''
     $cmpB = $w.text -replace "[',.!?]", ''
     if ($cmpA -ne $cmpB) { Write-Host ("[!] line {0}: '{1}' vs '{2}'" -f ($li+1), $bare, $w.text) -ForegroundColor Yellow; $warn++ }
-    if (-not $imgA) { $imgA = $e.img }
+    if ($e.img) { [void]$imgSeq.Add($e.img) }
     if (-not $bgmA) { $bgmA = $e.bgm }
     [void]$capParts.Add($bare)
     [void]$wordJsons.Add(('{"id":"' + $w.id + '","text":"' + (Esc $bare) + '","playbackRate":1,"duration":' + (Num $w.duration) +
@@ -176,16 +192,43 @@ for ($li = 0; $li -lt $plan.Count; $li++) {
   }
 
   [void]$wordJsons.Add(('{"id":"' + (New-Id) + '","text":"","playbackRate":1,"duration":0,"aligned":false,"type":2,"originalDuration":0,"originalStartTime":0,"truncatedWords":[],"assetIds":[]}'))
-  $capText = Esc (($capParts -join ' '))
-  $aids = @(); if ($imgA) { $aids += ('"' + $imgA + '"') }; if ($bgmA) { $aids += ('"' + $bgmA + '"') }
-  $clip = '{"sceneId":"' + $sceneId + '","words":[' + ($wordJsons -join ',') + '],"captionMode":"MANUAL","captions":[{"text":[{"insert":"' + $capText + '\n"}]},{"text":[{"insert":"\n"}]}],"assetIds":[' + ($aids -join ',') + '],"dirty":{"blankDeleted":false,"caption":false,"video":false},"translationModified":{"result":false,"source":false},"id":"' + (New-Id) + '"}'
-  [void]$clipJsons.Add($clip)
+  [void]$clipData.Add(@{ words=($wordJsons -join ','); cap=(Esc (($capParts -join ' '))); bgm=$bgmA; imgs=$imgSeq; block=$blockOf[$li] })
   [void]$report.Add(('    line {0,2}: pauses {1}' -f ($li+1), $linePause))
+}
+
+# ---- one image per script block: the one most of the block's words came from
+$blockSeq = @{}
+foreach ($cd in $clipData) {
+  $b = [string]$cd.block
+  if (-not $blockSeq.ContainsKey($b)) { $blockSeq[$b] = New-Object System.Collections.ArrayList }
+  foreach ($id in $cd.imgs) { [void]$blockSeq[$b].Add($id) }
+}
+$blockImg = @{}
+foreach ($b in @($blockSeq.Keys)) {
+  $seq = $blockSeq[$b]
+  $bestId = $null; [int]$bestN = -1
+  $doneIds = New-Object System.Collections.ArrayList
+  foreach ($id in $seq) {
+    if ($doneIds.Contains($id)) { continue }
+    [void]$doneIds.Add($id)
+    [int]$n = 0
+    foreach ($x in $seq) { if ($x -eq $id) { $n++ } }
+    if ($n -gt $bestN) { $bestN = $n; $bestId = $id }
+  }
+  $blockImg[$b] = $bestId
+}
+$usedImgs = New-Object System.Collections.ArrayList
+$clipJsons = New-Object System.Collections.ArrayList
+foreach ($cd in $clipData) {
+  $imgA = $blockImg[[string]$cd.block]
+  if ($imgA -and -not $usedImgs.Contains($imgA)) { [void]$usedImgs.Add($imgA) }
+  $aids = @(); if ($imgA) { $aids += ('"' + $imgA + '"') }; if ($cd.bgm) { $aids += ('"' + $cd.bgm + '"') }
+  [void]$clipJsons.Add('{"sceneId":"' + $sceneId + '","words":[' + $cd.words + '],"captionMode":"MANUAL","captions":[{"text":[{"insert":"' + $cd.cap + '\n"}]},{"text":[{"insert":"\n"}]}],"assetIds":[' + ($aids -join ',') + '],"dirty":{"blankDeleted":false,"caption":false,"video":false},"translationModified":{"result":false,"source":false},"id":"' + (New-Id) + '"}')
 }
 
 # any silence left over after the last word
 while ($si -lt $stream.Count -and $stream[$si].w.type -eq 1) { $si++ }
-Write-Host ("[i] rebuilt clips: {0}, pauses inserted: {1}" -f $clipJsons.Count, $inserted)
+Write-Host ("[i] rebuilt clips: {0}, pauses inserted: {1}, images used: {2}" -f $clipJsons.Count, $inserted, $usedImgs.Count)
 
 # ------------------------------------------------------------ splice json
 $s1 = $raw.IndexOf('"clips":[')

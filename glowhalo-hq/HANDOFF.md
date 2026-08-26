@@ -1,7 +1,14 @@
 # GlowHalo Group HQ 진행 상황 핸드오프
 
-새 세션에서 이어서 작업할 때 이 파일부터 읽으세요. (`git log --oneline -- nada-group`로 실제
+새 세션에서 이어서 작업할 때 이 파일부터 읽으세요. (`git log --oneline -- glowhalo-hq`로 실제
 변경 이력도 같이 훑어보면 좋습니다. 2026-08-08 이전 커밋은 폴더명이 `holdco`였습니다.)
+
+> **(2026-08-25, 3차) `nada-group/` → `glowhalo-hq/`로 재개명, 라이브 URL·Worker·문서 참조 전부 갱신.**
+> 2026-08-19 GlowHalo 전면개명 때 폴더 안 내용(회사명 등)만 고치고 **폴더 경로·라이브 URL·Worker
+> 이름 자체는 빠뜨렸던 것**을 오늘 발견해서 마저 정리(`hq/decisions/2026-08-19-glowhalo-전면개명.md`
+> 참고). 아래 본문(1차·2차 기록)의 `nada-group`/`holdco` 표기는 그 시점 기록이라 그대로 두되,
+> 실제 코드·라이브 주소는 전부 `glowhalo-hq`로 갱신됨 — 라이브: `https://glowhalo.github.io/glowhalo-hq/play/`,
+> Worker: `glowhalo-hq-api`(KV 네임스페이스 ID는 그대로라 기존 승인/지시 데이터 유실 없음).
 
 > **(2026-08-08, 2차) 회장님 피드백 9건 반영 — 디자인 결정 1번(다크 테마)은 이번에 뒤집힘.**
 > - **라이트 테마로 전환.** 아래 "확정된 디자인 결정 1번"이 "다크 테마"였는데, 실사용해보니
