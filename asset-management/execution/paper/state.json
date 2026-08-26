@@ -3,34 +3,34 @@
   "strategy": "v2: MA20 filter + vol-breakout k=0.5, stop -3%",
   "markets": {
     "KRW-BTC": {
-      "equity": 1.049118,
-      "trades": 4,
+      "equity": 1.031963,
+      "trades": 5,
       "wins": 3,
-      "settled_until": "2026-08-24"
+      "settled_until": "2026-08-25"
     },
     "KRW-ETH": {
       "equity": 1.156002,
       "trades": 3,
       "wins": 2,
-      "settled_until": "2026-08-24"
+      "settled_until": "2026-08-25"
     },
     "KRW-XRP": {
-      "equity": 0.909853,
-      "trades": 3,
+      "equity": 0.881648,
+      "trades": 4,
       "wins": 0,
-      "settled_until": "2026-08-24"
+      "settled_until": "2026-08-25"
     },
     "KRW-DOGE": {
-      "equity": 0.909853,
-      "trades": 3,
+      "equity": 0.881648,
+      "trades": 4,
       "wins": 0,
-      "settled_until": "2026-08-24"
+      "settled_until": "2026-08-25"
     },
     "KRW-SOL": {
-      "equity": 1.02089,
-      "trades": 7,
+      "equity": 0.989242,
+      "trades": 8,
       "wins": 2,
-      "settled_until": "2026-08-24"
+      "settled_until": "2026-08-25"
     }
   },
   "last_settled": null,
@@ -40,35 +40,35 @@
       "equity": 1.0,
       "trades": 0,
       "wins": 0,
-      "settled_until": "2026-08-24"
+      "settled_until": "2026-08-25"
     },
     "KRW-ETH": {
       "pos": 2660000.0,
       "equity": 1.0,
       "trades": 0,
       "wins": 0,
-      "settled_until": "2026-08-24"
+      "settled_until": "2026-08-25"
     },
     "KRW-XRP": {
       "pos": 1997.0,
       "equity": 1.0,
       "trades": 0,
       "wins": 0,
-      "settled_until": "2026-08-24"
+      "settled_until": "2026-08-25"
     },
     "KRW-DOGE": {
       "pos": 125.0,
       "equity": 1.0,
       "trades": 0,
       "wins": 0,
-      "settled_until": "2026-08-24"
+      "settled_until": "2026-08-25"
     },
     "KRW-SOL": {
       "pos": 107100.0,
       "equity": 0.985928,
       "trades": 1,
       "wins": 0,
-      "settled_until": "2026-08-24"
+      "settled_until": "2026-08-25"
     }
   }
 }
