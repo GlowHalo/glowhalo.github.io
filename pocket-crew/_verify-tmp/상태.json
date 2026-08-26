@@ -1,0 +1,8 @@
+{
+  "updatedAt": "2026-08-26T12:00:00.000Z",
+  "team": { "label": "검증용 사무실" },
+  "employees": [
+    { "id": "strategist", "role": "전략가", "status": "idle", "task": "대기 중" }
+  ],
+  "hasPendingInstruction": false
+}
