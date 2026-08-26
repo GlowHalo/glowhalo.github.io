@@ -37,3 +37,14 @@ GlowHalo Group 산하 열두 번째 관계사. 대표: **지호** (2026-08-12 �
 **전 세션에서 회장 확인 대기 중이던 것**: PayPal MCP 커넥터 연결(tossneon0 계정) 필요, F2(Canva 템플릿)·F3(monday.com) 진행 여부 확인, Stripe 한국 계정 개설 불가 경고 공유 확인
 
 **2026-08-17 추가 — 회장이 사업 아이디어를 들고 왔을 때 참고할 스킬 2개 생김.** HQ가 외부 자료(MARGIN AI 「24시간 AI 비서 30명」) 검토 중 도출해 표준 스킬로 만들었다: [`product-idea-mining`](../.claude/skills/product-idea-mining/SKILL.md)("이게 진짜 팔릴 만한 문제인가" 판단 보조), [`lead-magnet-pdf`](../.claude/skills/lead-magnet-pdf/SKILL.md)(무료 자료로 최소 비용 반응 검증). 경위는 [`hq/AI비서30-백로그.md`](../hq/AI비서30-백로그.md) 참고.
+
+## 🔄 세션 인계 갱신 (2026-08-25) — 위 2026-08-15 대기 목록 중 해소된 것 반영
+
+**GitHub 저장소가 `glowhalo/glowhalo.github.io`로, 그룹 표기가 GlowHalo Group/GlowHalo N으로 전면 개명**됐다(2026-08-19, `hq/공지사항.md`가 이런 크로스컷팅 변경사항의 정본이니 새 세션은 항상 먼저 확인할 것). 표준 자동화 계정은 이메일 `tossneon0@gmail.com` 그대로 유지, displayName만 `nadacompany`→`glowhalo`.
+
+- **F1(PayPal) — ✅ 완전 해결.** claude.ai 커넥터 연결·PayPal Business 계정(표준계정 전환·국내 IBK 계좌 연결)까지 전부 끝났고, 이 세션에도 `mcp__PayPal__*` 툴이 붙어있어 `list_invoices`/`list_payment_links` 등으로 바로 운영 가능함을 확인(계정원장 아티팩트 `PayPal Business` 행, 2026-08-23 확정). **"한국에선 일부 도구 이용 불가" 배너가 있지만 인보이스/결제링크 등 핵심 기능엔 지장 없다고 판단됨** — 더 이상 대기 항목 아님, F1은 niche-templates(A1/A2) 쪽에 실제 결제수단으로 제안 가능한 단계로 넘어갔다.
+- **F2(Canva)·F3(monday.com)** — 계정원장에 아직 항목 자체가 없음(신규가입 미착수). 회장 판단 여전히 필요.
+- **Facer(워치페이스, Round 3)** — 여전히 회장 직접 가입 대기(reCAPTCHA 봇탐지). 계정원장에도 동일하게 기록돼 있어(2026-08-25 확인) 상태 일치 — displayName은 `glowhalo`로.
+- **Capafy(Round 2)** — 여전히 매직링크 승인 대기, 상태 변화 없음.
+- **계정/키는 그룹 공용 자원** — PayPal Business·Cloudflare·표준계정 등은 HQ가 전 계열사 몫으로 관리하는 공용 자산이다(`hq/계정통합리스트-2026-08-20.md` 등). GlowHalo 12가 새 후보를 검토할 때 "이미 있는 그룹 계정으로 되는지"부터 확인하고, 신규 계정이 필요하면 회장에게 요청하되 다른 계열사도 재사용할 수 있게 표준계정 규칙을 따라 만든다.
+- 계정 상태의 정본은 이제 `hq/계정통합리스트-2026-08-20.md`(스냅샷)가 아니라 **계정원장 아티팩트**(`https://claude.ai/code/artifact/a0f2fb08-bd6b-4138-a675-769c7a665674`)다 — 다음 세션은 이걸 우선 확인할 것.

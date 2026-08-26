@@ -84,7 +84,7 @@ shot?) at the same time. If it doesn't close, the Precedent question answers its
 **Board prompt of the week**
 
 "Separate the Decision from the Relationship" — full prompt is one of the 15 in the
-[AI Board of Directors](https://nadacompany.gumroad.com/l/ai-board-of-directors) pack, for readers
+[AI Board of Directors](https://glowhalo.gumroad.com/l/ai-board-of-directors) pack, for readers
 who want a standing board of AI advisors for calls like this one, not just this week's.
 
 ---

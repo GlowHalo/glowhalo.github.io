@@ -1,15 +1,15 @@
 /**
- * nada-group-api — GlowHalo Group HQ 대시보드의 승인/지시/실행로그 상태를 저장하는 아주 작은 Worker.
+ * glowhalo-hq-api — GlowHalo Group HQ 대시보드의 승인/지시/실행로그 상태를 저장하는 아주 작은 Worker.
  *
  * 지금까지는 화면(React useState)에만 있어서 새로고침하면 초기값으로 리셋됐다(Phase 1 한계,
- * nada-group/HANDOFF.md 참고). 이 Worker + KV 하나로 그 상태를 실제로 남긴다.
+ * glowhalo-hq/HANDOFF.md 참고). 이 Worker + KV 하나로 그 상태를 실제로 남긴다.
  *
  * 라우트:
  *   GET  /state        → 전체 상태 JSON (approvals/instructions/executionLog). 인증 불필요 — 읽기는 공개.
  *   PUT  /state         → 전체 상태를 통째로 덮어씀 (body = GET과 같은 모양의 JSON). 인증 필요.
  *
  * 인증: 쓰기(PUT)만 `Authorization: Bearer <WRITE_TOKEN>` 요구. 토큰은 계정 공용 금고
- * (tossneon-api-vault, 이름: nada_group_dashboard_write_token)에 등록돼 있다 —
+ * (tossneon-api-vault, 이름: glowhalo_hq_dashboard_write_token)에 등록돼 있다 —
  * .claude/rules/cloudflare-vault.md 참고. 읽기는 그냥 대시보드 보여주는 거라 공개해도 무방.
  *
  * KV 값이 아직 없으면(최초 배포 직후) 404를 주고, 화면(App.tsx)은 로컬 기본값(INITIAL_*)을
