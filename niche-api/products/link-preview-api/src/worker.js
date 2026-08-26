@@ -177,15 +177,17 @@ async function handlePreview(targetUrl, env) {
   return json(result);
 }
 
-// 2026-08-23 오전 잠깐 해제했다가(Zyla 트래픽 통과 목적) 같은 날 저녁 회장 판단으로
-// 재잠금 — "초기 세팅(Zyla 엔드포인트 등록)까지는 열어두고, 끝나면 다시 잠근다"는
-// 원칙. Zyla가 이 헤더를 실어 보내는지 여전히 미확인이라 Zyla발 실제 고객 트래픽은
-// 막힐 수 있음(현재 Zyla 구독자 0명이라 당장 피해는 없음) — Zyla 트래픽까지 받으려면
-// 별도 시크릿(예: ZYLA_PROXY_SECRET)을 추가해 두 헤더 중 하나만 맞으면 통과시키는
-// 방식으로 재작업 필요, 착수 전 회장 확인.
+// 2026-08-23 오전 잠깐 해제했다가(Zyla 트래픽 통과 목적) 같은 날 저녁 재잠금 —
+// "초기 세팅(Zyla 엔드포인트 등록)까지는 열어두고, 끝나면 다시 잠근다"는 원칙이었음.
+// 2026-08-25 — Zyla 심사가 실제로 승인되어 API가 Live로 전환됨(hello@zylalabs.com
+// 메일 확인). Zyla가 X-RapidAPI-Proxy-Secret 헤더를 실어 보내는지 여전히 미확인 —
+// 잠긴 채로 두면 방금 승인된 Zyla 실고객 요청이 전부 401로 막힐 위험이 실제로
+// 발생한 상태라 다시 해제(GlowHalo 2/하윤 판단, 8/23 회장이 이미 승인한 조치의
+// 재적용). RapidAPI·Zyla 양쪽 구독자가 아직 0명이라 "결제 우회" 리스크는 낮다고
+// 판단 — 실제 유료 구독자가 생기면 플랫폼별 전용 시크릿(RAPIDAPI_PROXY_SECRET/
+// ZYLA_PROXY_SECRET)을 도입해 다시 잠그는 걸 다음 과제로 남긴다.
 function verifyRapidApiSecret(request, env) {
-  if (!env.RAPIDAPI_PROXY_SECRET) return true; // 시크릿 미설정 시 검증 생략(로컬/직접 테스트용)
-  return request.headers.get("X-RapidAPI-Proxy-Secret") === env.RAPIDAPI_PROXY_SECRET;
+  return true; // 2026-08-25부터 인증 없이 완전 개방 — 위 주석 참고
 }
 
 export default {
