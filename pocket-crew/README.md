@@ -66,6 +66,11 @@
 - `candidates.md` — 신규 기능/방향 아이디어 로그(Living Doc). 지금은 파킹된 "3D 미니어처 타일" 하나만 있음.
 - `재무.md` — 아직 출시 전이라 매출 0원. 매출·지출 발생 즉시 기록.
 - `design/` — 확정된 화면 목업·아키텍처 다이어그램·3D 프로토타입 원본(발행 당시 스냅샷). 최신 버전은 각 파일을 다시 Artifact로 발행해 갱신할 것.
+- `app/` — **실제 동작하는 픽셀 MVP 웹앱**(정적 HTML/CSS/JS, 빌드 단계 없음). 배포: [`glowhalo.github.io/pocket-crew/app/`](https://glowhalo.github.io/pocket-crew/app/). 구조:
+  - `js/data.js` — 데이터 스키마(역할 프리셋 등) + GitHub REST API 래퍼 + localStorage 상태 저장
+  - `js/office-render.js` — **오피스 씬 렌더러, 데이터만 받아 화면을 그린다** (방/데스크 좌표 하드코딩 없음 — 3D 렌더러를 얹을 때 이 입력 구조를 그대로 재사용하기 위한 설계, README 로드맵 원칙 그대로 반영)
+  - `js/main.js` — S0~S7 화면 흐름 라우터 + 이벤트 처리
+  - `templates/` — 사용자 저장소에 커밋되는 파일 원본(CLAUDE.md·README.md·지시사항.md)
 
 ## 진행 상황 (2026-08-26 기준)
 
@@ -76,4 +81,12 @@
 - [x] 3D 실현 가능성 조사 + 프로토타입 완성(로드맵상 2차 과제로 확정)
 - [x] 정식 네이밍 확정(PocketCrew / 나오만)
 - [x] venture-lab에서 분리, GlowHalo 14로 신설
-- [ ] 픽셀 MVP 실제 개발 착수 (다음 단계)
+- [x] **픽셀 MVP 1차 개발 완료** — `app/`에 실제 동작하는 정적 웹앱. S0~S7 전체 흐름(GitHub 연결→팀 만들기→직원 고용→저장소 생성→딥링크→오피스 뷰어→지시 남기기)이 진짜 GitHub API 호출로 동작한다. 배포: [`glowhalo.github.io/pocket-crew/app/`](https://glowhalo.github.io/pocket-crew/app/)
+- [ ] **실제 GitHub 계정으로 엔드투엔드 검증** — 이번 개발은 목업 응답으로 UI 흐름만 검증했고, 진짜 PAT로 저장소 생성→커밋→claude.ai 딥링크까지는 아직 안 해봄. 다음 세션이 회장님 GitHub 계정(또는 새 테스트 계정)으로 한 번 직접 통과시켜볼 것.
+- [ ] OAuth로 전환 검토 (아래 "개발 중 결정" 참고, 지금은 PAT 방식으로 v1 출시)
+
+## 개발 중 결정 (2026-08-26)
+
+- **S1 GitHub 연결 방식을 "표준 OAuth 팝업" 대신 "사용자가 직접 발급한 Personal Access Token(classic, repo 권한) 붙여넣기"로 구현.** 이유: OAuth 인가코드→토큰 교환에는 client_secret을 숨길 백엔드(Cloudflare Worker)가 필요한데, PAT 방식은 브라우저 fetch만으로 GitHub REST API(CORS 지원)를 직접 호출할 수 있어 백엔드 없이 픽셀 MVP를 오늘 바로 동작시킬 수 있었다. UI상 S1 화면 하나만 다르고 S2 이후 로직(저장소 생성, 파일 커밋, 상태 폴링)은 완전히 동일하므로, 나중에 정식 OAuth 앱 + Worker를 붙여도 이 화면만 교체하면 된다.
+- **"템플릿 저장소에서 generate" 대신 "빈 저장소 생성 + Contents API로 파일 직접 커밋" 방식 채택.** 진짜 GitHub 템플릿 저장소(별도 공개 repo, `is_template` 설정)를 아직 만들지 않았고, 이 세션의 GitHub 접근 권한이 이 모노레포로 제한돼 있어 새 저장소를 만들어 검증하기 어려웠다. 대신 `app/templates/`(CLAUDE.md·README.md·지시사항.md)를 앱이 fetch해서 사용자 저장소에 바로 커밋하는 방식으로 구현 — 결과물은 동일하고, 나중에 진짜 템플릿 저장소로 바꿔도 이 파일들을 그대로 옮기면 된다.
+- **저장소 이름은 영문 슬러그 자동 생성(`office-xxxxxx`), 팀 이름(한글 가능)은 별도 필드로 분리.** GitHub 저장소 이름의 유니코드 지원 범위가 불확실해 리스크를 피했다. 목업(`design/pixel-journey/TeamSetup.dc.html`)의 "하윤의-사무실" 같은 한글 슬러그는 채택하지 않음.
