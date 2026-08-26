@@ -68,8 +68,9 @@ paths:
 
 - **SMTP(nodemailer)는 이 실행환경에서 원천 불가능.** 465/587 포트가 세션 프록시 정책상 막혀 있어(`ETIMEDOUT`) 계정을 바꿔도 안 되는 구조적 제약 — 로컬 Playwright가 프록시에서 막히는 것과 같은 부류의 문제(비-443 포트는 프록시가 지원 안 함). 그래서 **HTTPS(443) 기반인 Resend API**로 전환해서 실제 발송 확인 완료.
 - 자격증명: 금고의 `resend_api_key`(발급된 API 키), `resend_login_email`/`resend_login_password`(대시보드 로그인용, `tossneon0@gmail.com` 표준 계정). `.env`엔 `RESEND_API_KEY`/`SENDER_NAME`/`SENDER_EMAIL`.
-- **⚠️ 도메인 인증 전엔 계정 소유자 본인 이메일(`tossneon0@gmail.com`)에만 발송 가능.** `onboarding@resend.dev` 발신 주소는 Resend의 샌드박스 제한이라 실제 고객(임의 이메일) 발송 시 `403 validation_error`가 난다 — **실제 서비스 오픈 전 반드시 커스텀 도메인을 resend.com/domains에서 인증**해야 함. 아직 Reflect Lab 전용 도메인이 없어서 이건 다음 단계 결정 필요(도메인 구매 여부 회장 확인 대기).
-- 파이프라인 검증: `tossneon0@gmail.com`으로 실제 첨부파일 발송 성공 확인(2026-08-12).
+- **⚠️ 도메인 인증 전엔 계정 소유자 본인 이메일(`tossneon0@gmail.com`)에만 발송 가능.** `onboarding@resend.dev` 발신 주소는 Resend의 샌드박스 제한이라 실제 고객(임의 이메일) 발송 시 `403 validation_error`가 난다 — **실제 서비스 오픈 전 반드시 커스텀 도메인을 resend.com/domains에서 인증**해야 함.
+  - **✅ 2026-08-25 확인 — 더 이상 블로커 아님.** GlowHalo Group 공용 도메인 `glowhalo.org`의 발신 서브도메인 `send.glowhalo.org`가 Resend에 `verified`(발송 가능) 상태로 인증 완료돼 있다(Reflect Lab 전용 도메인은 별도로 구매하지 않음 — HQ 공용 자산을 그대로 씀, `assessment-products/README.md` 참고). 실제 서비스 오픈 시 `.env`의 `SENDER_EMAIL`을 `debrief@send.glowhalo.org` 형태로 설정하면 된다(`onboarding@resend.dev` 샌드박스 주소는 이제 안 써도 됨).
+- 파이프라인 검증: `tossneon0@gmail.com`으로 실제 첨부파일 발송 성공 확인(2026-08-12) — 커스텀 도메인 인증 이후 재검증은 아직 안 했으므로, 실제 서비스 오픈 전 `send.glowhalo.org` 발신으로 한 번 더 테스트 발송해볼 것.
 
 ## 디브리핑 설계
 
