@@ -8,14 +8,14 @@
 
 ### 새로 넘겨받는 세션이 알아야 할 것
 - **지금 뭘 하면 되나**: 아래 "수동 브릿지 — `/seed` 폼" 섹션대로, 회장이 쿠팡파트너스 대시보드에서 만든 딥링크+상품명을 폼에 붙여넣으면 바로 채널에 게시된다 — 담당이 바뀌어도 이 흐름은 그대로 유지하면 된다.
-- **인프라 소유권**: Cloudflare Worker(`nada-company2-coupang-dealbot`)와 KV(`DEALBOT_KV`)는 그룹 공용 Cloudflare 계정(`tossneon-api-vault`와 동일 계정) 안에 있어 **이관해도 재배포 불필요** — `wrangler.toml`의 `name` 그대로 두고 이 폴더(`niche-api/products/coupang-dealbot/`)를 새 계열사 폴더로 옮기거나 그대로 참조만 해도 된다. 옮길 경우 이 저장소 안에서 폴더 이동(`git mv`)만 하면 배포 URL은 안 바뀐다.
+- **인프라 소유권**: Cloudflare Worker(`glowhalo7-coupang-dealbot`)와 KV(`DEALBOT_KV`)는 그룹 공용 Cloudflare 계정(`tossneon-api-vault`와 동일 계정) 안에 있어 **이관해도 재배포 불필요** — `wrangler.toml`의 `name` 그대로 두고 이 폴더(`niche-api/products/coupang-dealbot/`)를 새 계열사 폴더로 옮기거나 그대로 참조만 해도 된다. 옮길 경우 이 저장소 안에서 폴더 이동(`git mv`)만 하면 배포 URL은 안 바뀐다.
 - **필요한 자격증명(전부 금고 등록됨, 값은 아래 "예산" 위 참고 말고 `$VAULT_URL/secrets/<name>`으로 직접 조회)**:
   - `discord_login_email` / `discord_login_password` — 디스코드 "나다특가" 서버 로그인
   - `discord_webhook_url` — 게시용 웹훅(Worker에 이미 시크릿으로 등록돼 있어 재조회 불필요, 계정 자체를 다룰 때만 필요)
   - `coupang_partners_id` (`AF1905643`), `coupang_partners_login_email` / `coupang_partners_login_password` — 쿠팡파트너스 대시보드 로그인(딥링크 생성용)
   - `coupang_dealbot_seed_key` — `/seed` 폼 접근키
   - `telegram_bot_token` / `telegram_channel_id` — 텔레그램 병행 채널용(아래 "남은 이슈" 참고, 아직 미완성)
-- **미해결 이슈 1건**: 텔레그램 봇(`@nada_dealbot`)이 `나다특가` 채널 관리자로 아직 등록 안 됨(`403 Forbidden: bot is not a member`) — 회장이 봇 사용자명 `nada_dealbot`(한글 표시이름 아님)으로 정확히 검색해 채널 관리자 추가하면 해결될 것으로 보이나 최종 확인 안 됨. 지금은 디스코드만 라이브 채널이라 급하지 않음.
+- **미해결 이슈 1건 — 텔레그램 봇/채널 재설정 중**: 옛 봇(`@nada_dealbot`)·채널(`나다특가`/`@nadadeal`, chat id `-1003769093571`)은 2026-08-25 Bot API로 정상 작동까지 확인했었으나(관리자 등록만 남은 상태였음), 같은 날 회장이 텔레그램 계정을 재가입하면서 매칭이 끊겨 새로 세팅해야 하는 상태. **새 `telegram_bot_token`/`telegram_channel_id`를 금고에 등록해주면(또는 도현에게 값을 전달하면) Worker 시크릿 재등록 → Bot API 연결 확인 → 채널 관리자 등록까지 바로 이어서 처리 가능** — 코드(`publishToTelegram()`)는 이미 구현·검증된 상태라 채널만 다시 붙이면 됨. 지금은 디스코드만 라이브 채널이라 급하지 않음.
 - **다음 자연스러운 마일스톤**: 누적 매출 15만원 도달 → 쿠팡파트너스 Open API 개방 → `src/worker.js`의 `fetchCoupangDeals`/`toDeepLink` (`NOT_IMPLEMENTED` 상태) 구현 → `runDealBotCycle` 완전자동 전환. 그 전까지는 `/seed` 수동 브릿지 운영만 하면 됨.
 - **하지 말아야 할 것**: 쿠팡 사이트에 대한 브라우저 자동화/서버사이드 fetch 재시도 — 아래 "왜 수동 브릿지로 가는가" 섹션에 정리된 대로 WAF+애플리케이션단 이중 차단을 이미 확인했다. 다시 시도해도 같은 결과이니 시간 낭비하지 말 것.
 
@@ -50,7 +50,7 @@
 
 15만원 넘기 전까지, 회장이 대시보드에서 딥링크를 만들 때 **딥링크 + 상품명(+선택: 가격/할인율, 이미지 URL)을 폼에 붙여넣기만 하면** 나머지(중복방지·포맷팅·디스코드 게시)는 전부 자동이다.
 
-- **접속**: `https://nada-company2-coupang-dealbot.tossneon.workers.dev/seed?key=<금고의 coupang_dealbot_seed_key>` — 회장 브라우저에 북마크해두고 매번 그 링크로 들어가면 됨.
+- **접속**: `https://glowhalo7-coupang-dealbot.tossneon.workers.dev/seed?key=<금고의 coupang_dealbot_seed_key>` — 회장 브라우저에 북마크해두고 매번 그 링크로 들어가면 됨.
 - 상품명 자동 추출은 **시도했으나 포기** — 위 WAF 조사 결과대로 Worker의 서버사이드 fetch도 막혀서, 회장이 상품 페이지를 보고 있는 김에 제목을 같이 복사해오는 방식으로 확정(필드 하나 늘어나는 정도, 여전히 "복붙 수준").
 - 같은 링크는 3일 내 중복 게시 방지(KV).
 - 실제 게시 검증 완료(테스트 게시물이 `#특가-딜`에 정상 도착 확인).
@@ -69,7 +69,7 @@ Cron Trigger (하루 4회)
   → 중복 체크 → 포맷팅 → 게시                                       ✅ 구현됨(runDealBotCycle)
 ```
 
-B1(link-preview-api)과 같은 패턴 — Cloudflare Worker + KV, 무자본. **라이브**: https://nada-company2-coupang-dealbot.tossneon.workers.dev
+B1(link-preview-api)과 같은 패턴 — Cloudflare Worker + KV, 무자본. **라이브**: https://glowhalo7-coupang-dealbot.tossneon.workers.dev
 
 ## 다음 단계
 

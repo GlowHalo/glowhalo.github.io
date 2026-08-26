@@ -101,7 +101,7 @@ export const COMPANIES: Company[] = [
     mode: "op",
   },
 ];
-// (2026-08-19 정리) "newventure"=pixel-ai-office 프로토타입 카드 제거 — 이 nada-group 콘솔이
+// (2026-08-19 정리) "newventure"=pixel-ai-office 프로토타입 카드 제거 — 이 glowhalo-hq 콘솔이
 // 그 프로토타입을 대체한 지 오래고, "자리잡으면 정리 예정"이라고 미뤄뒀던 항목. GlowHalo 개명
 // 작업을 기회로 삼아 제거. pixel-ai-office/ 폴더 자체는 역사 기록으로 남겨둠(삭제 아님).
 
@@ -469,7 +469,7 @@ export type ApprovalItem = {
 export const INITIAL_APPROVALS: ApprovalItem[] = [
   { id: "ap1", companyId: "niche-templates", title: "A2 · 웹스토어 등록 결제", detail: "재현 · 회장 액션 필요", needsChairman: true },
   // ap2(A1 2호 상품 공개)·ap3(A5 스티비 계정 생성)는 2026-08-21 정기점검에서 제거 —
-  // ap2는 이미 실제 KV 상태(nada-group-api)에서 예전에 처리·제거돼 있었고,
+  // ap2는 이미 실제 KV 상태(glowhalo-hq-api)에서 예전에 처리·제거돼 있었고,
   // ap3(스티비 계정)는 2026-08-17에 실제로 가입 완료됐고 A5 자체도 2026-08-12 GlowHalo10으로
   // 이관됐다(hq/가입대기.md, niche-templates/candidates.md 참고). 이 배열은 KV가 비어있을 때만
   // 쓰이는 폴백 시드라 실제 화면엔 이미 반영 안 됐었지만, 재시드 시 되살아나지 않도록 정리.
