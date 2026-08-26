@@ -22,12 +22,28 @@ const STATUS_KEY = "status"; // /status 응답 캐시
 const CRASH_1H = -0.05; // 1시간 -5%
 const CRASH_24H = -0.10; // 전일 종가 대비 -10%
 
+// 업스트림(업비트)이 응답 없이 매달리면 5분 크론이 다음 회차까지 막힐 수 있어 타임아웃을 둔다
+// (2026-08-25 HQ 공지 — Gemini 키 할당량 소진 때 타임아웃 없는 Worker만 100초 넘게 무응답으로
+// 매달린 사건의 점검 대상 목록에 이 파일이 포함됨). 실패하면 tick()의 기존 catch가
+// api_error 이상 징후로 기록하므로 여기선 던지기만 하면 된다.
 async function upbit(path) {
-  const resp = await fetch(`https://api.upbit.com/v1/${path}`, {
-    headers: { Accept: "application/json" },
-  });
-  if (!resp.ok) throw new Error(`upbit ${path} -> HTTP ${resp.status}`);
-  return resp.json();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10_000);
+  try {
+    const resp = await fetch(`https://api.upbit.com/v1/${path}`, {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+    if (!resp.ok) throw new Error(`upbit ${path} -> HTTP ${resp.status}`);
+    return await resp.json();
+  } catch (e) {
+    if (e instanceof Error && e.name === "AbortError") {
+      throw new Error(`upbit ${path} -> 10초 내 무응답(timeout)`);
+    }
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function computeStrategy(candles) {
