@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>개인정보처리방침 — GlowHalo Group</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { margin:0; background:#fbfbfd; color:#1b2233;
+         font-family:system-ui,-apple-system,"Segoe UI","Noto Sans KR",sans-serif;
+         line-height:1.75; }
+  main { max-width:760px; margin:0 auto; padding:56px 22px 96px; }
+  h1 { font-size:1.9rem; margin:0 0 6px; letter-spacing:-.02em; }
+  .sub { color:#5b657d; margin:0 0 40px; font-size:.95rem; }
+  h2 { font-size:1.12rem; margin:38px 0 10px; letter-spacing:-.01em; }
+  p, li { color:#2b3448; }
+  ul { padding-left:20px; }
+  code { background:#eef1f7; padding:1px 6px; border-radius:5px; font-size:.9em; }
+  .box { background:#eef4ff; border:1px solid #cfe0ff; border-radius:10px;
+         padding:16px 18px; margin:26px 0; }
+  footer { margin-top:52px; padding-top:20px; border-top:1px solid #e2e6ef;
+           color:#6b7488; font-size:.88rem; }
+  a { color:#2f6bd8; }
+  @media (prefers-color-scheme: dark) {
+    body { background:#12151c; color:#e6e9f0; }
+    p, li { color:#cdd3df; }
+    .sub, footer { color:#98a1b5; }
+    code { background:#232935; }
+    .box { background:#182234; border-color:#2b3a55; }
+    footer { border-top-color:#252b36; }
+    a { color:#7aa9f7; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>개인정보처리방침</h1>
+  <p class="sub">GlowHalo Group 내부 자동화 도구 · 최종 갱신 2026-08-28</p>
+
+  <div class="box">
+    <strong>이 방침이 적용되는 대상</strong><br>
+    GlowHalo Group이 자체 업무용으로 운영하는 내부 자동화 도구(<code>GlowHalo Drive</code> 등)입니다.
+    일반에 배포하거나 판매하지 않으며, 운영자 본인의 계정 데이터만 다룹니다.
+  </div>
+
+  <h2>1. 수집하는 정보</h2>
+  <p>
+    이 도구는 <strong>운영자가 직접 인증한 본인의 Google 계정</strong>에 한해,
+    Google Drive API의 <code>drive.file</code> 범위로 접근합니다. 이 범위는
+    <strong>이 도구가 직접 만든 파일</strong>과 운영자가 이 도구로 여는 파일에만 접근할 수 있으며,
+    드라이브 전체를 열람하지 않습니다.
+  </p>
+  <ul>
+    <li>업무 파일(영상 프로젝트, 문서, 이미지 등)의 내용과 파일명</li>
+    <li>인증에 필요한 토큰</li>
+  </ul>
+  <p>이름·연락처·결제정보 등 별도의 개인정보를 수집하지 않으며, 제3자로부터 정보를 제공받지 않습니다.</p>
+
+  <h2>2. 이용 목적</h2>
+  <p>
+    업무 자동화에만 사용합니다 — 작업 파일을 읽어 검수하고, 결과물을 저장하는 용도입니다.
+    광고, 프로파일링, 통계 판매 등 다른 목적에 사용하지 않습니다.
+  </p>
+
+  <h2>3. 제3자 제공 및 판매</h2>
+  <p>
+    <strong>어떤 데이터도 제3자에게 제공하거나 판매하지 않습니다.</strong>
+    Google Drive API로 얻은 정보는 광고 목적으로 사용하지 않으며,
+    <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API 서비스 사용자 데이터 정책</a>의
+    제한적 사용 요건을 준수합니다.
+  </p>
+
+  <h2>4. 보관 및 파기</h2>
+  <p>
+    파일은 운영자 본인의 Google Drive에 그대로 남으며, 처리 과정에서 만들어진 임시 사본은
+    작업이 끝나면 삭제됩니다. 인증 토큰은 접근이 통제된 자체 보관소에 저장하고,
+    운영자가 권한을 해제하면 즉시 무효화됩니다.
+  </p>
+
+  <h2>5. 권한 해제</h2>
+  <p>
+    운영자는 언제든 <a href="https://myaccount.google.com/permissions">Google 계정 권한 관리</a>에서
+    이 도구의 접근 권한을 철회할 수 있습니다. 철회 즉시 모든 접근이 중단됩니다.
+  </p>
+
+  <h2>6. 보안</h2>
+  <p>
+    모든 통신은 HTTPS로 이루어지며, 인증 정보는 코드나 공개 저장소에 포함하지 않고
+    별도의 접근 통제된 보관소에서만 관리합니다.
+  </p>
+
+  <h2>7. 문의</h2>
+  <p>개인정보 관련 문의: <a href="mailto:help@glowhalo.org">help@glowhalo.org</a></p>
+
+  <footer>
+    GlowHalo Group · <a href="https://glowhalo.github.io/">glowhalo.github.io</a>
+  </footer>
+</main>
+</body>
+</html>
